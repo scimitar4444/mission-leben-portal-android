@@ -1,7 +1,6 @@
 package de.missionleben.portal.auth
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.util.Base64
 import de.missionleben.portal.BuildConfig
@@ -23,10 +22,11 @@ import java.net.URLEncoder
 
 class AuthRepository(context: Context) {
     private val authorizationService = AuthorizationService(context)
+    private var pendingAuthorizationRequest: AuthorizationRequest? = null
 
-    fun createAuthorizationIntent(
+    fun createAuthorizationUrl(
         mode: DeviceMode,
-        onSuccess: (Intent) -> Unit,
+        onSuccess: (String) -> Unit,
         onError: (String) -> Unit,
     ) {
         AuthorizationServiceConfiguration.fetchFromIssuer(Uri.parse(BuildConfig.OIDC_ISSUER)) { configuration, error ->
@@ -51,19 +51,35 @@ class AuthRepository(context: Context) {
 
             // A shared tablet must never silently inherit the preceding employee's session.
             if (mode == DeviceMode.SHARED) requestBuilder.setPrompt("login")
-            onSuccess(authorizationService.getAuthorizationRequestIntent(requestBuilder.build()))
+            val request = requestBuilder.build()
+            pendingAuthorizationRequest = request
+            onSuccess(request.toUri().toString())
         }
     }
 
     fun completeAuthorization(
-        data: Intent,
+        redirectUri: Uri,
         onSuccess: (String) -> Unit,
         onError: (String) -> Unit,
     ) {
-        val response = AuthorizationResponse.fromIntent(data)
-        val authorizationError = AuthorizationException.fromIntent(data)
-        if (response == null) {
-            onError(authorizationError?.errorDescription ?: "Anmeldung wurde abgebrochen.")
+        val request = pendingAuthorizationRequest
+        pendingAuthorizationRequest = null
+        if (request == null) {
+            onError("Die Anmeldung ist abgelaufen. Bitte erneut anmelden.")
+            return
+        }
+        val authorizationError = AuthorizationException.fromOAuthRedirect(redirectUri)
+        if (authorizationError != null) {
+            onError(authorizationError.errorDescription ?: "Anmeldung wurde abgebrochen.")
+            return
+        }
+        val response = runCatching { AuthorizationResponse.Builder(request).fromUri(redirectUri).build() }
+            .getOrElse {
+                onError("Die Antwort von Authentik ist ungültig.")
+                return
+            }
+        if (response.state != request.state) {
+            onError("Die Anmeldung konnte nicht eindeutig zugeordnet werden.")
             return
         }
 

@@ -1,7 +1,6 @@
 package de.missionleben.portal
 
 import android.app.Application
-import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -85,10 +84,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    fun createLoginIntent(onSuccess: (Intent) -> Unit) {
+    fun createLoginUrl(onSuccess: (String) -> Unit) {
         val mode = _uiState.value.mode ?: return
         _uiState.update { it.copy(busy = true, message = null) }
-        authRepository.createAuthorizationIntent(
+        authRepository.createAuthorizationUrl(
             mode = mode,
             onSuccess = {
                 _uiState.update { state -> state.copy(busy = false) }
@@ -98,14 +97,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    fun completeAuthorization(data: Intent?) {
-        if (data == null) {
+    fun completeAuthorization(redirectUri: Uri?) {
+        if (redirectUri == null) {
             _uiState.update { it.copy(message = "Anmeldung wurde abgebrochen.") }
             return
         }
         _uiState.update { it.copy(busy = true, message = null) }
         authRepository.completeAuthorization(
-            data = data,
+            redirectUri = redirectUri,
             onSuccess = { serialized ->
                 serializedAuthState = serialized
                 val user = authRepository.identityFrom(serialized)

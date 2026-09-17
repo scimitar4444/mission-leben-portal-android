@@ -16,6 +16,8 @@ val oidcClientId = providers.gradleProperty("ML_OIDC_CLIENT_ID")
     .orElse("mission-leben-android")
 val deviceServiceBaseUrl = providers.gradleProperty("ML_DEVICE_SERVICE_BASE_URL")
     .orElse("")
+val webAllowedHostSuffixes = providers.gradleProperty("ML_WEB_ALLOWED_HOST_SUFFIXES")
+    .orElse("mission-leben.de")
 
 android {
     namespace = "de.missionleben.portal"
@@ -25,11 +27,13 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders["appAuthRedirectScheme"] = "de.missionleben.portal"
+        // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
+        // cannot compete with the app's enrollment deep links.
+        manifestPlaceholders["appAuthRedirectScheme"] = "de.missionleben.portal.appauth"
 
         buildConfigField("String", "AUTHENTIK_BASE_URL", authentikBaseUrl.get().asBuildConfigString())
         buildConfigField("String", "OIDC_ISSUER", oidcIssuer.get().asBuildConfigString())
@@ -37,6 +41,7 @@ android {
         buildConfigField("String", "OIDC_REDIRECT_URI", "de.missionleben.portal:/oauth2redirect".asBuildConfigString())
         buildConfigField("String", "PORTAL_URL", "${authentikBaseUrl.get()}/if/user/".asBuildConfigString())
         buildConfigField("String", "DEVICE_SERVICE_BASE_URL", deviceServiceBaseUrl.get().asBuildConfigString())
+        buildConfigField("String", "WEB_ALLOWED_HOST_SUFFIXES", webAllowedHostSuffixes.get().asBuildConfigString())
     }
 
     buildFeatures {
@@ -68,10 +73,13 @@ dependencies {
 
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.biometric:biometric:1.1.0")
-    implementation("androidx.browser:browser:1.9.0")
+    implementation("androidx.browser:browser:1.10.0")
+    implementation("androidx.credentials:credentials:1.6.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+    implementation("androidx.webkit:webkit:1.17.0")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
