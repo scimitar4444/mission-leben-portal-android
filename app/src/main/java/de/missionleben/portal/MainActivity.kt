@@ -1,14 +1,12 @@
 package de.missionleben.portal
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,6 +15,7 @@ import androidx.fragment.app.FragmentActivity
 import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.ui.MissionLebenApp
 import de.missionleben.portal.ui.MissionLebenTheme
+import de.missionleben.portal.web.PortalBrowserActivity
 
 class MainActivity : FragmentActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -24,7 +23,7 @@ class MainActivity : FragmentActivity() {
     private val authorizationLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
-        viewModel.completeAuthorization(result.data)
+        viewModel.completeAuthorization(result.data?.data)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,14 +38,30 @@ class MainActivity : FragmentActivity() {
                 }
                 MissionLebenApp(
                     state = state,
-                    onSelectMode = viewModel::selectMode,
-                    onStartLogin = { viewModel.createLoginIntent(authorizationLauncher::launch) },
+                    onSelectMode = { mode ->
+                        PortalBrowserActivity.clearLocalWebData(this@MainActivity) {
+                            viewModel.selectMode(mode)
+                        }
+                    },
+                    onStartLogin = {
+                        state.mode?.let { mode ->
+                            viewModel.createLoginUrl { url ->
+                                authorizationLauncher.launch(
+                                    PortalBrowserActivity.authorizationIntent(this@MainActivity, url, mode),
+                                )
+                            }
+                        }
+                    },
                     onOpenUrl = ::openUrl,
                     onReloadApplications = viewModel::loadApplications,
                     onEnrollDevice = viewModel::enrollDevice,
                     onOpenTalk = viewModel::openTalkOn,
-                    onLogout = { viewModel.logout(::openUrl) },
-                    onResetProfile = viewModel::resetProfile,
+                    onLogout = { viewModel.logout(::openLogout) },
+                    onResetProfile = {
+                        PortalBrowserActivity.clearLocalWebData(this@MainActivity) {
+                            viewModel.resetProfile()
+                        }
+                    },
                     onDismissMessage = viewModel::clearMessage,
                 )
             }
@@ -60,14 +75,11 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun openUrl(url: String) {
-        runCatching {
-            CustomTabsIntent.Builder()
-                .setShowTitle(true)
-                .build()
-                .launchUrl(this, Uri.parse(url))
-        }.onFailure {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-        }
+        startActivity(PortalBrowserActivity.appIntent(this, url))
+    }
+
+    private fun openLogout(url: String) {
+        startActivity(PortalBrowserActivity.logoutIntent(this, url))
     }
 
     private fun handleVaultRequest(request: VaultRequest) {

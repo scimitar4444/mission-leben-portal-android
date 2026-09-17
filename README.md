@@ -9,6 +9,11 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - Anmeldung über Authentik mit OAuth 2.0 Authorization Code + PKCE
 - TOTP-zuerst-Flow aus der bestehenden Authentik-Konfiguration wird unverändert verwendet
 - sichtbare Web-Apps werden live aus `/api/v3/core/applications/` geladen
+- Zimbra, Nextcloud, Talk und Vaultwarden laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung
+- der Browsermotor wird über Android System WebView unabhängig von der APK aktualisiert
+- nur konfigurierte HTTPS-Domains dürfen im Container laden; fremde Links wechseln in den Systembrowser
+- Talk erhält Kamera und Mikrofon nur nach Android-Freigabe und nur auf erlaubten Domains
+- Cookies, Webspeicher, HTTP-Zugangsdaten, Cache und geschützte Downloads werden bei sicherer Abmeldung oder Profilwechsel gelöscht
 - persönliche Geräte: Refresh Token wird mit einem zufälligen Datenschlüssel verschlüsselt; nur Biometrie oder Gerätecode kann diesen Schlüssel über Android Keystore freigeben
 - Shared Tablets: kein Refresh Token und keine persistente Mitarbeitersitzung
 - nicht exportierbare P-256-Geräteidentität im Android Keystore
@@ -26,7 +31,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 | `offline_access` angefordert | kein `offline_access` |
 | Sitzung verschlüsselt gespeichert | Sitzung nur im Arbeitsspeicher |
 | Biometrie oder Gerätecode öffnet lokalen Tresor | Benutzer meldet sich jedes Mal über Authentik an |
-| User-Offboarding widerruft Refresh Token | Gerätefreigabe kann separat gesperrt werden |
+| zentrale Kontosperre beendet weiteren Zugriff; lokale Webdaten werden bei sicherer Abmeldung/Profilwechsel entfernt | Gerätefreigabe kann separat gesperrt werden; vor jeder neuen Anmeldung werden Webdaten entfernt |
 
 Biometrie ersetzt nicht das Authentik-Passwort. Sie gibt ausschließlich eine bereits durch Passwort und TOTP aufgebaute lokale Sitzung frei.
 
@@ -53,9 +58,12 @@ ML_AUTHENTIK_BASE_URL=https://id.mission-leben.de
 ML_OIDC_ISSUER=https://id.mission-leben.de/application/o/mission-leben-portal/
 ML_OIDC_CLIENT_ID=mission-leben-android
 ML_DEVICE_SERVICE_BASE_URL=https://device.mission-leben.de
+ML_WEB_ALLOWED_HOST_SUFFIXES=mission-leben.de
 ```
 
 `ML_DEVICE_SERVICE_BASE_URL` bleibt standardmäßig leer. Dann funktionieren Authentik-Anmeldung und App-Portal, die Geräteregistrierung und Talk-Übergabe werden aber als noch nicht konfiguriert angezeigt.
+
+`ML_WEB_ALLOWED_HOST_SUFFIXES` ist eine kommaseparierte Liste kontrollierter Domain-Endungen. Standardmäßig dürfen ausschließlich `mission-leben.de` und dessen Subdomains im In-App-Webcontainer laufen. SaaS- oder Fremdlinks öffnen außerhalb des Containers.
 
 Die Authentik-Seite ist in [docs/AUTHENTIK_SETUP.md](docs/AUTHENTIK_SETUP.md) beschrieben.
 
@@ -68,9 +76,11 @@ app/
   device/     Enrollment und sicherer Geräte-Link-Kanal
   security/   Android Keystore, Geräteidentität, Biometrie-Tresor
   ui/         Jetpack-Compose-Oberfläche
+  web/        gehärteter WebView-Container und Domainregeln
 docs/
   AUTHENTIK_SETUP.md
   DEVICE_SERVICE_API.md
+  NOTIFICATIONS.md
   THREAT_MODEL.md
 ```
 

@@ -44,6 +44,12 @@ Scopes:
 
 Die Anwendung sollte dieselbe aktive-Benutzer-Policy verwenden wie das Portal. Zusätzliche App-Zugriffe werden nicht in der Android-App gepflegt; maßgeblich bleiben die bestehenden Authentik-Policies.
 
+### Passkeys im Webcontainer
+
+TOTP bleibt bei einem neuen Konto der erste Einrichtungsweg. Damit später ergänzte Passkeys im WebView funktionieren, muss `https://id.mission-leben.de/.well-known/assetlinks.json` das Paket `de.missionleben.portal` und den SHA-256-Fingerabdruck des endgültigen Release-Signierschlüssels enthalten. Ein Debug-Schlüssel darf nicht als Produktionsvertrauen eingetragen werden.
+
+Die App aktiviert die native WebAuthn-/Credential-Manager-Unterstützung, sobald der installierte Android-System-WebView-Anbieter diese Funktion bereitstellt. Ohne diese Funktion bleibt die Anmeldung mit Passwort und TOTP möglich.
+
 ## 2. App-Liste
 
 Die App ruft auf:
@@ -63,9 +69,17 @@ Die App widerruft Access- und Refresh Token über:
 /application/o/revoke/
 ```
 
-und öffnet zusätzlich den Provider-spezifischen End-Session-Endpunkt im Systembrowser. Auf Shared Tablets ist die Schaltfläche „Sitzung sicher beenden“ bewusst besonders sichtbar.
+und öffnet zusätzlich den Provider-spezifischen End-Session-Endpunkt im geschützten Webcontainer. Anschließend werden dessen Cookies, Webspeicher, HTTP-Zugangsdaten, Cache und geschützte Downloads entfernt. Auf Shared Tablets ist die Schaltfläche „Sitzung sicher beenden“ bewusst besonders sichtbar; vor jeder neuen Shared-Anmeldung erfolgt zusätzlich eine Löschung.
 
-## 4. Endpoint Devices
+Die Anmeldung selbst läuft ebenfalls in diesem Container. Dadurch teilen Authentik, Zimbra, Nextcloud/Talk und Vaultwarden eine kontrollierbare Browsersitzung. Der Client verwendet weiterhin Authorization Code mit PKCE; das OIDC-Token wird nicht in Webseiten injiziert.
+
+## 4. WebView-Betrieb
+
+Der Browsermotor ist Android System WebView und wird nicht in die APK eingebettet. Für verwaltete Geräte muss die Geräteverwaltung automatische Play-System-/WebView-Updates erzwingen und Geräte ohne aktiven WebView-Anbieter sperren. Die App verweigert den Start des Containers, wenn Android keinen Anbieter meldet.
+
+Top-Level-Navigationen innerhalb der App werden auf HTTPS und die Build-Einstellung `ML_WEB_ALLOWED_HOST_SUFFIXES` beschränkt. Standard ist `mission-leben.de`; weitere intern kontrollierte Domain-Endungen werden kommasepariert ergänzt. Fremde HTTPS-, `mailto:`- und `tel:`-Links öffnen außerhalb des Containers.
+
+## 5. Endpoint Devices
 
 Authentik Endpoint Devices ist in 2026.8 weiterhin Early Preview und der offizielle Agent unterstützt Linux, macOS und Windows, nicht Android. Das Projekt spricht deshalb nicht unautorisiert interne Agent-Protokolle nach.
 
@@ -80,7 +94,7 @@ Der vorgesehene Device Service übernimmt:
 
 Der Vertrag ist in `DEVICE_SERVICE_API.md` festgelegt. Sobald Authentik einen stabilen Android-Agenten veröffentlicht, kann diese Implementierung ausgetauscht werden, ohne OIDC oder UI neu zu bauen.
 
-## 5. Policy-Grundsätze
+## 6. Policy-Grundsätze
 
 - TOTP bleibt der Standard; nur ein explizit freigegebenes Gerät darf eine Ausnahme auslösen.
 - Shared-Gerät: Device Trust kann den Gerätefaktor erfüllen, aber es wird niemals ein Benutzer dauerhaft gebunden.
