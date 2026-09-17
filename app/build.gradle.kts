@@ -18,6 +18,10 @@ val deviceServiceBaseUrl = providers.gradleProperty("ML_DEVICE_SERVICE_BASE_URL"
     .orElse("")
 val webAllowedHostSuffixes = providers.gradleProperty("ML_WEB_ALLOWED_HOST_SUFFIXES")
     .orElse("mission-leben.de")
+val firebaseApplicationId = providers.gradleProperty("ML_FIREBASE_APPLICATION_ID").orElse("")
+val firebaseApiKey = providers.gradleProperty("ML_FIREBASE_API_KEY").orElse("")
+val firebaseProjectId = providers.gradleProperty("ML_FIREBASE_PROJECT_ID").orElse("")
+val firebaseSenderId = providers.gradleProperty("ML_FIREBASE_SENDER_ID").orElse("")
 
 android {
     namespace = "de.missionleben.portal"
@@ -27,8 +31,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
@@ -42,6 +46,10 @@ android {
         buildConfigField("String", "PORTAL_URL", "${authentikBaseUrl.get()}/if/user/".asBuildConfigString())
         buildConfigField("String", "DEVICE_SERVICE_BASE_URL", deviceServiceBaseUrl.get().asBuildConfigString())
         buildConfigField("String", "WEB_ALLOWED_HOST_SUFFIXES", webAllowedHostSuffixes.get().asBuildConfigString())
+        buildConfigField("String", "FIREBASE_APPLICATION_ID", firebaseApplicationId.get().asBuildConfigString())
+        buildConfigField("String", "FIREBASE_API_KEY", firebaseApiKey.get().asBuildConfigString())
+        buildConfigField("String", "FIREBASE_PROJECT_ID", firebaseProjectId.get().asBuildConfigString())
+        buildConfigField("String", "FIREBASE_SENDER_ID", firebaseSenderId.get().asBuildConfigString())
     }
 
     buildFeatures {
@@ -86,6 +94,10 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("net.openid:appauth:0.11.1")
+
+    val firebaseBom = platform("com.google.firebase:firebase-bom:34.19.0")
+    implementation(firebaseBom)
+    implementation("com.google.firebase:firebase-messaging")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")

@@ -8,6 +8,7 @@
 - Trust-Status gemeinsamer Tablets
 - Liste der für einen Benutzer freigegebenen Anwendungen und Geräte
 - Talk-Raumtoken während einer Übergabe
+- Firebase-Installations-ID und ihre Benutzer-/Gerätezuordnung
 
 ## Wesentliche Gegenmaßnahmen
 
@@ -25,6 +26,9 @@
 | Webseite greift unbemerkt auf Kamera/Mikrofon zu | nur explizit bekannte WebRTC-Ressourcen, erlaubte HTTPS-Origin und Android-Laufzeitfreigabe |
 | vorheriger Benutzer hinterlässt Browserdaten | Cookie-Speicher, DOM-/Webspeicher, HTTP-Zugangsdaten, Cache, Formulardaten und App-Downloads werden bei Abmeldung/Profilwechsel gelöscht |
 | veraltete Browserengine | Android System WebView wird separat aktualisiert; MDM muss Updates erzwingen und veraltete Geräte sperren |
+| Push schleust Text oder Schad-URL ein | App akzeptiert nur vier typisierte Aktionen, ignoriert Servertexte und öffnet ausschließlich eine passende Authentik-App |
+| FCM-Zuordnung bleibt nach Abmeldung aktiv | App löscht die Zuordnung bestmöglich am Device Service; Server sperrt sie zusätzlich bei Offboarding oder Gerätesperre |
+| Firebase-Dienstkonto wird kompromittiert | Dienstkonto nur im Server-Secret-Store, minimale Berechtigung, kein Schlüssel in Repository oder APK; Versand und Gerätezuordnung auditieren |
 
 ## Bewusste MVP-Grenzen
 

@@ -16,7 +16,7 @@ Content-Type: application/json
   "device_name": "Google Pixel Tablet",
   "platform": "android",
   "os_version": "13",
-  "app_version": "0.1.0",
+  "app_version": "0.3.0",
   "key_id": "…",
   "public_key_jwk": {
     "kty": "EC",
@@ -59,6 +59,41 @@ Authorization: Bearer <authentik-user-access-token>
 ```
 
 Der Server validiert das Authentik-Token und wertet die Geräte-/Benutzerbindungen aus. Die App darf keine vollständige globale Geräteliste erhalten.
+
+## FCM-Installation einem Gerät zuordnen
+
+```http
+PUT /v1/push/registrations/c8af2e31-…
+Authorization: Bearer <authentik-user-access-token>
+Content-Type: application/json
+
+{
+  "provider": "fcm",
+  "installation_id": "…",
+  "mode": "personal",
+  "app_version": "0.3.0"
+}
+```
+
+Der Server muss das Authentik-Token prüfen und sicherstellen, dass Benutzer, `device_id` und Gerätefreigabe zusammengehören. Der Endpunkt ist idempotent. Die Installations-ID wird verschlüsselt gespeichert, niemals protokolliert und bei Änderung atomar ersetzt.
+
+Bei Abmeldung oder Profil-Reset:
+
+```http
+DELETE /v1/push/registrations/c8af2e31-…
+Authorization: Bearer <authentik-user-access-token>
+```
+
+Die Löschung ist ebenfalls idempotent. Der Server entfernt eine Zuordnung nur, wenn sie zum authentifizierten Benutzer und Gerät gehört. Offboarding und Gerätesperre löschen die Zuordnung unabhängig davon serverseitig.
+
+Vor jedem Versand prüft der Device Service erneut:
+
+- Benutzerkonto aktiv,
+- Gerät freigegeben und nicht gesperrt,
+- registrierte Installations-ID gehört noch zu dieser Bindung,
+- Aktion ist exakt `open_mail`, `open_calendar`, `open_talk` oder `refresh_security_state`.
+
+Es werden ausschließlich FCM Data Messages mit `data.action` versandt. Ein `notification`-Block, freie URL, Betreff, Absender oder Gesprächsinhalt ist unzulässig.
 
 ## Talk öffnen
 

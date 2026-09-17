@@ -1,6 +1,11 @@
 package de.missionleben.portal
 
+import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,12 +18,29 @@ import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import de.missionleben.portal.model.VaultRequest
+import de.missionleben.portal.push.PortalFirebaseMessagingService
+import de.missionleben.portal.push.PushManager
+import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.ui.MissionLebenApp
 import de.missionleben.portal.ui.MissionLebenTheme
 import de.missionleben.portal.web.PortalBrowserActivity
 
 class MainActivity : FragmentActivity() {
     private val viewModel: MainViewModel by viewModels()
+
+    private val pushRegistrationReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == PortalFirebaseMessagingService.ACTION_REGISTRATION_CHANGED) {
+                viewModel.syncPushRegistration()
+            }
+        }
+    }
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) PushManager.register()
+    }
 
     private val authorizationLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -29,12 +51,22 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.acceptEnrollmentLink(intent?.data)
+        viewModel.acceptPushAction(intent?.getStringExtra(PortalFirebaseMessagingService.EXTRA_PUSH_ACTION))
 
         setContent {
             MissionLebenTheme {
                 val state by viewModel.uiState.collectAsState()
                 LaunchedEffect(state.vaultRequest) {
                     if (state.vaultRequest != VaultRequest.NONE) handleVaultRequest(state.vaultRequest)
+                }
+                LaunchedEffect(state.signedIn, state.mode) {
+                    requestNotificationPermissionAfterLogin(state.signedIn)
+                }
+                LaunchedEffect(state.requestedUrl) {
+                    state.requestedUrl?.let {
+                        viewModel.consumeRequestedUrl()
+                        openUrl(it)
+                    }
                 }
                 MissionLebenApp(
                     state = state,
@@ -72,6 +104,34 @@ class MainActivity : FragmentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         viewModel.acceptEnrollmentLink(intent.data)
+        viewModel.acceptPushAction(intent.getStringExtra(PortalFirebaseMessagingService.EXTRA_PUSH_ACTION))
+    }
+
+    override fun onStart() {
+        super.onStart()
+        ContextCompat.registerReceiver(
+            this,
+            pushRegistrationReceiver,
+            IntentFilter(PortalFirebaseMessagingService.ACTION_REGISTRATION_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+    }
+
+    override fun onStop() {
+        unregisterReceiver(pushRegistrationReceiver)
+        super.onStop()
+    }
+
+    private fun requestNotificationPermissionAfterLogin(signedIn: Boolean) {
+        if (!signedIn || !PushManager.configured) return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            PushManager.register()
+            return
+        }
+        val store = PushRegistrationStore(this)
+        if (store.permissionWasRequested) return
+        store.permissionWasRequested = true
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
     private fun openUrl(url: String) {
