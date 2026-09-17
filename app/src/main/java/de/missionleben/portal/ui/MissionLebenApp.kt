@@ -1,0 +1,455 @@
+package de.missionleben.portal.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import de.missionleben.portal.BuildConfig
+import de.missionleben.portal.model.DeviceMode
+import de.missionleben.portal.model.EnrollmentState
+import de.missionleben.portal.model.LinkTarget
+import de.missionleben.portal.model.PortalApplication
+import de.missionleben.portal.model.UiState
+
+@Composable
+fun MissionLebenApp(
+    state: UiState,
+    onSelectMode: (DeviceMode) -> Unit,
+    onStartLogin: () -> Unit,
+    onOpenUrl: (String) -> Unit,
+    onReloadApplications: () -> Unit,
+    onEnrollDevice: (String) -> Unit,
+    onOpenTalk: (String, String) -> Unit,
+    onLogout: () -> Unit,
+    onResetProfile: () -> Unit,
+    onDismissMessage: () -> Unit,
+) {
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        if (state.mode == null) {
+            Onboarding(onSelectMode)
+        } else {
+            Home(
+                state = state,
+                onStartLogin = onStartLogin,
+                onOpenUrl = onOpenUrl,
+                onReloadApplications = onReloadApplications,
+                onEnrollDevice = onEnrollDevice,
+                onOpenTalk = onOpenTalk,
+                onLogout = onLogout,
+                onResetProfile = onResetProfile,
+                onDismissMessage = onDismissMessage,
+            )
+        }
+    }
+}
+
+@Composable
+private fun Onboarding(onSelectMode: (DeviceMode) -> Unit) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 34.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        item { BrandHeader() }
+        item {
+            Spacer(Modifier.height(8.dp))
+            Text("Ein Portal. Alle Anwendungen.", fontSize = 32.sp, lineHeight = 36.sp, fontWeight = FontWeight.Black)
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "Melde dich sicher über Authentik an und starte genau die Web-Apps, die für dich freigegeben sind.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        item {
+            ModeCard(
+                eyebrow = "FÜR MITARBEITENDE",
+                title = "Mein persönliches Gerät",
+                description = "Erste Anmeldung mit Passwort und TOTP. Danach schützt Biometrie oder dein Gerätecode die lokale Sitzung.",
+                action = "Persönlich einrichten",
+                accent = Coral,
+                onClick = { onSelectMode(DeviceMode.PERSONAL) },
+            )
+        }
+        item {
+            ModeCard(
+                eyebrow = "FÜR HÄUSER UND BEREICHE",
+                title = "Gemeinsam genutztes Tablet",
+                description = "Das Tablet erhält eine eigene Geräteidentität. Mitarbeiter-Sitzungen werden niemals dauerhaft gespeichert.",
+                action = "Shared Tablet einrichten",
+                accent = Ink,
+                onClick = { onSelectMode(DeviceMode.SHARED) },
+            )
+        }
+        item {
+            Text(
+                "Voraussetzung: Android 13 oder neuer",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ModeCard(
+    eyebrow: String,
+    title: String,
+    description: String,
+    action: String,
+    accent: Color,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(22.dp),
+    ) {
+        Column(Modifier.padding(22.dp)) {
+            Text(eyebrow, color = accent, fontWeight = FontWeight.ExtraBold, fontSize = 11.sp, letterSpacing = 1.1.sp)
+            Spacer(Modifier.height(8.dp))
+            Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(8.dp))
+            Text(description, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(18.dp))
+            Button(onClick = onClick, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
+                Text(action)
+            }
+        }
+    }
+}
+
+@Composable
+private fun Home(
+    state: UiState,
+    onStartLogin: () -> Unit,
+    onOpenUrl: (String) -> Unit,
+    onReloadApplications: () -> Unit,
+    onEnrollDevice: (String) -> Unit,
+    onOpenTalk: (String, String) -> Unit,
+    onLogout: () -> Unit,
+    onResetProfile: () -> Unit,
+    onDismissMessage: () -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        item { BrandHeader() }
+        state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
+        item { WelcomePanel(state, onStartLogin, onLogout) }
+        item { DevicePanel(state, onEnrollDevice) }
+
+        if (state.signedIn) {
+            item {
+                SectionTitle(
+                    title = "Meine Web-Apps",
+                    subtitle = "Direkt aus deinen Authentik-Freigaben",
+                    action = "Aktualisieren",
+                    onAction = onReloadApplications,
+                )
+            }
+            if (state.applicationsLoading) {
+                item {
+                    Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Coral)
+                    }
+                }
+            } else if (state.applications.isEmpty()) {
+                item { EmptyApps(onOpenUrl) }
+            } else {
+                items((state.applications.size + 1) / 2) { rowIndex ->
+                    val first = state.applications[rowIndex * 2]
+                    val second = state.applications.getOrNull(rowIndex * 2 + 1)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        AppTile(first, Modifier.weight(1f), onOpenUrl)
+                        if (second != null) AppTile(second, Modifier.weight(1f), onOpenUrl) else Spacer(Modifier.weight(1f))
+                    }
+                }
+            }
+            item { TalkHandoffPanel(state, onOpenTalk) }
+        }
+
+        item {
+            HorizontalDivider(Modifier.padding(top = 8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Version ${BuildConfig.VERSION_NAME}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                TextButton(onClick = onResetProfile) { Text("Geräteprofil wechseln") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BrandHeader() {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(13.dp)).background(Ink),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("M", color = Coral, fontWeight = FontWeight.Black, fontSize = 24.sp)
+        }
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text("MISSION LEBEN", fontWeight = FontWeight.Black, letterSpacing = 1.2.sp)
+            Text("PORTAL", color = Coral, fontWeight = FontWeight.ExtraBold, fontSize = 11.sp, letterSpacing = 2.sp)
+        }
+    }
+}
+
+@Composable
+private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Ink),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(22.dp)) {
+            Text(state.mode?.label.orEmpty(), color = Color(0xFFFFA1A7), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                if (state.signedIn) "Hallo, ${state.user?.displayName.orEmpty()}" else "Sicher anmelden",
+                color = Color.White,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                when {
+                    state.signedIn && state.mode == DeviceMode.PERSONAL && state.quickUnlockEnabled ->
+                        "Deine Sitzung ist mit dem Android-Keystore geschützt."
+                    state.signedIn && state.mode == DeviceMode.SHARED ->
+                        "Diese Anmeldung wird auf dem Tablet nicht gespeichert. Bitte danach abmelden."
+                    state.mode == DeviceMode.PERSONAL ->
+                        "Beim ersten Mal: Benutzername, Passwort und TOTP. Danach genügt Biometrie oder Gerätecode."
+                    else -> "Jede Person meldet sich separat an. Auf diesem Tablet bleibt kein persönlicher Token zurück."
+                },
+                color = Color(0xFFD7CFDD),
+            )
+            Spacer(Modifier.height(18.dp))
+            if (state.signedIn) {
+                OutlinedButton(onClick = onLogout, enabled = !state.busy) {
+                    Text(if (state.mode == DeviceMode.SHARED) "Sitzung sicher beenden" else "Abmelden", color = Color.White)
+                }
+            } else {
+                Button(onClick = onStartLogin, enabled = !state.busy) {
+                    if (state.busy) {
+                        CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                    } else {
+                        Text("Mit Authentik anmelden")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DevicePanel(state: UiState, onEnrollDevice: (String) -> Unit) {
+    var token by remember { mutableStateOf(state.enrollmentTokenPrefill) }
+    LaunchedEffect(state.enrollmentTokenPrefill) {
+        if (state.enrollmentTokenPrefill.isNotBlank()) token = state.enrollmentTokenPrefill
+    }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("Geräteidentität", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                    Text("Schlüssel ${state.deviceKeyId.take(12)}…", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                }
+                StatusPill(state.enrollmentState)
+            }
+            if (state.enrollmentState == EnrollmentState.NOT_ENROLLED) {
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    if (state.deviceServiceConfigured) "Enrollment-Code aus der Authentik-Geräteverwaltung eingeben."
+                    else "Die Geräte-API ist im Build noch nicht konfiguriert. Details stehen in docs/AUTHENTIK_SETUP.md.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                if (state.deviceServiceConfigured) {
+                    Spacer(Modifier.height(10.dp))
+                    OutlinedTextField(
+                        value = token,
+                        onValueChange = { token = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Enrollment-Code") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Button(onClick = { onEnrollDevice(token) }, enabled = !state.busy) { Text("Gerät registrieren") }
+                }
+            } else if (state.deviceId != null) {
+                Spacer(Modifier.height(10.dp))
+                Text("Geräte-ID ${state.deviceId}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusPill(state: EnrollmentState) {
+    val (label, color) = when (state) {
+        EnrollmentState.NOT_ENROLLED -> "Nicht registriert" to MaterialTheme.colorScheme.onSurfaceVariant
+        EnrollmentState.PENDING -> "Freigabe offen" to Color(0xFFAD6800)
+        EnrollmentState.TRUSTED -> "Vertrauenswürdig" to Success
+        EnrollmentState.BLOCKED -> "Gesperrt" to MaterialTheme.colorScheme.error
+    }
+    Surface(color = color.copy(alpha = 0.12f), shape = CircleShape) {
+        Text(label, color = color, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun SectionTitle(title: String, subtitle: String, action: String, onAction: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
+        Column {
+            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        }
+        TextButton(onClick = onAction) { Text(action) }
+    }
+}
+
+@Composable
+private fun AppTile(application: PortalApplication, modifier: Modifier, onOpenUrl: (String) -> Unit) {
+    Card(
+        modifier = modifier.height(142.dp).clickable { onOpenUrl(application.launchUrl) },
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Box(Modifier.size(38.dp).clip(CircleShape).background(Lavender), contentAlignment = Alignment.Center) {
+                Text(application.name.take(1).uppercase(), color = CoralDark, fontWeight = FontWeight.Black)
+            }
+            Spacer(Modifier.height(12.dp))
+            Text(application.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (application.publisher.isNotBlank()) {
+                Text(application.publisher, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, maxLines = 1)
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyApps(onOpenUrl: (String) -> Unit) {
+    Card(shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(20.dp)) {
+            Text("Noch keine Anwendungen geladen", fontWeight = FontWeight.Bold)
+            Text("Öffne alternativ das originale Authentik-Portal.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TextButton(onClick = { onOpenUrl(BuildConfig.PORTAL_URL) }) { Text("Authentik-Portal öffnen") }
+        }
+    }
+}
+
+@Composable
+private fun TalkHandoffPanel(state: UiState, onOpenTalk: (String, String) -> Unit) {
+    if (!state.deviceServiceConfigured) return
+    var talkUrl by remember { mutableStateOf("") }
+    var selected by remember { mutableStateOf<LinkTarget?>(null) }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Lavender),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Text("Talk auf Raum öffnen", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Es wird nur der Talk-Raumtoken übertragen – keine beliebige URL und kein Benutzerkennwort.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = talkUrl,
+                onValueChange = { talkUrl = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Nextcloud-Talk-Link") },
+                singleLine = true,
+            )
+            Spacer(Modifier.height(10.dp))
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                state.linkTargets.forEach { target ->
+                    val active = selected?.id == target.id
+                    OutlinedButton(onClick = { selected = target }, enabled = target.online) {
+                        Text((if (target.online) "● " else "○ ") + target.name, color = if (active) CoralDark else MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+            }
+            if (state.linkTargets.isEmpty()) {
+                Text("Kein freigegebenes Konferenzgerät online.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+            }
+            Spacer(Modifier.height(10.dp))
+            Button(
+                onClick = { selected?.let { onOpenTalk(it.id, talkUrl) } },
+                enabled = selected != null && talkUrl.isNotBlank() && !state.busy,
+            ) { Text("Auf Zielgerät öffnen") }
+        }
+    }
+}
+
+@Composable
+private fun MessageBanner(message: String, onDismiss: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onDismiss),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        shape = RoundedCornerShape(14.dp),
+    ) {
+        Text(message, modifier = Modifier.padding(14.dp), color = MaterialTheme.colorScheme.onPrimaryContainer)
+    }
+}
