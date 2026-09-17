@@ -9,3 +9,6 @@ captures/
 *.aab
 *.apk
 secrets.properties
+app/google-services.json
+firebase-service-account*.json
+service-account*.json

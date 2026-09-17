@@ -1,44 +1,52 @@
 # Benachrichtigungen für Mail, Termine und Talk
 
-Ein WebView kann Hinweise nur zuverlässig darstellen, solange die betreffende Seite geöffnet ist. Hintergrundmeldungen benötigen deshalb einen serverseitigen Ereignisdienst und einen Android-Zustellweg.
+Ein WebView kann Hinweise nur zuverlässig darstellen, solange die betreffende Seite geöffnet ist. Hintergrundmeldungen benötigen deshalb eine serverseitige Ereignisbrücke. Die Android-App verwendet dafür direkt Firebase Cloud Messaging (FCM); ntfy ist kein notwendiger Zustell-Zwischenschritt.
 
 ## Zielbild
 
 ```text
 Zimbra Mail/Calendar ─┐
-                     ├─ Portal Notification Bridge ─ ntfy ─ Android-App
-Nextcloud/Talk ──────┘                              └─ Sperr-/Löschsignal
+                     ├─ Portal Notification Bridge / Device Service ─ FCM ─ Android-App
+Nextcloud/Talk ──────┘
 ```
 
-Der vorhandene Device Service kann um diese Bridge erweitert werden; ein weiterer öffentlich erreichbarer Verwaltungsdienst ist nicht erforderlich.
+Der vorhandene Device Service kann um diese Bridge erweitert werden. Die FCM-Dienstkonto-Zugangsdaten bleiben ausschließlich dort. Die App registriert nach Gerätefreigabe und Benutzeranmeldung ihre Firebase-Installations-ID über die authentifizierte Device-Service-API.
 
-## Ereignisquellen
+## Bereits in der Android-App umgesetzt
 
-- **Neue Mail:** Zimbra SOAP WaitSet überwacht Mailboxänderungen. Ein periodischer REST-Abruf aller Postfächer wäre nur die Rückfallebene.
-- **Termine:** CalDAV beziehungsweise die Zimbra-Kalender-API liefert Termine und Erinnerungszeiten. Die Bridge plant, aktualisiert und verwirft Erinnerungen einschließlich Serien, Zeitzonen und Absagen.
-- **Nextcloud/Talk:** bevorzugt die signierte Nextcloud Notifications Push API. Alternativ veröffentlicht eine schmale serverseitige Nextcloud-Integration relevante Talk-Ereignisse an die Bridge.
+- vier getrennte Android-Kanäle: Mail, Termine, Talk und Gerätesicherheit
+- Laufzeitfreigabe für Benachrichtigungen ab Android 13
+- FCM-Registrierung nur bei vollständiger Build-Konfiguration und erteilter Android-Freigabe
+- Zuordnung der Installations-ID zu einem freigegebenen Gerät über `PUT /v1/push/registrations/{device_id}`
+- Entfernen dieser Zuordnung bei sicherer Abmeldung oder Profil-Reset
+- ausschließlich Data Messages mit einer typisierten Aktion
+- feste Texte aus dem App-Code; Nachrichtentext aus FCM wird ignoriert
+- beim Antippen wird nur eine passende, durch Authentik gelieferte Web-App geöffnet
 
-## ntfy
+Zulässige Aktionen:
 
-Empfohlen ist eine selbst betriebene, nur über TLS erreichbare ntfy-Instanz:
+| Aktion | Lokaler Hinweis | Ziel |
+|---|---|---|
+| `open_mail` | „Neue Mail – Zimbra öffnen“ | freigegebene Zimbra-App |
+| `open_calendar` | „Termin – Ein Termin steht bevor.“ | freigegebene Zimbra-App |
+| `open_talk` | „Talk – Neue Talk-Aktivität.“ | freigegebene Talk-/Nextcloud-App |
+| `refresh_security_state` | neutraler Sicherheitshinweis | Portal-Startseite |
 
-- zufälliges Topic pro Gerät, nicht pro Benutzername
-- authentifizierter Publisher; Gerät erhält ausschließlich Leserechte für sein Topic
-- kurze Aufbewahrung und keine sensiblen Inhalte im Nachrichtentext
-- Deep Links enthalten nur typisierte Ziele wie `open_mail`, `open_calendar` oder `open_talk`; niemals eine frei wählbare URL
-- beim Offboarding Topic und Lesetoken sperren, Authentik-/Zimbra-/Nextcloud-Sitzungen widerrufen und ein lokales Löschsignal an registrierte Geräte senden
+Unbekannte Aktionen, frei angegebene URLs sowie vom Server gelieferte Titel oder Texte werden verworfen.
 
-Für zuverlässige Zustellung bei vollständig geschlossener App gibt es zwei Betriebsarten:
+## Noch serverseitig umzusetzen
 
-1. **Ohne Google:** selbst gehostetes ntfy mit dauerhafter Verbindung/Foreground Service. Das benötigt eine sichtbare Systemmeldung und etwas Akku.
-2. **Mit FCM:** eigene Firebase-Konfiguration für die signierte Portal-App und ntfy. Das ist energiesparender, führt Metadaten aber über Firebase.
+- **Neue Mail:** Zimbra SOAP WaitSet überwacht Mailboxänderungen. Ein periodischer Abruf ist nur Rückfallebene.
+- **Termine:** CalDAV beziehungsweise Zimbra-Kalender-API liefert Termine und Erinnerungszeiten. Die Bridge plant, aktualisiert und verwirft Erinnerungen einschließlich Serien, Zeitzonen und Absagen.
+- **Nextcloud/Talk:** bevorzugt die signierte Nextcloud Notifications Push API. Alternativ veröffentlicht eine schmale Nextcloud-Integration relevante Talk-Ereignisse an die Bridge.
+- **Versand:** Device Service prüft vor jedem Push aktives Konto, Gerätefreigabe und erlaubten Nachrichtentyp und sendet anschließend über die FCM HTTP-v1-API.
 
-Die eigenständige ntfy-App kann zunächst als Pilot verwendet und per MDM vorkonfiguriert werden. Eine spätere direkte Integration in die Portal-App verwendet dasselbe Server- und Berechtigungsmodell.
+## Rolle von ntfy
 
-## Datenschutz
+Eine selbst betriebene ntfy-Instanz kann zusätzlich als interner Ereignis-Bus, Monitoring-Ziel oder Pilot dienen. Für die Android-Zustellung ist sie in dieser Architektur nicht erforderlich. Ein Betrieb ganz ohne Google wäre möglich, bräuchte aber in der App eine dauerhafte Verbindung beziehungsweise einen sichtbaren Foreground Service und hätte höheren Akkuverbrauch.
 
-Pushmeldungen enthalten standardmäßig nur minimale Texte, beispielsweise „Neue Mail“, „Termin in 15 Minuten“ oder „Neue Talk-Aktivität“. Betreff, Absender, Teilnehmer und Nachrichteninhalt werden erst nach dem Entsperren aus Zimbra beziehungsweise Nextcloud geladen.
+## Datenschutz und Offboarding
 
-## Offboarding-Grenze
+Pushmeldungen enthalten keine Absender, Betreffzeilen, Teilnehmer oder Gesprächsinhalte. Diese Daten lädt die App erst nach Anmeldung aus Zimbra oder Nextcloud.
 
-Ein Push-Löschsignal ist keine garantierte Fernlöschung: Ein ausgeschaltetes oder dauerhaft offline befindliches Gerät kann es nicht empfangen. Für dienstliche Daten auf Privatgeräten ist deshalb ein Android Work Profile beziehungsweise MDM-Wipe die belastbare letzte Instanz.
+Bei sicherer Abmeldung versucht die App, die Benutzer-Geräte-Zuordnung am Device Service zu entfernen. Beim Offboarding muss der Server zusätzlich Konto und Gerätebindung sperren und darf keine weiteren FCM-Nachrichten versenden. Ein Push-Löschsignal allein ist keine garantierte Fernlöschung: Ein ausgeschaltetes oder dauerhaft offline befindliches Gerät kann es nicht empfangen. Für einen belastbaren Wipe dienstlicher Daten bleibt Android Work Profile beziehungsweise MDM erforderlich.

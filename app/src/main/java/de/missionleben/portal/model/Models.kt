@@ -62,4 +62,5 @@ data class UiState(
     val deviceServiceConfigured: Boolean = false,
     val linkTargets: List<LinkTarget> = emptyList(),
     val enrollmentTokenPrefill: String = "",
+    val requestedUrl: String? = null,
 )

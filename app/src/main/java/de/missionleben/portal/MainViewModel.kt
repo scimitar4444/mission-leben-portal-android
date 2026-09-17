@@ -1,7 +1,10 @@
 package de.missionleben.portal
 
+import android.Manifest
 import android.app.Application
+import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import de.missionleben.portal.auth.AuthRepository
@@ -12,6 +15,8 @@ import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.UiState
 import de.missionleben.portal.model.VaultRequest
+import de.missionleben.portal.push.PushAction
+import de.missionleben.portal.push.PushManager
 import de.missionleben.portal.security.DeviceIdentity
 import de.missionleben.portal.security.SecureSessionVault
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +37,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var serializedAuthState: String? = null
     private var dataEncryptionKey: ByteArray? = null
     private var pendingVaultState: String? = null
+    private var pendingPushAction: PushAction? = null
 
     private val _uiState = MutableStateFlow(
         UiState(
@@ -72,7 +78,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun resetProfile() {
         val oldState = serializedAuthState
-        if (oldState != null) viewModelScope.launch { authRepository.revoke(oldState) }
+        if (oldState != null) disconnectPushAndRevoke(oldState)
         serializedAuthState = null
         pendingVaultState = null
         dataEncryptionKey = null
@@ -195,6 +201,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         .onSuccess { applications ->
                             _uiState.update { it.copy(applications = applications, applicationsLoading = false) }
                             loadLinkTargetsWithToken(token)
+                            syncPushRegistrationWithToken(token)
+                            resolvePendingPushAction()
                         }
                         .onFailure { error ->
                             _uiState.update {
@@ -228,6 +236,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             message = if (result.trusted) "Gerät wurde freigegeben." else "Gerät wartet auf die Freigabe in Authentik.",
                         )
                     }
+                    if (serializedAuthState != null) loadApplications()
                 }
                 .onFailure { error ->
                     preferences.enrollmentState = EnrollmentState.NOT_ENROLLED
@@ -263,7 +272,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun logout(onBrowserLogout: (String) -> Unit) {
         val oldState = serializedAuthState
-        if (oldState != null) viewModelScope.launch { authRepository.revoke(oldState) }
+        if (oldState != null) disconnectPushAndRevoke(oldState)
         serializedAuthState = null
         pendingVaultState = null
         dataEncryptionKey = null
@@ -283,11 +292,107 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearMessage() = _uiState.update { it.copy(message = null) }
 
+    fun acceptPushAction(value: String?) {
+        val action = PushAction.fromWireName(value) ?: return
+        pendingPushAction = action
+        resolvePendingPushAction()
+    }
+
+    fun consumeRequestedUrl() = _uiState.update { it.copy(requestedUrl = null) }
+
+    fun syncPushRegistration() {
+        val state = serializedAuthState ?: return
+        authRepository.withFreshAccessToken(
+            serializedState = state,
+            onSuccess = { token, updatedState ->
+                updateSerializedState(updatedState)
+                syncPushRegistrationWithToken(token)
+            },
+            onError = { },
+        )
+    }
+
     private fun loadLinkTargetsWithToken(accessToken: String) {
         if (!deviceService.configured) return
         viewModelScope.launch {
             runCatching { deviceService.linkTargets(accessToken) }
                 .onSuccess { targets -> _uiState.update { it.copy(linkTargets = targets) } }
+        }
+    }
+
+    private fun syncPushRegistrationWithToken(accessToken: String) {
+        if (!deviceService.configured || !PushManager.configured) return
+        val deviceId = _uiState.value.deviceId ?: return
+        if (ContextCompat.checkSelfPermission(
+                getApplication(),
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            viewModelScope.launch { runCatching { deviceService.unregisterPush(accessToken, deviceId) } }
+            return
+        }
+        val installationId = PushManager.installationId(getApplication())
+        if (installationId == null) {
+            viewModelScope.launch { runCatching { deviceService.unregisterPush(accessToken, deviceId) } }
+            return
+        }
+        val mode = _uiState.value.mode ?: return
+        viewModelScope.launch {
+            runCatching { deviceService.registerPush(accessToken, deviceId, installationId, mode) }
+        }
+    }
+
+    private fun disconnectPushAndRevoke(serializedState: String) {
+        val registeredDeviceId = preferences.deviceId
+        authRepository.withFreshAccessToken(
+            serializedState = serializedState,
+            onSuccess = { accessToken, updatedState ->
+                viewModelScope.launch {
+                    if (registeredDeviceId != null) {
+                        runCatching { deviceService.unregisterPush(accessToken, registeredDeviceId) }
+                    }
+                    authRepository.revoke(updatedState)
+                }
+            },
+            onError = { viewModelScope.launch { authRepository.revoke(serializedState) } },
+        )
+    }
+
+    private fun resolvePendingPushAction() {
+        val action = pendingPushAction ?: return
+        if (action == PushAction.REFRESH_SECURITY_STATE) {
+            pendingPushAction = null
+            _uiState.update { it.copy(message = "Bitte Gerätestatus und Anmeldung prüfen.") }
+            return
+        }
+        if (!_uiState.value.signedIn) {
+            _uiState.update { it.copy(message = "Bitte zuerst sicher anmelden, um den Hinweis zu öffnen.") }
+            return
+        }
+        val applications = _uiState.value.applications
+        if (applications.isEmpty()) {
+            if (!_uiState.value.applicationsLoading) {
+                pendingPushAction = null
+                _uiState.update { it.copy(message = "Die passende Web-App ist für dieses Konto nicht freigegeben.") }
+            }
+            return
+        }
+        val application = when (action) {
+            PushAction.OPEN_MAIL, PushAction.OPEN_CALENDAR -> applications.firstOrNull {
+                it.slug.contains("zimbra", ignoreCase = true) || it.name.contains("zimbra", ignoreCase = true)
+            }
+            PushAction.OPEN_TALK -> applications.firstOrNull {
+                it.slug.contains("talk", ignoreCase = true) || it.name.contains("talk", ignoreCase = true)
+            } ?: applications.firstOrNull {
+                it.slug.contains("nextcloud", ignoreCase = true) || it.name.contains("nextcloud", ignoreCase = true)
+            }
+            PushAction.REFRESH_SECURITY_STATE -> null
+        }
+        pendingPushAction = null
+        if (application == null) {
+            _uiState.update { it.copy(message = "Die passende Web-App ist für dieses Konto nicht freigegeben.") }
+        } else {
+            _uiState.update { it.copy(requestedUrl = application.launchUrl, message = null) }
         }
     }
 

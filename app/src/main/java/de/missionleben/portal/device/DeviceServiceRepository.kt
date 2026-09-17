@@ -75,6 +75,26 @@ class DeviceServiceRepository {
         request("/v1/handoffs", "POST", body.toString(), accessToken)
     }
 
+    suspend fun registerPush(
+        accessToken: String,
+        deviceId: String,
+        installationId: String,
+        mode: DeviceMode,
+    ) = withContext(Dispatchers.IO) {
+        require(configured) { "Der Mission-Leben Device Service ist noch nicht konfiguriert." }
+        val body = JSONObject()
+            .put("provider", "fcm")
+            .put("installation_id", installationId)
+            .put("mode", mode.name.lowercase())
+            .put("app_version", BuildConfig.VERSION_NAME)
+        request("/v1/push/registrations/${encodePathSegment(deviceId)}", "PUT", body.toString(), accessToken)
+    }
+
+    suspend fun unregisterPush(accessToken: String, deviceId: String) = withContext(Dispatchers.IO) {
+        if (!configured) return@withContext
+        request("/v1/push/registrations/${encodePathSegment(deviceId)}", "DELETE", null, accessToken)
+    }
+
     internal fun extractTalkToken(value: String): String {
         val input = value.trim()
         val candidate = if ("://" in input) {
@@ -92,6 +112,9 @@ class DeviceServiceRepository {
         }
         return candidate
     }
+
+    private fun encodePathSegment(value: String): String = java.net.URLEncoder.encode(value, Charsets.UTF_8.name())
+        .replace("+", "%20")
 
     private fun request(path: String, method: String, body: String?, accessToken: String?): String {
         val connection = URL(BuildConfig.DEVICE_SERVICE_BASE_URL.trimEnd('/') + path).openConnection() as HttpURLConnection

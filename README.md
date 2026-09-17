@@ -2,7 +2,7 @@
 
 Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen Web-Anwendungen. Die App unterstützt persönliche Mitarbeitergeräte und gemeinsam genutzte Tablets ab Android 13.
 
-> Status: frühes, baubares MVP. Die Authentik-OIDC-Anbindung ist implementiert. Für die Registrierung in Authentik Endpoint Devices und den Geräte-Link-Kanal wird der in `docs/DEVICE_SERVICE_API.md` beschriebene kleine Serverdienst benötigt.
+> Status: frühes, baubares MVP. Authentik-OIDC, der gehärtete Webcontainer und der optionale FCM-Client sind implementiert. Für Gerätefreigabe, Push-Zuordnung und Geräte-Link-Kanal wird der in `docs/DEVICE_SERVICE_API.md` beschriebene kleine Serverdienst benötigt.
 
 ## Funktionen
 
@@ -20,6 +20,9 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - Enrollment per Code oder Deep Link `de.missionleben.portal://enroll?token=…`
 - vorbereitet für Authentik Endpoint Devices über einen schmalen Device Service
 - Nextcloud-Talk-Handoff an freigegebene Konferenzgeräte; übertragen wird ausschließlich der Raumtoken
+- optionale FCM-Hinweise für Mail, Termine, Talk und Gerätesicherheit ab Android 13
+- feste, neutrale Benachrichtigungstexte in der App; FCM darf weder Absender, Betreff noch Nachrichteninhalt liefern
+- ein Hinweis kann nur eine bekannte Authentik-App öffnen, niemals eine vom Pushdienst gelieferte URL
 - keine Client-Secrets im APK
 - keine Passwörter oder TOTP-Secrets in der App
 
@@ -59,11 +62,17 @@ ML_OIDC_ISSUER=https://id.mission-leben.de/application/o/mission-leben-portal/
 ML_OIDC_CLIENT_ID=mission-leben-android
 ML_DEVICE_SERVICE_BASE_URL=https://device.mission-leben.de
 ML_WEB_ALLOWED_HOST_SUFFIXES=mission-leben.de
+ML_FIREBASE_APPLICATION_ID=1:1234567890:android:…
+ML_FIREBASE_API_KEY=AIza…
+ML_FIREBASE_PROJECT_ID=mission-leben-portal
+ML_FIREBASE_SENDER_ID=1234567890
 ```
 
 `ML_DEVICE_SERVICE_BASE_URL` bleibt standardmäßig leer. Dann funktionieren Authentik-Anmeldung und App-Portal, die Geräteregistrierung und Talk-Übergabe werden aber als noch nicht konfiguriert angezeigt.
 
 `ML_WEB_ALLOWED_HOST_SUFFIXES` ist eine kommaseparierte Liste kontrollierter Domain-Endungen. Standardmäßig dürfen ausschließlich `mission-leben.de` und dessen Subdomains im In-App-Webcontainer laufen. SaaS- oder Fremdlinks öffnen außerhalb des Containers.
+
+FCM bleibt vollständig deaktiviert, solange einer der vier `ML_FIREBASE_*`-Werte fehlt. Diese Firebase-App-Kennung ist Client-Konfiguration, kein Servergeheimnis. Das Firebase-Dienstkonto für den Versand darf dagegen niemals in Gradle-Properties, APK oder Git-Repository liegen. Die Einrichtung ist in [docs/FCM_SETUP.md](docs/FCM_SETUP.md) beschrieben.
 
 Die Authentik-Seite ist in [docs/AUTHENTIK_SETUP.md](docs/AUTHENTIK_SETUP.md) beschrieben.
 
@@ -80,6 +89,7 @@ app/
 docs/
   AUTHENTIK_SETUP.md
   DEVICE_SERVICE_API.md
+  FCM_SETUP.md
   NOTIFICATIONS.md
   THREAT_MODEL.md
 ```
