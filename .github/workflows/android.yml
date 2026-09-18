@@ -22,7 +22,7 @@ jobs:
         run: ./gradlew testDebugUnitTest lintDebug assembleDebug --stacktrace
       - uses: actions/upload-artifact@v7
         with:
-          name: mission-leben-portal-debug
+          name: mission-leben-zentral-debug
           path: app/build/outputs/apk/debug/*.apk
 
   bridge-tests:

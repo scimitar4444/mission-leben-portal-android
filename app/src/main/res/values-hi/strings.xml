@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="brand_portal">पोर्टल</string>
+    <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  पोर्टल</string>
     <string name="language_title">भाषा</string>
     <string name="language_description">फ़ोन की भाषा अपने-आप अपनाएँ या केवल इस ऐप के लिए भाषा चुनें।</string>
@@ -82,7 +82,7 @@
     <string name="secure_key_not_released">सुरक्षित कुंजी जारी नहीं हुई।</string>
     <string name="quick_access_failed">त्वरित पहुँच नहीं खुली: %1$s</string>
     <string name="quick_access_enable_title">त्वरित पहुँच चालू करें</string>
-    <string name="portal_open_title">Mission Leben Portal खोलें</string>
+    <string name="portal_open_title">Mission Leben Zentral खोलें</string>
     <string name="biometric_subtitle">फ़िंगरप्रिंट, चेहरा या डिवाइस पिन इस्तेमाल करें</string>
     <string name="auth_oidc_config_failed">OIDC कॉन्फ़िगरेशन लोड नहीं हो सका।</string>
     <string name="auth_expired">साइन इन अनुरोध की समय सीमा समाप्त हो गई। फिर प्रयास करें।</string>

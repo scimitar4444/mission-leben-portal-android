@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="brand_portal">ПОРТАЛ</string>
+    <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Портал</string>
     <string name="language_title">Мова</string>
     <string name="language_description">Автоматично використовуйте мову телефону або виберіть мову лише для цієї програми.</string>
@@ -82,7 +82,7 @@
     <string name="secure_key_not_released">Безпечний ключ не надано.</string>
     <string name="quick_access_failed">Не вдалося відкрити швидкий доступ: %1$s</string>
     <string name="quick_access_enable_title">Увімкнути швидкий доступ</string>
-    <string name="portal_open_title">Відкрити Mission Leben Portal</string>
+    <string name="portal_open_title">Відкрити Mission Leben Zentral</string>
     <string name="biometric_subtitle">Використайте відбиток пальця, обличчя або код пристрою</string>
     <string name="auth_oidc_config_failed">Не вдалося завантажити конфігурацію OIDC.</string>
     <string name="auth_expired">Термін запиту на вхід минув. Спробуйте ще раз.</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="brand_portal">PORTAL</string>
+    <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
     <string name="language_title">Idioma</string>
     <string name="language_description">Usa automáticamente el idioma del teléfono o elige un idioma solo para esta aplicación.</string>
@@ -82,7 +82,7 @@
     <string name="secure_key_not_released">No se liberó la clave segura.</string>
     <string name="quick_access_failed">No se pudo abrir el acceso rápido: %1$s</string>
     <string name="quick_access_enable_title">Activar acceso rápido</string>
-    <string name="portal_open_title">Abrir Mission Leben Portal</string>
+    <string name="portal_open_title">Abrir Mission Leben Zentral</string>
     <string name="biometric_subtitle">Usa la huella, el rostro o el código del dispositivo</string>
     <string name="auth_oidc_config_failed">No se pudo cargar la configuración OIDC.</string>
     <string name="auth_expired">La solicitud de inicio de sesión ha caducado. Inténtalo de nuevo.</string>

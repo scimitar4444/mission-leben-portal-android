@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="brand_portal">PORTAIL</string>
+    <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portail</string>
     <string name="language_title">Langue</string>
     <string name="language_description">Suivez automatiquement la langue du téléphone ou choisissez une langue uniquement pour cette application.</string>
@@ -82,7 +82,7 @@
     <string name="secure_key_not_released">La clé sécurisée n’a pas été libérée.</string>
     <string name="quick_access_failed">Impossible d’ouvrir l’accès rapide : %1$s</string>
     <string name="quick_access_enable_title">Activer l’accès rapide</string>
-    <string name="portal_open_title">Ouvrir Mission Leben Portal</string>
+    <string name="portal_open_title">Ouvrir Mission Leben Zentral</string>
     <string name="biometric_subtitle">Utilisez empreinte, visage ou code de l’appareil</string>
     <string name="auth_oidc_config_failed">Impossible de charger la configuration OIDC.</string>
     <string name="auth_expired">La demande de connexion a expiré. Réessayez.</string>
