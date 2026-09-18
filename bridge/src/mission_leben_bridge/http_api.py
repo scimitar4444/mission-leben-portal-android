@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hmac
 import json
 import logging
 import re
@@ -65,11 +64,6 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                 self._json(200, {"status": "ok", "fcm_configured": self.server.service.fcm.configured})
                 return
 
-            if method == "POST" and path == "/v1/enrollments":
-                _, payload = self._body_json()
-                self._json(201, self.server.service.enroll(payload))
-                return
-
             match = re.fullmatch(rf"/v1/push/registrations/{DEVICE_ID}", path)
             if match and method == "PUT":
                 _, payload = self._body_json()
@@ -79,21 +73,6 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
             if match and method == "DELETE":
                 self.server.service.unregister_push(match.group(1), self._bearer())
                 self._empty(204)
-                return
-
-            match = re.fullmatch(rf"/v1/devices/{DEVICE_ID}/status", path)
-            if match and method == "GET":
-                self._json(
-                    200,
-                    self.server.service.device_status(
-                        device_id=match.group(1),
-                        key_id=self.headers.get("X-ML-Key-ID", ""),
-                        timestamp=self.headers.get("X-ML-Timestamp", ""),
-                        nonce=self.headers.get("X-ML-Nonce", ""),
-                        signature=self.headers.get("X-ML-Signature", ""),
-                        path=path,
-                    ),
-                )
                 return
 
             if method == "GET" and path == "/v1/link-targets":
@@ -142,31 +121,6 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                 )
                 return
 
-            if method == "POST" and path == "/admin/v1/enrollment-tokens":
-                self._require_admin()
-                _, payload = self._body_json()
-                token = self.server.service.store.create_enrollment_token(
-                    mode=str(payload.get("mode", "")),
-                    ttl_seconds=int(payload.get("ttl_seconds", 900)),
-                    auto_trust=bool(payload.get("auto_trust", False)),
-                )
-                self._json(201, {"enrollment_token": token})
-                return
-
-            if method == "GET" and path == "/admin/v1/devices":
-                self._require_admin()
-                self._json(200, {"results": self.server.service.store.list_devices()})
-                return
-
-            match = re.fullmatch(rf"/admin/v1/devices/{DEVICE_ID}/status", path)
-            if match and method == "POST":
-                self._require_admin()
-                _, payload = self._body_json()
-                if not self.server.service.store.set_device_status(match.group(1), str(payload.get("status", ""))):
-                    raise ApiError(404, "device was not found")
-                self._empty(204)
-                return
-
             match = re.fullmatch(r"/internal/v1/users/([^/]+)/status", path)
             if match and method == "POST":
                 raw, payload = self._body_json()
@@ -208,11 +162,6 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
         if not header.startswith("Bearer "):
             raise ApiError(401, "bearer token is required")
         return header.removeprefix("Bearer ").strip()
-
-    def _require_admin(self) -> None:
-        supplied = self.headers.get("X-ML-Admin-Key", "")
-        if not hmac.compare_digest(supplied, self.server.settings.admin_api_key):
-            raise ApiError(403, "admin access denied")
 
     def _verify_internal(self, body: bytes) -> str:
         source = self.headers.get("X-ML-Source", "")

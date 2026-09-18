@@ -41,7 +41,9 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import de.missionleben.portal.BuildConfig
 import de.missionleben.portal.R
+import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.model.DeviceMode
+import org.json.JSONObject
 import java.io.File
 
 class PortalBrowserActivity : FragmentActivity() {
@@ -52,6 +54,11 @@ class PortalBrowserActivity : FragmentActivity() {
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private var pendingPermissionRequest: PermissionRequest? = null
     private var logoutFinished = false
+    private var endpointBridgeInstalled = false
+    private val deviceService by lazy { DeviceServiceRepository(applicationContext) }
+    private val authentikOrigin by lazy {
+        Uri.parse(BuildConfig.AUTHENTIK_BASE_URL).let { "${it.scheme}://${it.authority}" }
+    }
 
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -183,6 +190,37 @@ class PortalBrowserActivity : FragmentActivity() {
         webView.webViewClient = BrowserClient()
         webView.webChromeClient = BrowserChromeClient()
         webView.setDownloadListener(SecureDownloadListener())
+        installEndpointChallengeBridge()
+    }
+
+    private fun installEndpointChallengeBridge() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return
+        WebViewCompat.addWebMessageListener(
+            webView,
+            ENDPOINT_BRIDGE_NAME,
+            setOf(authentikOrigin),
+        ) { view, message, sourceOrigin, isMainFrame, _ ->
+            if (!isMainFrame || !isAuthentikOrigin(sourceOrigin.toString())) return@addWebMessageListener
+            if (!isAuthentikOrigin(view.url.orEmpty())) return@addWebMessageListener
+            val challenge = message.data ?: return@addWebMessageListener
+            val response = runCatching {
+                deviceService.signEndpointChallenge(challenge)
+            }.getOrNull() ?: return@addWebMessageListener
+            view.post {
+                if (!isAuthentikOrigin(view.url.orEmpty())) return@post
+                val script = "window.postMessage({_ak_ext:'authentik-platform-sso',response:" +
+                    JSONObject.quote(response) + "}," + JSONObject.quote(authentikOrigin) + ");"
+                view.evaluateJavascript(script, null)
+            }
+        }
+        endpointBridgeInstalled = true
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            WebViewCompat.addDocumentStartJavaScript(
+                webView,
+                ENDPOINT_BRIDGE_SCRIPT,
+                setOf(authentikOrigin),
+            )
+        }
     }
 
     private fun installBackNavigation() {
@@ -203,6 +241,7 @@ class PortalBrowserActivity : FragmentActivity() {
         override fun onPageFinished(view: WebView, url: String) {
             super.onPageFinished(view, url)
             titleView.text = view.title?.takeIf { it.isNotBlank() } ?: titleView.text
+            if (isAuthentikOrigin(url)) view.evaluateJavascript(ENDPOINT_BRIDGE_SCRIPT, null)
             if (intent.getBooleanExtra(EXTRA_LOGOUT, false) && !logoutFinished) {
                 logoutFinished = true
                 clearLocalWebData(this@PortalBrowserActivity) { finish() }
@@ -237,6 +276,14 @@ class PortalBrowserActivity : FragmentActivity() {
             return true
         }
     }
+
+    private fun isAuthentikOrigin(value: String): Boolean = runCatching {
+        val uri = Uri.parse(value)
+        val configured = Uri.parse(BuildConfig.AUTHENTIK_BASE_URL)
+        uri.scheme == "https" &&
+            uri.host.equals(configured.host, ignoreCase = true) &&
+            uri.port == configured.port
+    }.getOrDefault(false)
 
     private fun handleNavigation(url: String, isMainFrame: Boolean): Boolean {
         if (!isMainFrame) return false
@@ -364,6 +411,9 @@ class PortalBrowserActivity : FragmentActivity() {
         pendingPermissionRequest?.deny()
         if (::webView.isInitialized) {
             webView.stopLoading()
+            if (endpointBridgeInstalled) {
+                WebViewCompat.removeWebMessageListener(webView, ENDPOINT_BRIDGE_NAME)
+            }
             (webView.parent as? ViewGroup)?.removeView(webView)
             webView.destroy()
         }
@@ -380,6 +430,25 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_LOGOUT = "logout"
         private const val DOWNLOAD_PREFERENCES = "protected_web_downloads"
         private const val DOWNLOAD_IDS = "download_ids"
+        private const val ENDPOINT_BRIDGE_NAME = "MissionLebenEndpoint"
+        private const val ENDPOINT_BRIDGE_SCRIPT = """
+            (() => {
+              if (window.__mlAuthentikEndpointInstalled) return;
+              window.__mlAuthentikEndpointInstalled = true;
+              const forward = (challenge) => {
+                if (typeof challenge !== 'string' || challenge.length < 32 || challenge.length > 8192) return;
+                if (window.MissionLebenEndpoint && window.MissionLebenEndpoint.postMessage) {
+                  window.MissionLebenEndpoint.postMessage(challenge);
+                }
+              };
+              window.addEventListener('message', (event) => {
+                if (event.source !== window || !event.data || event.data._ak_ext !== 'authentik-platform-sso') return;
+                forward(event.data.challenge);
+              });
+              const stage = document.querySelector('ak-stage-endpoint-agent');
+              if (stage && stage.challenge) forward(stage.challenge.challenge);
+            })();
+        """
 
         fun appIntent(context: Context, url: String, title: String? = null): Intent =
             Intent(context, PortalBrowserActivity::class.java)

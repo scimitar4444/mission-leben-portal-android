@@ -30,6 +30,11 @@ class FakeAuthentik:
             raise AssertionError("unexpected test token")
         return UserInfo("authentik-user-1", "user@example.invalid", "Test User")
 
+    def device_id(self, agent_token: str) -> str:
+        if agent_token != "valid-agent-token":
+            raise AssertionError("unexpected agent token")
+        return "11111111-1111-1111-1111-111111111111"
+
 
 class FakeFcm:
     configured = True
@@ -55,7 +60,7 @@ class ServiceTest(unittest.TestCase):
     def tearDown(self) -> None:
         self.directory.cleanup()
 
-    def test_enrollment_registration_and_minimal_fcm_payload(self) -> None:
+    def test_authentik_device_registration_and_minimal_fcm_payload(self) -> None:
         private_key = ec.generate_private_key(ec.SECP256R1())
         numbers = private_key.public_key().public_numbers()
         jwk = {
@@ -65,27 +70,19 @@ class ServiceTest(unittest.TestCase):
             "y": base64url_encode(numbers.y.to_bytes(32, "big")),
         }
         jwk["kid"] = device_key_id(jwk)
-        token = self.store.create_enrollment_token("personal", 900, auto_trust=True)
-        enrollment = self.service.enroll(
-            {
-                "enrollment_token": token,
-                "mode": "personal",
-                "device_name": "Test Phone",
-                "platform": "android",
-                "os_version": "13",
-                "app_version": "0.4.0",
-                "key_id": jwk["kid"],
-                "public_key_jwk": jwk,
-            }
-        )
+        device_id = "11111111-1111-1111-1111-111111111111"
         self.service.register_push(
-            enrollment["device_id"],
+            device_id,
             "valid-token",
             {
                 "provider": "fcm",
                 "installation_id": "installation-secret",
+                "authentik_device_token": "valid-agent-token",
+                "mode": "personal",
                 "notification_privacy": "standard",
-                "app_version": "0.4.0",
+                "app_version": "0.6.0",
+                "key_id": jwk["kid"],
+                "public_key_jwk": jwk,
             },
         )
         result = self.service.ingest_event(
@@ -109,31 +106,18 @@ class ServiceTest(unittest.TestCase):
         )
         self.assertNotIn("Confidential", str(self.fcm.messages[0][1]))
 
-        status_path = f"/v1/devices/{enrollment['device_id']}/status"
         timestamp = str(int(time.time()))
-        nonce = "status-nonce-0123456789"
-        canonical = canonical_device_request(
-            "GET", status_path, enrollment["device_id"], jwk["kid"], timestamp, nonce
-        )
-        signature = base64url_encode(private_key.sign(canonical, ec.ECDSA(hashes.SHA256())))
-        self.assertEqual(
-            "trusted",
-            self.service.device_status(
-                enrollment["device_id"], jwk["kid"], timestamp, nonce, signature, status_path
-            )["status"],
-        )
-
         detail_path = f"/v1/notifications/{result['event_id']}"
         detail_nonce = "detail-nonce-0123456789"
         detail_canonical = canonical_device_request(
-            "GET", detail_path, enrollment["device_id"], jwk["kid"], timestamp, detail_nonce
+            "GET", detail_path, device_id, jwk["kid"], timestamp, detail_nonce
         )
         detail_signature = base64url_encode(
             private_key.sign(detail_canonical, ec.ECDSA(hashes.SHA256()))
         )
         detail = self.service.notification_detail(
             result["event_id"],
-            enrollment["device_id"],
+            device_id,
             jwk["kid"],
             timestamp,
             detail_nonce,

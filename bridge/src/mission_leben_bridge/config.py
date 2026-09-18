@@ -24,8 +24,8 @@ class Settings:
     listen_port: int
     database_path: Path
     authentik_userinfo_url: str
+    authentik_agent_config_url: str
     internal_hmac_secret: bytes
-    admin_api_key: str
     data_key: bytes
     firebase_project_id: str
     google_credentials_path: Path | None
@@ -44,9 +44,8 @@ class Settings:
     def from_env(cls) -> "Settings":
         dev_mode = os.getenv("BRIDGE_DEV_MODE", "false").lower() in {"1", "true", "yes"}
         hmac_value = _required("BRIDGE_INTERNAL_HMAC_SECRET", dev_mode)
-        admin_key = _required("BRIDGE_ADMIN_API_KEY", dev_mode)
-        if not dev_mode and (len(hmac_value) < 32 or len(admin_key) < 32):
-            raise RuntimeError("Bridge secrets must contain at least 32 characters")
+        if not dev_mode and len(hmac_value) < 32:
+            raise RuntimeError("Bridge HMAC secret must contain at least 32 characters")
 
         data_key_value = os.getenv("BRIDGE_DATA_KEY", "").strip()
         if data_key_value:
@@ -86,8 +85,11 @@ class Settings:
                 "BRIDGE_AUTHENTIK_USERINFO_URL",
                 "https://id.mission-leben.de/application/o/userinfo/",
             ),
+            authentik_agent_config_url=os.getenv(
+                "BRIDGE_AUTHENTIK_AGENT_CONFIG_URL",
+                "https://id.mission-leben.de/api/v3/endpoints/agents/connectors/agent_config/",
+            ),
             internal_hmac_secret=hmac_value.encode(),
-            admin_api_key=admin_key,
             data_key=data_key,
             firebase_project_id=os.getenv("BRIDGE_FIREBASE_PROJECT_ID", "").strip(),
             google_credentials_path=Path(credentials) if credentials else None,

@@ -438,7 +438,7 @@ private fun EmptyApps(onOpenUrl: (String) -> Unit) {
 
 @Composable
 private fun TalkHandoffPanel(state: UiState, onOpenTalk: (String, String) -> Unit) {
-    if (!state.deviceServiceConfigured) return
+    if (!state.communicationServiceConfigured) return
     var talkUrl by remember { mutableStateOf("") }
     var selected by remember { mutableStateOf<LinkTarget?>(null) }
     Card(

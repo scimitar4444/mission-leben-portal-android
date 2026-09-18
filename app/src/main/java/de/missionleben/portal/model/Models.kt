@@ -58,6 +58,7 @@ data class UiState(
     val deviceId: String? = null,
     val deviceKeyId: String = "",
     val deviceServiceConfigured: Boolean = false,
+    val communicationServiceConfigured: Boolean = false,
     val pushConfigured: Boolean = false,
     val notificationPrivacy: NotificationPrivacy = NotificationPrivacy.MINIMAL,
     val linkTargets: List<LinkTarget> = emptyList(),

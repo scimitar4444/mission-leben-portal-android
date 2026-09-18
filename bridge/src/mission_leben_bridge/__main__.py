@@ -16,7 +16,10 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     settings = Settings.from_env()
     store = Store(settings.database_path, settings.internal_hmac_secret, SecretBox(settings.data_key))
-    authentik = AuthentikClient(settings.authentik_userinfo_url)
+    authentik = AuthentikClient(
+        settings.authentik_userinfo_url,
+        settings.authentik_agent_config_url,
+    )
     fcm = (
         FcmSender(settings.firebase_project_id, settings.google_credentials_path)
         if settings.fcm_configured and settings.google_credentials_path is not None

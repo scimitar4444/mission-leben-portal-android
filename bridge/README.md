@@ -16,13 +16,17 @@ Die Bridge hält **keine dauerhafte Verbindung und keine Zimbra-Sitzung pro Mita
 
 Ein WaitSet arbeitet serverbezogen. Bei mehreren Zimbra-Mailbox-Servern wird deshalb je Mailbox-Server eine Worker-Instanz mit den dort liegenden Konto-IDs betrieben. Der Zimbra-Vertrag verlangt für die Mehrkonten-Variante ein Admin-Token; deshalb muss das Integrationskonto separat, überwacht und so eng wie in der Zimbra-Version möglich berechtigt werden.
 
+## Klare Verantwortungsgrenze
+
+Authentik Endpoint Devices ist trotz Early Preview die einzige Gerätedatenbank. Enrollment, Device, Connection, Device Token, Fakten, Ablauf und Device Access Group liegen in Authentik. Die Bridge besitzt keine Gerätefreigabe und keine Enrollment-Codes.
+
+Sie speichert nur die für Kommunikation notwendige Zuordnung eines von Authentik live bestätigten Geräts: Authentik-Subject, verschlüsselte Firebase-Installations-ID, verschlüsseltes Authentik-Device-Token, öffentlichen P-256-Kommunikationsschlüssel und Datenschutzmodus. Das Device Token wird vor Registrierung, Zustellung und Detailabruf live über Authentik `agent_config` geprüft.
+
 ## Enthaltene Funktionen
 
-- einmalige, zeitlich begrenzte Enrollment-Codes
-- Freigabestatus `pending`, `trusted` und `blocked`
-- Bindung eines persönlichen Geräts an den ersten erfolgreich geprüften Authentik-Benutzer
 - Authentik-UserInfo-Prüfung bei Push-Anmeldung, Abmeldung, Talk-Handoff und Link-Zielen
-- verschlüsselte Speicherung der Firebase-Installations-ID mit AES-256-GCM
+- Live-Prüfung des Authentik Device Token vor Push-Registrierung, Zustellung und Detailabruf
+- verschlüsselte Speicherung von Firebase-Installations-ID und Authentik Device Token mit AES-256-GCM
 - P-256-Signaturprüfung für Detailabrufe, 120-Sekunden-Zeitfenster und Nonce-Wiederholungsschutz
 - drei Datenschutzstufen: `minimal`, `standard`, `detailed`; Shared Tablets erzwingen `minimal`
 - HMAC-signierter Normaleingang sowie ein nativer Nextcloud-Talk-Bot-Webhook
@@ -39,10 +43,20 @@ Der Container ist eine überprüfbare Pilotimplementierung. Vor einem Live-Rollo
 1. Zimbra-10.1-Rechte des dedizierten Integrationskontos und Routing je Mailbox-Server.
 2. Serien, Ausnahmen, Absagen und individuelle Erinnerungszeiten der realen Zimbra-Kalender.
 3. Talk-Bot-Zuordnungen und Signaturen gegen die tatsächlich installierte Nextcloud-/Talk-Version sowie die gepflegte Raum-Teilnehmer-Zuordnung.
-4. Geräte-Offboarding muss die Bridge sperren; für garantiertes Fernlöschen auf ausgeschalteten Geräten bleibt MDM/Android Work Profile notwendig.
+4. Geräte-Offboarding erfolgt in Authentik; die Bridge entfernt eine Kommunikationszuordnung, sobald Authentik das Device Token dauerhaft ablehnt. Für garantiertes Fernlöschen auf ausgeschalteten Geräten bleibt MDM/Android Work Profile notwendig.
 5. SQLite ist für einen einzelnen Pilotcontainer vorgesehen. Vor horizontaler Skalierung muss der Store auf PostgreSQL und eine gemeinsame Job-Queue umgestellt werden.
 
 ## Start als Pilot
+
+Für den ersten Kommunikations-Pilot ohne FCM, Zimbra und Talk steht eine reduzierte Compose-Datei bereit. Sie erzeugt beim ersten Start die Secrets lokal, bindet den Dienst ausschließlich an `127.0.0.1:8080` und legt die SQLite-Datenbank persistent unter `data/bridge.sqlite3` an:
+
+```bash
+sudo ./deploy/install-device-pilot.sh
+```
+
+Die Nginx-Locations aus `deploy/nginx-device-bridge-location.conf` veröffentlichen nur `/device-bridge/healthz` und `/device-bridge/v1/`. Admin-, interne und Quellendpunkte bleiben von außen gesperrt. Der tägliche konsistente SQLite-Backupjob wird mit den beiden mitgelieferten systemd-Units aktiviert.
+
+Für den vollständigen Benachrichtigungspilot mit FCM, Zimbra und Talk gilt weiterhin:
 
 ```bash
 cd bridge
@@ -60,33 +74,11 @@ Der Datenordner muss für UID/GID `10001` schreibbar sein:
 sudo chown 10001:10001 bridge/data
 ```
 
-### Enrollment-Code erzeugen
+### Gerät aufnehmen oder sperren
 
-```bash
-curl --fail-with-body \
-  -H "X-ML-Admin-Key: $BRIDGE_ADMIN_API_KEY" \
-  -H "Content-Type: application/json" \
-  --data '{"mode":"personal","ttl_seconds":900,"auto_trust":false}' \
-  http://127.0.0.1:8080/admin/v1/enrollment-tokens
-```
+Der Enrollment-Token wird in Authentik erzeugt und einer Device Access Group zugeordnet. Die Android-App enrollt direkt am Authentik Agent Connector. Das Bootstrap- und das Pilot-Token-Skript liegen unter `authentik/`; die genaue Konfiguration steht in `docs/AUTHENTIK_SETUP.md`.
 
-Der Code wird genau einmal angezeigt und in der Datenbank nur als HMAC gespeichert. `auto_trust` bleibt normalerweise `false`.
-
-### Offenes Gerät prüfen und freigeben
-
-```bash
-curl --fail-with-body \
-  -H "X-ML-Admin-Key: $BRIDGE_ADMIN_API_KEY" \
-  http://127.0.0.1:8080/admin/v1/devices
-
-curl --fail-with-body \
-  -H "X-ML-Admin-Key: $BRIDGE_ADMIN_API_KEY" \
-  -H "Content-Type: application/json" \
-  --data '{"status":"trusted"}' \
-  http://127.0.0.1:8080/admin/v1/devices/DEVICE-UUID/status
-```
-
-Beim Ausscheiden oder Geräteverlust wird derselbe Endpunkt mit `{"status":"blocked"}` aufgerufen. Dabei löscht die Bridge die Push-Zuordnung sofort.
+Beim Ausscheiden oder Geräteverlust wird das Gerät in Authentik unter **Endpoint Devices → Devices** ablaufen gelassen oder gelöscht. Die Bridge besitzt absichtlich keinen parallelen Freigabestatus.
 
 ## Zimbra-Zuordnung
 

@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Mission Leben device bridge database backup
+
+[Timer]
+OnCalendar=*-*-* 02:35:00 Europe/Berlin
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

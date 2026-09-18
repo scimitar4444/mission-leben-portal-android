@@ -1,0 +1,7 @@
+[Unit]
+Description=Back up the Mission Leben device bridge database
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mission-leben-bridge/deploy/backup.sh
