@@ -44,16 +44,12 @@ class AuthRepository(context: Context) {
                 add("goauthentik.io/api")
                 if (mode == DeviceMode.PERSONAL) add("offline_access")
             }
-            val requestBuilder = AuthorizationRequest.Builder(
+            val request = AuthorizationRequest.Builder(
                 configuration,
                 BuildConfig.OIDC_CLIENT_ID,
                 ResponseTypeValues.CODE,
                 Uri.parse(BuildConfig.OIDC_REDIRECT_URI),
-            ).setScopes(scopes)
-
-            // A shared tablet must never silently inherit the preceding employee's session.
-            if (mode == DeviceMode.SHARED) requestBuilder.setPrompt("login")
-            val request = requestBuilder.build()
+            ).setScopes(scopes).build()
             pendingAuthorizationRequest = request
             onSuccess(request.toUri().toString())
         }

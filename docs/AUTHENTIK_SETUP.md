@@ -99,6 +99,8 @@ Das idempotente Skript `authentik/bootstrap_endpoint_devices.py` legt an:
 
 Die App sendet Enrollment direkt an `/api/v3/endpoints/agents/connectors/enroll/`, liest ihre Authentik-Geräte-ID aus `agent_config`, meldet Android-Fakten über `check_in` und beantwortet die Endpoint-Stage-Challenge mit dem im Android Keystore verschlüsselten Device Token. Authentik speichert Device, Connection, Token, Fakten, Ablauf und Access Group. Der separate Container besitzt keine Tabellen für Devices oder Enrollment-Tokens.
 
+Vor jeder Anmeldung auf einem Shared Tablet löscht der Webcontainer Cookies, Webspeicher, Cache, Formulardaten und Downloads. Deshalb setzt die OIDC-Anfrage dort bewusst kein `prompt=login`: Nach dem gerade abgeschlossenen Authentik-Flow würde dieser Parameter erneut in denselben Identifikationsschritt führen. Die lokale Bereinigung verhindert trotzdem, dass die Sitzung des vorherigen Mitarbeiters übernommen wird.
+
 Ein Pilot-Enrollment-Token wird mit `authentik/create_pilot_enrollment_token.py` erzeugt, 24 Stunden gültig und der Pilot-Access-Group zugeordnet. Nach dem geplanten Enrollment wird er in Authentik ablaufen gelassen oder gelöscht. Das Skript darf nur mit in eine root-only Datei umgeleiteter Ausgabe ausgeführt werden.
 
 Für die App wird daraus lokal ein QR-Code mit dem Deep Link `de.missionleben.portal://enroll?token=...` erzeugt. `authentik/generate_enrollment_qr.py` liest den Token ausschließlich über stdin, schreibt die PNG-Datei mit Modus `0600` und gibt den Token nicht aus. Der QR-Code ist wie der Enrollment-Token selbst ein Geheimnis und darf weder in Git noch in Tickets oder öffentliche Dateifreigaben gelangen.
