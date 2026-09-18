@@ -1,6 +1,6 @@
-# Mission Leben Portal für Android
+# Mission Leben Zentral für Android
 
-Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen Web-Anwendungen. Die App unterstützt persönliche Mitarbeitergeräte und gemeinsam genutzte Tablets ab Android 13.
+Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen Web-Anwendungen. Die App wird auf dem Gerät als **Mission Leben Zentral** angezeigt und unterstützt persönliche Mitarbeitergeräte sowie gemeinsam genutzte Tablets ab Android 13.
 
 > Status: frühes, baubares MVP. Authentik-OIDC, der gehärtete Webcontainer, der optionale FCM-Client und ein containerisierter Pilot der Device-/Notification-Bridge sind implementiert. Die reale Zimbra-, Nextcloud- und Authentik-Umgebung ist noch nicht produktiv angebunden oder Ende-zu-Ende getestet.
 

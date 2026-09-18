@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mission Leben Bildmarke; Quelle: https://www.mission-leben.de/ -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.62"
+        android:scaleY="0.62">
+        <path android:fillColor="#F18700" android:pathData="M44.42,50.35c-3.25,0 -5.88,-2.54 -5.88,-5.63s2.63,-5.6 5.87,-5.6 5.89,2.5 5.89,5.6v5.63h-5.88z" />
+        <path android:fillColor="#F18700" android:pathData="M50.3,28.53H28.52v21.78h7.33c-1.47,-1.69 -2.36,-3.87 -2.36,-6.25 0,-5.42 4.61,-9.81 10.3,-9.81 2.47,0 4.74,0.83 6.51,2.21v-7.93z" />
+        <path android:fillColor="#602483" android:pathData="M62.92,50.3c3.24,0 5.88,-2.54 5.88,-5.64s-2.64,-5.6 -5.88,-5.6 -5.87,2.5 -5.87,5.6v5.64h5.87z" />
+        <path android:fillColor="#602483" android:pathData="M57.05,28.53H78.83v21.78H71.5c1.47,-1.69 2.36,-3.87 2.36,-6.25 0,-5.42 -4.61,-9.81 -10.31,-9.81 -2.47,0 -4.73,0.83 -6.51,2.21v-7.93z" />
+        <path android:fillColor="#B02B17" android:pathData="M28.52,57.03H50.3V78.81H28.52z" />
+        <path android:fillColor="#A8427F" android:pathData="M57.05,57.03H78.84V78.81H57.05z" />
+        <path android:fillColor="#DE3F1A" android:pathData="M85.59,0H107.37V21.77H85.59z" />
+        <path android:fillColor="#0CA4D1" android:pathData="M0,28.54H21.77V50.31H0z" />
+        <path android:fillColor="#775426" android:pathData="M0,85.55H21.77V107.31H0z" />
+        <path android:fillColor="#47AE8C" android:pathData="M85.61,28.53H107.38V50.3H85.61z" />
+        <path android:fillColor="#FFCC00" android:pathData="M57.05,85.55H78.84V107.31H57.05z" />
+        <path android:fillColor="#3F8930" android:pathData="M28.53,0H50.3V21.77H28.53z" />
+    </group>
+</vector>

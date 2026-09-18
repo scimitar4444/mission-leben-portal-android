@@ -20,7 +20,7 @@ In Authentik eine neue Anwendung mit Provider anlegen:
 
 | Einstellung | Wert |
 |---|---|
-| Anwendung | Mission Leben Portal Android |
+| Anwendung | Mission Leben Zentral Android |
 | Slug | `mission-leben-portal` |
 | Provider-Typ | OAuth2/OpenID Connect |
 | Client-Typ | Public |
