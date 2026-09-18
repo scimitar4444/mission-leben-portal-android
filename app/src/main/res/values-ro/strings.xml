@@ -36,7 +36,7 @@
     <string name="sign_in_with_authentik">Autentificare cu Authentik</string>
     <string name="device_identity">Identitatea dispozitivului</string>
     <string name="device_key_format">Cheie %1$s…</string>
-    <string name="enrollment_instruction">Scanează codul QR din administrarea dispozitivelor Mission Leben. Codul nu trebuie introdus manual.</string>
+    <string name="enrollment_instruction">Scanează codul QR din administrarea dispozitivelor Mission Leben.</string>
     <string name="scan_enrollment_qr">Scanează codul QR</string>
     <string name="manual_enrollment_fallback">Alternativă doar pentru asistență:</string>
     <string name="device_api_not_configured">API-ul dispozitivelor nu este încă configurat în această versiune. Vezi docs/AUTHENTIK_SETUP.md.</string>

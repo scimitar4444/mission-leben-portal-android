@@ -36,7 +36,7 @@
     <string name="sign_in_with_authentik">Zaloguj przez Authentik</string>
     <string name="device_identity">Tożsamość urządzenia</string>
     <string name="device_key_format">Klucz %1$s…</string>
-    <string name="enrollment_instruction">Zeskanuj kod QR z systemu zarządzania urządzeniami Mission Leben. Nie trzeba wpisywać kodu.</string>
+    <string name="enrollment_instruction">Zeskanuj kod QR z systemu zarządzania urządzeniami Mission Leben.</string>
     <string name="scan_enrollment_qr">Zeskanuj kod QR</string>
     <string name="manual_enrollment_fallback">Alternatywa tylko dla pomocy technicznej:</string>
     <string name="device_api_not_configured">Interfejs API urządzeń nie jest jeszcze skonfigurowany w tej kompilacji. Zobacz docs/AUTHENTIK_SETUP.md.</string>

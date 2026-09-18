@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -34,7 +33,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,7 +44,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,7 +63,6 @@ fun MissionLebenApp(
     onStartLogin: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
-    onEnrollDevice: (String) -> Unit,
     onScanEnrollmentQr: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
@@ -86,7 +82,6 @@ fun MissionLebenApp(
                 onStartLogin = onStartLogin,
                 onOpenUrl = onOpenUrl,
                 onReloadApplications = onReloadApplications,
-                onEnrollDevice = onEnrollDevice,
                 onScanEnrollmentQr = onScanEnrollmentQr,
                 onRefreshDeviceStatus = onRefreshDeviceStatus,
                 onOpenTalk = onOpenTalk,
@@ -189,7 +184,6 @@ private fun Home(
     onStartLogin: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
-    onEnrollDevice: (String) -> Unit,
     onScanEnrollmentQr: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
@@ -208,7 +202,7 @@ private fun Home(
         item { BrandHeader() }
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
         item { WelcomePanel(state, onStartLogin, onLogout) }
-        item { DevicePanel(state, onEnrollDevice, onScanEnrollmentQr, onRefreshDeviceStatus) }
+        item { DevicePanel(state, onScanEnrollmentQr, onRefreshDeviceStatus) }
 
         if (state.signedIn) {
             item {
@@ -328,14 +322,9 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
 @Composable
 private fun DevicePanel(
     state: UiState,
-    onEnrollDevice: (String) -> Unit,
     onScanEnrollmentQr: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
 ) {
-    var token by remember { mutableStateOf(state.enrollmentTokenPrefill) }
-    LaunchedEffect(state.enrollmentTokenPrefill) {
-        if (state.enrollmentTokenPrefill.isNotBlank()) token = state.enrollmentTokenPrefill
-    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -366,23 +355,6 @@ private fun DevicePanel(
                     ) {
                         Text(stringResource(R.string.scan_enrollment_qr))
                     }
-                    Spacer(Modifier.height(14.dp))
-                    Text(
-                        stringResource(R.string.manual_enrollment_fallback),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = token,
-                        onValueChange = { token = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.enrollment_code)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Button(onClick = { onEnrollDevice(token) }, enabled = !state.busy) { Text(stringResource(R.string.register_device)) }
                 }
             } else if (state.deviceId != null) {
                 Spacer(Modifier.height(10.dp))

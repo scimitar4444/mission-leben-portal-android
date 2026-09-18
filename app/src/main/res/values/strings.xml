@@ -52,7 +52,7 @@
 
     <string name="device_identity">Geräteidentität</string>
     <string name="device_key_format">Schlüssel %1$s…</string>
-    <string name="enrollment_instruction">QR-Code aus der Mission-Leben-Geräteverwaltung scannen. Der Code muss nicht eingetippt werden.</string>
+    <string name="enrollment_instruction">QR-Code aus der Mission-Leben-Geräteverwaltung scannen.</string>
     <string name="scan_enrollment_qr">QR-Code scannen</string>
     <string name="manual_enrollment_fallback">Alternativ nur für den Support:</string>
     <string name="device_api_not_configured">Die Geräte-API ist im Build noch nicht konfiguriert. Details stehen in docs/AUTHENTIK_SETUP.md.</string>

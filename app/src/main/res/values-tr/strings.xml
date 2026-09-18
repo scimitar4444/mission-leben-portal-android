@@ -36,7 +36,7 @@
     <string name="sign_in_with_authentik">Authentik ile oturum aç</string>
     <string name="device_identity">Cihaz kimliği</string>
     <string name="device_key_format">Anahtar %1$s…</string>
-    <string name="enrollment_instruction">Mission Leben cihaz yönetimindeki QR kodunu tarayın. Kodu elle girmeniz gerekmez.</string>
+    <string name="enrollment_instruction">Mission Leben cihaz yönetimindeki QR kodunu tarayın.</string>
     <string name="scan_enrollment_qr">QR kodunu tara</string>
     <string name="manual_enrollment_fallback">Yalnızca destek için alternatif:</string>
     <string name="device_api_not_configured">Cihaz API’si bu yapıda henüz yapılandırılmadı. Ayrıntılar: docs/AUTHENTIK_SETUP.md.</string>
