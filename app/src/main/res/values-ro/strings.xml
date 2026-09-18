@@ -36,7 +36,9 @@
     <string name="sign_in_with_authentik">Autentificare cu Authentik</string>
     <string name="device_identity">Identitatea dispozitivului</string>
     <string name="device_key_format">Cheie %1$s…</string>
-    <string name="enrollment_instruction">Introdu codul de înrolare din administrarea dispozitivelor Mission Leben.</string>
+    <string name="enrollment_instruction">Scanează codul QR din administrarea dispozitivelor Mission Leben. Codul nu trebuie introdus manual.</string>
+    <string name="scan_enrollment_qr">Scanează codul QR</string>
+    <string name="manual_enrollment_fallback">Alternativă doar pentru asistență:</string>
     <string name="device_api_not_configured">API-ul dispozitivelor nu este încă configurat în această versiune. Vezi docs/AUTHENTIK_SETUP.md.</string>
     <string name="enrollment_code">Cod de înrolare</string>
     <string name="register_device">Înregistrează dispozitivul</string>
@@ -68,6 +70,8 @@
     <string name="message_protected_session_failed">Sesiunea protejată nu a putut fi deschisă: %1$s</string>
     <string name="message_apps_load_failed">Aplicațiile nu au putut fi încărcate.</string>
     <string name="message_enter_enrollment">Introdu un cod de înrolare sau deschide linkul QR.</string>
+    <string name="message_qr_invalid">Acest cod QR nu este un cod de înrolare Mission Leben valid.</string>
+    <string name="qr_scanner_unavailable">Scanerul QR nu a putut fi deschis.</string>
     <string name="message_device_approved">Dispozitivul a fost aprobat.</string>
     <string name="message_device_waiting">Dispozitivul așteaptă aprobarea în administrarea dispozitivelor.</string>
     <string name="message_talk_opened">Talk se deschide pe dispozitivul țintă.</string>

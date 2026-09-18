@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.LocaleList
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -26,9 +27,19 @@ import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.ui.MissionLebenApp
 import de.missionleben.portal.ui.MissionLebenTheme
 import de.missionleben.portal.web.PortalBrowserActivity
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 class MainActivity : FragmentActivity() {
     private val viewModel: MainViewModel by viewModels()
+    private val enrollmentScanner by lazy {
+        val options = GmsBarcodeScannerOptions.Builder()
+            .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+            .enableAutoZoom()
+            .build()
+        GmsBarcodeScanning.getClient(this, options)
+    }
 
     private val pushRegistrationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -97,6 +108,7 @@ class MainActivity : FragmentActivity() {
                     onOpenUrl = ::openUrl,
                     onReloadApplications = viewModel::loadApplications,
                     onEnrollDevice = viewModel::enrollDevice,
+                    onScanEnrollmentQr = ::scanEnrollmentQr,
                     onRefreshDeviceStatus = viewModel::refreshDeviceStatus,
                     onOpenTalk = viewModel::openTalkOn,
                     onNotificationPrivacyChange = viewModel::setNotificationPrivacy,
@@ -155,6 +167,16 @@ class MainActivity : FragmentActivity() {
 
     private fun openLogout(url: String) {
         startActivity(PortalBrowserActivity.logoutIntent(this, url))
+    }
+
+    private fun scanEnrollmentQr() {
+        enrollmentScanner.startScan()
+            .addOnSuccessListener { barcode ->
+                viewModel.enrollDeviceFromQr(barcode.rawValue.orEmpty())
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, R.string.qr_scanner_unavailable, Toast.LENGTH_LONG).show()
+            }
     }
 
     private fun handleVaultRequest(request: VaultRequest) {

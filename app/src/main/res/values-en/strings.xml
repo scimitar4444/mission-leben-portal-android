@@ -36,7 +36,9 @@
     <string name="sign_in_with_authentik">Sign in with Authentik</string>
     <string name="device_identity">Device identity</string>
     <string name="device_key_format">Key %1$s…</string>
-    <string name="enrollment_instruction">Enter the enrollment code from Mission Leben device management.</string>
+    <string name="enrollment_instruction">Scan the QR code from Mission Leben device management. You do not need to type the code.</string>
+    <string name="scan_enrollment_qr">Scan QR code</string>
+    <string name="manual_enrollment_fallback">Alternative for support only:</string>
     <string name="device_api_not_configured">The device API is not configured in this build yet. See docs/AUTHENTIK_SETUP.md.</string>
     <string name="enrollment_code">Enrollment code</string>
     <string name="register_device">Register device</string>
@@ -68,6 +70,8 @@
     <string name="message_protected_session_failed">The protected session could not be opened: %1$s</string>
     <string name="message_apps_load_failed">Apps could not be loaded.</string>
     <string name="message_enter_enrollment">Enter an enrollment code or open the QR link.</string>
+    <string name="message_qr_invalid">This is not a valid Mission Leben enrollment QR code.</string>
+    <string name="qr_scanner_unavailable">The QR scanner could not be opened.</string>
     <string name="message_device_approved">The device was approved.</string>
     <string name="message_device_waiting">The device is waiting for approval in device management.</string>
     <string name="message_talk_opened">Talk is being opened on the target device.</string>

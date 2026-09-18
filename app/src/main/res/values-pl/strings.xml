@@ -36,7 +36,9 @@
     <string name="sign_in_with_authentik">Zaloguj przez Authentik</string>
     <string name="device_identity">Tożsamość urządzenia</string>
     <string name="device_key_format">Klucz %1$s…</string>
-    <string name="enrollment_instruction">Wprowadź kod rejestracyjny z zarządzania urządzeniami Mission Leben.</string>
+    <string name="enrollment_instruction">Zeskanuj kod QR z systemu zarządzania urządzeniami Mission Leben. Nie trzeba wpisywać kodu.</string>
+    <string name="scan_enrollment_qr">Zeskanuj kod QR</string>
+    <string name="manual_enrollment_fallback">Alternatywa tylko dla pomocy technicznej:</string>
     <string name="device_api_not_configured">Interfejs API urządzeń nie jest jeszcze skonfigurowany w tej kompilacji. Zobacz docs/AUTHENTIK_SETUP.md.</string>
     <string name="enrollment_code">Kod rejestracyjny</string>
     <string name="register_device">Zarejestruj urządzenie</string>
@@ -68,6 +70,8 @@
     <string name="message_protected_session_failed">Nie udało się otworzyć chronionej sesji: %1$s</string>
     <string name="message_apps_load_failed">Nie udało się załadować aplikacji.</string>
     <string name="message_enter_enrollment">Wprowadź kod rejestracyjny lub otwórz łącze QR.</string>
+    <string name="message_qr_invalid">Ten kod QR nie jest prawidłowym kodem rejestracyjnym Mission Leben.</string>
+    <string name="qr_scanner_unavailable">Nie udało się otworzyć skanera QR.</string>
     <string name="message_device_approved">Urządzenie zostało zatwierdzone.</string>
     <string name="message_device_waiting">Urządzenie oczekuje na zatwierdzenie w zarządzaniu urządzeniami.</string>
     <string name="message_talk_opened">Talk jest otwierany na urządzeniu docelowym.</string>

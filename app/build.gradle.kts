@@ -31,8 +31,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 8
-        versionName = "0.6.0"
+        versionCode = 9
+        versionName = "0.6.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
@@ -98,6 +98,7 @@ dependencies {
     val firebaseBom = platform("com.google.firebase:firebase-bom:34.19.0")
     implementation(firebaseBom)
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")

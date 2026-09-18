@@ -13,6 +13,7 @@ import de.missionleben.portal.auth.AuthRepository
 import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.data.PortalRepository
 import de.missionleben.portal.device.DeviceServiceRepository
+import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.UiState
@@ -279,6 +280,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
         }
+    }
+
+    fun enrollDeviceFromQr(value: String) {
+        val token = EnrollmentQrParser.tokenFrom(value)
+        if (token == null) {
+            _uiState.update { it.copy(message = string(R.string.message_qr_invalid)) }
+            return
+        }
+        enrollDevice(token)
     }
 
     fun acceptEnrollmentLink(uri: Uri?) {

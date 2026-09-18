@@ -36,7 +36,9 @@
     <string name="sign_in_with_authentik">Authentik से साइन इन करें</string>
     <string name="device_identity">डिवाइस पहचान</string>
     <string name="device_key_format">कुंजी %1$s…</string>
-    <string name="enrollment_instruction">Mission Leben डिवाइस प्रबंधन का नामांकन कोड दर्ज करें।</string>
+    <string name="enrollment_instruction">Mission Leben डिवाइस प्रबंधन का QR कोड स्कैन करें। कोड टाइप करने की आवश्यकता नहीं है।</string>
+    <string name="scan_enrollment_qr">QR कोड स्कैन करें</string>
+    <string name="manual_enrollment_fallback">केवल सहायता के लिए वैकल्पिक:</string>
     <string name="device_api_not_configured">इस बिल्ड में डिवाइस API अभी कॉन्फ़िगर नहीं है। docs/AUTHENTIK_SETUP.md देखें।</string>
     <string name="enrollment_code">नामांकन कोड</string>
     <string name="register_device">डिवाइस रजिस्टर करें</string>
@@ -68,6 +70,8 @@
     <string name="message_protected_session_failed">सुरक्षित सत्र नहीं खुल सका: %1$s</string>
     <string name="message_apps_load_failed">ऐप लोड नहीं हो सके।</string>
     <string name="message_enter_enrollment">नामांकन कोड दर्ज करें या QR लिंक खोलें।</string>
+    <string name="message_qr_invalid">यह QR कोड मान्य Mission Leben नामांकन कोड नहीं है।</string>
+    <string name="qr_scanner_unavailable">QR स्कैनर नहीं खोला जा सका।</string>
     <string name="message_device_approved">डिवाइस स्वीकृत हो गया।</string>
     <string name="message_device_waiting">डिवाइस प्रबंधन में स्वीकृति की प्रतीक्षा है।</string>
     <string name="message_talk_opened">Talk लक्षित डिवाइस पर खोला जा रहा है।</string>

@@ -67,6 +67,7 @@ fun MissionLebenApp(
     onOpenUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onEnrollDevice: (String) -> Unit,
+    onScanEnrollmentQr: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
@@ -86,6 +87,7 @@ fun MissionLebenApp(
                 onOpenUrl = onOpenUrl,
                 onReloadApplications = onReloadApplications,
                 onEnrollDevice = onEnrollDevice,
+                onScanEnrollmentQr = onScanEnrollmentQr,
                 onRefreshDeviceStatus = onRefreshDeviceStatus,
                 onOpenTalk = onOpenTalk,
                 onNotificationPrivacyChange = onNotificationPrivacyChange,
@@ -188,6 +190,7 @@ private fun Home(
     onOpenUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onEnrollDevice: (String) -> Unit,
+    onScanEnrollmentQr: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
@@ -205,7 +208,7 @@ private fun Home(
         item { BrandHeader() }
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
         item { WelcomePanel(state, onStartLogin, onLogout) }
-        item { DevicePanel(state, onEnrollDevice, onRefreshDeviceStatus) }
+        item { DevicePanel(state, onEnrollDevice, onScanEnrollmentQr, onRefreshDeviceStatus) }
 
         if (state.signedIn) {
             item {
@@ -326,6 +329,7 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
 private fun DevicePanel(
     state: UiState,
     onEnrollDevice: (String) -> Unit,
+    onScanEnrollmentQr: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
 ) {
     var token by remember { mutableStateOf(state.enrollmentTokenPrefill) }
@@ -355,6 +359,20 @@ private fun DevicePanel(
                 )
                 if (state.deviceServiceConfigured) {
                     Spacer(Modifier.height(10.dp))
+                    Button(
+                        onClick = onScanEnrollmentQr,
+                        enabled = !state.busy,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.scan_enrollment_qr))
+                    }
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        stringResource(R.string.manual_enrollment_fallback),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                    Spacer(Modifier.height(6.dp))
                     OutlinedTextField(
                         value = token,
                         onValueChange = { token = it },
