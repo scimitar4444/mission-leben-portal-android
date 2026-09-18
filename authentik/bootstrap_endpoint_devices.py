@@ -53,6 +53,7 @@ TOTP_STAGE_NAMES = (
 )
 PERSONAL_SESSION_STAGE_NAME = "Mission Leben Zentral Android - Persönliche Browsersitzung"
 PERSONAL_SESSION_POLICY_NAME = "Mission Leben Zentral Android - Persönlicher WebView"
+PERSONAL_SESSION_DURATION = "days=30"
 
 
 PORTAL_REQUEST_EXPRESSION = r'''http_request = request.http_request
@@ -299,7 +300,7 @@ for totp_stage_name in TOTP_STAGE_NAMES:
 personal_session_stage, _ = UserLoginStage.objects.update_or_create(
     name=PERSONAL_SESSION_STAGE_NAME,
     defaults={
-        "session_duration": "hours=12",
+        "session_duration": PERSONAL_SESSION_DURATION,
         "remember_me_offset": "seconds=0",
         "remember_device": "seconds=0",
         "terminate_other_sessions": False,
@@ -347,6 +348,7 @@ print(
             "device_access_group": str(device_access_group.pk),
             "endpoint_stage": str(endpoint_stage.pk),
             "personal_session_stage": str(personal_session_stage.pk),
+            "personal_session_duration": PERSONAL_SESSION_DURATION,
             "personal_session_flows": list(PERSONAL_SESSION_FLOW_SLUGS),
             "pilot_group": pilot_group.name,
         },
