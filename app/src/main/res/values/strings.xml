@@ -52,7 +52,9 @@
 
     <string name="device_identity">Geräteidentität</string>
     <string name="device_key_format">Schlüssel %1$s…</string>
-    <string name="enrollment_instruction">Enrollment-Code aus der Mission-Leben-Geräteverwaltung eingeben.</string>
+    <string name="enrollment_instruction">QR-Code aus der Mission-Leben-Geräteverwaltung scannen. Der Code muss nicht eingetippt werden.</string>
+    <string name="scan_enrollment_qr">QR-Code scannen</string>
+    <string name="manual_enrollment_fallback">Alternativ nur für den Support:</string>
     <string name="device_api_not_configured">Die Geräte-API ist im Build noch nicht konfiguriert. Details stehen in docs/AUTHENTIK_SETUP.md.</string>
     <string name="enrollment_code">Enrollment-Code</string>
     <string name="register_device">Gerät registrieren</string>
@@ -87,6 +89,8 @@
     <string name="message_protected_session_failed">Geschützte Sitzung konnte nicht geöffnet werden: %1$s</string>
     <string name="message_apps_load_failed">Apps konnten nicht geladen werden.</string>
     <string name="message_enter_enrollment">Bitte Enrollment-Code eingeben oder QR-Link öffnen.</string>
+    <string name="message_qr_invalid">Dieser QR-Code ist kein gültiger Mission-Leben-Enrollment-Code.</string>
+    <string name="qr_scanner_unavailable">Der QR-Scanner konnte nicht geöffnet werden.</string>
     <string name="message_device_approved">Gerät wurde freigegeben.</string>
     <string name="message_device_waiting">Gerät wartet auf die Freigabe in der Geräteverwaltung.</string>
     <string name="message_talk_opened">Talk wird am Zielgerät geöffnet.</string>

@@ -36,7 +36,9 @@
     <string name="sign_in_with_authentik">Authentik ile oturum aç</string>
     <string name="device_identity">Cihaz kimliği</string>
     <string name="device_key_format">Anahtar %1$s…</string>
-    <string name="enrollment_instruction">Mission Leben cihaz yönetimindeki kayıt kodunu girin.</string>
+    <string name="enrollment_instruction">Mission Leben cihaz yönetimindeki QR kodunu tarayın. Kodu elle girmeniz gerekmez.</string>
+    <string name="scan_enrollment_qr">QR kodunu tara</string>
+    <string name="manual_enrollment_fallback">Yalnızca destek için alternatif:</string>
     <string name="device_api_not_configured">Cihaz API’si bu yapıda henüz yapılandırılmadı. Ayrıntılar: docs/AUTHENTIK_SETUP.md.</string>
     <string name="enrollment_code">Kayıt kodu</string>
     <string name="register_device">Cihazı kaydet</string>
@@ -68,6 +70,8 @@
     <string name="message_protected_session_failed">Korunan oturum açılamadı: %1$s</string>
     <string name="message_apps_load_failed">Uygulamalar yüklenemedi.</string>
     <string name="message_enter_enrollment">Bir kayıt kodu girin veya QR bağlantısını açın.</string>
+    <string name="message_qr_invalid">Bu QR kodu geçerli bir Mission Leben kayıt kodu değil.</string>
+    <string name="qr_scanner_unavailable">QR tarayıcı açılamadı.</string>
     <string name="message_device_approved">Cihaz onaylandı.</string>
     <string name="message_device_waiting">Cihaz, cihaz yönetiminde onay bekliyor.</string>
     <string name="message_talk_opened">Talk hedef cihazda açılıyor.</string>

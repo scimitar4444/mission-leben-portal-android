@@ -18,6 +18,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - persönliche Geräte: Refresh Token wird mit einem zufälligen Datenschlüssel verschlüsselt; nur Biometrie oder Gerätecode kann diesen Schlüssel über Android Keystore freigeben
 - Shared Tablets: kein Refresh Token und keine persistente Mitarbeitersitzung
 - Authentik-Enrollment per Code oder Deep Link `de.missionleben.portal://enroll?token=…`; Authentik erzeugt Device, Connection, Device Token und Fakten-Snapshots
+- integrierter QR-Scanner für Enrollment-Links; ein Scan startet die Authentik-Geräteregistrierung ohne Abtippen
 - verschlüsselte Speicherung des Authentik-Device-Tokens unter einem Android-Keystore-Schlüssel
 - native Antwort auf die Authentik Endpoint-Stage-Challenge im WebView; der Device Token wird nie an JavaScript ausgegeben
 - Authentik Device Access Groups und deren Benutzer-/Gruppenbindungen steuern die Gerätefreigabe
@@ -88,6 +89,8 @@ Die Geräteregistrierung verwendet immer `ML_AUTHENTIK_BASE_URL` und spricht Aut
 `ML_WEB_ALLOWED_HOST_SUFFIXES` ist eine kommaseparierte Liste kontrollierter Domain-Endungen. Standardmäßig dürfen ausschließlich `mission-leben.de` und dessen Subdomains im In-App-Webcontainer laufen. SaaS- oder Fremdlinks öffnen außerhalb des Containers.
 
 FCM bleibt vollständig deaktiviert, solange einer der vier `ML_FIREBASE_*`-Werte fehlt. Diese Firebase-App-Kennung ist Client-Konfiguration, kein Servergeheimnis. Das Firebase-Dienstkonto für den Versand darf dagegen niemals in Gradle-Properties, APK oder Git-Repository liegen. Die Einrichtung ist in [docs/FCM_SETUP.md](docs/FCM_SETUP.md) beschrieben.
+
+Der Enrollment-Scanner verwendet den Google Code Scanner. Die Erkennung läuft auf dem Gerät; beim ersten Aufruf kann Google Play Services das Scanner-Modul `barcode_ui` nachladen. Akzeptiert wird ausschließlich `de.missionleben.portal://enroll?token=...`, nicht eine beliebige URL oder ein roher QR-Text.
 
 `ML_DEVICE_SERVICE_BASE_URL` zeigt im Pilot auf den eigenen Kommunikationscontainer. Er läuft separat hinter TLS und enthält keine Authentik-Gerätefreigaben.
 

@@ -100,6 +100,8 @@ Die App sendet Enrollment direkt an `/api/v3/endpoints/agents/connectors/enroll/
 
 Ein Pilot-Enrollment-Token wird mit `authentik/create_pilot_enrollment_token.py` erzeugt, 24 Stunden gültig und der Pilot-Access-Group zugeordnet. Nach dem geplanten Enrollment wird er in Authentik ablaufen gelassen oder gelöscht. Das Skript darf nur mit in eine root-only Datei umgeleiteter Ausgabe ausgeführt werden.
 
+Für die App wird daraus lokal ein QR-Code mit dem Deep Link `de.missionleben.portal://enroll?token=...` erzeugt. `authentik/generate_enrollment_qr.py` liest den Token ausschließlich über stdin, schreibt die PNG-Datei mit Modus `0600` und gibt den Token nicht aus. Der QR-Code ist wie der Enrollment-Token selbst ein Geheimnis und darf weder in Git noch in Tickets oder öffentliche Dateifreigaben gelangen.
+
 Gerät sperren: Unter **Endpoint Devices → Devices** das Gerät ablaufen lassen oder löschen. Dadurch lehnt `agent_config` das Device Token ab; die App löscht Sitzung und Webdaten, und die Kommunikations-Bridge verwirft die Push-Zuordnung bei ihrer nächsten Live-Prüfung.
 
 ## 6. Policy-Grundsätze

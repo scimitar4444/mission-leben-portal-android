@@ -29,6 +29,8 @@
 | veraltete Browserengine | Android System WebView wird separat aktualisiert; MDM muss Updates erzwingen und veraltete Geräte sperren |
 | FCM oder ein fremder Push schleust Text oder Schad-URL ein | FCM enthält nur Ereignis-ID, Typ und Revision; App ignoriert freie Texte/URLs und öffnet ausschließlich eine passende Authentik-App |
 | Ereignis-ID wird abgegriffen | Detailabruf verlangt vertrauenswürdiges gebundenes Gerät, P-256-Signatur, Zeitfenster und einmalige Nonce |
+| fremder QR-Code schleust eine URL oder einen Token ein | Scanner akzeptiert ausschließlich den exakten App-Deep-Link `de.missionleben.portal://enroll` mit genau einem plausiblen Token; QR-Auswertung und Übergabe bleiben lokal |
+| Enrollment-QR wird kopiert | QR gilt wie der Authentik-Enrollment-Token als Geheimnis, wird nur kurzlebig ausgegeben und als Datei mit Modus `0600` erzeugt |
 | Sperrbildschirm verrät Fachdaten | Android-Notification ist `PRIVATE` und besitzt eine neutrale öffentliche Version; Shared Tablets erzwingen `minimal` |
 | Bridge-Datenbank wird kopiert | FCM-Installations-IDs und die für Live-Prüfungen benötigten Authentik-Device-Token sind mit AES-256-GCM verschlüsselt; Schlüssel liegt nur als Server-Secret vor |
 | Zimbra-Integrationskonto wird missbraucht | eigener Worker je Mailbox-Server, explizite Konto-ID-Liste, Secret-Datei, keine Benutzerkennwörter und begrenzte Suchabfragen; Rechte und Audit müssen vor Produktion geprüft werden |
