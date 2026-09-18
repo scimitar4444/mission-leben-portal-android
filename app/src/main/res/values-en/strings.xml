@@ -36,7 +36,7 @@
     <string name="sign_in_with_authentik">Sign in with Authentik</string>
     <string name="device_identity">Device identity</string>
     <string name="device_key_format">Key %1$s…</string>
-    <string name="enrollment_instruction">Scan the QR code from Mission Leben device management. You do not need to type the code.</string>
+    <string name="enrollment_instruction">Scan the QR code from Mission Leben device management.</string>
     <string name="scan_enrollment_qr">Scan QR code</string>
     <string name="manual_enrollment_fallback">Alternative for support only:</string>
     <string name="device_api_not_configured">The device API is not configured in this build yet. See docs/AUTHENTIK_SETUP.md.</string>

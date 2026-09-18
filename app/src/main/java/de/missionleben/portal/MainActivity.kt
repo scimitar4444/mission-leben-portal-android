@@ -120,7 +120,6 @@ class MainActivity : FragmentActivity() {
                     },
                     onOpenUrl = ::openUrl,
                     onReloadApplications = viewModel::loadApplications,
-                    onEnrollDevice = viewModel::enrollDevice,
                     onScanEnrollmentQr = ::scanEnrollmentQr,
                     onRefreshDeviceStatus = viewModel::refreshDeviceStatus,
                     onOpenTalk = viewModel::openTalkOn,

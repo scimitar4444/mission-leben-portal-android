@@ -36,7 +36,7 @@
     <string name="sign_in_with_authentik">Se connecter avec Authentik</string>
     <string name="device_identity">Identité de l’appareil</string>
     <string name="device_key_format">Clé %1$s…</string>
-    <string name="enrollment_instruction">Scannez le code QR fourni par la gestion des appareils Mission Leben. Il n’est pas nécessaire de saisir le code.</string>
+    <string name="enrollment_instruction">Scannez le code QR fourni par la gestion des appareils Mission Leben.</string>
     <string name="scan_enrollment_qr">Scanner le code QR</string>
     <string name="manual_enrollment_fallback">Alternative réservée au support :</string>
     <string name="device_api_not_configured">L’API des appareils n’est pas encore configurée dans cette version. Voir docs/AUTHENTIK_SETUP.md.</string>

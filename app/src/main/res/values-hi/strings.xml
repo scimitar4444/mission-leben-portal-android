@@ -36,7 +36,7 @@
     <string name="sign_in_with_authentik">Authentik से साइन इन करें</string>
     <string name="device_identity">डिवाइस पहचान</string>
     <string name="device_key_format">कुंजी %1$s…</string>
-    <string name="enrollment_instruction">Mission Leben डिवाइस प्रबंधन का QR कोड स्कैन करें। कोड टाइप करने की आवश्यकता नहीं है।</string>
+    <string name="enrollment_instruction">Mission Leben डिवाइस प्रबंधन का QR कोड स्कैन करें।</string>
     <string name="scan_enrollment_qr">QR कोड स्कैन करें</string>
     <string name="manual_enrollment_fallback">केवल सहायता के लिए वैकल्पिक:</string>
     <string name="device_api_not_configured">इस बिल्ड में डिवाइस API अभी कॉन्फ़िगर नहीं है। docs/AUTHENTIK_SETUP.md देखें।</string>

@@ -82,6 +82,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun selectMode(mode: DeviceMode) {
+        val pendingEnrollmentToken = _uiState.value.enrollmentTokenPrefill
+        val syncExistingDevice = pendingEnrollmentToken.isBlank() &&
+            preferences.deviceId != null &&
+            deviceService.endpointDevicesConfigured
         if (preferences.deviceMode != mode) {
             serializedAuthState = null
             dataEncryptionKey = null
@@ -97,8 +101,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 applications = emptyList(),
                 quickUnlockEnabled = false,
                 notificationPrivacy = effectiveNotificationPrivacy(mode),
+                busy = syncExistingDevice,
                 message = null,
             )
+        }
+        when {
+            pendingEnrollmentToken.isNotBlank() -> enrollDevice(pendingEnrollmentToken)
+            syncExistingDevice -> syncDeviceStatus(blockLogin = true)
         }
     }
 
@@ -110,9 +119,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         dataEncryptionKey = null
         vault.clear()
         clearNotifications()
-        deviceService.clearDeviceCredential()
-        preferences.clearProfile()
+        preferences.deviceMode = null
         _uiState.value = UiState(
+            enrollmentState = preferences.enrollmentState,
+            deviceId = preferences.deviceId,
             deviceKeyId = identity.keyId(),
             deviceServiceConfigured = deviceService.endpointDevicesConfigured,
             communicationServiceConfigured = deviceService.communicationConfigured,
@@ -294,7 +304,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun acceptEnrollmentLink(uri: Uri?) {
         if (uri?.scheme != "de.missionleben.portal" || uri.host != "enroll") return
         val token = uri.getQueryParameter("token").orEmpty()
-        if (token.isNotBlank()) _uiState.update { it.copy(enrollmentTokenPrefill = token) }
+        if (token.isBlank()) return
+        if (_uiState.value.mode == null) {
+            _uiState.update { it.copy(enrollmentTokenPrefill = token) }
+        } else {
+            enrollDevice(token)
+        }
     }
 
     fun openTalkOn(targetId: String, talkUrl: String) {
@@ -352,6 +367,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun consumeWebDataClearRequest() = _uiState.update { it.copy(clearWebDataRequested = false) }
 
     fun refreshDeviceStatus() {
+        syncDeviceStatus(blockLogin = false)
+    }
+
+    private fun syncDeviceStatus(blockLogin: Boolean) {
         if (!deviceService.endpointDevicesConfigured) return
         val deviceId = preferences.deviceId ?: return
         val mode = preferences.deviceMode ?: return
@@ -377,15 +396,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                 applications = emptyList(),
                                 linkTargets = emptyList(),
                                 quickUnlockEnabled = false,
+                                busy = false,
                                 clearWebDataRequested = true,
                                 message = string(R.string.message_device_blocked_clearing),
                             )
                         }
                     } else {
-                        _uiState.update { it.copy(enrollmentState = status) }
+                        _uiState.update { it.copy(enrollmentState = status, busy = false) }
                         if (status == EnrollmentState.TRUSTED && oldStatus != EnrollmentState.TRUSTED) {
                             syncPushRegistration()
                         }
+                    }
+                }
+                .onFailure { error ->
+                    if (blockLogin) {
+                        _uiState.update { it.copy(busy = false, message = error.message) }
                     }
                 }
         }
