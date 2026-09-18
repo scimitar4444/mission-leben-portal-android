@@ -139,7 +139,7 @@ class PortalBrowserActivity : FragmentActivity() {
         }
         val close = TextView(this).apply {
             text = getString(R.string.browser_back)
-            textSize = 16f
+            textSize = 15f
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
             setPadding(dp(8), 0, dp(12), 0)
@@ -147,13 +147,13 @@ class PortalBrowserActivity : FragmentActivity() {
         }
         titleView = TextView(this).apply {
             text = initialTitle.ifBlank { getString(R.string.browser_protected_area) }
-            textSize = 16f
+            textSize = 15f
             setTextColor(Color.WHITE)
             maxLines = 1
             gravity = Gravity.CENTER_VERTICAL
         }
-        toolbar.addView(close, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(56)))
-        toolbar.addView(titleView, LinearLayout.LayoutParams(0, dp(56), 1f))
+        toolbar.addView(close, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(48)))
+        toolbar.addView(titleView, LinearLayout.LayoutParams(0, dp(48), 1f))
 
         progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
             max = 100
@@ -161,8 +161,8 @@ class PortalBrowserActivity : FragmentActivity() {
         webView = WebView(this).apply {
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
         }
-        root.addView(toolbar, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(56)))
-        root.addView(progress, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(3)))
+        root.addView(toolbar, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)))
+        root.addView(progress, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(2)))
         root.addView(webView, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         setContentView(root)
     }
