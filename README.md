@@ -11,7 +11,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - ein serverseitig als `shared` freigegebenes und vom Gerät ebenfalls als `shared` gemeldetes Tablet ersetzt TOTP; persönliche und nicht registrierte Geräte durchlaufen weiter TOTP
 - Telefonsprache oder direkte App-Auswahl für Deutsch, Englisch, Türkisch, Hindi, Spanisch, Französisch, Polnisch, Rumänisch und Ukrainisch; Deutsch bleibt die Rückfallsprache
 - sichtbare Web-Apps werden live aus `/api/v3/core/applications/` geladen und zusätzlich auf die zentrale Authentik-Anwendungsgruppe `Mobil erreichbar` begrenzt
-- Zimbra, Exchange OWA, Nextcloud und Talk-Chat laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung; Warden bleibt bis zur externen Freigabe mobil ausgeblendet
+- Zimbra, Exchange OWA und Talk-Chat laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung; die eigenständige Nextcloud-App und Warden sind mobil ausgeblendet
 - der Browsermotor wird über Android System WebView unabhängig von der APK aktualisiert
 - nur konfigurierte HTTPS-Domains dürfen im Container laden; fremde Links wechseln in den Systembrowser
 - Talk läuft im Webcontainer bewusst als reiner Chat; Kamera- und Mikrofonanforderungen werden dort unabhängig von den Android-Berechtigungen abgewiesen. Die App blendet die Nextcloud-Kopfzeile aus und öffnet beim nächsten Start direkt den zuletzt verwendeten Raum; Abmelden/Zurücksetzen löscht diese lokale Erinnerung.

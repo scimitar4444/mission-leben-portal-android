@@ -65,7 +65,7 @@ Authorization: Bearer <access-token>
 
 Authentik führt bei diesem List-Endpunkt die Policy-Prüfung für den aktuellen Benutzer aus. Dadurch sieht die App dieselben freigegebenen Anwendungen wie das Authentik Application Dashboard.
 
-Zusätzlich zeigt der Android-Client ausschließlich Anwendungen mit der Authentik-Anwendungsgruppe `Mobil erreichbar`. Diese Kennzeichnung beschreibt nur die technische Erreichbarkeit aus dem mobilen Netz; Benutzer- und Gruppen-Policies bleiben unverändert die eigentliche Zugriffsentscheidung. Im Pilot sind `zimbra-mail`, `exchange-owa`, `nextcloud-mission-leben` und `talk` markiert. Warden bleibt bis zur externen Bereitstellung unmarkiert und damit nur im normalen Portal sichtbar.
+Zusätzlich zeigt der Android-Client ausschließlich Anwendungen mit der Authentik-Anwendungsgruppe `Mobil erreichbar`. Diese Kennzeichnung beschreibt nur die technische Erreichbarkeit aus dem mobilen Netz; Benutzer- und Gruppen-Policies bleiben unverändert die eigentliche Zugriffsentscheidung. Im Pilot sind `zimbra-mail`, `exchange-owa` und `talk` markiert. Die eigenständige Nextcloud-App und Warden bleiben unmarkiert und damit nur im normalen Portal sichtbar.
 
 Da Nextcloud Talk Android-WebViews für Audio- und Videoanrufe nicht als vollständig unterstützten Browser behandelt, betreibt der Client Talk bewusst nur als eingebetteten Chat. Auf den vertrauenswürdigen Talk-Seiten werden WebRTC-Anforderungen für Kamera und Mikrofon immer abgewiesen und der Benutzer erhält einen klaren Hinweis. Die installierte Talk-App wird nicht automatisch gestartet; Kontodaten oder WebView-Cookies werden nicht an eine Fremd-App übertragen.
 
