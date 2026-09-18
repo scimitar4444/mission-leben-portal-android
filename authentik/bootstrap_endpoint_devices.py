@@ -57,6 +57,7 @@ PERSONAL_SESSION_DURATION = "days=30"
 MOBILE_APPLICATION_GROUP = "Mobil erreichbar"
 MOBILE_APPLICATION_SLUGS = (
     "zimbra-mail",
+    "exchange-owa",
     "nextcloud-mission-leben",
     "talk",
 )

@@ -11,7 +11,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - ein serverseitig als `shared` freigegebenes und vom Gerät ebenfalls als `shared` gemeldetes Tablet ersetzt TOTP; persönliche und nicht registrierte Geräte durchlaufen weiter TOTP
 - Telefonsprache oder direkte App-Auswahl für Deutsch, Englisch, Türkisch, Hindi, Spanisch, Französisch, Polnisch, Rumänisch und Ukrainisch; Deutsch bleibt die Rückfallsprache
 - sichtbare Web-Apps werden live aus `/api/v3/core/applications/` geladen und zusätzlich auf die zentrale Authentik-Anwendungsgruppe `Mobil erreichbar` begrenzt
-- Zimbra, Nextcloud und Talk-Chat laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung; Warden bleibt bis zur externen Freigabe mobil ausgeblendet
+- Zimbra, Exchange OWA, Nextcloud und Talk-Chat laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung; Warden bleibt bis zur externen Freigabe mobil ausgeblendet
 - der Browsermotor wird über Android System WebView unabhängig von der APK aktualisiert
 - nur konfigurierte HTTPS-Domains dürfen im Container laden; fremde Links wechseln in den Systembrowser
 - Talk läuft im Webcontainer bewusst als reiner Chat; Kamera- und Mikrofonanforderungen werden dort unabhängig von den Android-Berechtigungen abgewiesen. Die App blendet die Nextcloud-Kopfzeile aus und öffnet beim nächsten Start direkt den zuletzt verwendeten Raum; Abmelden/Zurücksetzen löscht diese lokale Erinnerung.
@@ -78,7 +78,7 @@ ML_AUTHENTIK_BASE_URL=https://id.mission-leben.de
 ML_OIDC_ISSUER=https://id.mission-leben.de/application/o/mission-leben-portal/
 ML_OIDC_CLIENT_ID=mission-leben-android
 ML_DEVICE_SERVICE_BASE_URL=https://id.mission-leben.de/device-bridge
-ML_WEB_ALLOWED_HOST_SUFFIXES=mission-leben.de
+ML_WEB_ALLOWED_HOST_SUFFIXES=mission-leben.de,akademie-mission-leben.de
 ML_FIREBASE_APPLICATION_ID=1:1234567890:android:…
 ML_FIREBASE_API_KEY=AIza…
 ML_FIREBASE_PROJECT_ID=mission-leben-portal
@@ -87,7 +87,7 @@ ML_FIREBASE_SENDER_ID=1234567890
 
 Die Geräteregistrierung verwendet immer `ML_AUTHENTIK_BASE_URL` und spricht Authentik Endpoint Devices direkt an. `ML_DEVICE_SERVICE_BASE_URL` betrifft ausschließlich Push, Benachrichtigungsdetails und Talk-Handoff; der Mission-Leben-Pilotwert ist bereits voreingestellt.
 
-`ML_WEB_ALLOWED_HOST_SUFFIXES` ist eine kommaseparierte Liste kontrollierter Domain-Endungen. Standardmäßig dürfen ausschließlich `mission-leben.de` und dessen Subdomains im In-App-Webcontainer laufen. SaaS- oder Fremdlinks öffnen außerhalb des Containers.
+`ML_WEB_ALLOWED_HOST_SUFFIXES` ist eine kommaseparierte Liste kontrollierter Domain-Endungen. Standardmäßig dürfen ausschließlich `mission-leben.de`, `akademie-mission-leben.de` und deren Subdomains im In-App-Webcontainer laufen. SaaS- oder Fremdlinks öffnen außerhalb des Containers.
 
 FCM bleibt vollständig deaktiviert, solange einer der vier `ML_FIREBASE_*`-Werte fehlt. Diese Firebase-App-Kennung ist Client-Konfiguration, kein Servergeheimnis. Das Firebase-Dienstkonto für den Versand darf dagegen niemals in Gradle-Properties, APK oder Git-Repository liegen. Die Einrichtung ist in [docs/FCM_SETUP.md](docs/FCM_SETUP.md) beschrieben.
 
