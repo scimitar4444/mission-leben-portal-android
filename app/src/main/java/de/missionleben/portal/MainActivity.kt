@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.LocaleList
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,6 +31,8 @@ import de.missionleben.portal.web.PortalBrowserActivity
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+
+private const val AUTH_LOG_TAG = "MissionLebenAuth"
 
 class MainActivity : FragmentActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -58,7 +61,17 @@ class MainActivity : FragmentActivity() {
     private val authorizationLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
-        viewModel.completeAuthorization(result.data?.data)
+        val redirectUri = if (result.resultCode == RESULT_OK) {
+            PortalBrowserActivity.authorizationResponse(result.data)
+        } else {
+            null
+        }
+        Log.i(
+            AUTH_LOG_TAG,
+            "Authorization browser result: resultOk=${result.resultCode == RESULT_OK}, " +
+                "hasResponse=${redirectUri != null}",
+        )
+        viewModel.completeAuthorization(redirectUri)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
