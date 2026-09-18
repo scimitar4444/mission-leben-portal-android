@@ -1,5 +1,6 @@
 package de.missionleben.portal.push
 
+import de.missionleben.portal.R
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -22,10 +23,10 @@ class PushActionTest {
     }
 
     @Test
-    fun `notification copy is fixed in the client`() {
-        assertEquals("Neue Mail", PushAction.OPEN_MAIL.title)
-        assertEquals("Zimbra öffnen", PushAction.OPEN_MAIL.body)
-        assertEquals("Ein Termin steht bevor.", PushAction.OPEN_CALENDAR.body)
-        assertEquals("Neue Talk-Aktivität.", PushAction.OPEN_TALK.body)
+    fun `notification copy is fixed in localized client resources`() {
+        assertEquals(R.string.push_mail_title, PushAction.OPEN_MAIL.titleRes)
+        assertEquals(R.string.push_mail_body, PushAction.OPEN_MAIL.bodyRes)
+        assertEquals(R.string.push_calendar_body, PushAction.OPEN_CALENDAR.bodyRes)
+        assertEquals(R.string.push_talk_body, PushAction.OPEN_TALK.bodyRes)
     }
 }

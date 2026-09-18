@@ -36,7 +36,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val identity = DeviceIdentity()
     private val authRepository = AuthRepository(application)
     private val portalRepository = PortalRepository()
-    private val deviceService = DeviceServiceRepository()
+    private val deviceService = DeviceServiceRepository(application)
     private val pushStore = PushRegistrationStore(application)
 
     private var serializedAuthState: String? = null
@@ -117,7 +117,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun completeAuthorization(redirectUri: Uri?) {
         if (redirectUri == null) {
-            _uiState.update { it.copy(message = "Anmeldung wurde abgebrochen.") }
+            _uiState.update { it.copy(message = string(R.string.message_auth_cancelled)) }
             return
         }
         _uiState.update { it.copy(busy = true, message = null) }
@@ -160,7 +160,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val unlocked = vault.sealNewSession(state, cipher)
                     dataEncryptionKey = unlocked.dataEncryptionKey
                     pendingVaultState = null
-                    _uiState.update { it.copy(quickUnlockEnabled = true, message = "Schnellzugang ist aktiviert.") }
+                    _uiState.update { it.copy(quickUnlockEnabled = true, message = string(R.string.message_quick_access_enabled)) }
                 }
 
                 VaultRequest.UNLOCK -> {
@@ -186,7 +186,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.update {
                 it.copy(
                     quickUnlockEnabled = false,
-                    message = "Geschützte Sitzung konnte nicht geöffnet werden: ${error.message}",
+                    message = string(R.string.message_protected_session_failed, error.message.orEmpty()),
                 )
             }
         }
@@ -218,7 +218,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         }
                         .onFailure { error ->
                             _uiState.update {
-                                it.copy(applicationsLoading = false, message = error.message ?: "Apps konnten nicht geladen werden.")
+                                it.copy(applicationsLoading = false, message = string(R.string.message_apps_load_failed))
                             }
                         }
                 }
@@ -230,7 +230,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun enrollDevice(token: String) {
         val mode = _uiState.value.mode ?: return
         if (token.isBlank()) {
-            _uiState.update { it.copy(message = "Bitte Enrollment-Code eingeben oder QR-Link öffnen.") }
+            _uiState.update { it.copy(message = string(R.string.message_enter_enrollment)) }
             return
         }
         _uiState.update { it.copy(busy = true, message = null, enrollmentState = EnrollmentState.PENDING) }
@@ -245,7 +245,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             deviceId = result.deviceId,
                             enrollmentState = preferences.enrollmentState,
                             enrollmentTokenPrefill = "",
-                            message = if (result.trusted) "Gerät wurde freigegeben." else "Gerät wartet auf die Freigabe in der Geräteverwaltung.",
+                            message = if (result.trusted) {
+                                string(R.string.message_device_approved)
+                            } else {
+                                string(R.string.message_device_waiting)
+                            },
                         )
                     }
                     if (serializedAuthState != null) loadApplications()
@@ -274,7 +278,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 updateSerializedState(updatedState)
                 viewModelScope.launch {
                     runCatching { deviceService.openTalk(token, targetId, talkUrl) }
-                        .onSuccess { _uiState.update { it.copy(busy = false, message = "Talk wird am Zielgerät geöffnet.") } }
+                        .onSuccess { _uiState.update { it.copy(busy = false, message = string(R.string.message_talk_opened)) } }
                         .onFailure { error -> _uiState.update { it.copy(busy = false, message = error.message) } }
                 }
             },
@@ -297,7 +301,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 applications = emptyList(),
                 linkTargets = emptyList(),
                 quickUnlockEnabled = false,
-                message = if (it.mode == DeviceMode.SHARED) "Sitzung auf diesem Tablet wurde gelöscht." else "Abgemeldet.",
+                message = if (it.mode == DeviceMode.SHARED) {
+                    string(R.string.message_shared_session_deleted)
+                } else {
+                    string(R.string.message_signed_out)
+                },
             )
         }
         onBrowserLogout(authRepository.endSessionUrl())
@@ -341,7 +349,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                 linkTargets = emptyList(),
                                 quickUnlockEnabled = false,
                                 clearWebDataRequested = true,
-                                message = "Dieses Gerät wurde gesperrt. Lokale Sitzungsdaten werden gelöscht.",
+                                message = string(R.string.message_device_blocked_clearing),
                             )
                         }
                     } else {
@@ -425,18 +433,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (action == PushAction.REFRESH_SECURITY_STATE) {
             pendingPushAction = null
             refreshDeviceStatus()
-            _uiState.update { it.copy(message = "Bitte Gerätestatus und Anmeldung prüfen.") }
+            _uiState.update { it.copy(message = string(R.string.message_check_device_and_login)) }
             return
         }
         if (!_uiState.value.signedIn) {
-            _uiState.update { it.copy(message = "Bitte zuerst sicher anmelden, um den Hinweis zu öffnen.") }
+            _uiState.update { it.copy(message = string(R.string.message_sign_in_to_open)) }
             return
         }
         val applications = _uiState.value.applications
         if (applications.isEmpty()) {
             if (!_uiState.value.applicationsLoading) {
                 pendingPushAction = null
-                _uiState.update { it.copy(message = "Die passende Web-App ist für dieses Konto nicht freigegeben.") }
+                _uiState.update { it.copy(message = string(R.string.message_app_not_approved)) }
             }
             return
         }
@@ -453,7 +461,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         pendingPushAction = null
         if (application == null) {
-            _uiState.update { it.copy(message = "Die passende Web-App ist für dieses Konto nicht freigegeben.") }
+            _uiState.update { it.copy(message = string(R.string.message_app_not_approved)) }
         } else {
             _uiState.update { it.copy(requestedUrl = application.launchUrl, message = null) }
         }
@@ -474,6 +482,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         NotificationManagerCompat.from(getApplication<Application>()).cancelAll()
         getApplication<Application>().getSystemService(JobScheduler::class.java).cancelAll()
     }
+
+    private fun string(resourceId: Int, vararg formatArgs: Any): String =
+        getApplication<Application>().getString(resourceId, *formatArgs)
 
     override fun onCleared() {
         dataEncryptionKey?.fill(0)

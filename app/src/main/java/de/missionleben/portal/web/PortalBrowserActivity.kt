@@ -87,12 +87,12 @@ class PortalBrowserActivity : FragmentActivity() {
         val redirectUri = intent.getStringExtra(EXTRA_REDIRECT_URI).orEmpty()
         policy = WebNavigationPolicy(BuildConfig.WEB_ALLOWED_HOST_SUFFIXES, redirectUri)
         if (!policy.isTrustedWebUrl(startUrl)) {
-            Toast.makeText(this, "Diese Adresse ist für den geschützten Bereich nicht freigegeben.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, R.string.browser_address_blocked, Toast.LENGTH_LONG).show()
             finish()
             return
         }
         if (WebViewCompat.getCurrentWebViewPackage(this) == null) {
-            Toast.makeText(this, "Android System WebView fehlt oder ist deaktiviert.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, R.string.browser_webview_missing, Toast.LENGTH_LONG).show()
             finish()
             return
         }
@@ -130,7 +130,7 @@ class PortalBrowserActivity : FragmentActivity() {
             setOnClickListener { finish() }
         }
         titleView = TextView(this).apply {
-            text = initialTitle.ifBlank { "Geschützter Bereich" }
+            text = initialTitle.ifBlank { getString(R.string.browser_protected_area) }
             textSize = 16f
             setTextColor(Color.WHITE)
             maxLines = 1
@@ -211,13 +211,13 @@ class PortalBrowserActivity : FragmentActivity() {
 
         override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: android.net.http.SslError) {
             handler.cancel()
-            Toast.makeText(this@PortalBrowserActivity, "Die sichere Verbindung wurde abgebrochen.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@PortalBrowserActivity, R.string.browser_ssl_failed, Toast.LENGTH_LONG).show()
         }
 
         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
             super.onReceivedError(view, request, error)
             if (request.isForMainFrame) {
-                Toast.makeText(this@PortalBrowserActivity, "Die Seite konnte nicht geladen werden.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@PortalBrowserActivity, R.string.browser_page_failed, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -228,11 +228,11 @@ class PortalBrowserActivity : FragmentActivity() {
             callback: android.webkit.SafeBrowsingResponse,
         ) {
             callback.backToSafety(true)
-            Toast.makeText(this@PortalBrowserActivity, "Unsichere Seite wurde blockiert.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@PortalBrowserActivity, R.string.browser_unsafe_blocked, Toast.LENGTH_LONG).show()
         }
 
         override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
-            Toast.makeText(this@PortalBrowserActivity, "Der geschützte Browser wurde beendet.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@PortalBrowserActivity, R.string.browser_process_ended, Toast.LENGTH_LONG).show()
             finish()
             return true
         }
@@ -249,7 +249,7 @@ class PortalBrowserActivity : FragmentActivity() {
         if (policy.canOpenExternally(url)) {
             runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
         } else {
-            Toast.makeText(this, "Dieser Link wurde blockiert.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show()
         }
         return true
     }
@@ -329,7 +329,7 @@ class PortalBrowserActivity : FragmentActivity() {
             contentLength: Long,
         ) {
             if (!policy.isTrustedWebUrl(url)) {
-                Toast.makeText(this@PortalBrowserActivity, "Download von einer nicht freigegebenen Domain blockiert.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@PortalBrowserActivity, R.string.browser_download_domain_blocked, Toast.LENGTH_LONG).show()
                 return
             }
             val filename = URLUtil.guessFileName(url, contentDisposition, mimeType)
@@ -348,9 +348,9 @@ class PortalBrowserActivity : FragmentActivity() {
             runCatching { manager.enqueue(request) }
                 .onSuccess { downloadId ->
                     recordDownload(this@PortalBrowserActivity, downloadId)
-                    Toast.makeText(this@PortalBrowserActivity, "Download wurde geschützt gespeichert.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@PortalBrowserActivity, R.string.browser_download_saved, Toast.LENGTH_SHORT).show()
                 }
-                .onFailure { Toast.makeText(this@PortalBrowserActivity, "Download konnte nicht gestartet werden.", Toast.LENGTH_LONG).show() }
+                .onFailure { Toast.makeText(this@PortalBrowserActivity, R.string.browser_download_failed, Toast.LENGTH_LONG).show() }
         }
     }
 
@@ -381,22 +381,22 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val DOWNLOAD_PREFERENCES = "protected_web_downloads"
         private const val DOWNLOAD_IDS = "download_ids"
 
-        fun appIntent(context: Context, url: String, title: String = "Web-Anwendung"): Intent =
+        fun appIntent(context: Context, url: String, title: String? = null): Intent =
             Intent(context, PortalBrowserActivity::class.java)
                 .putExtra(EXTRA_URL, url)
-                .putExtra(EXTRA_TITLE, title)
+                .putExtra(EXTRA_TITLE, title ?: context.getString(R.string.browser_web_application))
 
         fun authorizationIntent(context: Context, url: String, mode: DeviceMode): Intent =
             Intent(context, PortalBrowserActivity::class.java)
                 .putExtra(EXTRA_URL, url)
-                .putExtra(EXTRA_TITLE, "Sicher anmelden")
+                .putExtra(EXTRA_TITLE, context.getString(R.string.browser_sign_in_title))
                 .putExtra(EXTRA_REDIRECT_URI, BuildConfig.OIDC_REDIRECT_URI)
                 .putExtra(EXTRA_CLEAR_BEFORE_LOAD, mode == DeviceMode.SHARED)
 
         fun logoutIntent(context: Context, url: String): Intent =
             Intent(context, PortalBrowserActivity::class.java)
                 .putExtra(EXTRA_URL, url)
-                .putExtra(EXTRA_TITLE, "Sitzung wird beendet")
+                .putExtra(EXTRA_TITLE, context.getString(R.string.browser_sign_out_title))
                 .putExtra(EXTRA_LOGOUT, true)
 
         fun clearLocalWebData(context: Context, onComplete: (() -> Unit)? = null) {

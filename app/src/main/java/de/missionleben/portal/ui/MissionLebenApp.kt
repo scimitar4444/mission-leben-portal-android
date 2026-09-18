@@ -42,12 +42,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.missionleben.portal.BuildConfig
+import de.missionleben.portal.R
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
@@ -69,10 +71,12 @@ fun MissionLebenApp(
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
+    currentLanguageTag: String?,
+    onLanguageChange: (String?) -> Unit,
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         if (state.mode == null) {
-            Onboarding(onSelectMode)
+            Onboarding(onSelectMode, currentLanguageTag, onLanguageChange)
         } else {
             Home(
                 state = state,
@@ -86,13 +90,19 @@ fun MissionLebenApp(
                 onLogout = onLogout,
                 onResetProfile = onResetProfile,
                 onDismissMessage = onDismissMessage,
+                currentLanguageTag = currentLanguageTag,
+                onLanguageChange = onLanguageChange,
             )
         }
     }
 }
 
 @Composable
-private fun Onboarding(onSelectMode: (DeviceMode) -> Unit) {
+private fun Onboarding(
+    onSelectMode: (DeviceMode) -> Unit,
+    currentLanguageTag: String?,
+    onLanguageChange: (String?) -> Unit,
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 34.dp),
@@ -101,41 +111,42 @@ private fun Onboarding(onSelectMode: (DeviceMode) -> Unit) {
         item { BrandHeader() }
         item {
             Spacer(Modifier.height(8.dp))
-            Text("Ein Portal. Alle Anwendungen.", fontSize = 32.sp, lineHeight = 36.sp, fontWeight = FontWeight.Black)
+            Text(stringResource(R.string.onboarding_heading), fontSize = 32.sp, lineHeight = 36.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(10.dp))
             Text(
-                "Melde dich sicher über Authentik an und starte genau die Web-Apps, die für dich freigegeben sind.",
+                stringResource(R.string.onboarding_body),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
         item {
             ModeCard(
-                eyebrow = "FÜR MITARBEITENDE",
-                title = "Mein persönliches Gerät",
-                description = "Erste Anmeldung mit Passwort und TOTP. Danach schützt Biometrie oder dein Gerätecode die lokale Sitzung.",
-                action = "Persönlich einrichten",
+                eyebrow = stringResource(R.string.onboarding_employee_eyebrow),
+                title = stringResource(R.string.onboarding_personal_title),
+                description = stringResource(R.string.onboarding_personal_description),
+                action = stringResource(R.string.onboarding_personal_action),
                 accent = Coral,
                 onClick = { onSelectMode(DeviceMode.PERSONAL) },
             )
         }
         item {
             ModeCard(
-                eyebrow = "FÜR HÄUSER UND BEREICHE",
-                title = "Gemeinsam genutztes Tablet",
-                description = "Das Tablet erhält eine eigene Geräteidentität. Mitarbeiter-Sitzungen werden niemals dauerhaft gespeichert.",
-                action = "Shared Tablet einrichten",
+                eyebrow = stringResource(R.string.onboarding_shared_eyebrow),
+                title = stringResource(R.string.onboarding_shared_title),
+                description = stringResource(R.string.onboarding_shared_description),
+                action = stringResource(R.string.onboarding_shared_action),
                 accent = Ink,
                 onClick = { onSelectMode(DeviceMode.SHARED) },
             )
         }
         item {
             Text(
-                "Voraussetzung: Android 13 oder neuer",
+                stringResource(R.string.android_requirement),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        item { LanguagePanel(currentLanguageTag, onLanguageChange) }
     }
 }
 
@@ -181,6 +192,8 @@ private fun Home(
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
+    currentLanguageTag: String?,
+    onLanguageChange: (String?) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -195,9 +208,9 @@ private fun Home(
         if (state.signedIn) {
             item {
                 SectionTitle(
-                    title = "Meine Web-Apps",
-                    subtitle = "Direkt aus deinen Authentik-Freigaben",
-                    action = "Aktualisieren",
+                    title = stringResource(R.string.web_apps_title),
+                    subtitle = stringResource(R.string.web_apps_subtitle),
+                    action = stringResource(R.string.refresh),
                     onAction = onReloadApplications,
                 )
             }
@@ -223,6 +236,8 @@ private fun Home(
             item { NotificationPrivacyPanel(state, onNotificationPrivacyChange) }
         }
 
+        item { LanguagePanel(currentLanguageTag, onLanguageChange) }
+
         item {
             HorizontalDivider(Modifier.padding(top = 8.dp))
             Row(
@@ -230,8 +245,8 @@ private fun Home(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Version ${BuildConfig.VERSION_NAME}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-                TextButton(onClick = onResetProfile) { Text("Geräteprofil wechseln") }
+                Text(stringResource(R.string.version_format, BuildConfig.VERSION_NAME), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                TextButton(onClick = onResetProfile) { Text(stringResource(R.string.switch_device_profile)) }
             }
         }
     }
@@ -248,8 +263,8 @@ private fun BrandHeader() {
         }
         Spacer(Modifier.width(12.dp))
         Column {
-            Text("MISSION LEBEN", fontWeight = FontWeight.Black, letterSpacing = 1.2.sp)
-            Text("PORTAL", color = Coral, fontWeight = FontWeight.ExtraBold, fontSize = 11.sp, letterSpacing = 2.sp)
+            Text(stringResource(R.string.brand_name), fontWeight = FontWeight.Black, letterSpacing = 1.2.sp)
+            Text(stringResource(R.string.brand_portal), color = Coral, fontWeight = FontWeight.ExtraBold, fontSize = 11.sp, letterSpacing = 2.sp)
         }
     }
 }
@@ -263,10 +278,10 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(22.dp)) {
-            Text(state.mode?.label.orEmpty(), color = Color(0xFFFFA1A7), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Text(state.mode?.let { stringResource(it.labelRes) }.orEmpty(), color = Color(0xFFFFA1A7), fontWeight = FontWeight.Bold, fontSize = 12.sp)
             Spacer(Modifier.height(8.dp))
             Text(
-                if (state.signedIn) "Hallo, ${state.user?.displayName.orEmpty()}" else "Sicher anmelden",
+                if (state.signedIn) stringResource(R.string.hello_name, state.user?.displayName.orEmpty()) else stringResource(R.string.secure_sign_in),
                 color = Color.White,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
@@ -275,30 +290,30 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
             Text(
                 when {
                     state.enrollmentState == EnrollmentState.BLOCKED ->
-                        "Dieses Gerät ist gesperrt. Anmeldung und gespeicherte Sitzung sind deaktiviert."
+                        stringResource(R.string.device_blocked_description)
                     state.deviceServiceConfigured && state.enrollmentState != EnrollmentState.TRUSTED ->
-                        "Bitte das Gerät zuerst registrieren und durch die Geräteverwaltung freigeben lassen."
+                        stringResource(R.string.device_pending_description)
                     state.signedIn && state.mode == DeviceMode.PERSONAL && state.quickUnlockEnabled ->
-                        "Deine Sitzung ist mit dem Android-Keystore geschützt."
+                        stringResource(R.string.session_keystore_description)
                     state.signedIn && state.mode == DeviceMode.SHARED ->
-                        "Diese Anmeldung wird auf dem Tablet nicht gespeichert. Bitte danach abmelden."
+                        stringResource(R.string.shared_session_description)
                     state.mode == DeviceMode.PERSONAL ->
-                        "Beim ersten Mal: Benutzername, Passwort und TOTP. Danach genügt Biometrie oder Gerätecode."
-                    else -> "Jede Person meldet sich separat an. Auf diesem Tablet bleibt kein persönlicher Token zurück."
+                        stringResource(R.string.first_login_description)
+                    else -> stringResource(R.string.shared_login_description)
                 },
                 color = Color(0xFFD7CFDD),
             )
             Spacer(Modifier.height(18.dp))
             if (state.signedIn) {
                 OutlinedButton(onClick = onLogout, enabled = !state.busy) {
-                    Text(if (state.mode == DeviceMode.SHARED) "Sitzung sicher beenden" else "Abmelden", color = Color.White)
+                    Text(if (state.mode == DeviceMode.SHARED) stringResource(R.string.end_session_securely) else stringResource(R.string.sign_out), color = Color.White)
                 }
             } else {
                 Button(onClick = onStartLogin, enabled = !state.busy && deviceAllowsLogin) {
                     if (state.busy) {
                         CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                     } else {
-                        Text("Mit Authentik anmelden")
+                        Text(stringResource(R.string.sign_in_with_authentik))
                     }
                 }
             }
@@ -324,16 +339,16 @@ private fun DevicePanel(
         Column(Modifier.padding(20.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Geräteidentität", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                    Text("Schlüssel ${state.deviceKeyId.take(12)}…", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text(stringResource(R.string.device_identity), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.device_key_format, state.deviceKeyId.take(12)), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 }
                 StatusPill(state.enrollmentState)
             }
             if (state.enrollmentState == EnrollmentState.NOT_ENROLLED) {
                 Spacer(Modifier.height(14.dp))
                 Text(
-                    if (state.deviceServiceConfigured) "Enrollment-Code aus der Mission-Leben-Geräteverwaltung eingeben."
-                    else "Die Geräte-API ist im Build noch nicht konfiguriert. Details stehen in docs/AUTHENTIK_SETUP.md.",
+                    if (state.deviceServiceConfigured) stringResource(R.string.enrollment_instruction)
+                    else stringResource(R.string.device_api_not_configured),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -343,20 +358,20 @@ private fun DevicePanel(
                         value = token,
                         onValueChange = { token = it },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Enrollment-Code") },
+                        label = { Text(stringResource(R.string.enrollment_code)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
                     )
                     Spacer(Modifier.height(10.dp))
-                    Button(onClick = { onEnrollDevice(token) }, enabled = !state.busy) { Text("Gerät registrieren") }
+                    Button(onClick = { onEnrollDevice(token) }, enabled = !state.busy) { Text(stringResource(R.string.register_device)) }
                 }
             } else if (state.deviceId != null) {
                 Spacer(Modifier.height(10.dp))
-                Text("Geräte-ID ${state.deviceId}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                Text(stringResource(R.string.device_id_format, state.deviceId), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 if (state.deviceServiceConfigured && state.enrollmentState != EnrollmentState.TRUSTED) {
                     Spacer(Modifier.height(8.dp))
                     OutlinedButton(onClick = onRefreshDeviceStatus, enabled = !state.busy) {
-                        Text("Status prüfen")
+                        Text(stringResource(R.string.check_status))
                     }
                 }
             }
@@ -367,10 +382,10 @@ private fun DevicePanel(
 @Composable
 private fun StatusPill(state: EnrollmentState) {
     val (label, color) = when (state) {
-        EnrollmentState.NOT_ENROLLED -> "Nicht registriert" to MaterialTheme.colorScheme.onSurfaceVariant
-        EnrollmentState.PENDING -> "Freigabe offen" to Color(0xFFAD6800)
-        EnrollmentState.TRUSTED -> "Vertrauenswürdig" to Success
-        EnrollmentState.BLOCKED -> "Gesperrt" to MaterialTheme.colorScheme.error
+        EnrollmentState.NOT_ENROLLED -> stringResource(R.string.status_not_registered) to MaterialTheme.colorScheme.onSurfaceVariant
+        EnrollmentState.PENDING -> stringResource(R.string.status_pending) to Color(0xFFAD6800)
+        EnrollmentState.TRUSTED -> stringResource(R.string.status_trusted) to Success
+        EnrollmentState.BLOCKED -> stringResource(R.string.status_blocked) to MaterialTheme.colorScheme.error
     }
     Surface(color = color.copy(alpha = 0.12f), shape = CircleShape) {
         Text(label, color = color, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), fontSize = 11.sp, fontWeight = FontWeight.Bold)
@@ -413,9 +428,9 @@ private fun AppTile(application: PortalApplication, modifier: Modifier, onOpenUr
 private fun EmptyApps(onOpenUrl: (String) -> Unit) {
     Card(shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(20.dp)) {
-            Text("Noch keine Anwendungen geladen", fontWeight = FontWeight.Bold)
-            Text("Öffne alternativ das originale Authentik-Portal.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            TextButton(onClick = { onOpenUrl(BuildConfig.PORTAL_URL) }) { Text("Authentik-Portal öffnen") }
+            Text(stringResource(R.string.empty_apps_title), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.empty_apps_description), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TextButton(onClick = { onOpenUrl(BuildConfig.PORTAL_URL) }) { Text(stringResource(R.string.open_authentik_portal)) }
         }
     }
 }
@@ -431,9 +446,9 @@ private fun TalkHandoffPanel(state: UiState, onOpenTalk: (String, String) -> Uni
         shape = RoundedCornerShape(20.dp),
     ) {
         Column(Modifier.padding(20.dp)) {
-            Text("Talk auf Raum öffnen", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.talk_handoff_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
             Text(
-                "Es wird nur der Talk-Raumtoken übertragen – keine beliebige URL und kein Benutzerkennwort.",
+                stringResource(R.string.talk_handoff_description),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
             )
@@ -442,7 +457,7 @@ private fun TalkHandoffPanel(state: UiState, onOpenTalk: (String, String) -> Uni
                 value = talkUrl,
                 onValueChange = { talkUrl = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Nextcloud-Talk-Link") },
+                label = { Text(stringResource(R.string.talk_link)) },
                 singleLine = true,
             )
             Spacer(Modifier.height(10.dp))
@@ -455,13 +470,13 @@ private fun TalkHandoffPanel(state: UiState, onOpenTalk: (String, String) -> Uni
                 }
             }
             if (state.linkTargets.isEmpty()) {
-                Text("Kein freigegebenes Konferenzgerät online.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                Text(stringResource(R.string.no_conference_device), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             }
             Spacer(Modifier.height(10.dp))
             Button(
                 onClick = { selected?.let { onOpenTalk(it.id, talkUrl) } },
                 enabled = selected != null && talkUrl.isNotBlank() && !state.busy,
-            ) { Text("Auf Zielgerät öffnen") }
+            ) { Text(stringResource(R.string.open_on_target_device)) }
         }
     }
 }
@@ -478,19 +493,19 @@ private fun NotificationPrivacyPanel(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(Modifier.padding(20.dp)) {
-            Text("Benachrichtigungen", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.notifications_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(4.dp))
             if (state.mode == DeviceMode.SHARED) {
                 Text(
-                    "Auf gemeinsam genutzten Tablets erscheinen grundsätzlich keine Absender, Betreffzeilen oder Termindetails.",
+                    stringResource(R.string.notifications_shared_description),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Spacer(Modifier.height(10.dp))
-                StatusPillText("Diskret", MaterialTheme.colorScheme.onSurfaceVariant)
+                StatusPillText(stringResource(R.string.privacy_minimal_label), MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 Text(
-                    "Auf dem Sperrbildschirm bleiben Inhalte verborgen. Nach dem Entsperren gilt diese Auswahl:",
+                    stringResource(R.string.notifications_lockscreen_description),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -505,18 +520,62 @@ private fun NotificationPrivacyPanel(
                         NotificationPrivacy.MINIMAL,
                     ).forEach { privacy ->
                         if (state.notificationPrivacy == privacy) {
-                            Button(onClick = { onChange(privacy) }) { Text(privacy.label) }
+                            Button(onClick = { onChange(privacy) }) { Text(stringResource(privacy.labelRes)) }
                         } else {
-                            OutlinedButton(onClick = { onChange(privacy) }) { Text(privacy.label) }
+                            OutlinedButton(onClick = { onChange(privacy) }) { Text(stringResource(privacy.labelRes)) }
                         }
                     }
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    state.notificationPrivacy.description,
+                    stringResource(state.notificationPrivacy.descriptionRes),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LanguagePanel(currentLanguageTag: String?, onLanguageChange: (String?) -> Unit) {
+    val languages = listOf(
+        null to R.string.language_system,
+        "de" to R.string.language_german,
+        "en" to R.string.language_english,
+        "tr" to R.string.language_turkish,
+        "hi" to R.string.language_hindi,
+        "es" to R.string.language_spanish,
+        "fr" to R.string.language_french,
+        "pl" to R.string.language_polish,
+        "ro" to R.string.language_romanian,
+        "uk" to R.string.language_ukrainian,
+    )
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Text(stringResource(R.string.language_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                stringResource(R.string.language_description),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                languages.forEach { (tag, labelRes) ->
+                    if (currentLanguageTag == tag) {
+                        Button(onClick = { onLanguageChange(tag) }) { Text(stringResource(labelRes)) }
+                    } else {
+                        OutlinedButton(onClick = { onLanguageChange(tag) }) { Text(stringResource(labelRes)) }
+                    }
+                }
             }
         }
     }

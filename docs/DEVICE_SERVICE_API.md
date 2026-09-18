@@ -18,7 +18,7 @@ Content-Type: application/json
   "device_name": "Google Pixel Tablet",
   "platform": "android",
   "os_version": "13",
-  "app_version": "0.4.0",
+  "app_version": "0.5.0",
   "key_id": "…",
   "public_key_jwk": {
     "kty": "EC",
@@ -101,7 +101,7 @@ Content-Type: application/json
   "installation_id": "…",
   "mode": "personal",
   "notification_privacy": "standard",
-  "app_version": "0.4.0"
+  "app_version": "0.5.0"
 }
 ```
 

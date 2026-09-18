@@ -1,5 +1,162 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Mission Leben Portal</string>
+    <!-- German intentionally remains the default fallback language. -->
+    <string name="app_name" translatable="false">Mission Leben Portal</string>
+    <string name="brand_name" translatable="false">MISSION LEBEN</string>
+    <string name="brand_portal">PORTAL</string>
     <string name="browser_back">‹  Portal</string>
+
+    <string name="language_title">Sprache</string>
+    <string name="language_description">Automatisch der Telefonsprache folgen oder eine Sprache nur für diese App auswählen.</string>
+    <string name="language_system">Telefonsprache</string>
+    <string name="language_german" translatable="false">Deutsch</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_turkish" translatable="false">Türkçe</string>
+    <string name="language_hindi" translatable="false">हिन्दी</string>
+    <string name="language_spanish" translatable="false">Español</string>
+    <string name="language_french" translatable="false">Français</string>
+    <string name="language_polish" translatable="false">Polski</string>
+    <string name="language_romanian" translatable="false">Română</string>
+    <string name="language_ukrainian" translatable="false">Українська</string>
+
+    <string name="onboarding_heading">Ein Portal. Alle Anwendungen.</string>
+    <string name="onboarding_body">Melde dich sicher über Authentik an und starte genau die Web-Apps, die für dich freigegeben sind.</string>
+    <string name="onboarding_employee_eyebrow">FÜR MITARBEITENDE</string>
+    <string name="onboarding_personal_title">Mein persönliches Gerät</string>
+    <string name="onboarding_personal_description">Erste Anmeldung mit Passwort und TOTP. Danach schützt Biometrie oder dein Gerätecode die lokale Sitzung.</string>
+    <string name="onboarding_personal_action">Persönlich einrichten</string>
+    <string name="onboarding_shared_eyebrow">FÜR HÄUSER UND BEREICHE</string>
+    <string name="onboarding_shared_title">Gemeinsam genutztes Tablet</string>
+    <string name="onboarding_shared_description">Das Tablet erhält eine eigene Geräteidentität. Mitarbeitersitzungen werden niemals dauerhaft gespeichert.</string>
+    <string name="onboarding_shared_action">Shared Tablet einrichten</string>
+    <string name="android_requirement">Voraussetzung: Android 13 oder neuer</string>
+
+    <string name="web_apps_title">Meine Web-Apps</string>
+    <string name="web_apps_subtitle">Direkt aus deinen Authentik-Freigaben</string>
+    <string name="refresh">Aktualisieren</string>
+    <string name="version_format">Version %1$s</string>
+    <string name="switch_device_profile">Geräteprofil wechseln</string>
+    <string name="mode_personal">Persönliches Gerät</string>
+    <string name="mode_shared">Gemeinsam genutztes Tablet</string>
+    <string name="hello_name">Hallo, %1$s</string>
+    <string name="secure_sign_in">Sicher anmelden</string>
+    <string name="device_blocked_description">Dieses Gerät ist gesperrt. Anmeldung und gespeicherte Sitzung sind deaktiviert.</string>
+    <string name="device_pending_description">Bitte das Gerät zuerst registrieren und durch die Geräteverwaltung freigeben lassen.</string>
+    <string name="session_keystore_description">Deine Sitzung ist mit dem Android-Keystore geschützt.</string>
+    <string name="shared_session_description">Diese Anmeldung wird auf dem Tablet nicht gespeichert. Bitte danach abmelden.</string>
+    <string name="first_login_description">Beim ersten Mal: Benutzername, Passwort und TOTP. Danach genügt Biometrie oder Gerätecode.</string>
+    <string name="shared_login_description">Jede Person meldet sich separat an. Auf diesem Tablet bleibt kein persönlicher Token zurück.</string>
+    <string name="end_session_securely">Sitzung sicher beenden</string>
+    <string name="sign_out">Abmelden</string>
+    <string name="sign_in_with_authentik">Mit Authentik anmelden</string>
+
+    <string name="device_identity">Geräteidentität</string>
+    <string name="device_key_format">Schlüssel %1$s…</string>
+    <string name="enrollment_instruction">Enrollment-Code aus der Mission-Leben-Geräteverwaltung eingeben.</string>
+    <string name="device_api_not_configured">Die Geräte-API ist im Build noch nicht konfiguriert. Details stehen in docs/AUTHENTIK_SETUP.md.</string>
+    <string name="enrollment_code">Enrollment-Code</string>
+    <string name="register_device">Gerät registrieren</string>
+    <string name="device_id_format">Geräte-ID %1$s</string>
+    <string name="check_status">Status prüfen</string>
+    <string name="status_not_registered">Nicht registriert</string>
+    <string name="status_pending">Freigabe offen</string>
+    <string name="status_trusted">Vertrauenswürdig</string>
+    <string name="status_blocked">Gesperrt</string>
+
+    <string name="empty_apps_title">Noch keine Anwendungen geladen</string>
+    <string name="empty_apps_description">Öffne alternativ das originale Authentik-Portal.</string>
+    <string name="open_authentik_portal">Authentik-Portal öffnen</string>
+    <string name="talk_handoff_title">Talk auf Raum öffnen</string>
+    <string name="talk_handoff_description">Es wird nur der Talk-Raumtoken übertragen – keine beliebige URL und kein Benutzerkennwort.</string>
+    <string name="talk_link">Nextcloud-Talk-Link</string>
+    <string name="no_conference_device">Kein freigegebenes Konferenzgerät online.</string>
+    <string name="open_on_target_device">Auf Zielgerät öffnen</string>
+
+    <string name="notifications_title">Benachrichtigungen</string>
+    <string name="notifications_shared_description">Auf gemeinsam genutzten Tablets erscheinen grundsätzlich keine Absender, Betreffzeilen oder Termindetails.</string>
+    <string name="notifications_lockscreen_description">Auf dem Sperrbildschirm bleiben Inhalte verborgen. Nach dem Entsperren gilt diese Auswahl:</string>
+    <string name="privacy_minimal_label">Diskret</string>
+    <string name="privacy_minimal_description">Nur Mail, Termin oder Talk anzeigen.</string>
+    <string name="privacy_standard_label">Standard</string>
+    <string name="privacy_standard_description">Absender und Betreff beziehungsweise Terminzeit und Ort anzeigen.</string>
+    <string name="privacy_detailed_label">Ausführlich</string>
+    <string name="privacy_detailed_description">Zusätzlich eine kurze Mail- oder Talk-Vorschau anzeigen.</string>
+
+    <string name="message_auth_cancelled">Anmeldung wurde abgebrochen.</string>
+    <string name="message_quick_access_enabled">Schnellzugang ist aktiviert.</string>
+    <string name="message_protected_session_failed">Geschützte Sitzung konnte nicht geöffnet werden: %1$s</string>
+    <string name="message_apps_load_failed">Apps konnten nicht geladen werden.</string>
+    <string name="message_enter_enrollment">Bitte Enrollment-Code eingeben oder QR-Link öffnen.</string>
+    <string name="message_device_approved">Gerät wurde freigegeben.</string>
+    <string name="message_device_waiting">Gerät wartet auf die Freigabe in der Geräteverwaltung.</string>
+    <string name="message_talk_opened">Talk wird am Zielgerät geöffnet.</string>
+    <string name="message_shared_session_deleted">Sitzung auf diesem Tablet wurde gelöscht.</string>
+    <string name="message_signed_out">Abgemeldet.</string>
+    <string name="message_device_blocked_clearing">Dieses Gerät wurde gesperrt. Lokale Sitzungsdaten werden gelöscht.</string>
+    <string name="message_check_device_and_login">Bitte Gerätestatus und Anmeldung prüfen.</string>
+    <string name="message_sign_in_to_open">Bitte zuerst sicher anmelden, um den Hinweis zu öffnen.</string>
+    <string name="message_app_not_approved">Die passende Web-App ist für dieses Konto nicht freigegeben.</string>
+
+    <string name="biometric_setup_required">Bitte Biometrie oder eine sichere Displaysperre einrichten.</string>
+    <string name="secure_storage_unavailable">Sicherer Gerätespeicher ist nicht verfügbar: %1$s</string>
+    <string name="secure_key_not_released">Der sichere Schlüssel wurde nicht freigegeben.</string>
+    <string name="quick_access_failed">Schnellzugang nicht geöffnet: %1$s</string>
+    <string name="quick_access_enable_title">Schnellzugang aktivieren</string>
+    <string name="portal_open_title">Mission Leben Portal öffnen</string>
+    <string name="biometric_subtitle">Fingerabdruck, Gesicht oder Gerätecode verwenden</string>
+
+    <string name="auth_oidc_config_failed">OIDC-Konfiguration konnte nicht geladen werden.</string>
+    <string name="auth_expired">Die Anmeldung ist abgelaufen. Bitte erneut anmelden.</string>
+    <string name="auth_cancelled">Anmeldung wurde abgebrochen.</string>
+    <string name="auth_invalid_response">Die Antwort von Authentik ist ungültig.</string>
+    <string name="auth_state_mismatch">Die Anmeldung konnte nicht eindeutig zugeordnet werden.</string>
+    <string name="auth_code_exchange_failed">Der Anmeldecode konnte nicht eingelöst werden.</string>
+    <string name="auth_saved_session_invalid">Die gespeicherte Anmeldung ist beschädigt.</string>
+    <string name="auth_session_refresh_failed">Die Sitzung konnte nicht erneuert werden.</string>
+    <string name="employee_fallback">Mitarbeiter:in</string>
+
+    <string name="browser_address_blocked">Diese Adresse ist für den geschützten Bereich nicht freigegeben.</string>
+    <string name="browser_webview_missing">Android System WebView fehlt oder ist deaktiviert.</string>
+    <string name="browser_protected_area">Geschützter Bereich</string>
+    <string name="browser_ssl_failed">Die sichere Verbindung wurde abgebrochen.</string>
+    <string name="browser_page_failed">Die Seite konnte nicht geladen werden.</string>
+    <string name="browser_unsafe_blocked">Unsichere Seite wurde blockiert.</string>
+    <string name="browser_process_ended">Der geschützte Browser wurde beendet.</string>
+    <string name="browser_link_blocked">Dieser Link wurde blockiert.</string>
+    <string name="browser_download_domain_blocked">Download von einer nicht freigegebenen Domain blockiert.</string>
+    <string name="browser_download_saved">Download wurde geschützt gespeichert.</string>
+    <string name="browser_download_failed">Download konnte nicht gestartet werden.</string>
+    <string name="browser_web_application">Web-Anwendung</string>
+    <string name="browser_sign_in_title">Sicher anmelden</string>
+    <string name="browser_sign_out_title">Sitzung wird beendet</string>
+
+    <string name="device_service_not_configured">Der Mission-Leben Device Service ist noch nicht konfiguriert.</string>
+    <string name="device_status_unavailable">Gerätestatus ist nicht verfügbar (HTTP %1$d).</string>
+    <string name="device_status_unknown">Unbekannter Gerätestatus.</string>
+    <string name="notification_event_invalid">Ungültige Ereignis-ID.</string>
+    <string name="notification_details_unavailable">Benachrichtigungsdetails sind nicht verfügbar (HTTP %1$d).</string>
+    <string name="notification_details_invalid">Ungültige Benachrichtigungsdetails.</string>
+    <string name="notification_details_mismatch">Benachrichtigungsdetails passen nicht zum Ereignis.</string>
+    <string name="talk_link_invalid">Ungültiger Talk-Link.</string>
+    <string name="talk_link_https_required">Talk-Links müssen HTTPS verwenden.</string>
+    <string name="talk_link_not_nextcloud">Der Link ist kein Nextcloud-Talk-Link.</string>
+    <string name="talk_link_enter_valid">Bitte einen gültigen Nextcloud-Talk-Link eingeben.</string>
+    <string name="device_service_http_error">Device Service antwortet mit HTTP %1$d.</string>
+
+    <string name="push_mail_title">Neue Mail</string>
+    <string name="push_mail_body">Zimbra öffnen</string>
+    <string name="push_calendar_title">Termin</string>
+    <string name="push_calendar_body">Ein Termin steht bevor.</string>
+    <string name="push_talk_title">Talk</string>
+    <string name="push_talk_body">Neue Talk-Aktivität.</string>
+    <string name="push_security_title">Gerätesicherheit</string>
+    <string name="push_security_body">Sicherheitsstatus bitte in der App prüfen.</string>
+    <string name="channel_mail_name">Mail</string>
+    <string name="channel_mail_description">Hinweise auf neue Zimbra-Mails</string>
+    <string name="channel_calendar_name">Termine</string>
+    <string name="channel_calendar_description">Erinnerungen an anstehende Termine</string>
+    <string name="channel_talk_name">Talk</string>
+    <string name="channel_talk_description">Hinweise auf Talk-Aktivitäten</string>
+    <string name="channel_security_name">Gerätesicherheit</string>
+    <string name="channel_security_description">Wichtige Hinweise zum Sicherheitsstatus des Geräts</string>
 </resources>
