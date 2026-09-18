@@ -11,7 +11,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - ein serverseitig als `shared` freigegebenes und vom Gerät ebenfalls als `shared` gemeldetes Tablet ersetzt TOTP; persönliche und nicht registrierte Geräte durchlaufen weiter TOTP
 - Telefonsprache oder direkte App-Auswahl für Deutsch, Englisch, Türkisch, Hindi, Spanisch, Französisch, Polnisch, Rumänisch und Ukrainisch; Deutsch bleibt die Rückfallsprache
 - sichtbare Web-Apps werden live aus `/api/v3/core/applications/` geladen
-- Zimbra, Nextcloud, Talk und Vaultwarden laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung
+- Zimbra, Nextcloud, Talk und Warden laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung
 - der Browsermotor wird über Android System WebView unabhängig von der APK aktualisiert
 - nur konfigurierte HTTPS-Domains dürfen im Container laden; fremde Links wechseln in den Systembrowser
 - Talk erhält Kamera und Mikrofon nur nach Android-Freigabe und nur auf erlaubten Domains
