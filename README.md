@@ -7,7 +7,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 ## Funktionen
 
 - Anmeldung über Authentik mit OAuth 2.0 Authorization Code + PKCE
-- TOTP-zuerst-Flow aus der bestehenden Authentik-Konfiguration wird unverändert verwendet
+- TOTP bleibt der erste MFA-Einrichtungsweg; die dafür dokumentierte Authentik-Flow-Änderung muss vor Produktion noch angewendet und extern sowie mit internem SPNEGO-Fallback getestet werden
 - Telefonsprache oder direkte App-Auswahl für Deutsch, Englisch, Türkisch, Hindi, Spanisch, Französisch, Polnisch, Rumänisch und Ukrainisch; Deutsch bleibt die Rückfallsprache
 - sichtbare Web-Apps werden live aus `/api/v3/core/applications/` geladen
 - Zimbra, Nextcloud, Talk und Vaultwarden laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung
