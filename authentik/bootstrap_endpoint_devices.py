@@ -42,6 +42,10 @@ APPLICATION_NAME = "Mission Leben Zentral Android"
 APPLICATION_SLUG = "mission-leben-portal"
 CLIENT_ID = "mission-leben-android"
 REDIRECT_URI = "de.missionleben.portal:/oauth2redirect"
+TOTP_STAGE_NAMES = (
+    "MFA Zimbra App Android - TOTP",
+    "MFA verpflichtend",
+)
 
 
 PORTAL_REQUEST_EXPRESSION = r'''http_request = request.http_request
@@ -65,6 +69,39 @@ if device is None and flow_plan:
     device = flow_plan.context.get("device")
 pending_user = flow_plan.context.get("pending_user") if flow_plan else None
 if device is None or pending_user is None or device.is_expired:
+    return True
+
+from authentik.endpoints.connectors.agent.auth import check_device_policies
+return not check_device_policies(device, pending_user, http_request).passing
+'''
+
+
+TOTP_REQUIRED_EXPRESSION = r'''http_request = request.http_request
+if not http_request:
+    return True
+user_agent = http_request.META.get("HTTP_USER_AGENT", "")
+if "Android" not in user_agent or "MissionLebenPortal/" not in user_agent:
+    return True
+
+flow_plan = request.context.get("flow_plan")
+device = request.context.get("device")
+if device is None and flow_plan:
+    device = flow_plan.context.get("device")
+pending_user = flow_plan.context.get("pending_user") if flow_plan else None
+if device is None or pending_user is None or device.is_expired:
+    return True
+
+# Both values must agree. The access-group attribute is the server-side approval;
+# the fact records which operating mode the installed app is actually using.
+access_group = device.access_group
+approved_mode = access_group.attributes.get("mission-leben.de/mode") if access_group else None
+facts = device.facts.data
+reported_mode = (
+    facts.get("vendor", {})
+    .get("mission-leben.de/portal", {})
+    .get("mode")
+)
+if approved_mode != "shared" or reported_mode != "shared":
     return True
 
 from authentik.endpoints.connectors.agent.auth import check_device_policies
@@ -97,6 +134,7 @@ device_access_group, _ = DeviceAccessGroup.objects.update_or_create(
         "attributes": {
             "mission-leben.de/purpose": "android-portal",
             "mission-leben.de/status": "pilot",
+            "mission-leben.de/mode": "shared",
         }
     },
 )
@@ -170,6 +208,10 @@ deny_device_policy, _ = ExpressionPolicy.objects.update_or_create(
     name="Mission Leben Zentral Android - Gerätezugriff verweigern",
     defaults={"expression": DENY_DEVICE_ACCESS_EXPRESSION},
 )
+totp_required_policy, _ = ExpressionPolicy.objects.update_or_create(
+    name="Mission Leben Zentral Android - TOTP erforderlich",
+    defaults={"expression": TOTP_REQUIRED_EXPRESSION},
+)
 
 endpoint_stage, _ = EndpointStage.objects.update_or_create(
     name="Mission Leben Zentral Android - Endpoint prüfen",
@@ -179,7 +221,7 @@ endpoint_binding, _ = FlowStageBinding.objects.update_or_create(
     target=authentication_flow,
     stage=endpoint_stage,
     defaults={
-        "order": 45,
+        "order": 35,
         "evaluate_on_plan": False,
         "re_evaluate_policies": True,
     },
@@ -200,7 +242,7 @@ deny_binding, _ = FlowStageBinding.objects.update_or_create(
     target=authentication_flow,
     stage=deny_stage,
     defaults={
-        "order": 46,
+        "order": 36,
         "evaluate_on_plan": False,
         "re_evaluate_policies": True,
     },
@@ -210,6 +252,20 @@ PolicyBinding.objects.update_or_create(
     policy=deny_device_policy,
     defaults={"order": 0, "enabled": True, "negate": False},
 )
+
+# A verified shared tablet is itself the second factor. Personal devices and
+# every request outside the Mission Leben app continue through the existing
+# TOTP stages unchanged.
+for totp_stage_name in TOTP_STAGE_NAMES:
+    totp_binding = FlowStageBinding.objects.get(
+        target=authentication_flow,
+        stage__name=totp_stage_name,
+    )
+    PolicyBinding.objects.update_or_create(
+        target=totp_binding,
+        policy=totp_required_policy,
+        defaults={"order": 10, "enabled": True, "negate": False},
+    )
 
 print(
     "ML_ENDPOINT_BOOTSTRAP="

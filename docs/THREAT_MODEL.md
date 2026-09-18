@@ -22,7 +22,7 @@
 | unbekannte App wird sichtbar | Liste kommt aus policy-geprüfter Authentik-API |
 | kompromittiertes Handy schickt Schad-URL an PC | nur `open_talk(room_token)`, Ziel-URL entsteht im Companion |
 | ausgeschiedener Mitarbeiter nutzt App weiter | Authentik-User und Anwendungssitzungen zentral sperren, Refresh Token widerrufen, Gerätebindung sperren und lokales Löschsignal auslösen |
-| verlorenes Shared Tablet umgeht MFA | Authentik-Device ablaufen lassen oder löschen; die Endpoint Stage folgt auf TOTP und ersetzt MFA nicht |
+| verlorenes Shared Tablet dient als zweiter Faktor | Authentik-Device sofort ablaufen lassen oder löschen; die App verwirft daraufhin Sitzung und Webdaten. Nur die serverseitig als `shared` freigegebene Access Group darf TOTP ersetzen |
 | WebView lädt manipulierte Inhalte | nur HTTPS auf konfigurierten Domain-Endungen, kein Datei-/Content-Zugriff, kein Mixed Content, Safe Browsing und harte TLS-Fehlerbehandlung; die einzige JavaScript-Schnittstelle signiert nur Authentik-Endpoint-Challenges auf der exakten Authentik-Origin und gibt kein Token aus |
 | Webseite greift unbemerkt auf Kamera/Mikrofon zu | nur explizit bekannte WebRTC-Ressourcen, erlaubte HTTPS-Origin und Android-Laufzeitfreigabe |
 | vorheriger Benutzer hinterlässt Browserdaten | Cookie-Speicher, DOM-/Webspeicher, HTTP-Zugangsdaten, Cache, Formulardaten und App-Downloads werden bei Abmeldung/Profilwechsel gelöscht |

@@ -354,8 +354,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshDeviceStatus() {
         if (!deviceService.endpointDevicesConfigured) return
         val deviceId = preferences.deviceId ?: return
+        val mode = preferences.deviceMode ?: return
         viewModelScope.launch {
-            runCatching { deviceService.deviceStatus(deviceId, identity) }
+            runCatching { deviceService.deviceStatus(deviceId, mode, identity) }
                 .onSuccess { status ->
                     val oldStatus = preferences.enrollmentState
                     preferences.enrollmentState = status
