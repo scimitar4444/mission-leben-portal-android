@@ -15,6 +15,11 @@ from cryptography.hazmat.primitives import serialization
 
 COMPONENTS = ("bridge", "fcm", "zimbra", "talk")
 ROOM_TOKEN = re.compile(r"^[A-Za-z0-9_-]{6,128}$")
+DEFAULT_DATABASE_PATH = "/data/bridge.sqlite3"
+DEFAULT_AUTHENTIK_USERINFO_URL = "https://id.mission-leben.de/application/o/userinfo/"
+DEFAULT_AUTHENTIK_AGENT_CONFIG_URL = (
+    "https://id.mission-leben.de/api/v3/endpoints/agents/connectors/agent_config/"
+)
 
 
 def _value(environment: Mapping[str, str], name: str) -> str:
@@ -70,11 +75,15 @@ def check_bridge(environment: Mapping[str, str]) -> dict[str, Any]:
     if len(data_key) != 32:
         issues.append("BRIDGE_DATA_KEY muss als Base64url exakt 32 Bytes ergeben")
 
-    for name in ("BRIDGE_AUTHENTIK_USERINFO_URL", "BRIDGE_AUTHENTIK_AGENT_CONFIG_URL"):
-        if not _valid_url(_value(environment, name), https_only=True):
+    url_defaults = {
+        "BRIDGE_AUTHENTIK_USERINFO_URL": DEFAULT_AUTHENTIK_USERINFO_URL,
+        "BRIDGE_AUTHENTIK_AGENT_CONFIG_URL": DEFAULT_AUTHENTIK_AGENT_CONFIG_URL,
+    }
+    for name, default in url_defaults.items():
+        if not _valid_url(_value(environment, name) or default, https_only=True):
             issues.append(f"{name} muss eine gültige HTTPS-URL sein")
 
-    database_path = _value(environment, "BRIDGE_DATABASE_PATH")
+    database_path = _value(environment, "BRIDGE_DATABASE_PATH") or DEFAULT_DATABASE_PATH
     if not database_path or not Path(database_path).is_absolute():
         issues.append("BRIDGE_DATABASE_PATH muss ein absoluter Pfad sein")
     return _report("invalid" if issues else "ready", issues)

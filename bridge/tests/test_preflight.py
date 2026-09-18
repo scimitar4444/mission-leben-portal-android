@@ -36,6 +36,22 @@ class PreflightTest(unittest.TestCase):
         self.assertEqual("disabled", result["components"]["zimbra"]["status"])
         self.assertEqual("disabled", result["components"]["talk"]["status"])
 
+    def test_bridge_runtime_defaults_are_accepted(self) -> None:
+        environment = {
+            key: value
+            for key, value in self.environment.items()
+            if key not in {
+                "BRIDGE_DATABASE_PATH",
+                "BRIDGE_AUTHENTIK_USERINFO_URL",
+                "BRIDGE_AUTHENTIK_AGENT_CONFIG_URL",
+            }
+        }
+
+        result = evaluate(environment)
+
+        self.assertEqual("ready", result["status"])
+        self.assertEqual("ready", result["components"]["bridge"]["status"])
+
     def test_required_disabled_component_is_not_ready(self) -> None:
         result = evaluate(self.environment, {"fcm"})
 
