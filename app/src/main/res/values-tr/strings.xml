@@ -122,6 +122,9 @@
     <string name="talk_link_https_required">Talk bağlantıları HTTPS kullanmalıdır.</string>
     <string name="talk_link_not_nextcloud">Bu bir Nextcloud Talk bağlantısı değil.</string>
     <string name="talk_link_enter_valid">Geçerli bir Nextcloud Talk bağlantısı girin.</string>
+    <string name="talk_chat_title">Talk – yalnızca sohbet</string>
+    <string name="talk_chat_only_notice">Talk burada sohbet modunda çalışır. Ses ve video devre dışıdır.</string>
+    <string name="talk_media_disabled">Sesli ve görüntülü aramalar Mission Leben Zentral’de devre dışıdır.</string>
     <string name="device_service_http_error">Cihaz Hizmeti HTTP %1$d yanıtını verdi.</string>
     <string name="push_mail_title">Yeni posta</string>
     <string name="push_mail_body">Zimbra’yı aç</string>

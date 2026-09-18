@@ -59,6 +59,7 @@ class PortalBrowserActivity : FragmentActivity() {
     private var logoutFinished = false
     private var endpointBridgeInstalled = false
     private var authorizationResultDelivered = false
+    private var talkChatNoticeShown = false
     private val deviceService by lazy { DeviceServiceRepository(applicationContext) }
     private val authentikOrigin by lazy {
         Uri.parse(BuildConfig.AUTHENTIK_BASE_URL).let { "${it.scheme}://${it.authority}" }
@@ -113,7 +114,12 @@ class PortalBrowserActivity : FragmentActivity() {
             return
         }
 
-        buildLayout(intent.getStringExtra(EXTRA_TITLE).orEmpty())
+        val initialTitle = if (TalkChatPolicy.isTalkPage(startUrl)) {
+            getString(R.string.talk_chat_title)
+        } else {
+            intent.getStringExtra(EXTRA_TITLE).orEmpty()
+        }
+        buildLayout(initialTitle)
         configureWebView()
         installBackNavigation()
 
@@ -207,6 +213,16 @@ class PortalBrowserActivity : FragmentActivity() {
         webView.webChromeClient = BrowserChromeClient()
         webView.setDownloadListener(SecureDownloadListener())
         installEndpointChallengeBridge()
+        installTalkChatGuard()
+    }
+
+    private fun installTalkChatGuard() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        WebViewCompat.addDocumentStartJavaScript(
+            webView,
+            TalkChatPolicy.CHAT_ONLY_SCRIPT,
+            setOf(TalkChatPolicy.NEXTCLOUD_ORIGIN),
+        )
     }
 
     private fun installEndpointChallengeBridge() {
@@ -258,6 +274,19 @@ class PortalBrowserActivity : FragmentActivity() {
             super.onPageFinished(view, url)
             titleView.text = view.title?.takeIf { it.isNotBlank() } ?: titleView.text
             if (isAuthentikOrigin(url)) view.evaluateJavascript(ENDPOINT_BRIDGE_SCRIPT, null)
+            if (TalkChatPolicy.isTalkPage(url)) {
+                // Fallback for providers without document-start script support and defense in depth
+                // after Nextcloud/Talk SPA route changes.
+                view.evaluateJavascript(TalkChatPolicy.CHAT_ONLY_SCRIPT, null)
+                if (!talkChatNoticeShown) {
+                    talkChatNoticeShown = true
+                    Toast.makeText(
+                        this@PortalBrowserActivity,
+                        R.string.talk_chat_only_notice,
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+            }
             if (intent.getBooleanExtra(EXTRA_LOGOUT, false) && !logoutFinished) {
                 logoutFinished = true
                 clearLocalWebData(this@PortalBrowserActivity) { finish() }
@@ -344,6 +373,11 @@ class PortalBrowserActivity : FragmentActivity() {
             val origin = request.origin.toString()
             if (!policy.isTrustedWebUrl(origin)) {
                 request.deny()
+                return
+            }
+            if (TalkChatPolicy.isTalkPage(webView.url.orEmpty())) {
+                request.deny()
+                Toast.makeText(this@PortalBrowserActivity, R.string.talk_media_disabled, Toast.LENGTH_LONG).show()
                 return
             }
             val requestedResources = request.resources.filter {

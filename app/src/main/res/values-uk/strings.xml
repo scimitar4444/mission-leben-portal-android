@@ -122,6 +122,9 @@
     <string name="talk_link_https_required">Посилання Talk мають використовувати HTTPS.</string>
     <string name="talk_link_not_nextcloud">Це не посилання Nextcloud Talk.</string>
     <string name="talk_link_enter_valid">Введіть дійсне посилання Nextcloud Talk.</string>
+    <string name="talk_chat_title">Talk — лише чат</string>
+    <string name="talk_chat_only_notice">Talk тут працює в режимі чату. Аудіо та відео вимкнено.</string>
+    <string name="talk_media_disabled">Аудіо- та відеодзвінки вимкнено в Mission Leben Zentral.</string>
     <string name="device_service_http_error">Device Service повернув HTTP %1$d.</string>
     <string name="push_mail_title">Нова пошта</string>
     <string name="push_mail_body">Відкрити Zimbra</string>
