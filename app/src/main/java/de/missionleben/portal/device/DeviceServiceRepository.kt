@@ -142,6 +142,7 @@ class DeviceServiceRepository(context: Context? = null) {
 
     suspend fun deviceStatus(
         deviceId: String,
+        mode: DeviceMode,
         identity: DeviceIdentity,
     ): EnrollmentState = withContext(Dispatchers.IO) {
         require(endpointDevicesConfigured) { text(R.string.device_service_not_configured) }
@@ -152,7 +153,7 @@ class DeviceServiceRepository(context: Context? = null) {
         val response = agentRequest(AGENT_CONFIG_PATH, "GET", null, credential.token)
         when (response.status) {
             in 200..299 -> {
-                runCatching { checkIn(credential.token, credential.identifier, null, identity) }
+                runCatching { checkIn(credential.token, credential.identifier, mode, identity) }
                 EnrollmentState.TRUSTED
             }
             401, 403, 404 -> EnrollmentState.BLOCKED

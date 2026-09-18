@@ -92,9 +92,10 @@ Das idempotente Skript `authentik/bootstrap_endpoint_devices.py` legt an:
 1. den Agent Connector `Mission Leben Android` mit eigenem Challenge-Schlüssel,
 2. die Device Access Group `Mission Leben Android - Pilot`,
 3. den Public-OIDC-Client `mission-leben-android`,
-4. eine erforderliche Endpoint Stage nach den TOTP-Stufen,
-5. eine nachgelagerte Zugriffsprüfung der Device Access Group,
-6. bedingte Policies, sodass diese beiden Stufen ausschließlich für den User-Agent `MissionLebenPortal/*` laufen.
+4. eine erforderliche Endpoint Stage nach dem Passwort und vor den TOTP-Stufen,
+5. eine unmittelbar nachgelagerte Zugriffsprüfung der Device Access Group,
+6. bedingte Policies, sodass diese beiden Stufen ausschließlich für den User-Agent `MissionLebenPortal/*` laufen,
+7. eine zusätzliche Policy auf beiden TOTP-Stufen: Nur ein kryptografisch nachgewiesenes Gerät, dessen Authentik-Access-Group serverseitig `shared` erlaubt und dessen App denselben Modus meldet, überspringt TOTP.
 
 Die App sendet Enrollment direkt an `/api/v3/endpoints/agents/connectors/enroll/`, liest ihre Authentik-Geräte-ID aus `agent_config`, meldet Android-Fakten über `check_in` und beantwortet die Endpoint-Stage-Challenge mit dem im Android Keystore verschlüsselten Device Token. Authentik speichert Device, Connection, Token, Fakten, Ablauf und Access Group. Der separate Container besitzt keine Tabellen für Devices oder Enrollment-Tokens.
 
@@ -106,7 +107,7 @@ Gerät sperren: Unter **Endpoint Devices → Devices** das Gerät ablaufen lasse
 
 ## 6. Policy-Grundsätze
 
-- TOTP bleibt der erste MFA-Einrichtungsweg. Die Pilot-Gerätefreigabe ersetzt MFA nicht.
+- TOTP bleibt für persönliche, unbekannte und nicht als `shared` freigegebene Geräte der MFA-Weg. Auf einem freigegebenen Shared Tablet ersetzt dessen kryptografischer Authentik-Gerätenachweis TOTP; die Anmeldung benötigt weiterhin das Benutzerpasswort.
 - Shared-Gerät: Es wird niemals eine Mitarbeitersitzung dauerhaft gespeichert und Benachrichtigungen bleiben diskret.
 - Persönliches Gerät: Authentik-Device, Device Access Group, Benutzerbindung und Benutzerkonto müssen aktiv sein.
 - `user.is_active == false` muss Token-Erneuerung, App-Zugriff und persönliche Gerätebindung sperren.

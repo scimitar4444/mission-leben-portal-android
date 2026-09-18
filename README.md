@@ -7,7 +7,8 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 ## Funktionen
 
 - Anmeldung über Authentik mit OAuth 2.0 Authorization Code + PKCE
-- TOTP bleibt im bestehenden Authentik-Flow vor der Geräteprüfung; die App-Geräteprüfung läuft danach als bedingte, erforderliche Endpoint Stage
+- die erforderliche Authentik-Endpoint-Prüfung läuft in der App nach dem Passwort und vor MFA
+- ein serverseitig als `shared` freigegebenes und vom Gerät ebenfalls als `shared` gemeldetes Tablet ersetzt TOTP; persönliche und nicht registrierte Geräte durchlaufen weiter TOTP
 - Telefonsprache oder direkte App-Auswahl für Deutsch, Englisch, Türkisch, Hindi, Spanisch, Französisch, Polnisch, Rumänisch und Ukrainisch; Deutsch bleibt die Rückfallsprache
 - sichtbare Web-Apps werden live aus `/api/v3/core/applications/` geladen
 - Zimbra, Nextcloud, Talk und Vaultwarden laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung
@@ -44,7 +45,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 | Biometrie oder Gerätecode öffnet lokalen Tresor | Benutzer meldet sich jedes Mal über Authentik an |
 | zentrale Kontosperre beendet weiteren Zugriff; lokale Webdaten werden bei sicherer Abmeldung/Profilwechsel entfernt | Gerätefreigabe kann separat gesperrt werden; vor jeder neuen Anmeldung werden Webdaten entfernt |
 
-Biometrie ersetzt nicht das Authentik-Passwort. Sie gibt ausschließlich eine bereits durch Passwort und TOTP aufgebaute lokale Sitzung frei.
+Biometrie ersetzt nicht das Authentik-Passwort. Sie gibt auf persönlichen Geräten ausschließlich eine bereits aufgebaute lokale Sitzung frei. Auf gemeinsam genutzten Tablets wird keine persönliche Sitzung dauerhaft gespeichert; dort bildet der kryptografische Authentik-Gerätenachweis neben dem Passwort den zweiten Faktor.
 
 ## Bauen
 
