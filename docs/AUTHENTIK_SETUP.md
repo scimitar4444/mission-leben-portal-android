@@ -77,6 +77,8 @@ und öffnet zusätzlich den Provider-spezifischen End-Session-Endpunkt im gesch�
 
 Die Anmeldung selbst läuft ebenfalls in diesem Container. Dadurch teilen Authentik, Zimbra, Nextcloud/Talk und Vaultwarden eine kontrollierbare Browsersitzung. Der Client verwendet weiterhin Authorization Code mit PKCE; das OIDC-Token wird nicht in Webseiten injiziert.
 
+Der WebView-User-Agent enthält zusätzlich `MissionLebenMode/personal` oder `MissionLebenMode/shared`. Nur im persönlichen Modus erhält die Authentik-Browsersitzung eine feste Dauer von zwölf Stunden, damit die biometrisch entsperrte App Zimbra und andere SSO-Anwendungen nach einem Prozessneustart ohne zweite Anmeldung öffnen kann. Der OAuth-Refresh-Token bleibt davon getrennt im biometrisch geschützten Android-Tresor. Shared-Geräte verwenden weiterhin ausschließlich eine Browser-Session ohne persistentes Cookie; außerdem löscht die App dort die Webdaten vor jeder Anmeldung und bei sicherer Abmeldung.
+
 ## 4. WebView-Betrieb
 
 Der Browsermotor ist Android System WebView und wird nicht in die APK eingebettet. Für verwaltete Geräte muss die Geräteverwaltung automatische Play-System-/WebView-Updates erzwingen und Geräte ohne aktiven WebView-Anbieter sperren. Die App verweigert den Start des Containers, wenn Android keinen Anbieter meldet.
@@ -96,6 +98,7 @@ Das idempotente Skript `authentik/bootstrap_endpoint_devices.py` legt an:
 5. eine unmittelbar nachgelagerte Zugriffsprüfung der Device Access Group,
 6. bedingte Policies, sodass diese beiden Stufen ausschließlich für den User-Agent `MissionLebenPortal/*` laufen,
 7. eine zusätzliche Policy auf beiden TOTP-Stufen: Nur ein kryptografisch nachgewiesenes Gerät, dessen Authentik-Access-Group serverseitig `shared` erlaubt und dessen App denselben Modus meldet, überspringt TOTP.
+8. eine auf zwölf Stunden begrenzte Browser-SSO-Stufe ausschließlich für `MissionLebenMode/personal`; der normale Login bleibt für Shared-Geräte und andere Browser flüchtig.
 
 Die App sendet Enrollment direkt an `/api/v3/endpoints/agents/connectors/enroll/`, liest ihre Authentik-Geräte-ID aus `agent_config`, meldet Android-Fakten über `check_in` und beantwortet die Endpoint-Stage-Challenge mit dem im Android Keystore verschlüsselten Device Token. Authentik speichert Device, Connection, Token, Fakten, Ablauf und Access Group. Der separate Container besitzt keine Tabellen für Devices oder Enrollment-Tokens.
 
