@@ -1,6 +1,7 @@
 package de.missionleben.portal.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -255,12 +257,11 @@ private fun Home(
 @Composable
 private fun BrandHeader() {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(13.dp)).background(Ink),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("M", color = Coral, fontWeight = FontWeight.Black, fontSize = 24.sp)
-        }
+        Image(
+            painter = painterResource(R.drawable.ic_brand_mark),
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+        )
         Spacer(Modifier.width(12.dp))
         Column {
             Text(stringResource(R.string.brand_name), fontWeight = FontWeight.Black, letterSpacing = 1.2.sp)
