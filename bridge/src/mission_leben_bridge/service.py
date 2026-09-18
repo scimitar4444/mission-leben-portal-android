@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import json
 import re
 import time
 from datetime import datetime, timezone
 from typing import Any
 
-from .authentik import AuthentikClient, UserInfo
+from .authentik import AuthenticationError, AuthentikClient, UserInfo
 from .fcm import FcmSendError, FcmSender, NullFcmSender
 from .security import canonical_device_request, device_key_id, verify_device_signature
 from .store import Store
@@ -65,34 +64,6 @@ class BridgeService:
         self.store.upsert_user(user.subject, user.email, user.display_name, active=True)
         return user
 
-    def enroll(self, payload: dict[str, Any]) -> dict[str, Any]:
-        mode = str(payload.get("mode", ""))
-        key_id = str(payload.get("key_id", ""))
-        jwk = payload.get("public_key_jwk")
-        if mode not in {"personal", "shared"}:
-            raise ApiError(400, "mode must be personal or shared")
-        if not KEY_ID.fullmatch(key_id) or not isinstance(jwk, dict):
-            raise ApiError(400, "a valid device key is required")
-        try:
-            derived_key_id = device_key_id(jwk)
-        except (ValueError, KeyError) as error:
-            raise ApiError(400, "the device public key is invalid") from error
-        if derived_key_id != key_id or jwk.get("kid") != key_id:
-            raise ApiError(400, "key_id does not match the public key")
-        normalized = {
-            "mode": mode,
-            "key_id": key_id,
-            "public_key_jwk": jwk,
-            "device_name": _text(payload.get("device_name"), 100, required=True),
-            "platform": _text(payload.get("platform"), 30, required=True),
-            "os_version": _text(payload.get("os_version"), 30, required=True),
-            "app_version": _text(payload.get("app_version"), 30, required=True),
-        }
-        try:
-            return self.store.enroll_device(str(payload.get("enrollment_token", "")), normalized)
-        except ValueError as error:
-            raise ApiError(400, str(error)) from error
-
     def register_push(self, device_id: str, bearer: str, payload: dict[str, Any]) -> None:
         user = self.authenticate(bearer)
         privacy = str(payload.get("notification_privacy", "standard"))
@@ -101,11 +72,35 @@ class BridgeService:
         if payload.get("provider") != "fcm":
             raise ApiError(400, "only the fcm provider is supported")
         installation_id = _text(payload.get("installation_id"), 4096, required=True)
+        mode = str(payload.get("mode", ""))
+        key_id = str(payload.get("key_id", ""))
+        jwk = payload.get("public_key_jwk")
+        agent_token = _text(payload.get("authentik_device_token"), 4096, required=True)
+        if mode not in {"personal", "shared"}:
+            raise ApiError(400, "mode must be personal or shared")
+        if not KEY_ID.fullmatch(key_id) or not isinstance(jwk, dict):
+            raise ApiError(400, "a valid communication key is required")
+        try:
+            derived_key_id = device_key_id(jwk)
+        except (ValueError, KeyError) as error:
+            raise ApiError(400, "the communication public key is invalid") from error
+        if derived_key_id != key_id or jwk.get("kid") != key_id:
+            raise ApiError(400, "key_id does not match the communication public key")
+        try:
+            verified_device_id = self.authentik.device_id(agent_token)
+        except AuthenticationError as error:
+            raise ApiError(403 if error.permanent else 503, str(error)) from error
+        if verified_device_id != device_id:
+            raise ApiError(403, "Authentik device token does not match the device id")
         try:
             self.store.register_push(
                 device_id=device_id,
                 subject=user.subject,
                 installation_id=installation_id,
+                agent_token=agent_token,
+                key_id=key_id,
+                public_jwk=jwk,
+                mode=mode,
                 privacy=privacy,
                 app_version=_text(payload.get("app_version"), 30),
             )
@@ -191,6 +186,9 @@ class BridgeService:
             if self.store.delivery_exists(event["event_id"], registration["device_id"]):
                 continue
             try:
+                if self.authentik.device_id(registration["agent_token"]) != registration["device_id"]:
+                    self.store.remove_registration(registration["device_id"])
+                    continue
                 self.fcm.send(
                     registration["installation_id"],
                     {
@@ -202,6 +200,11 @@ class BridgeService:
                 )
                 dispatches += int(self.fcm.configured)
                 self.store.record_delivery(event["event_id"], registration["device_id"])
+            except AuthenticationError as error:
+                if error.permanent:
+                    self.store.remove_registration(registration["device_id"])
+                else:
+                    complete = False
             except FcmSendError as error:
                 if error.permanent_token_failure:
                     self.store.remove_registration_by_token(registration["installation_id"])
@@ -229,7 +232,6 @@ class BridgeService:
             timestamp=timestamp,
             nonce=nonce,
             signature=signature,
-            require_trusted=True,
         )
         now = int(time.time())
         resolved = self.store.get_event_for_device(event_id, device_id)
@@ -240,7 +242,7 @@ class BridgeService:
             raise ApiError(410, "notification event has expired")
         if event["mode"] != "personal" or privacy == "minimal":
             raise ApiError(403, "notification details are disabled on this device")
-        self.store.touch_device(device_id)
+        self.store.touch_registration(device_id)
         detail = {
             "event_id": event["event_id"],
             "event_type": event["event_type"],
@@ -253,28 +255,6 @@ class BridgeService:
         }
         return detail
 
-    def device_status(
-        self,
-        device_id: str,
-        key_id: str,
-        timestamp: str,
-        nonce: str,
-        signature: str,
-        path: str,
-    ) -> dict[str, str]:
-        device = self._verify_device_request(
-            method="GET",
-            path=path,
-            device_id=device_id,
-            key_id=key_id,
-            timestamp=timestamp,
-            nonce=nonce,
-            signature=signature,
-            require_trusted=False,
-        )
-        self.store.touch_device(device_id)
-        return {"device_id": device_id, "status": device["status"]}
-
     def _verify_device_request(
         self,
         *,
@@ -285,7 +265,6 @@ class BridgeService:
         timestamp: str,
         nonce: str,
         signature: str,
-        require_trusted: bool,
     ) -> dict[str, Any]:
         if not 16 <= len(nonce) <= 128:
             raise ApiError(400, "invalid nonce")
@@ -296,17 +275,24 @@ class BridgeService:
         now = int(time.time())
         if abs(now - request_time) > 120:
             raise ApiError(401, "request timestamp is outside the allowed window")
-        device = self.store.get_device(device_id)
-        if device is None or device["key_id"] != key_id:
+        registration = self.store.get_registration(device_id)
+        if registration is None or registration["key_id"] != key_id:
             raise ApiError(403, "device identity is unknown")
-        if require_trusted and device["status"] != "trusted":
-            raise ApiError(403, "device is not trusted")
         canonical = canonical_device_request(method, path, device_id, key_id, timestamp, nonce)
-        if not verify_device_signature(device["public_jwk"], signature, canonical):
+        if not verify_device_signature(registration["public_jwk"], signature, canonical):
             raise ApiError(401, "invalid device signature")
         if not self.store.consume_nonce(device_id, nonce, now + 180):
             raise ApiError(409, "request nonce was already used")
-        return device
+        try:
+            verified_device_id = self.authentik.device_id(registration["agent_token"])
+        except AuthenticationError as error:
+            if error.permanent:
+                self.store.remove_registration(device_id)
+            raise ApiError(403 if error.permanent else 503, str(error)) from error
+        if verified_device_id != device_id:
+            self.store.remove_registration(device_id)
+            raise ApiError(403, "Authentik device token does not match the device id")
+        return registration
 
     @staticmethod
     def _normalize_target(value: dict[str, Any]) -> dict[str, Any]:

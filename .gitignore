@@ -16,5 +16,5 @@ bridge/.env
 bridge/data/
 bridge/secrets/*
 !bridge/secrets/*.example.json
-bridge/**/__pycache__/
-bridge/**/*.pyc
+**/__pycache__/
+**/*.pyc

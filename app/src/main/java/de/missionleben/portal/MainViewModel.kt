@@ -50,7 +50,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             enrollmentState = preferences.enrollmentState,
             deviceId = preferences.deviceId,
             deviceKeyId = identity.keyId(),
-            deviceServiceConfigured = deviceService.configured,
+            deviceServiceConfigured = deviceService.endpointDevicesConfigured,
+            communicationServiceConfigured = deviceService.communicationConfigured,
             pushConfigured = PushManager.configured,
             notificationPrivacy = effectiveNotificationPrivacy(preferences.deviceMode),
             quickUnlockEnabled = vault.hasSession(),
@@ -93,10 +94,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         dataEncryptionKey = null
         vault.clear()
         clearNotifications()
+        deviceService.clearDeviceCredential()
         preferences.clearProfile()
         _uiState.value = UiState(
             deviceKeyId = identity.keyId(),
-            deviceServiceConfigured = deviceService.configured,
+            deviceServiceConfigured = deviceService.endpointDevicesConfigured,
+            communicationServiceConfigured = deviceService.communicationConfigured,
             pushConfigured = PushManager.configured,
             notificationPrivacy = NotificationPrivacy.MINIMAL,
         )
@@ -324,7 +327,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun consumeWebDataClearRequest() = _uiState.update { it.copy(clearWebDataRequested = false) }
 
     fun refreshDeviceStatus() {
-        if (!deviceService.configured) return
+        if (!deviceService.endpointDevicesConfigured) return
         val deviceId = preferences.deviceId ?: return
         viewModelScope.launch {
             runCatching { deviceService.deviceStatus(deviceId, identity) }
@@ -382,7 +385,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun loadLinkTargetsWithToken(accessToken: String) {
-        if (!deviceService.configured) return
+        if (!deviceService.communicationConfigured) return
         viewModelScope.launch {
             runCatching { deviceService.linkTargets(accessToken) }
                 .onSuccess { targets -> _uiState.update { it.copy(linkTargets = targets) } }
@@ -390,7 +393,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun syncPushRegistrationWithToken(accessToken: String) {
-        if (!deviceService.configured || !PushManager.configured) return
+        if (!deviceService.communicationConfigured || !PushManager.configured) return
         val deviceId = _uiState.value.deviceId ?: return
         if (ContextCompat.checkSelfPermission(
                 getApplication(),

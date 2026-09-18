@@ -22,24 +22,24 @@
 | unbekannte App wird sichtbar | Liste kommt aus policy-geprüfter Authentik-API |
 | kompromittiertes Handy schickt Schad-URL an PC | nur `open_talk(room_token)`, Ziel-URL entsteht im Companion |
 | ausgeschiedener Mitarbeiter nutzt App weiter | Authentik-User und Anwendungssitzungen zentral sperren, Refresh Token widerrufen, Gerätebindung sperren und lokales Löschsignal auslösen |
-| verlorenes Shared Tablet umgeht MFA | Gerät in der Bridge sperren; die Pilot-Gerätefreigabe ersetzt Authentik-MFA nicht |
-| WebView lädt manipulierte Inhalte | nur HTTPS auf konfigurierten Domain-Endungen; kein JavaScript-Bridge, kein Datei-/Content-Zugriff, kein Mixed Content, Safe Browsing und harte TLS-Fehlerbehandlung |
+| verlorenes Shared Tablet umgeht MFA | Authentik-Device ablaufen lassen oder löschen; die Endpoint Stage folgt auf TOTP und ersetzt MFA nicht |
+| WebView lädt manipulierte Inhalte | nur HTTPS auf konfigurierten Domain-Endungen, kein Datei-/Content-Zugriff, kein Mixed Content, Safe Browsing und harte TLS-Fehlerbehandlung; die einzige JavaScript-Schnittstelle signiert nur Authentik-Endpoint-Challenges auf der exakten Authentik-Origin und gibt kein Token aus |
 | Webseite greift unbemerkt auf Kamera/Mikrofon zu | nur explizit bekannte WebRTC-Ressourcen, erlaubte HTTPS-Origin und Android-Laufzeitfreigabe |
 | vorheriger Benutzer hinterlässt Browserdaten | Cookie-Speicher, DOM-/Webspeicher, HTTP-Zugangsdaten, Cache, Formulardaten und App-Downloads werden bei Abmeldung/Profilwechsel gelöscht |
 | veraltete Browserengine | Android System WebView wird separat aktualisiert; MDM muss Updates erzwingen und veraltete Geräte sperren |
 | FCM oder ein fremder Push schleust Text oder Schad-URL ein | FCM enthält nur Ereignis-ID, Typ und Revision; App ignoriert freie Texte/URLs und öffnet ausschließlich eine passende Authentik-App |
 | Ereignis-ID wird abgegriffen | Detailabruf verlangt vertrauenswürdiges gebundenes Gerät, P-256-Signatur, Zeitfenster und einmalige Nonce |
 | Sperrbildschirm verrät Fachdaten | Android-Notification ist `PRIVATE` und besitzt eine neutrale öffentliche Version; Shared Tablets erzwingen `minimal` |
-| Bridge-Datenbank wird kopiert | FCM-Installations-IDs sind mit AES-256-GCM verschlüsselt; Schlüssel liegt nur als Server-Secret vor |
+| Bridge-Datenbank wird kopiert | FCM-Installations-IDs und die für Live-Prüfungen benötigten Authentik-Device-Token sind mit AES-256-GCM verschlüsselt; Schlüssel liegt nur als Server-Secret vor |
 | Zimbra-Integrationskonto wird missbraucht | eigener Worker je Mailbox-Server, explizite Konto-ID-Liste, Secret-Datei, keine Benutzerkennwörter und begrenzte Suchabfragen; Rechte und Audit müssen vor Produktion geprüft werden |
 | FCM-Zuordnung bleibt nach Abmeldung aktiv | App löscht die Zuordnung bestmöglich am Device Service; Server sperrt sie zusätzlich bei Offboarding oder Gerätesperre |
 | Firebase-Dienstkonto wird kompromittiert | Dienstkonto nur im Server-Secret-Store, minimale Berechtigung, kein Schlüssel in Repository oder APK; Versand und Gerätezuordnung auditieren |
 
 ## Bewusste MVP-Grenzen
 
-- Android-Key-Attestation ist im ersten MVP noch nicht an eine Server-Nonce gebunden. Deshalb darf Enrollment nie automatisch `trusted` ergeben.
-- Authentik Endpoint Devices ist Early Preview und hat keinen offiziellen Android-Agenten. Der Pilot verwendet deshalb einen eigenen Gerätestatus und keine undokumentierten Agent-Protokolle.
-- Die App ist kein MDM. Gerätekonformität wie Patchstand oder Verschlüsselung wird nur ausgewertet, wenn der Device Service verifizierbare Daten erhält.
+- Android-Key-Attestation ist im ersten MVP noch nicht an eine Server-Nonce gebunden. Die Freigabe beruht deshalb auf einem zeitlich begrenzten Authentik-Enrollment-Token plus Device Access Group und ersetzt kein MDM.
+- Authentik Endpoint Devices ist Early Preview und hat keinen offiziellen Android-Agenten. Für den ausdrücklich gewünschten Pilot implementiert die App den in Authentik 2026.8.3 vorhandenen Agent-Enrollment-, Check-in- und Endpoint-Stage-Vertrag versionsgebunden.
+- Die App ist kein MDM. Sie meldet Android-Version, Hersteller, Modell und App-Version als Authentik Device Facts; hardwaregestützte Konformitätsnachweise und Remote-Wipe bleiben Aufgabe eines MDM/Work Profiles.
 - Der Webcontainer kann nur Daten löschen, wenn die App das Sperr-/Abmeldesignal erhält. Für ein ausgeschaltetes oder dauerhaft offline befindliches Privatgerät bleibt MDM-/Work-Profile-Wipe die belastbare Rückfallebene.
 - WebView-Anmeldung ist für den kontrollierten Enterprise-Container bewusst gewählt. Externe Identitätsanbieter und nicht freigegebene Domains werden nicht eingebettet.
 - Der Zimbra-Worker behandelt typische Mail- und Kalenderinstanzen. Serienausnahmen, Absagen und individuelle Erinnerungen müssen gegen Zimbra 10.1 mit realen Testkonten geprüft werden.

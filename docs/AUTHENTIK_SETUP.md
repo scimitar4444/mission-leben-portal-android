@@ -4,7 +4,7 @@ Diese App setzt den bestehenden zentralen Authentik-Flow fort und baut keinen zw
 
 Ausgangslage aus der zuletzt dokumentierten Mission-Leben-Prüfung:
 
-- Authentik 2026.8.2
+- Authentik 2026.8.3
 - `default-authentication-flow` und `nextcloud-akademie-kerberos-sso` verwenden die Stufe `MFA verpflichtend`
 - Ziel extern: Benutzername → Passwort → MFA
 - Ziel intern: SPNEGO; falls das nicht greift, Benutzername → MFA
@@ -44,7 +44,7 @@ Scopes:
 
 `offline_access` wird von der App nur im persönlichen Gerätemodus angefordert. Shared Tablets fordern diesen Scope nicht an. `goauthentik.io/api` wird benötigt, um die für die angemeldete Person sichtbaren Anwendungen über die Authentik-API abzurufen.
 
-Die Anwendung sollte dieselbe aktive-Benutzer-Policy verwenden wie das Portal. Zusätzliche App-Zugriffe werden nicht in der Android-App gepflegt; maßgeblich bleiben die bestehenden Authentik-Policies.
+Im Pilot ist sowohl die OIDC-Anwendung als auch die Android Device Access Group nur an `authentik Admins` gebunden. Für den Rollout werden dort die vorgesehenen Mitarbeitergruppen ergänzt; zusätzliche App-Zugriffe bleiben weiterhin über die bestehenden `APP_*`-Policies geregelt.
 
 ### Passkeys im Webcontainer
 
@@ -85,26 +85,29 @@ Top-Level-Navigationen innerhalb der App werden auf HTTPS und die Build-Einstell
 
 ## 5. Endpoint Devices
 
-Authentik Endpoint Devices ist in 2026.8 weiterhin Early Preview und der offizielle Agent unterstützt Linux, macOS und Windows, nicht Android. Das Projekt spricht deshalb nicht unautorisiert interne Agent-Protokolle nach.
+Authentik Endpoint Devices ist in 2026.8 Early Preview. Für diesen ausdrücklich so freigegebenen Pilot ist Authentik trotzdem die alleinige Gerätedatenbank.
 
-Der nun unter `bridge/` implementierte Pilot-Device-Service übernimmt:
+Das idempotente Skript `authentik/bootstrap_endpoint_devices.py` legt an:
 
-1. einmaliges Enrollment mit kurzlebigem Token,
-2. Verifikation des Android-Keystore-Schlüssels,
-3. einen eigenen Status `pending`, `trusted` oder `blocked`,
-4. die Bindung persönlicher Geräte an das stabile Authentik-Subject,
-5. Sperren bei Geräteverlust oder Benutzer-Offboarding,
-6. Ausgabe der freigegebenen Zielgeräte für den Talk-Handoff,
-7. signierte Detailabrufe für Mail-, Termin- und Talk-Hinweise.
+1. den Agent Connector `Mission Leben Android` mit eigenem Challenge-Schlüssel,
+2. die Device Access Group `Mission Leben Android - Pilot`,
+3. den Public-OIDC-Client `mission-leben-android`,
+4. eine erforderliche Endpoint Stage nach den TOTP-Stufen,
+5. eine nachgelagerte Zugriffsprüfung der Device Access Group,
+6. bedingte Policies, sodass diese beiden Stufen ausschließlich für den User-Agent `MissionLebenPortal/*` laufen.
 
-Der Vertrag ist in `DEVICE_SERVICE_API.md` festgelegt. Er nutzt keine undokumentierten Authentik-Agent-Protokolle und schreibt im Pilot nicht direkt in Endpoint Devices. Sobald Authentik einen stabilen Android-Agenten oder eine dokumentierte Integrations-API veröffentlicht, kann diese Schicht ausgetauscht oder gespiegelt werden, ohne OIDC oder UI neu zu bauen.
+Die App sendet Enrollment direkt an `/api/v3/endpoints/agents/connectors/enroll/`, liest ihre Authentik-Geräte-ID aus `agent_config`, meldet Android-Fakten über `check_in` und beantwortet die Endpoint-Stage-Challenge mit dem im Android Keystore verschlüsselten Device Token. Authentik speichert Device, Connection, Token, Fakten, Ablauf und Access Group. Der separate Container besitzt keine Tabellen für Devices oder Enrollment-Tokens.
+
+Ein Pilot-Enrollment-Token wird mit `authentik/create_pilot_enrollment_token.py` erzeugt, 24 Stunden gültig und der Pilot-Access-Group zugeordnet. Nach dem geplanten Enrollment wird er in Authentik ablaufen gelassen oder gelöscht. Das Skript darf nur mit in eine root-only Datei umgeleiteter Ausgabe ausgeführt werden.
+
+Gerät sperren: Unter **Endpoint Devices → Devices** das Gerät ablaufen lassen oder löschen. Dadurch lehnt `agent_config` das Device Token ab; die App löscht Sitzung und Webdaten, und die Kommunikations-Bridge verwirft die Push-Zuordnung bei ihrer nächsten Live-Prüfung.
 
 ## 6. Policy-Grundsätze
 
 - TOTP bleibt der erste MFA-Einrichtungsweg. Die Pilot-Gerätefreigabe ersetzt MFA nicht.
-- Shared-Gerät: Es wird niemals ein Benutzer dauerhaft gebunden und Benachrichtigungen bleiben diskret.
-- Persönliches Gerät: Benutzerbindung und Gerätebindung müssen beide aktiv sein.
+- Shared-Gerät: Es wird niemals eine Mitarbeitersitzung dauerhaft gespeichert und Benachrichtigungen bleiben diskret.
+- Persönliches Gerät: Authentik-Device, Device Access Group, Benutzerbindung und Benutzerkonto müssen aktiv sein.
 - `user.is_active == false` muss Token-Erneuerung, App-Zugriff und persönliche Gerätebindung sperren.
-- Gerät verloren: Gerätebindung sperren und zugehörige Refresh Tokens widerrufen.
+- Gerät verloren: Authentik-Device ablaufen lassen oder löschen und zugehörige Refresh Tokens widerrufen.
 - Admin-Anwendungen dürfen unabhängig vom Gerät weiterhin zusätzliche MFA verlangen.
 - Geräteklassen und Trust-Status gehören in Attribute/Policies, nicht als Wildwuchs in die `ORG_*`-Struktur.

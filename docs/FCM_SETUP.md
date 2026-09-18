@@ -57,7 +57,7 @@ FCM erhält keinen Absender, Betreff, Termin, Raum oder Vorschautext. Die App ak
 ## 4. Funktionstest
 
 1. signierte App mit den vier Clientwerten bauen und installieren,
-2. Gerät registrieren und in der Bridge-Geräteverwaltung freigeben,
+2. Gerät mit einem Authentik-Enrollment-Token registrieren und der passenden Authentik Device Access Group zuordnen,
 3. Benutzer anmelden und Android-Benachrichtigungen erlauben,
 4. am Device Service die gespeicherte Installations-ID und Gerätebindung prüfen,
 5. Mail-, Termin- und Talk-Ereignis über den signierten Bridge-Endpunkt einspeisen,
