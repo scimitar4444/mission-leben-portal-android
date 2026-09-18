@@ -17,7 +17,7 @@ val oidcClientId = providers.gradleProperty("ML_OIDC_CLIENT_ID")
 val deviceServiceBaseUrl = providers.gradleProperty("ML_DEVICE_SERVICE_BASE_URL")
     .orElse("https://id.mission-leben.de/device-bridge")
 val webAllowedHostSuffixes = providers.gradleProperty("ML_WEB_ALLOWED_HOST_SUFFIXES")
-    .orElse("mission-leben.de")
+    .orElse("mission-leben.de,akademie-mission-leben.de")
 val firebaseApplicationId = providers.gradleProperty("ML_FIREBASE_APPLICATION_ID").orElse("")
 val firebaseApiKey = providers.gradleProperty("ML_FIREBASE_API_KEY").orElse("")
 val firebaseProjectId = providers.gradleProperty("ML_FIREBASE_PROJECT_ID").orElse("")
@@ -31,8 +31,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 18
-        versionName = "0.7.0"
+        versionCode = 19
+        versionName = "0.7.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
