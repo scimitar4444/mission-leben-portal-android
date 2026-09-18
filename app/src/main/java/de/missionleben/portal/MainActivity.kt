@@ -1,12 +1,14 @@
 package de.missionleben.portal
 
 import android.Manifest
+import android.app.LocaleManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.LocaleList
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -50,6 +52,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        PushManager.initialize(this)
         viewModel.acceptEnrollmentLink(intent?.data)
         viewModel.acceptPushAction(intent?.getStringExtra(PortalFirebaseMessagingService.EXTRA_PUSH_ACTION))
 
@@ -104,6 +107,8 @@ class MainActivity : FragmentActivity() {
                         }
                     },
                     onDismissMessage = viewModel::clearMessage,
+                    currentLanguageTag = currentLanguageTag(),
+                    onLanguageChange = ::setAppLanguage,
                 )
             }
         }
@@ -157,12 +162,12 @@ class MainActivity : FragmentActivity() {
         val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or
             BiometricManager.Authenticators.DEVICE_CREDENTIAL
         if (BiometricManager.from(this).canAuthenticate(authenticators) != BiometricManager.BIOMETRIC_SUCCESS) {
-            viewModel.vaultFailed("Bitte Biometrie oder eine sichere Displaysperre einrichten.")
+            viewModel.vaultFailed(getString(R.string.biometric_setup_required))
             return
         }
 
         val cipher = runCatching { viewModel.createVaultCipher(request) }.getOrElse {
-            viewModel.vaultFailed("Sicherer Gerätespeicher ist nicht verfügbar: ${it.message}")
+            viewModel.vaultFailed(getString(R.string.secure_storage_unavailable, it.message.orEmpty()))
             return
         }
         val prompt = BiometricPrompt(
@@ -172,22 +177,32 @@ class MainActivity : FragmentActivity() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     val authorizedCipher = result.cryptoObject?.cipher
                     if (authorizedCipher == null) {
-                        viewModel.vaultFailed("Der sichere Schlüssel wurde nicht freigegeben.")
+                        viewModel.vaultFailed(getString(R.string.secure_key_not_released))
                     } else {
                         viewModel.completeVaultRequest(request, authorizedCipher)
                     }
                 }
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    viewModel.vaultFailed("Schnellzugang nicht geöffnet: $errString")
+                    viewModel.vaultFailed(getString(R.string.quick_access_failed, errString))
                 }
             },
         )
         val info = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(if (request == VaultRequest.SEAL) "Schnellzugang aktivieren" else "Mission Leben Portal öffnen")
-            .setSubtitle("Fingerabdruck, Gesicht oder Gerätecode verwenden")
+            .setTitle(if (request == VaultRequest.SEAL) getString(R.string.quick_access_enable_title) else getString(R.string.portal_open_title))
+            .setSubtitle(getString(R.string.biometric_subtitle))
             .setAllowedAuthenticators(authenticators)
             .build()
         prompt.authenticate(info, BiometricPrompt.CryptoObject(cipher))
+    }
+
+    private fun currentLanguageTag(): String? = getSystemService(LocaleManager::class.java)
+        .applicationLocales
+        .toLanguageTags()
+        .ifBlank { null }
+
+    private fun setAppLanguage(languageTag: String?) {
+        getSystemService(LocaleManager::class.java).applicationLocales =
+            languageTag?.let { LocaleList.forLanguageTags(it) } ?: LocaleList.getEmptyLocaleList()
     }
 }

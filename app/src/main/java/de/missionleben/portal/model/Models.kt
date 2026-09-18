@@ -1,16 +1,12 @@
 package de.missionleben.portal.model
 
+import androidx.annotation.StringRes
+import de.missionleben.portal.R
 import de.missionleben.portal.push.NotificationPrivacy
 
-enum class DeviceMode {
-    PERSONAL,
-    SHARED;
-
-    val label: String
-        get() = when (this) {
-            PERSONAL -> "Persönliches Gerät"
-            SHARED -> "Gemeinsam genutztes Tablet"
-        }
+enum class DeviceMode(@StringRes val labelRes: Int) {
+    PERSONAL(R.string.mode_personal),
+    SHARED(R.string.mode_shared),
 }
 
 enum class EnrollmentState {

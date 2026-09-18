@@ -8,6 +8,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import de.missionleben.portal.BuildConfig
+import de.missionleben.portal.R
 
 object PushManager {
     val configured: Boolean
@@ -48,17 +49,17 @@ object PushManager {
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannels(
             listOf(
-                NotificationChannel("mail", "Mail", NotificationManager.IMPORTANCE_DEFAULT).apply {
-                    description = "Neutrale Hinweise auf neue Zimbra-Mails"
+                NotificationChannel("mail", context.getString(R.string.channel_mail_name), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                    description = context.getString(R.string.channel_mail_description)
                 },
-                NotificationChannel("calendar", "Termine", NotificationManager.IMPORTANCE_HIGH).apply {
-                    description = "Erinnerungen an anstehende Termine"
+                NotificationChannel("calendar", context.getString(R.string.channel_calendar_name), NotificationManager.IMPORTANCE_HIGH).apply {
+                    description = context.getString(R.string.channel_calendar_description)
                 },
-                NotificationChannel("talk", "Talk", NotificationManager.IMPORTANCE_DEFAULT).apply {
-                    description = "Neutrale Hinweise auf Talk-Aktivitäten"
+                NotificationChannel("talk", context.getString(R.string.channel_talk_name), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                    description = context.getString(R.string.channel_talk_description)
                 },
-                NotificationChannel("security", "Gerätesicherheit", NotificationManager.IMPORTANCE_HIGH).apply {
-                    description = "Wichtige Hinweise zum Sicherheitsstatus des Geräts"
+                NotificationChannel("security", context.getString(R.string.channel_security_name), NotificationManager.IMPORTANCE_HIGH).apply {
+                    description = context.getString(R.string.channel_security_description)
                 },
             ),
         )

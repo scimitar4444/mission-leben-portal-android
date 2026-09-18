@@ -67,7 +67,7 @@ class RichNotificationJobService : JobService() {
         )
         if (privacy == NotificationPrivacy.MINIMAL || preferences.enrollmentState != EnrollmentState.TRUSTED) return
         val deviceId = preferences.deviceId ?: return
-        val repository = DeviceServiceRepository()
+        val repository = DeviceServiceRepository(this)
         if (!repository.configured) return
         val detail = repository.notificationDetail(eventId, action, deviceId, DeviceIdentity())
         NotificationPresenter.showRich(this, action, eventId, detail, privacy)

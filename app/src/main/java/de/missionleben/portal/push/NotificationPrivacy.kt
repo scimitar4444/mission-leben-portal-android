@@ -1,26 +1,28 @@
 package de.missionleben.portal.push
 
+import androidx.annotation.StringRes
+import de.missionleben.portal.R
 import de.missionleben.portal.model.DeviceMode
 
 enum class NotificationPrivacy(
     val wireName: String,
-    val label: String,
-    val description: String,
+    @StringRes val labelRes: Int,
+    @StringRes val descriptionRes: Int,
 ) {
     MINIMAL(
         wireName = "minimal",
-        label = "Diskret",
-        description = "Nur Mail, Termin oder Talk anzeigen.",
+        labelRes = R.string.privacy_minimal_label,
+        descriptionRes = R.string.privacy_minimal_description,
     ),
     STANDARD(
         wireName = "standard",
-        label = "Standard",
-        description = "Absender und Betreff beziehungsweise Terminzeit und Ort anzeigen.",
+        labelRes = R.string.privacy_standard_label,
+        descriptionRes = R.string.privacy_standard_description,
     ),
     DETAILED(
         wireName = "detailed",
-        label = "Ausführlich",
-        description = "Zusätzlich eine kurze Mail- oder Talk-Vorschau anzeigen.",
+        labelRes = R.string.privacy_detailed_label,
+        descriptionRes = R.string.privacy_detailed_description,
     );
 
     companion object {

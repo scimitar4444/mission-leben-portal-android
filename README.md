@@ -8,6 +8,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 
 - Anmeldung über Authentik mit OAuth 2.0 Authorization Code + PKCE
 - TOTP-zuerst-Flow aus der bestehenden Authentik-Konfiguration wird unverändert verwendet
+- Telefonsprache oder direkte App-Auswahl für Deutsch, Englisch, Türkisch, Hindi, Spanisch, Französisch, Polnisch, Rumänisch und Ukrainisch; Deutsch bleibt die Rückfallsprache
 - sichtbare Web-Apps werden live aus `/api/v3/core/applications/` geladen
 - Zimbra, Nextcloud, Talk und Vaultwarden laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung
 - der Browsermotor wird über Android System WebView unabhängig von der APK aktualisiert

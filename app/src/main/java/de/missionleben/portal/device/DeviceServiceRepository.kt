@@ -1,7 +1,9 @@
 package de.missionleben.portal.device
 
+import android.content.Context
 import android.os.Build
 import de.missionleben.portal.BuildConfig
+import de.missionleben.portal.R
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
@@ -30,7 +32,9 @@ class NotificationFetchException(
     message: String,
 ) : Exception(message)
 
-class DeviceServiceRepository {
+class DeviceServiceRepository(context: Context? = null) {
+    private val context = context?.applicationContext
+
     val configured: Boolean
         get() = BuildConfig.DEVICE_SERVICE_BASE_URL.startsWith("https://")
 
@@ -39,7 +43,7 @@ class DeviceServiceRepository {
         mode: DeviceMode,
         identity: DeviceIdentity,
     ): EnrollmentResult = withContext(Dispatchers.IO) {
-        require(configured) { "Der Mission-Leben Device Service ist noch nicht konfiguriert." }
+        require(configured) { text(R.string.device_service_not_configured) }
         val body = JSONObject()
             .put("enrollment_token", token.trim())
             .put("mode", mode.name.lowercase())
@@ -77,7 +81,7 @@ class DeviceServiceRepository {
     }
 
     suspend fun openTalk(accessToken: String, targetId: String, talkUrl: String) = withContext(Dispatchers.IO) {
-        require(configured) { "Der Mission-Leben Device Service ist noch nicht konfiguriert." }
+        require(configured) { text(R.string.device_service_not_configured) }
         val token = extractTalkToken(talkUrl)
         val body = JSONObject()
             .put("target_device_id", targetId)
@@ -94,7 +98,7 @@ class DeviceServiceRepository {
         mode: DeviceMode,
         privacy: NotificationPrivacy,
     ) = withContext(Dispatchers.IO) {
-        require(configured) { "Der Mission-Leben Device Service ist noch nicht konfiguriert." }
+        require(configured) { text(R.string.device_service_not_configured) }
         val body = JSONObject()
             .put("provider", "fcm")
             .put("installation_id", installationId)
@@ -113,7 +117,7 @@ class DeviceServiceRepository {
         deviceId: String,
         identity: DeviceIdentity,
     ): EnrollmentState = withContext(Dispatchers.IO) {
-        require(configured) { "Der Mission-Leben Device Service ist noch nicht konfiguriert." }
+        require(configured) { text(R.string.device_service_not_configured) }
         val path = "/v1/devices/${encodePathSegment(deviceId)}/status"
         val response = performRequest(
             path = path,
@@ -123,13 +127,13 @@ class DeviceServiceRepository {
             headers = signedHeaders(path, deviceId, identity),
         )
         if (response.status !in 200..299) {
-            error("Gerätestatus ist nicht verfügbar (HTTP ${response.status}).")
+            error(text(R.string.device_status_unavailable, response.status))
         }
         when (JSONObject(response.body).getString("status")) {
             "pending" -> EnrollmentState.PENDING
             "trusted" -> EnrollmentState.TRUSTED
             "blocked" -> EnrollmentState.BLOCKED
-            else -> error("Unbekannter Gerätestatus.")
+            else -> error(text(R.string.device_status_unknown))
         }
     }
 
@@ -139,8 +143,8 @@ class DeviceServiceRepository {
         deviceId: String,
         identity: DeviceIdentity,
     ): NotificationDetail = withContext(Dispatchers.IO) {
-        require(configured) { "Der Mission-Leben Device Service ist noch nicht konfiguriert." }
-        require(eventId.matches(Regex("[A-Za-z0-9_-]{16,128}"))) { "Ungültige Ereignis-ID." }
+        require(configured) { text(R.string.device_service_not_configured) }
+        require(eventId.matches(Regex("[A-Za-z0-9_-]{16,128}"))) { text(R.string.notification_event_invalid) }
         val path = "/v1/notifications/$eventId"
         val response = performRequest(
             path = path,
@@ -152,13 +156,13 @@ class DeviceServiceRepository {
         if (response.status !in 200..299) {
             throw NotificationFetchException(
                 retryable = response.status == 408 || response.status == 429 || response.status >= 500,
-                message = "Benachrichtigungsdetails sind nicht verfügbar (HTTP ${response.status}).",
+                message = text(R.string.notification_details_unavailable, response.status),
             )
         }
         val detail = runCatching { NotificationDetail.fromJson(JSONObject(response.body)) }
-            .getOrElse { throw NotificationFetchException(false, "Ungültige Benachrichtigungsdetails.") }
+            .getOrElse { throw NotificationFetchException(false, text(R.string.notification_details_invalid)) }
         if (detail.eventId != eventId || detail.action != expectedAction) {
-            throw NotificationFetchException(false, "Benachrichtigungsdetails passen nicht zum Ereignis.")
+            throw NotificationFetchException(false, text(R.string.notification_details_mismatch))
         }
         detail
     }
@@ -166,17 +170,17 @@ class DeviceServiceRepository {
     internal fun extractTalkToken(value: String): String {
         val input = value.trim()
         val candidate = if ("://" in input) {
-            val uri = runCatching { URI(input) }.getOrElse { throw IllegalArgumentException("Ungültiger Talk-Link.") }
-            require(uri.scheme.equals("https", ignoreCase = true)) { "Talk-Links müssen HTTPS verwenden." }
+            val uri = runCatching { URI(input) }.getOrElse { throw IllegalArgumentException(text(R.string.talk_link_invalid)) }
+            require(uri.scheme.equals("https", ignoreCase = true)) { text(R.string.talk_link_https_required) }
             val segments = uri.path.orEmpty().trim('/').split('/').filter(String::isNotBlank)
             val callIndex = segments.indexOfLast { it == "call" }
-            require(callIndex >= 0 && callIndex + 1 < segments.size) { "Der Link ist kein Nextcloud-Talk-Link." }
+            require(callIndex >= 0 && callIndex + 1 < segments.size) { text(R.string.talk_link_not_nextcloud) }
             segments[callIndex + 1]
         } else {
             input
         }
         require(candidate.matches(Regex("[A-Za-z0-9_-]{6,128}"))) {
-            "Bitte einen gültigen Nextcloud-Talk-Link eingeben."
+            text(R.string.talk_link_enter_valid)
         }
         return candidate
     }
@@ -209,7 +213,7 @@ class DeviceServiceRepository {
     private fun request(path: String, method: String, body: String?, accessToken: String?): String {
         val response = performRequest(path, method, body, accessToken)
         if (response.status !in 200..299) {
-            error("Device Service antwortet mit HTTP ${response.status}: ${response.body.take(180)}")
+            error(text(R.string.device_service_http_error, response.status))
         }
         return response.body
     }
@@ -245,4 +249,7 @@ class DeviceServiceRepository {
     }
 
     private data class HttpResponse(val status: Int, val body: String)
+
+    private fun text(resourceId: Int, vararg formatArgs: Any): String =
+        context?.getString(resourceId, *formatArgs) ?: "Invalid input."
 }

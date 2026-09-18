@@ -46,8 +46,10 @@ object NotificationPresenter {
         }
 
         val rich = detail != null && privacy != NotificationPrivacy.MINIMAL
-        val title = if (rich) detail.title.ifBlank { action.title } else action.title
-        val summary = if (rich) detail.summary.ifBlank { action.body } else action.body
+        val genericTitle = context.getString(action.titleRes)
+        val genericBody = context.getString(action.bodyRes)
+        val title = if (rich) detail.title.ifBlank { genericTitle } else genericTitle
+        val summary = if (rich) detail.summary.ifBlank { genericBody } else genericBody
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra(PortalFirebaseMessagingService.EXTRA_PUSH_ACTION, action.wireName)
@@ -62,8 +64,8 @@ object NotificationPresenter {
         )
         val publicVersion = NotificationCompat.Builder(context, action.channelId)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(action.title)
-            .setContentText(action.body)
+            .setContentTitle(genericTitle)
+            .setContentText(genericBody)
             .build()
         val builder = NotificationCompat.Builder(context, action.channelId)
             .setSmallIcon(R.drawable.ic_notification)

@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Base64
 import de.missionleben.portal.BuildConfig
+import de.missionleben.portal.R
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.UserIdentity
 import net.openid.appauth.AuthState
@@ -21,6 +22,7 @@ import java.net.URL
 import java.net.URLEncoder
 
 class AuthRepository(context: Context) {
+    private val context = context.applicationContext
     private val authorizationService = AuthorizationService(context)
     private var pendingAuthorizationRequest: AuthorizationRequest? = null
 
@@ -31,7 +33,7 @@ class AuthRepository(context: Context) {
     ) {
         AuthorizationServiceConfiguration.fetchFromIssuer(Uri.parse(BuildConfig.OIDC_ISSUER)) { configuration, error ->
             if (configuration == null) {
-                onError(error?.errorDescription ?: "OIDC-Konfiguration konnte nicht geladen werden.")
+                onError(this.context.getString(R.string.auth_oidc_config_failed))
                 return@fetchFromIssuer
             }
 
@@ -65,21 +67,21 @@ class AuthRepository(context: Context) {
         val request = pendingAuthorizationRequest
         pendingAuthorizationRequest = null
         if (request == null) {
-            onError("Die Anmeldung ist abgelaufen. Bitte erneut anmelden.")
+            onError(context.getString(R.string.auth_expired))
             return
         }
         val authorizationError = AuthorizationException.fromOAuthRedirect(redirectUri)
         if (authorizationError != null) {
-            onError(authorizationError.errorDescription ?: "Anmeldung wurde abgebrochen.")
+            onError(context.getString(R.string.auth_cancelled))
             return
         }
         val response = runCatching { AuthorizationResponse.Builder(request).fromUri(redirectUri).build() }
             .getOrElse {
-                onError("Die Antwort von Authentik ist ungültig.")
+                onError(context.getString(R.string.auth_invalid_response))
                 return
             }
         if (response.state != request.state) {
-            onError("Die Anmeldung konnte nicht eindeutig zugeordnet werden.")
+            onError(context.getString(R.string.auth_state_mismatch))
             return
         }
 
@@ -87,7 +89,7 @@ class AuthRepository(context: Context) {
         authorizationService.performTokenRequest(response.createTokenExchangeRequest()) { tokenResponse, tokenError ->
             state.update(tokenResponse, tokenError)
             if (tokenResponse == null) {
-                onError(tokenError?.errorDescription ?: "Der Anmeldecode konnte nicht eingelöst werden.")
+                onError(context.getString(R.string.auth_code_exchange_failed))
             } else {
                 onSuccess(state.jsonSerializeString())
             }
@@ -102,12 +104,12 @@ class AuthRepository(context: Context) {
         val state = try {
             AuthState.jsonDeserialize(serializedState)
         } catch (error: Exception) {
-            onError("Die gespeicherte Anmeldung ist beschädigt.")
+            onError(context.getString(R.string.auth_saved_session_invalid))
             return
         }
         state.performActionWithFreshTokens(authorizationService) { accessToken, _, error ->
             if (accessToken == null) {
-                onError(error?.errorDescription ?: "Die Sitzung konnte nicht erneuert werden.")
+                onError(context.getString(R.string.auth_session_refresh_failed))
             } else {
                 onSuccess(accessToken, state.jsonSerializeString())
             }
@@ -122,7 +124,7 @@ class AuthRepository(context: Context) {
             displayName = claims.optString("name")
                 .ifBlank { claims.optString("preferred_username") }
                 .ifBlank { claims.optString("email") }
-                .ifBlank { "Mitarbeiter:in" },
+                .ifBlank { context.getString(R.string.employee_fallback) },
             email = claims.optString("email"),
         )
     }
