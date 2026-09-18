@@ -17,8 +17,14 @@ class PushRegistrationStore(context: Context) {
         get() = preferences.getBoolean(KEY_PERMISSION_REQUESTED, false)
         set(value) = preferences.edit().putBoolean(KEY_PERMISSION_REQUESTED, value).apply()
 
+    var personalPrivacy: NotificationPrivacy
+        get() = NotificationPrivacy.fromWireName(preferences.getString(KEY_PERSONAL_PRIVACY, null))
+            ?: NotificationPrivacy.STANDARD
+        set(value) = preferences.edit().putString(KEY_PERSONAL_PRIVACY, value.wireName).apply()
+
     private companion object {
         const val KEY_INSTALLATION_ID = "installation_id"
         const val KEY_PERMISSION_REQUESTED = "permission_requested"
+        const val KEY_PERSONAL_PRIVACY = "personal_privacy"
     }
 }

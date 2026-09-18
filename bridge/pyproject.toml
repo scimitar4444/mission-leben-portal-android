@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mission-leben-bridge"
+version = "0.4.0"
+description = "Device approval and privacy-preserving notification bridge for the Mission Leben Android portal"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "cryptography>=44,<48",
+]
+
+[project.scripts]
+mission-leben-bridge = "mission_leben_bridge.__main__:main"
+mission-leben-zimbra-worker = "mission_leben_bridge.zimbra_worker:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

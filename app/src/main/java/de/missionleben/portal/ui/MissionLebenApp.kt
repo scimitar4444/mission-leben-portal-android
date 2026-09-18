@@ -53,6 +53,7 @@ import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
 import de.missionleben.portal.model.PortalApplication
 import de.missionleben.portal.model.UiState
+import de.missionleben.portal.push.NotificationPrivacy
 
 @Composable
 fun MissionLebenApp(
@@ -62,7 +63,9 @@ fun MissionLebenApp(
     onOpenUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onEnrollDevice: (String) -> Unit,
+    onRefreshDeviceStatus: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
+    onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
@@ -77,7 +80,9 @@ fun MissionLebenApp(
                 onOpenUrl = onOpenUrl,
                 onReloadApplications = onReloadApplications,
                 onEnrollDevice = onEnrollDevice,
+                onRefreshDeviceStatus = onRefreshDeviceStatus,
                 onOpenTalk = onOpenTalk,
+                onNotificationPrivacyChange = onNotificationPrivacyChange,
                 onLogout = onLogout,
                 onResetProfile = onResetProfile,
                 onDismissMessage = onDismissMessage,
@@ -170,7 +175,9 @@ private fun Home(
     onOpenUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onEnrollDevice: (String) -> Unit,
+    onRefreshDeviceStatus: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
+    onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
@@ -183,7 +190,7 @@ private fun Home(
         item { BrandHeader() }
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
         item { WelcomePanel(state, onStartLogin, onLogout) }
-        item { DevicePanel(state, onEnrollDevice) }
+        item { DevicePanel(state, onEnrollDevice, onRefreshDeviceStatus) }
 
         if (state.signedIn) {
             item {
@@ -213,6 +220,7 @@ private fun Home(
                 }
             }
             item { TalkHandoffPanel(state, onOpenTalk) }
+            item { NotificationPrivacyPanel(state, onNotificationPrivacyChange) }
         }
 
         item {
@@ -248,6 +256,7 @@ private fun BrandHeader() {
 
 @Composable
 private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () -> Unit) {
+    val deviceAllowsLogin = !state.deviceServiceConfigured || state.enrollmentState == EnrollmentState.TRUSTED
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Ink),
@@ -265,6 +274,10 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
             Spacer(Modifier.height(8.dp))
             Text(
                 when {
+                    state.enrollmentState == EnrollmentState.BLOCKED ->
+                        "Dieses Gerät ist gesperrt. Anmeldung und gespeicherte Sitzung sind deaktiviert."
+                    state.deviceServiceConfigured && state.enrollmentState != EnrollmentState.TRUSTED ->
+                        "Bitte das Gerät zuerst registrieren und durch die Geräteverwaltung freigeben lassen."
                     state.signedIn && state.mode == DeviceMode.PERSONAL && state.quickUnlockEnabled ->
                         "Deine Sitzung ist mit dem Android-Keystore geschützt."
                     state.signedIn && state.mode == DeviceMode.SHARED ->
@@ -281,7 +294,7 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
                     Text(if (state.mode == DeviceMode.SHARED) "Sitzung sicher beenden" else "Abmelden", color = Color.White)
                 }
             } else {
-                Button(onClick = onStartLogin, enabled = !state.busy) {
+                Button(onClick = onStartLogin, enabled = !state.busy && deviceAllowsLogin) {
                     if (state.busy) {
                         CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                     } else {
@@ -294,7 +307,11 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
 }
 
 @Composable
-private fun DevicePanel(state: UiState, onEnrollDevice: (String) -> Unit) {
+private fun DevicePanel(
+    state: UiState,
+    onEnrollDevice: (String) -> Unit,
+    onRefreshDeviceStatus: () -> Unit,
+) {
     var token by remember { mutableStateOf(state.enrollmentTokenPrefill) }
     LaunchedEffect(state.enrollmentTokenPrefill) {
         if (state.enrollmentTokenPrefill.isNotBlank()) token = state.enrollmentTokenPrefill
@@ -315,7 +332,7 @@ private fun DevicePanel(state: UiState, onEnrollDevice: (String) -> Unit) {
             if (state.enrollmentState == EnrollmentState.NOT_ENROLLED) {
                 Spacer(Modifier.height(14.dp))
                 Text(
-                    if (state.deviceServiceConfigured) "Enrollment-Code aus der Authentik-Geräteverwaltung eingeben."
+                    if (state.deviceServiceConfigured) "Enrollment-Code aus der Mission-Leben-Geräteverwaltung eingeben."
                     else "Die Geräte-API ist im Build noch nicht konfiguriert. Details stehen in docs/AUTHENTIK_SETUP.md.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
@@ -336,6 +353,12 @@ private fun DevicePanel(state: UiState, onEnrollDevice: (String) -> Unit) {
             } else if (state.deviceId != null) {
                 Spacer(Modifier.height(10.dp))
                 Text("Geräte-ID ${state.deviceId}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                if (state.deviceServiceConfigured && state.enrollmentState != EnrollmentState.TRUSTED) {
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(onClick = onRefreshDeviceStatus, enabled = !state.busy) {
+                        Text("Status prüfen")
+                    }
+                }
             }
         }
     }
@@ -440,6 +463,75 @@ private fun TalkHandoffPanel(state: UiState, onOpenTalk: (String, String) -> Uni
                 enabled = selected != null && talkUrl.isNotBlank() && !state.busy,
             ) { Text("Auf Zielgerät öffnen") }
         }
+    }
+}
+
+@Composable
+private fun NotificationPrivacyPanel(
+    state: UiState,
+    onChange: (NotificationPrivacy) -> Unit,
+) {
+    if (!state.pushConfigured) return
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Text("Benachrichtigungen", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            if (state.mode == DeviceMode.SHARED) {
+                Text(
+                    "Auf gemeinsam genutzten Tablets erscheinen grundsätzlich keine Absender, Betreffzeilen oder Termindetails.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(Modifier.height(10.dp))
+                StatusPillText("Diskret", MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                Text(
+                    "Auf dem Sperrbildschirm bleiben Inhalte verborgen. Nach dem Entsperren gilt diese Auswahl:",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    listOf(
+                        NotificationPrivacy.STANDARD,
+                        NotificationPrivacy.DETAILED,
+                        NotificationPrivacy.MINIMAL,
+                    ).forEach { privacy ->
+                        if (state.notificationPrivacy == privacy) {
+                            Button(onClick = { onChange(privacy) }) { Text(privacy.label) }
+                        } else {
+                            OutlinedButton(onClick = { onChange(privacy) }) { Text(privacy.label) }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    state.notificationPrivacy.description,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusPillText(label: String, color: Color) {
+    Surface(color = color.copy(alpha = 0.12f), shape = CircleShape) {
+        Text(
+            label,
+            color = color,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 

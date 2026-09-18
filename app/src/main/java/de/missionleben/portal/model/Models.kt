@@ -1,5 +1,7 @@
 package de.missionleben.portal.model
 
+import de.missionleben.portal.push.NotificationPrivacy
+
 enum class DeviceMode {
     PERSONAL,
     SHARED;
@@ -60,7 +62,10 @@ data class UiState(
     val deviceId: String? = null,
     val deviceKeyId: String = "",
     val deviceServiceConfigured: Boolean = false,
+    val pushConfigured: Boolean = false,
+    val notificationPrivacy: NotificationPrivacy = NotificationPrivacy.MINIMAL,
     val linkTargets: List<LinkTarget> = emptyList(),
     val enrollmentTokenPrefill: String = "",
     val requestedUrl: String? = null,
+    val clearWebDataRequested: Boolean = false,
 )

@@ -2,7 +2,7 @@
 
 Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen Web-Anwendungen. Die App unterstützt persönliche Mitarbeitergeräte und gemeinsam genutzte Tablets ab Android 13.
 
-> Status: frühes, baubares MVP. Authentik-OIDC, der gehärtete Webcontainer und der optionale FCM-Client sind implementiert. Für Gerätefreigabe, Push-Zuordnung und Geräte-Link-Kanal wird der in `docs/DEVICE_SERVICE_API.md` beschriebene kleine Serverdienst benötigt.
+> Status: frühes, baubares MVP. Authentik-OIDC, der gehärtete Webcontainer, der optionale FCM-Client und ein containerisierter Pilot der Device-/Notification-Bridge sind implementiert. Die reale Zimbra-, Nextcloud- und Authentik-Umgebung ist noch nicht produktiv angebunden oder Ende-zu-Ende getestet.
 
 ## Funktionen
 
@@ -18,10 +18,15 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - Shared Tablets: kein Refresh Token und keine persistente Mitarbeitersitzung
 - nicht exportierbare P-256-Geräteidentität im Android Keystore
 - Enrollment per Code oder Deep Link `de.missionleben.portal://enroll?token=…`
-- vorbereitet für Authentik Endpoint Devices über einen schmalen Device Service
+- signierte Statusabfrage; Authentik-Anmeldung bleibt bis zur Gerätefreigabe gesperrt
+- eigener schmaler Device Service, weil Authentik Endpoint Devices noch keinen stabilen Android-Agenten anbietet
 - Nextcloud-Talk-Handoff an freigegebene Konferenzgeräte; übertragen wird ausschließlich der Raumtoken
 - optionale FCM-Hinweise für Mail, Termine, Talk und Gerätesicherheit ab Android 13
-- feste, neutrale Benachrichtigungstexte in der App; FCM darf weder Absender, Betreff noch Nachrichteninhalt liefern
+- FCM transportiert nur eine Ereignis-ID; Details holt ein freigegebenes Gerät signiert von der eigenen Bridge
+- Datenschutzstufen `Diskret`, `Standard` und `Ausführlich`; Shared Tablets erzwingen neutrale Hinweise
+- Sperrbildschirm zeigt unabhängig von der Stufe keine Absender, Betreffzeilen, Termin- oder Talk-Inhalte
+- Bridge-Container mit Gerätefreigabe, Authentik-UserInfo-Prüfung, verschlüsselten FCM-Kennungen und terminierter Zustellung
+- Zimbra-Worker mit SOAP WaitSet, begrenzter Mail-/Kalendersuche und Zuordnung zur stabilen Authentik-Benutzer-ID
 - ein Hinweis kann nur eine bekannte Authentik-App öffnen, niemals eine vom Pushdienst gelieferte URL
 - keine Client-Secrets im APK
 - keine Passwörter oder TOTP-Secrets in der App
@@ -52,6 +57,14 @@ Voraussetzungen:
 
 Die Debug-APK liegt anschließend unter `app/build/outputs/apk/debug/`.
 
+Die Bridge wird separat geprüft:
+
+```bash
+PYTHONPATH=bridge/src python -m unittest discover -s bridge/tests -v
+```
+
+Containerstart und Servergrenzen stehen in [bridge/README.md](bridge/README.md).
+
 ## Konfiguration
 
 Nicht geheime Build-Parameter können als Gradle-Properties gesetzt werden:
@@ -74,6 +87,8 @@ ML_FIREBASE_SENDER_ID=1234567890
 
 FCM bleibt vollständig deaktiviert, solange einer der vier `ML_FIREBASE_*`-Werte fehlt. Diese Firebase-App-Kennung ist Client-Konfiguration, kein Servergeheimnis. Das Firebase-Dienstkonto für den Versand darf dagegen niemals in Gradle-Properties, APK oder Git-Repository liegen. Die Einrichtung ist in [docs/FCM_SETUP.md](docs/FCM_SETUP.md) beschrieben.
 
+`ML_DEVICE_SERVICE_BASE_URL` zeigt im Pilot auf den eigenen Bridge-Container. Er läuft als separater Dienst hinter TLS und nicht innerhalb des Authentik-Containers.
+
 Die Authentik-Seite ist in [docs/AUTHENTIK_SETUP.md](docs/AUTHENTIK_SETUP.md) beschrieben.
 
 ## Projektstruktur
@@ -86,6 +101,10 @@ app/
   security/   Android Keystore, Geräteidentität, Biometrie-Tresor
   ui/         Jetpack-Compose-Oberfläche
   web/        gehärteter WebView-Container und Domainregeln
+bridge/
+  src/        Geräte-, Ereignis-, FCM- und Zimbra-Bridge
+  tests/      Signatur-, Datenschutz- und Versandtests
+  Dockerfile  nicht privilegierter Container
 docs/
   AUTHENTIK_SETUP.md
   DEVICE_SERVICE_API.md
