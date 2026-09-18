@@ -35,6 +35,10 @@ CONNECTOR_NAME = "Mission Leben Android"
 ACCESS_GROUP_NAME = "Mission Leben Android - Pilot"
 CERTIFICATE_NAME = "Mission Leben Android Endpoint Challenge"
 AUTHENTICATION_FLOW_SLUG = "mission-leben-browser-authentication"
+PERSONAL_SESSION_FLOW_SLUGS = (
+    AUTHENTICATION_FLOW_SLUG,
+    "mission-leben-zimbra-authentication",
+)
 AUTHORIZATION_FLOW_SLUG = "default-provider-authorization-implicit-consent"
 INVALIDATION_FLOW_SLUG = "default-provider-invalidation-flow"
 PILOT_GROUP_NAME = "authentik Admins"
@@ -49,7 +53,6 @@ TOTP_STAGE_NAMES = (
 )
 PERSONAL_SESSION_STAGE_NAME = "Mission Leben Zentral Android - Persönliche Browsersitzung"
 PERSONAL_SESSION_POLICY_NAME = "Mission Leben Zentral Android - Persönlicher WebView"
-DEFAULT_LOGIN_STAGE_NAME = "default-authentication-login"
 
 
 PORTAL_REQUEST_EXPRESSION = r'''http_request = request.http_request
@@ -289,8 +292,10 @@ for totp_stage_name in TOTP_STAGE_NAMES:
 
 # Personal devices keep only the Authentik browser SSO cookie across WebView
 # process restarts. The OAuth refresh token remains separately protected by the
-# Android biometric vault. Shared devices continue through the session-only
-# default login stage and clear all WebView data between employees.
+# Android biometric vault. Zimbra has a dedicated authentication flow, so the
+# personal session stage must be present in both relevant flows. Shared devices
+# continue through each flow's existing login stage and clear all WebView data
+# between employees.
 personal_session_stage, _ = UserLoginStage.objects.update_or_create(
     name=PERSONAL_SESSION_STAGE_NAME,
     defaults={
@@ -300,29 +305,37 @@ personal_session_stage, _ = UserLoginStage.objects.update_or_create(
         "terminate_other_sessions": False,
     },
 )
-personal_session_binding, _ = FlowStageBinding.objects.update_or_create(
-    target=authentication_flow,
-    stage=personal_session_stage,
-    defaults={
-        "order": 98,
-        "evaluate_on_plan": False,
-        "re_evaluate_policies": True,
-    },
-)
-PolicyBinding.objects.update_or_create(
-    target=personal_session_binding,
-    policy=personal_webview_policy,
-    defaults={"order": 0, "enabled": True, "negate": False},
-)
-default_login_binding = FlowStageBinding.objects.get(
-    target=authentication_flow,
-    stage__name=DEFAULT_LOGIN_STAGE_NAME,
-)
-PolicyBinding.objects.update_or_create(
-    target=default_login_binding,
-    policy=personal_webview_policy,
-    defaults={"order": 20, "enabled": True, "negate": True},
-)
+personal_session_bindings = []
+for flow_slug in PERSONAL_SESSION_FLOW_SLUGS:
+    session_flow = Flow.objects.get(slug=flow_slug)
+    personal_session_binding, _ = FlowStageBinding.objects.update_or_create(
+        target=session_flow,
+        stage=personal_session_stage,
+        defaults={
+            "order": 98,
+            "evaluate_on_plan": False,
+            "re_evaluate_policies": True,
+        },
+    )
+    personal_session_bindings.append(personal_session_binding)
+    PolicyBinding.objects.update_or_create(
+        target=personal_session_binding,
+        policy=personal_webview_policy,
+        defaults={"order": 0, "enabled": True, "negate": False},
+    )
+
+    # A flow may have differently named login stages (Zimbra currently has two).
+    # Exclude every existing alternative in personal mode so exactly the bounded
+    # personal stage creates the Authentik session cookie.
+    for login_binding in FlowStageBinding.objects.filter(
+        target=session_flow,
+        stage__in=UserLoginStage.objects.exclude(pk=personal_session_stage.pk),
+    ):
+        PolicyBinding.objects.update_or_create(
+            target=login_binding,
+            policy=personal_webview_policy,
+            defaults={"order": 20, "enabled": True, "negate": True},
+        )
 
 print(
     "ML_ENDPOINT_BOOTSTRAP="
@@ -334,6 +347,7 @@ print(
             "device_access_group": str(device_access_group.pk),
             "endpoint_stage": str(endpoint_stage.pk),
             "personal_session_stage": str(personal_session_stage.pk),
+            "personal_session_flows": list(PERSONAL_SESSION_FLOW_SLUGS),
             "pilot_group": pilot_group.name,
         },
         sort_keys=True,
