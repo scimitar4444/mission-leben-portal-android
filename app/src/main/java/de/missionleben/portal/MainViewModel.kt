@@ -60,6 +60,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
+        val storedDeviceId = preferences.deviceId
+        if (storedDeviceId != null && !deviceService.hasDeviceCredential(storedDeviceId)) {
+            preferences.deviceId = null
+            preferences.enrollmentState = EnrollmentState.NOT_ENROLLED
+            vault.clear()
+            clearNotifications()
+            _uiState.update {
+                it.copy(
+                    deviceId = null,
+                    enrollmentState = EnrollmentState.NOT_ENROLLED,
+                    quickUnlockEnabled = false,
+                    clearWebDataRequested = true,
+                )
+            }
+        }
         if (preferences.deviceMode == DeviceMode.PERSONAL && vault.hasSession()) {
             _uiState.update { it.copy(vaultRequest = VaultRequest.UNLOCK) }
         }

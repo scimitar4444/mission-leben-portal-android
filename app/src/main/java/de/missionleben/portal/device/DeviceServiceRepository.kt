@@ -162,6 +162,9 @@ class DeviceServiceRepository(context: Context? = null) {
 
     fun clearDeviceCredential() = credentialVault?.clear()
 
+    fun hasDeviceCredential(deviceId: String?): Boolean =
+        deviceId != null && credentialVault?.load()?.deviceId == deviceId
+
     fun signEndpointChallenge(challenge: String): String? =
         credentialVault?.load()?.let { EndpointChallengeSigner.sign(challenge, it) }
 
