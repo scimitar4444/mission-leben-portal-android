@@ -2,8 +2,10 @@ package de.missionleben.portal
 
 import android.Manifest
 import android.app.Application
+import android.app.job.JobScheduler
 import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,6 +19,8 @@ import de.missionleben.portal.model.UiState
 import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.PushAction
 import de.missionleben.portal.push.PushManager
+import de.missionleben.portal.push.NotificationPrivacy
+import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.security.DeviceIdentity
 import de.missionleben.portal.security.SecureSessionVault
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +37,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val authRepository = AuthRepository(application)
     private val portalRepository = PortalRepository()
     private val deviceService = DeviceServiceRepository()
+    private val pushStore = PushRegistrationStore(application)
 
     private var serializedAuthState: String? = null
     private var dataEncryptionKey: ByteArray? = null
@@ -46,6 +51,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             deviceId = preferences.deviceId,
             deviceKeyId = identity.keyId(),
             deviceServiceConfigured = deviceService.configured,
+            pushConfigured = PushManager.configured,
+            notificationPrivacy = effectiveNotificationPrivacy(preferences.deviceMode),
             quickUnlockEnabled = vault.hasSession(),
         ),
     )
@@ -62,6 +69,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             serializedAuthState = null
             dataEncryptionKey = null
             vault.clear()
+            clearNotifications()
         }
         preferences.deviceMode = mode
         _uiState.update {
@@ -71,6 +79,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 user = null,
                 applications = emptyList(),
                 quickUnlockEnabled = false,
+                notificationPrivacy = effectiveNotificationPrivacy(mode),
                 message = null,
             )
         }
@@ -83,10 +92,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         pendingVaultState = null
         dataEncryptionKey = null
         vault.clear()
+        clearNotifications()
         preferences.clearProfile()
         _uiState.value = UiState(
             deviceKeyId = identity.keyId(),
             deviceServiceConfigured = deviceService.configured,
+            pushConfigured = PushManager.configured,
+            notificationPrivacy = NotificationPrivacy.MINIMAL,
         )
     }
 
@@ -233,7 +245,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             deviceId = result.deviceId,
                             enrollmentState = preferences.enrollmentState,
                             enrollmentTokenPrefill = "",
-                            message = if (result.trusted) "Gerät wurde freigegeben." else "Gerät wartet auf die Freigabe in Authentik.",
+                            message = if (result.trusted) "Gerät wurde freigegeben." else "Gerät wartet auf die Freigabe in der Geräteverwaltung.",
                         )
                     }
                     if (serializedAuthState != null) loadApplications()
@@ -277,6 +289,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         pendingVaultState = null
         dataEncryptionKey = null
         vault.clear()
+        clearNotifications()
         _uiState.update {
             it.copy(
                 signedIn = false,
@@ -299,6 +312,54 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun consumeRequestedUrl() = _uiState.update { it.copy(requestedUrl = null) }
+
+    fun consumeWebDataClearRequest() = _uiState.update { it.copy(clearWebDataRequested = false) }
+
+    fun refreshDeviceStatus() {
+        if (!deviceService.configured) return
+        val deviceId = preferences.deviceId ?: return
+        viewModelScope.launch {
+            runCatching { deviceService.deviceStatus(deviceId, identity) }
+                .onSuccess { status ->
+                    val oldStatus = preferences.enrollmentState
+                    preferences.enrollmentState = status
+                    if (status == EnrollmentState.BLOCKED) {
+                        val oldState = serializedAuthState
+                        if (oldState != null) disconnectPushAndRevoke(oldState)
+                        serializedAuthState = null
+                        pendingVaultState = null
+                        dataEncryptionKey?.fill(0)
+                        dataEncryptionKey = null
+                        vault.clear()
+                        clearNotifications()
+                        _uiState.update {
+                            it.copy(
+                                enrollmentState = status,
+                                signedIn = false,
+                                user = null,
+                                applications = emptyList(),
+                                linkTargets = emptyList(),
+                                quickUnlockEnabled = false,
+                                clearWebDataRequested = true,
+                                message = "Dieses Gerät wurde gesperrt. Lokale Sitzungsdaten werden gelöscht.",
+                            )
+                        }
+                    } else {
+                        _uiState.update { it.copy(enrollmentState = status) }
+                        if (status == EnrollmentState.TRUSTED && oldStatus != EnrollmentState.TRUSTED) {
+                            syncPushRegistration()
+                        }
+                    }
+                }
+        }
+    }
+
+    fun setNotificationPrivacy(value: NotificationPrivacy) {
+        if (_uiState.value.mode != DeviceMode.PERSONAL) return
+        pushStore.personalPrivacy = value
+        _uiState.update { it.copy(notificationPrivacy = value) }
+        syncPushRegistration()
+    }
 
     fun syncPushRegistration() {
         val state = serializedAuthState ?: return
@@ -337,8 +398,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         val mode = _uiState.value.mode ?: return
+        val privacy = effectiveNotificationPrivacy(mode)
         viewModelScope.launch {
-            runCatching { deviceService.registerPush(accessToken, deviceId, installationId, mode) }
+            runCatching { deviceService.registerPush(accessToken, deviceId, installationId, mode, privacy) }
         }
     }
 
@@ -362,6 +424,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val action = pendingPushAction ?: return
         if (action == PushAction.REFRESH_SECURITY_STATE) {
             pendingPushAction = null
+            refreshDeviceStatus()
             _uiState.update { it.copy(message = "Bitte Gerätestatus und Anmeldung prüfen.") }
             return
         }
@@ -402,6 +465,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (_uiState.value.mode == DeviceMode.PERSONAL && key != null) {
             runCatching { vault.reseal(value, key) }
         }
+    }
+
+    private fun effectiveNotificationPrivacy(mode: DeviceMode?): NotificationPrivacy =
+        NotificationPrivacy.effective(mode, pushStore.personalPrivacy)
+
+    private fun clearNotifications() {
+        NotificationManagerCompat.from(getApplication<Application>()).cancelAll()
+        getApplication<Application>().getSystemService(JobScheduler::class.java).cancelAll()
     }
 
     override fun onCleared() {

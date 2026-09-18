@@ -30,7 +30,7 @@ Der Server authentifiziert sich für die [FCM HTTP-v1-API](https://firebase.goog
 
 ## 3. Nur Data Messages senden
 
-Der Device Service sendet ausschließlich das Feld `data.action`. Ein `notification`-Block ist verboten, weil Android ihn im Hintergrund direkt mit servergeliefertem Text anzeigen könnte.
+Der Device Service sendet ausschließlich typisierte Werte im `data`-Block. Ein `notification`-Block ist verboten, weil Android ihn im Hintergrund direkt mit servergeliefertem Text anzeigen könnte.
 
 Beispiel:
 
@@ -39,26 +39,31 @@ Beispiel:
   "message": {
     "token": "<firebase-installation-id>",
     "data": {
-      "action": "open_mail"
+      "action": "fetch_notification",
+      "event_id": "<opaque-id>",
+      "event_type": "open_mail",
+      "revision": "1"
     },
     "android": {
-      "priority": "high",
-      "ttl": "900s"
+      "priority": "HIGH",
+      "ttl": "300s"
     }
   }
 }
 ```
 
-Der Server akzeptiert nur `open_mail`, `open_calendar`, `open_talk` und `refresh_security_state`. Benutzer, Gerät und Berechtigung werden unmittelbar vor jedem Versand erneut geprüft.
+FCM erhält keinen Absender, Betreff, Termin, Raum oder Vorschautext. Die App akzeptiert für Detailmeldungen nur `fetch_notification` sowie die Ereignistypen `open_mail`, `open_calendar` und `open_talk`. Benutzer, Gerät und Berechtigung werden unmittelbar vor jedem Versand erneut geprüft. Anschließend lädt nur das freigegebene Gerät die Details über eine signierte HTTPS-Anfrage aus der Bridge.
 
 ## 4. Funktionstest
 
 1. signierte App mit den vier Clientwerten bauen und installieren,
-2. Gerät registrieren und in Authentik freigeben,
+2. Gerät registrieren und in der Bridge-Geräteverwaltung freigeben,
 3. Benutzer anmelden und Android-Benachrichtigungen erlauben,
 4. am Device Service die gespeicherte Installations-ID und Gerätebindung prüfen,
-5. jede der drei Fachaktionen als Data Message senden,
-6. verifizieren, dass der Sperrbildschirm keine Fachdaten zeigt und ein Tipp nur die freigegebene Authentik-App öffnet,
-7. abmelden und prüfen, dass `DELETE /v1/push/registrations/{device_id}` die Zuordnung entfernt.
+5. Mail-, Termin- und Talk-Ereignis über den signierten Bridge-Endpunkt einspeisen,
+6. prüfen, dass FCM ausschließlich ID, Typ und Revision enthält,
+7. verifizieren, dass der Sperrbildschirm keine Fachdaten zeigt und nach dem Entsperren die gewählte Datenschutzstufe greift,
+8. antippen und prüfen, dass nur die passende freigegebene Authentik-App geöffnet wird,
+9. abmelden und prüfen, dass `DELETE /v1/push/registrations/{device_id}` die Zuordnung entfernt.
 
 Offizielle Grundlagen: [Firebase in Android einrichten](https://firebase.google.com/docs/android/setup), [FCM für Android](https://firebase.google.com/docs/cloud-messaging/android/get-started), [vertrauenswürdige Serverumgebung](https://firebase.google.com/docs/cloud-messaging/server-environment).

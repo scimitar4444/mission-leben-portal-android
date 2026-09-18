@@ -68,6 +68,13 @@ class MainActivity : FragmentActivity() {
                         openUrl(it)
                     }
                 }
+                LaunchedEffect(state.clearWebDataRequested) {
+                    if (state.clearWebDataRequested) {
+                        PortalBrowserActivity.clearLocalWebData(this@MainActivity) {
+                            viewModel.consumeWebDataClearRequest()
+                        }
+                    }
+                }
                 MissionLebenApp(
                     state = state,
                     onSelectMode = { mode ->
@@ -87,7 +94,9 @@ class MainActivity : FragmentActivity() {
                     onOpenUrl = ::openUrl,
                     onReloadApplications = viewModel::loadApplications,
                     onEnrollDevice = viewModel::enrollDevice,
+                    onRefreshDeviceStatus = viewModel::refreshDeviceStatus,
                     onOpenTalk = viewModel::openTalkOn,
+                    onNotificationPrivacyChange = viewModel::setNotificationPrivacy,
                     onLogout = { viewModel.logout(::openLogout) },
                     onResetProfile = {
                         PortalBrowserActivity.clearLocalWebData(this@MainActivity) {
@@ -109,6 +118,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onStart() {
         super.onStart()
+        viewModel.refreshDeviceStatus()
         ContextCompat.registerReceiver(
             this,
             pushRegistrationReceiver,
