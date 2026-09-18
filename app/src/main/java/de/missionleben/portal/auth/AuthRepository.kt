@@ -70,7 +70,11 @@ class AuthRepository(context: Context) {
             onError(context.getString(R.string.auth_expired))
             return
         }
-        val authorizationError = AuthorizationException.fromOAuthRedirect(redirectUri)
+        val authorizationError = if (redirectUri.getQueryParameter("error") != null) {
+            AuthorizationException.fromOAuthRedirect(redirectUri)
+        } else {
+            null
+        }
         if (authorizationError != null) {
             Log.w(
                 AUTH_LOG_TAG,
