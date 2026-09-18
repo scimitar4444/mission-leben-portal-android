@@ -122,6 +122,9 @@
     <string name="talk_link_https_required">Les liens Talk doivent utiliser HTTPS.</string>
     <string name="talk_link_not_nextcloud">Ce lien n’est pas un lien Nextcloud Talk.</string>
     <string name="talk_link_enter_valid">Saisissez un lien Nextcloud Talk valide.</string>
+    <string name="talk_chat_title">Talk – chat uniquement</string>
+    <string name="talk_chat_only_notice">Talk fonctionne ici en mode chat. L’audio et la vidéo sont désactivés.</string>
+    <string name="talk_media_disabled">Les appels audio et vidéo sont désactivés dans Mission Leben Zentral.</string>
     <string name="device_service_http_error">Device Service a répondu avec HTTP %1$d.</string>
     <string name="push_mail_title">Nouvel e-mail</string>
     <string name="push_mail_body">Ouvrir Zimbra</string>

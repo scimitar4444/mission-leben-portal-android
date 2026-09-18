@@ -20,6 +20,7 @@ class PortalRepository {
         buildList {
             for (index in 0 until results.length()) {
                 val value = results.getJSONObject(index)
+                if (!PortalApplicationFilter.isMobileGroup(value.optString("group"))) continue
                 val launchUrl = value.optString("meta_launch_url")
                     .ifBlank { value.optString("launch_url") }
                 if (launchUrl.isBlank()) continue
@@ -65,4 +66,10 @@ class PortalRepository {
             value
         }
     }
+}
+
+internal object PortalApplicationFilter {
+    const val MOBILE_GROUP = "Mobil erreichbar"
+
+    fun isMobileGroup(group: String?): Boolean = group?.trim() == MOBILE_GROUP
 }

@@ -54,6 +54,12 @@ TOTP_STAGE_NAMES = (
 PERSONAL_SESSION_STAGE_NAME = "Mission Leben Zentral Android - Persönliche Browsersitzung"
 PERSONAL_SESSION_POLICY_NAME = "Mission Leben Zentral Android - Persönlicher WebView"
 PERSONAL_SESSION_DURATION = "days=30"
+MOBILE_APPLICATION_GROUP = "Mobil erreichbar"
+MOBILE_APPLICATION_SLUGS = (
+    "zimbra-mail",
+    "nextcloud-mission-leben",
+    "talk",
+)
 
 
 PORTAL_REQUEST_EXPRESSION = r'''http_request = request.http_request
@@ -214,6 +220,22 @@ application, _ = Application.objects.update_or_create(
         "meta_hide": True,
     },
 )
+
+# The existing Authentik policies remain authoritative for user access. This
+# additional application group is a central mobile-availability marker; the
+# Android client deliberately hides every otherwise permitted application that
+# is not marked. Warden remains available in the normal portal but is not marked
+# until its Nextcloud route is externally reachable.
+mobile_applications = Application.objects.filter(slug__in=MOBILE_APPLICATION_SLUGS)
+found_mobile_slugs = set(mobile_applications.values_list("slug", flat=True))
+missing_mobile_slugs = set(MOBILE_APPLICATION_SLUGS) - found_mobile_slugs
+if missing_mobile_slugs:
+    raise RuntimeError(
+        "Missing Authentik applications for mobile tagging: "
+        + ", ".join(sorted(missing_mobile_slugs))
+    )
+mobile_applications.update(group=MOBILE_APPLICATION_GROUP)
+
 PolicyBinding.objects.update_or_create(
     target=application,
     group=pilot_group,
@@ -350,6 +372,8 @@ print(
             "personal_session_stage": str(personal_session_stage.pk),
             "personal_session_duration": PERSONAL_SESSION_DURATION,
             "personal_session_flows": list(PERSONAL_SESSION_FLOW_SLUGS),
+            "mobile_application_group": MOBILE_APPLICATION_GROUP,
+            "mobile_application_slugs": list(MOBILE_APPLICATION_SLUGS),
             "pilot_group": pilot_group.name,
         },
         sort_keys=True,

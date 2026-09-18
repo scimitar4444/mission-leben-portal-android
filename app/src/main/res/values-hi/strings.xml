@@ -122,6 +122,9 @@
     <string name="talk_link_https_required">Talk लिंक में HTTPS होना चाहिए।</string>
     <string name="talk_link_not_nextcloud">यह Nextcloud Talk लिंक नहीं है।</string>
     <string name="talk_link_enter_valid">मान्य Nextcloud Talk लिंक दर्ज करें।</string>
+    <string name="talk_chat_title">Talk – केवल चैट</string>
+    <string name="talk_chat_only_notice">Talk यहाँ चैट मोड में चलता है। ऑडियो और वीडियो बंद हैं।</string>
+    <string name="talk_media_disabled">Mission Leben Zentral में ऑडियो और वीडियो कॉल बंद हैं।</string>
     <string name="device_service_http_error">Device Service ने HTTP %1$d लौटाया।</string>
     <string name="push_mail_title">नया मेल</string>
     <string name="push_mail_body">Zimbra खोलें</string>

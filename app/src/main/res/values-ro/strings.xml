@@ -122,6 +122,9 @@
     <string name="talk_link_https_required">Linkurile Talk trebuie să utilizeze HTTPS.</string>
     <string name="talk_link_not_nextcloud">Acesta nu este un link Nextcloud Talk.</string>
     <string name="talk_link_enter_valid">Introdu un link Nextcloud Talk valid.</string>
+    <string name="talk_chat_title">Talk – doar chat</string>
+    <string name="talk_chat_only_notice">Talk rulează aici în modul chat. Funcțiile audio și video sunt dezactivate.</string>
+    <string name="talk_media_disabled">Apelurile audio și video sunt dezactivate în Mission Leben Zentral.</string>
     <string name="device_service_http_error">Device Service a răspuns cu HTTP %1$d.</string>
     <string name="push_mail_title">E-mail nou</string>
     <string name="push_mail_body">Deschide Zimbra</string>

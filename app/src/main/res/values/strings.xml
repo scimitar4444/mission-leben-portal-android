@@ -145,6 +145,9 @@
     <string name="talk_link_https_required">Talk-Links müssen HTTPS verwenden.</string>
     <string name="talk_link_not_nextcloud">Der Link ist kein Nextcloud-Talk-Link.</string>
     <string name="talk_link_enter_valid">Bitte einen gültigen Nextcloud-Talk-Link eingeben.</string>
+    <string name="talk_chat_title">Talk – nur Chat</string>
+    <string name="talk_chat_only_notice">Talk läuft hier im Chat-Modus. Audio und Video sind deaktiviert.</string>
+    <string name="talk_media_disabled">Audio- und Videoanrufe sind in Mission Leben Zentral deaktiviert.</string>
     <string name="device_service_http_error">Device Service antwortet mit HTTP %1$d.</string>
 
     <string name="push_mail_title">Neue Mail</string>
