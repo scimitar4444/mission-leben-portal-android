@@ -28,6 +28,7 @@ from authentik.providers.oauth2.models import (
     ScopeMapping,
 )
 from authentik.stages.deny.models import DenyStage
+from authentik.stages.user_login.models import UserLoginStage
 
 
 CONNECTOR_NAME = "Mission Leben Android"
@@ -46,6 +47,9 @@ TOTP_STAGE_NAMES = (
     "MFA Zimbra App Android - TOTP",
     "MFA verpflichtend",
 )
+PERSONAL_SESSION_STAGE_NAME = "Mission Leben Zentral Android - Persönliche Browsersitzung"
+PERSONAL_SESSION_POLICY_NAME = "Mission Leben Zentral Android - Persönlicher WebView"
+DEFAULT_LOGIN_STAGE_NAME = "default-authentication-login"
 
 
 PORTAL_REQUEST_EXPRESSION = r'''http_request = request.http_request
@@ -106,6 +110,18 @@ if approved_mode != "shared" or reported_mode != "shared":
 
 from authentik.endpoints.connectors.agent.auth import check_device_policies
 return not check_device_policies(device, pending_user, http_request).passing
+'''
+
+
+PERSONAL_WEBVIEW_EXPRESSION = r'''http_request = request.http_request
+if not http_request:
+    return False
+user_agent = http_request.META.get("HTTP_USER_AGENT", "")
+return (
+    "Android" in user_agent
+    and "MissionLebenPortal/" in user_agent
+    and "MissionLebenMode/personal" in user_agent
+)
 '''
 
 
@@ -212,6 +228,10 @@ totp_required_policy, _ = ExpressionPolicy.objects.update_or_create(
     name="Mission Leben Zentral Android - TOTP erforderlich",
     defaults={"expression": TOTP_REQUIRED_EXPRESSION},
 )
+personal_webview_policy, _ = ExpressionPolicy.objects.update_or_create(
+    name=PERSONAL_SESSION_POLICY_NAME,
+    defaults={"expression": PERSONAL_WEBVIEW_EXPRESSION},
+)
 
 endpoint_stage, _ = EndpointStage.objects.update_or_create(
     name="Mission Leben Zentral Android - Endpoint prüfen",
@@ -267,6 +287,43 @@ for totp_stage_name in TOTP_STAGE_NAMES:
         defaults={"order": 10, "enabled": True, "negate": False},
     )
 
+# Personal devices keep only the Authentik browser SSO cookie across WebView
+# process restarts. The OAuth refresh token remains separately protected by the
+# Android biometric vault. Shared devices continue through the session-only
+# default login stage and clear all WebView data between employees.
+personal_session_stage, _ = UserLoginStage.objects.update_or_create(
+    name=PERSONAL_SESSION_STAGE_NAME,
+    defaults={
+        "session_duration": "hours=12",
+        "remember_me_offset": "seconds=0",
+        "remember_device": "seconds=0",
+        "terminate_other_sessions": False,
+    },
+)
+personal_session_binding, _ = FlowStageBinding.objects.update_or_create(
+    target=authentication_flow,
+    stage=personal_session_stage,
+    defaults={
+        "order": 98,
+        "evaluate_on_plan": False,
+        "re_evaluate_policies": True,
+    },
+)
+PolicyBinding.objects.update_or_create(
+    target=personal_session_binding,
+    policy=personal_webview_policy,
+    defaults={"order": 0, "enabled": True, "negate": False},
+)
+default_login_binding = FlowStageBinding.objects.get(
+    target=authentication_flow,
+    stage__name=DEFAULT_LOGIN_STAGE_NAME,
+)
+PolicyBinding.objects.update_or_create(
+    target=default_login_binding,
+    policy=personal_webview_policy,
+    defaults={"order": 20, "enabled": True, "negate": True},
+)
+
 print(
     "ML_ENDPOINT_BOOTSTRAP="
     + json.dumps(
@@ -276,6 +333,7 @@ print(
             "connector": str(connector.pk),
             "device_access_group": str(device_access_group.pk),
             "endpoint_stage": str(endpoint_stage.pk),
+            "personal_session_stage": str(personal_session_stage.pk),
             "pilot_group": pilot_group.name,
         },
         sort_keys=True,

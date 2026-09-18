@@ -174,11 +174,13 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun openUrl(url: String) {
-        startActivity(PortalBrowserActivity.appIntent(this, url))
+        val mode = viewModel.uiState.value.mode ?: return
+        startActivity(PortalBrowserActivity.appIntent(this, url, mode))
     }
 
     private fun openLogout(url: String) {
-        startActivity(PortalBrowserActivity.logoutIntent(this, url))
+        val mode = viewModel.uiState.value.mode ?: return
+        startActivity(PortalBrowserActivity.logoutIntent(this, url, mode))
     }
 
     private fun scanEnrollmentQr() {

@@ -63,6 +63,11 @@ class PortalBrowserActivity : FragmentActivity() {
     private val authentikOrigin by lazy {
         Uri.parse(BuildConfig.AUTHENTIK_BASE_URL).let { "${it.scheme}://${it.authority}" }
     }
+    private val deviceMode by lazy {
+        intent.getStringExtra(EXTRA_DEVICE_MODE)?.let { value ->
+            runCatching { DeviceMode.valueOf(value) }.getOrNull()
+        }
+    }
 
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -184,7 +189,9 @@ class PortalBrowserActivity : FragmentActivity() {
             mediaPlaybackRequiresUserGesture = false
             saveFormData = false
             setGeolocationEnabled(false)
-            userAgentString = "$userAgentString MissionLebenPortal/${BuildConfig.VERSION_NAME}"
+            val modeMarker = deviceMode?.name?.lowercase() ?: "unknown"
+            userAgentString = "$userAgentString MissionLebenPortal/${BuildConfig.VERSION_NAME} " +
+                "MissionLebenMode/$modeMarker"
         }
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_AUTHENTICATION)) {
             WebSettingsCompat.setWebAuthenticationSupport(
@@ -449,6 +456,7 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_REDIRECT_URI = "redirect_uri"
         private const val EXTRA_AUTHORIZATION_RESPONSE = "authorization_response"
+        private const val EXTRA_DEVICE_MODE = "device_mode"
         private const val EXTRA_CLEAR_BEFORE_LOAD = "clear_before_load"
         private const val EXTRA_LOGOUT = "logout"
         private const val DOWNLOAD_PREFERENCES = "protected_web_downloads"
@@ -474,9 +482,10 @@ class PortalBrowserActivity : FragmentActivity() {
             })();
         """
 
-        fun appIntent(context: Context, url: String, title: String? = null): Intent =
+        fun appIntent(context: Context, url: String, mode: DeviceMode, title: String? = null): Intent =
             Intent(context, PortalBrowserActivity::class.java)
                 .putExtra(EXTRA_URL, url)
+                .putExtra(EXTRA_DEVICE_MODE, mode.name)
                 .putExtra(EXTRA_TITLE, title ?: context.getString(R.string.browser_web_application))
 
         fun authorizationIntent(context: Context, url: String, mode: DeviceMode): Intent =
@@ -484,6 +493,7 @@ class PortalBrowserActivity : FragmentActivity() {
                 .putExtra(EXTRA_URL, url)
                 .putExtra(EXTRA_TITLE, context.getString(R.string.browser_sign_in_title))
                 .putExtra(EXTRA_REDIRECT_URI, BuildConfig.OIDC_REDIRECT_URI)
+                .putExtra(EXTRA_DEVICE_MODE, mode.name)
                 .putExtra(EXTRA_CLEAR_BEFORE_LOAD, mode == DeviceMode.SHARED)
 
         fun authorizationResponse(intent: Intent?): Uri? {
@@ -493,9 +503,10 @@ class PortalBrowserActivity : FragmentActivity() {
             return runCatching { Uri.parse(response) }.getOrNull()
         }
 
-        fun logoutIntent(context: Context, url: String): Intent =
+        fun logoutIntent(context: Context, url: String, mode: DeviceMode): Intent =
             Intent(context, PortalBrowserActivity::class.java)
                 .putExtra(EXTRA_URL, url)
+                .putExtra(EXTRA_DEVICE_MODE, mode.name)
                 .putExtra(EXTRA_TITLE, context.getString(R.string.browser_sign_out_title))
                 .putExtra(EXTRA_LOGOUT, true)
 
