@@ -35,3 +35,21 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+
+  preflight:
+    profiles: ["tools"]
+    build: .
+    command: ["mission-leben-bridge-preflight", "--require", "fcm,zimbra,talk"]
+    env_file: .env
+    volumes:
+      - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
+      - ./secrets/nextcloud-talk-bot-secret:/run/secrets/nextcloud-talk-bot-secret:ro
+      - ./secrets/zimbra-admin-password:/run/secrets/zimbra-admin-password:ro
+      - ./secrets/zimbra-account-map.json:/run/secrets/zimbra-account-map.json:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

@@ -63,7 +63,14 @@ cd bridge
 cp .env.example .env
 mkdir -p data secrets
 cp secrets/zimbra-account-map.example.json secrets/zimbra-account-map.json
-podman compose -f compose.example.yml up --build
+docker compose -f compose.example.yml --profile tools run --rm preflight
+docker compose -f compose.example.yml up --build -d bridge zimbra-worker
+```
+
+Die Vorprüfung beendet sich nur dann erfolgreich, wenn Bridge-Grundschutz, Firebase-Dienstkonto, Zimbra-Dateien und Talk-Zuordnungen vollständig und syntaktisch plausibel sind. Sie gibt ausschließlich Status und Fehlerursachen aus, niemals Kennwörter, Schlüssel oder Token. Der laufende Geräte-Pilot kann ohne optionale Quellen geprüft werden mit:
+
+```bash
+docker compose -f compose.device-pilot.yml run --rm bridge mission-leben-bridge-preflight
 ```
 
 `bridge/.env`, `bridge/data/` und echte Dateien unter `bridge/secrets/` werden von Git ignoriert. Der HTTP-Port ist im Beispiel nur an `127.0.0.1` gebunden. TLS und öffentliche Erreichbarkeit übernimmt der bestehende Reverse Proxy, zum Beispiel unter `https://device.mission-leben.de`.
