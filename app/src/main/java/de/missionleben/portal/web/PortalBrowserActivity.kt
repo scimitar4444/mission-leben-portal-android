@@ -9,6 +9,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -55,6 +56,7 @@ class PortalBrowserActivity : FragmentActivity() {
     private var pendingPermissionRequest: PermissionRequest? = null
     private var logoutFinished = false
     private var endpointBridgeInstalled = false
+    private var authorizationResultDelivered = false
     private val deviceService by lazy { DeviceServiceRepository(applicationContext) }
     private val authentikOrigin by lazy {
         Uri.parse(BuildConfig.AUTHENTIK_BASE_URL).let { "${it.scheme}://${it.authority}" }
@@ -288,8 +290,21 @@ class PortalBrowserActivity : FragmentActivity() {
     private fun handleNavigation(url: String, isMainFrame: Boolean): Boolean {
         if (!isMainFrame) return false
         if (policy.isAuthorizationRedirect(url)) {
-            setResult(RESULT_OK, Intent().setData(Uri.parse(url)))
-            finish()
+            if (!authorizationResultDelivered) {
+                authorizationResultDelivered = true
+                val response = Uri.parse(url)
+                Log.i(
+                    AUTH_LOG_TAG,
+                    "Authorization redirect received: parameters=${response.queryParameterNames.sorted()}",
+                )
+                setResult(
+                    RESULT_OK,
+                    Intent()
+                        .setData(response)
+                        .putExtra(EXTRA_AUTHORIZATION_RESPONSE, url),
+                )
+                finish()
+            }
             return true
         }
         if (policy.isTrustedWebUrl(url)) return false
@@ -426,11 +441,13 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_URL = "url"
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_REDIRECT_URI = "redirect_uri"
+        private const val EXTRA_AUTHORIZATION_RESPONSE = "authorization_response"
         private const val EXTRA_CLEAR_BEFORE_LOAD = "clear_before_load"
         private const val EXTRA_LOGOUT = "logout"
         private const val DOWNLOAD_PREFERENCES = "protected_web_downloads"
         private const val DOWNLOAD_IDS = "download_ids"
         private const val ENDPOINT_BRIDGE_NAME = "MissionLebenEndpoint"
+        private const val AUTH_LOG_TAG = "MissionLebenAuth"
         private const val ENDPOINT_BRIDGE_SCRIPT = """
             (() => {
               if (window.__mlAuthentikEndpointInstalled) return;
@@ -461,6 +478,13 @@ class PortalBrowserActivity : FragmentActivity() {
                 .putExtra(EXTRA_TITLE, context.getString(R.string.browser_sign_in_title))
                 .putExtra(EXTRA_REDIRECT_URI, BuildConfig.OIDC_REDIRECT_URI)
                 .putExtra(EXTRA_CLEAR_BEFORE_LOAD, mode == DeviceMode.SHARED)
+
+        fun authorizationResponse(intent: Intent?): Uri? {
+            val response = intent?.data?.toString()
+                ?: intent?.getStringExtra(EXTRA_AUTHORIZATION_RESPONSE)
+                ?: return null
+            return runCatching { Uri.parse(response) }.getOrNull()
+        }
 
         fun logoutIntent(context: Context, url: String): Intent =
             Intent(context, PortalBrowserActivity::class.java)
