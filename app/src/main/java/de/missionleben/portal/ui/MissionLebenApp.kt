@@ -25,7 +25,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -66,7 +65,6 @@ import de.missionleben.portal.update.UpdateStatus
 @Composable
 fun MissionLebenApp(
     state: UiState,
-    onSelectMode: (DeviceMode) -> Unit,
     onStartLogin: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
@@ -87,7 +85,7 @@ fun MissionLebenApp(
         color = MaterialTheme.colorScheme.background,
     ) {
         if (state.mode == null) {
-            Onboarding(onSelectMode, currentLanguageTag, onLanguageChange)
+            Onboarding(onScanEnrollmentQr, currentLanguageTag, onLanguageChange)
         } else {
             Home(
                 state = state,
@@ -139,7 +137,7 @@ fun MissionLebenApp(
 
 @Composable
 private fun Onboarding(
-    onSelectMode: (DeviceMode) -> Unit,
+    onScanEnrollmentQr: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
@@ -151,35 +149,18 @@ private fun Onboarding(
         item { BrandHeader() }
         item {
             Spacer(Modifier.height(8.dp))
-            Text(stringResource(R.string.onboarding_heading), fontSize = 32.sp, lineHeight = 36.sp, fontWeight = FontWeight.Black)
+            Text(stringResource(R.string.onboarding_scan_heading), fontSize = 32.sp, lineHeight = 36.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(10.dp))
             Text(
-                stringResource(R.string.onboarding_body),
+                stringResource(R.string.enrollment_instruction),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
         item {
-            ModeCard(
-                eyebrow = stringResource(R.string.onboarding_employee_eyebrow),
-                title = stringResource(R.string.onboarding_personal_title),
-                description = stringResource(R.string.onboarding_personal_description),
-                action = stringResource(R.string.onboarding_personal_action),
-                accent = MaterialTheme.colorScheme.primary,
-                accentContent = MaterialTheme.colorScheme.onPrimary,
-                onClick = { onSelectMode(DeviceMode.PERSONAL) },
-            )
-        }
-        item {
-            ModeCard(
-                eyebrow = stringResource(R.string.onboarding_shared_eyebrow),
-                title = stringResource(R.string.onboarding_shared_title),
-                description = stringResource(R.string.onboarding_shared_description),
-                action = stringResource(R.string.onboarding_shared_action),
-                accent = MaterialTheme.colorScheme.secondary,
-                accentContent = MaterialTheme.colorScheme.onSecondary,
-                onClick = { onSelectMode(DeviceMode.SHARED) },
-            )
+            Button(onClick = onScanEnrollmentQr, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                Text(stringResource(R.string.scan_enrollment_qr))
+            }
         }
         item {
             Text(
@@ -189,39 +170,6 @@ private fun Onboarding(
             )
         }
         item { LanguagePanel(currentLanguageTag, onLanguageChange) }
-    }
-}
-
-@Composable
-private fun ModeCard(
-    eyebrow: String,
-    title: String,
-    description: String,
-    action: String,
-    accent: Color,
-    accentContent: Color,
-    onClick: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(22.dp),
-    ) {
-        Column(Modifier.padding(22.dp)) {
-            Text(eyebrow, color = accent, fontWeight = FontWeight.ExtraBold, fontSize = 11.sp, letterSpacing = 1.1.sp)
-            Spacer(Modifier.height(8.dp))
-            Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(8.dp))
-            Text(description, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(18.dp))
-            Button(
-                onClick = onClick,
-                colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = accentContent),
-            ) {
-                Text(action)
-            }
-        }
     }
 }
 

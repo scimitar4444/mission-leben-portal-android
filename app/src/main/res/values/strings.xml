@@ -20,6 +20,7 @@
     <string name="language_ukrainian" translatable="false">Українська</string>
 
     <string name="onboarding_heading">Ein Portal. Alle Anwendungen.</string>
+    <string name="onboarding_scan_heading">Gerät einrichten</string>
     <string name="onboarding_body">Melde dich sicher über Authentik an und starte genau die Web-Apps, die für dich freigegeben sind.</string>
     <string name="onboarding_employee_eyebrow">FÜR MITARBEITENDE</string>
     <string name="onboarding_personal_title">Mein persönliches Gerät</string>

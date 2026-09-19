@@ -67,7 +67,6 @@ data class UiState(
     val pushConfigured: Boolean = false,
     val notificationPrivacy: NotificationPrivacy = NotificationPrivacy.MINIMAL,
     val linkTargets: List<LinkTarget> = emptyList(),
-    val enrollmentTokenPrefill: String = "",
     val requestedUrl: String? = null,
     val clearWebDataRequested: Boolean = false,
     val availableUpdate: AppUpdate? = null,

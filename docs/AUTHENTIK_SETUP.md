@@ -109,28 +109,15 @@ Das idempotente Skript `authentik/bootstrap_endpoint_devices.py` legt an. Für d
 9. einen 90 Tage gültigen Refresh Token mit praktisch deaktivierter Rotation (`refresh_token_threshold=seconds=1`) sowie die zusätzliche absolute 90-Tage-Prüfung im Android-Client,
 10. eine eng begrenzte Wiederanmeldung, bei der `login_hint` den bekannten Benutzer übernimmt und Authentik vorhandenes TOTP verwendet, andernfalls das Passwort.
 
-Die App sendet Enrollment direkt an `/api/v3/endpoints/agents/connectors/enroll/`, liest ihre Authentik-Geräte-ID aus `agent_config`, meldet Android-Fakten über `check_in` und beantwortet die Endpoint-Stage-Challenge mit dem im Android Keystore verschlüsselten Device Token. Authentik speichert Device, Connection, Token, Fakten, Ablauf und Access Group. Der separate Container besitzt keine Tabellen für Devices oder Enrollment-Tokens.
+Die App löst neue, vom Geräte-Einrichtungsportal erzeugte QR-Codes einmalig über dessen Redeem-Endpunkt ein. Der zustandslose Container prüft den kurzlebigen Authentik-Enrollment-Token und ruft anschließend `/api/v3/endpoints/agents/connectors/enroll/` auf. Die App liest ihre Authentik-Geräte-ID aus `agent_config`, meldet Android-Fakten über `check_in` und beantwortet die Endpoint-Stage-Challenge mit dem im Android Keystore verschlüsselten Device Token. Authentik speichert Device, Connection, Token, Fakten, Ablauf, Device Access Group und Benutzer- beziehungsweise Einrichtungsbindung. Der separate Container besitzt dafür keine eigene Datenbank.
 
 Vor jeder Anmeldung auf einem Shared Tablet löscht der Webcontainer Cookies, Webspeicher, Cache, Formulardaten und Downloads. Deshalb setzt die OIDC-Anfrage dort bewusst kein `prompt=login`: Nach dem gerade abgeschlossenen Authentik-Flow würde dieser Parameter erneut in denselben Identifikationsschritt führen. Die lokale Bereinigung verhindert trotzdem, dass die Sitzung des vorherigen Mitarbeiters übernommen wird.
 
-Ein modus- und principal-spezifischer Enrollment-Token wird mit `authentik/create_enrollment_token.py` erzeugt, ist 24 Stunden gültig und muss nach dem geplanten Enrollment ablaufen gelassen oder gelöscht werden. Das Skript darf nur mit in eine root-only Datei umgeleiteter Ausgabe ausgeführt werden. Beispiele innerhalb des Authentik-Containers:
+Der reguläre Einrichtungsweg ist der separate Container in `enrollment-portal/`. IT, Leitungen in der Zentrale, EL und PDL melden sich dort über die Authentik-Anwendung `Gerät einrichten` an. Normale Mitarbeitende erhalten keinen Zugriff auf diese Anwendung. Der Container grenzt EL, PDL und zentrale Leitungen zusätzlich auf ihre vorhandenen `ORG_*`-Gruppen ein; nur IT besitzt globalen Suchzugriff. Für persönliche Geräte wird die direkte Benutzerbindung vor Ausgabe des QR-Codes angelegt, für Shared Tablets die Bindung an genau eine Einrichtung.
 
-```bash
-# Persönliches Gerät; nach dem Scan die neue Device-UUID direkt zuordnen.
-ML_DEVICE_MODE=personal ML_AUTHENTIK_USERNAME=pilot.user \
-  ak shell < create_enrollment_token.py | tail -n 1 > /root/personal-enrollment-token
+Der angezeigte QR-Code ist fünf Minuten gültig und enthält Token, Token-UUID und den festgelegten Modus. Nach erfolgreichem Enrollment löscht der Container den Authentik-Enrollment-Token, bevor er den Device Token an die App zurückgibt. Der QR-Code darf trotzdem weder fotografiert noch in Tickets oder Dateifreigaben abgelegt werden.
 
-ML_DEVICE_UUID=<uuid> ML_DEVICE_MODE=personal ML_AUTHENTIK_USERNAME=pilot.user \
-  ak shell < assign_device_access.py
-
-# Shared Tablet für eine Einrichtung; die ORG-Gruppe wird bereits am QR festgelegt.
-ML_DEVICE_MODE=shared ML_AUTHENTIK_GROUP=ORG_ML_H001 \
-  ak shell < create_enrollment_token.py | tail -n 1 > /root/shared-enrollment-token
-```
-
-`create_pilot_enrollment_token.py` ist absichtlich deaktiviert, damit kein breit gültiger Pilot-QR mehr entstehen kann. Persönliche Geräte bleiben bis zur direkten Benutzerzuordnung im App-Flow unbenutzbar. Shared Tablets erhalten ausschließlich eine `ORG_*`-Gruppe mit `iam_group_type=organization_house` oder `organization_unit`.
-
-Für die App wird daraus lokal ein QR-Code mit dem Deep Link `de.missionleben.portal://enroll?token=...` erzeugt. `authentik/generate_enrollment_qr.py` liest den Token ausschließlich über stdin, schreibt die PNG-Datei mit Modus `0600` und gibt den Token nicht aus. Der QR-Code ist wie der Enrollment-Token selbst ein Geheimnis und darf weder in Git noch in Tickets oder öffentliche Dateifreigaben gelangen.
+Die alten Skripte `create_enrollment_token.py`, `assign_device_access.py` und `generate_enrollment_qr.py` sind nur noch dokumentierter Notfall-/Migrationsbestand und kein Einrichtungsweg für neue Geräte. `create_pilot_enrollment_token.py` bleibt absichtlich deaktiviert. Eine frische App ab Version 0.8.0 verlangt den vollständigen Portal-QR; ein alter Token-only-Link wird nur noch akzeptiert, wenn auf dem Gerät bereits ein Modus gespeichert ist.
 
 Gerät sperren: Unter **Endpoint Devices → Devices** das Gerät ablaufen lassen oder löschen. Dadurch lehnt `agent_config` das Device Token ab; die App löscht Sitzung und Webdaten, und die Kommunikations-Bridge verwirft die Push-Zuordnung bei ihrer nächsten Live-Prüfung.
 

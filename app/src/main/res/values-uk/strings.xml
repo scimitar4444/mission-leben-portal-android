@@ -6,6 +6,7 @@
     <string name="language_description">Автоматично використовуйте мову телефону або виберіть мову лише для цієї програми.</string>
     <string name="language_system">Мова телефону</string>
     <string name="onboarding_heading">Один портал. Усі програми.</string>
+    <string name="onboarding_scan_heading">Налаштувати пристрій</string>
     <string name="onboarding_body">Безпечно ввійдіть через Authentik і відкривайте лише дозволені вам вебпрограми.</string>
     <string name="onboarding_employee_eyebrow">ДЛЯ ПРАЦІВНИКІВ</string>
     <string name="onboarding_personal_title">Мій особистий пристрій</string>

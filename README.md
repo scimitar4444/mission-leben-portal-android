@@ -23,8 +23,10 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - eine kompakte Anzeige nennt auf persönlichen Geräten die verbleibenden Tage der 90-Tage-Anmeldung
 - automatische OTA-Prüfung beim App-Start, höchstens alle sechs Stunden; Updates kommen als öffentliches GitHub-Release und werden vor der Android-Installation anhand von Paketname, Version, Dateigröße, SHA-256 und App-Signatur geprüft
 - Shared Tablets: kein Refresh Token und keine persistente Mitarbeitersitzung
-- Authentik-Enrollment per Code oder Deep Link `de.missionleben.portal://enroll?token=…`; Authentik erzeugt Device, Connection, Device Token und Fakten-Snapshots
+- Authentik-Enrollment per Deep Link `de.missionleben.portal://enroll?token=…&token_id=…&mode=…`; Authentik erzeugt Device, Connection, Device Token und Fakten-Snapshots
 - integrierter QR-Scanner für Enrollment-Links; ein Scan startet die Authentik-Geräteregistrierung ohne Abtippen
+- eigener zustandsloser Geräte-Einrichtungscontainer für IT, Leitungen in der Zentrale, EL und PDL; Rollen und `ORG_*`-Bereiche werden serverseitig in Authentik geprüft, eine GF-Sonderrolle existiert nicht
+- neue Geräte wählen ihren persönlichen oder Shared-Modus ausschließlich aus dem fünf Minuten gültigen QR-Code; der Container entwertet den Authentik-Enrollment-Token nach dem ersten erfolgreichen Einlösen
 - verschlüsselte Speicherung des Authentik-Device-Tokens unter einem Android-Keystore-Schlüssel
 - native Antwort auf die Authentik Endpoint-Stage-Challenge im WebView; der Device Token wird nie an JavaScript ausgegeben
 - Authentik Device Access Groups und deren Benutzer-/Gruppenbindungen steuern die Gerätefreigabe
@@ -99,7 +101,7 @@ Die Geräteregistrierung verwendet immer `ML_AUTHENTIK_BASE_URL` und spricht Aut
 
 FCM bleibt vollständig deaktiviert, solange einer der vier `ML_FIREBASE_*`-Werte fehlt. Diese Firebase-App-Kennung ist Client-Konfiguration, kein Servergeheimnis. Das Firebase-Dienstkonto für den Versand darf dagegen niemals in Gradle-Properties, APK oder Git-Repository liegen. Die Einrichtung ist in [docs/FCM_SETUP.md](docs/FCM_SETUP.md) beschrieben.
 
-Der Enrollment-Scanner verwendet den Google Code Scanner. Die Erkennung läuft auf dem Gerät; beim ersten Aufruf kann Google Play Services das Scanner-Modul `barcode_ui` nachladen. Akzeptiert wird ausschließlich `de.missionleben.portal://enroll?token=...`, nicht eine beliebige URL oder ein roher QR-Text.
+Der Enrollment-Scanner verwendet den Google Code Scanner. Die Erkennung läuft auf dem Gerät; beim ersten Aufruf kann Google Play Services das Scanner-Modul `barcode_ui` nachladen. Bei neuen Geräten akzeptiert die App ausschließlich einen vollständigen, vom Geräte-Einrichtungscontainer erzeugten Deep Link mit Token-ID und Gerätemodus. Ein alter Token-only-Link funktioniert nur noch auf einem Gerät, dessen Modus bereits lokal feststeht. Beliebige URLs und rohe QR-Texte werden verworfen.
 
 `ML_DEVICE_SERVICE_BASE_URL` zeigt im Pilot auf den eigenen Kommunikationscontainer. Er läuft separat hinter TLS und enthält keine Authentik-Gerätefreigaben.
 

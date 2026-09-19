@@ -127,11 +127,6 @@ class MainActivity : FragmentActivity() {
                 }
                 MissionLebenApp(
                     state = state,
-                    onSelectMode = { mode ->
-                        PortalBrowserActivity.clearLocalWebData(this@MainActivity) {
-                            viewModel.selectMode(mode)
-                        }
-                    },
                     onStartLogin = {
                         state.mode?.let { mode ->
                             viewModel.createLoginUrl { url ->

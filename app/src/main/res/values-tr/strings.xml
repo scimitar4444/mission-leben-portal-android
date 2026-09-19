@@ -6,6 +6,7 @@
     <string name="language_description">Telefon dilini otomatik kullanın veya yalnızca bu uygulama için bir dil seçin.</string>
     <string name="language_system">Telefon dili</string>
     <string name="onboarding_heading">Tek portal. Tüm uygulamalar.</string>
+    <string name="onboarding_scan_heading">Cihazı kur</string>
     <string name="onboarding_body">Authentik ile güvenli şekilde oturum açın ve yalnızca size izin verilen web uygulamalarını başlatın.</string>
     <string name="onboarding_employee_eyebrow">ÇALIŞANLAR İÇİN</string>
     <string name="onboarding_personal_title">Kişisel cihazım</string>

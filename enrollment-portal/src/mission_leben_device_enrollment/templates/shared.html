@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Tablet zuordnen{% endblock %}
+{% block content %}
+<a class="back" href="/">← Zurück</a>
+<section class="intro">
+  <span class="step">Schritt 2 von 3</span>
+  <h1>Wo wird das Tablet eingesetzt?</h1>
+  <p>Wählen Sie die Einrichtung und geben Sie einen gut erkennbaren Namen an.</p>
+</section>
+<form method="post" action="/shared/enrollments" class="card-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label for="organization_uuid">Einrichtung</label>
+  <select id="organization_uuid" name="organization_uuid" required>
+    {% if organizations|length != 1 %}<option value="">Bitte auswählen</option>{% endif %}
+    {% for organization in organizations %}
+    <option value="{{ organization.pk }}">{{ organization.name }}</option>
+    {% endfor %}
+  </select>
+  <label for="device_label">Name des Tablets</label>
+  <input id="device_label" name="device_label" minlength="2" maxlength="80" placeholder="z. B. Wohnbereich 2" required>
+  <p class="hint">Der Name hilft der IT später, das richtige Gerät zu finden.</p>
+  <button class="primary" type="submit" {% if not organizations %}disabled{% endif %}>QR-Code erzeugen</button>
+</form>
+{% if not organizations %}
+<div class="notice error">Ihrem Konto ist keine freigegebene Einrichtung zugeordnet. Bitte wenden Sie sich an die IT.</div>
+{% endif %}
+{% endblock %}

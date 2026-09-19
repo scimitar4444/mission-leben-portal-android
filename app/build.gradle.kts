@@ -16,6 +16,8 @@ val oidcClientId = providers.gradleProperty("ML_OIDC_CLIENT_ID")
     .orElse("mission-leben-android")
 val deviceServiceBaseUrl = providers.gradleProperty("ML_DEVICE_SERVICE_BASE_URL")
     .orElse("https://id.mission-leben.de/device-bridge")
+val enrollmentServiceBaseUrl = providers.gradleProperty("ML_ENROLLMENT_SERVICE_BASE_URL")
+    .orElse("https://geraete.mission-leben.de")
 val webAllowedHostSuffixes = providers.gradleProperty("ML_WEB_ALLOWED_HOST_SUFFIXES")
     .orElse("mission-leben.de,akademie-mission-leben.de")
 val authentikAuthenticationFlowSlugs = providers.gradleProperty("ML_AUTHENTIK_AUTHENTICATION_FLOW_SLUGS")
@@ -55,8 +57,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 27
-        versionName = "0.7.9"
+        versionCode = 28
+        versionName = "0.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
@@ -69,6 +71,11 @@ android {
         buildConfigField("String", "OIDC_REDIRECT_URI", "de.missionleben.portal:/oauth2redirect".asBuildConfigString())
         buildConfigField("String", "PORTAL_URL", "${authentikBaseUrl.get()}/if/user/".asBuildConfigString())
         buildConfigField("String", "DEVICE_SERVICE_BASE_URL", deviceServiceBaseUrl.get().asBuildConfigString())
+        buildConfigField(
+            "String",
+            "ENROLLMENT_SERVICE_BASE_URL",
+            enrollmentServiceBaseUrl.get().asBuildConfigString(),
+        )
         buildConfigField("String", "WEB_ALLOWED_HOST_SUFFIXES", webAllowedHostSuffixes.get().asBuildConfigString())
         buildConfigField(
             "String",

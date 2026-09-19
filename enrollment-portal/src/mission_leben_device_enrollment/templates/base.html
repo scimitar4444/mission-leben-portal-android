@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Geräte einrichten{% endblock %} · Mission Leben</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Zur Startseite">
+      <span class="brand-mark">ML</span>
+      <span><strong>Mission Leben</strong><small>Geräte-Einrichtung</small></span>
+    </a>
+    {% if actor is defined %}
+    <div class="identity">
+      <strong>{{ actor.display_name }}</strong>
+      <small>{{ actor.role_label }}</small>
+    </div>
+    {% endif %}
+  </header>
+  <main class="shell">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -43,12 +43,12 @@ class DeviceServiceRepository(context: Context? = null) {
         get() = BuildConfig.DEVICE_SERVICE_BASE_URL.startsWith("https://")
 
     suspend fun enroll(
-        token: String,
+        enrollment: EnrollmentQrPayload,
         mode: DeviceMode,
         identity: DeviceIdentity,
     ): EnrollmentResult = withContext(Dispatchers.IO) {
         require(endpointDevicesConfigured) { text(R.string.device_service_not_configured) }
-        val enrollmentToken = token.trim()
+        val enrollmentToken = enrollment.token.trim()
         require(enrollmentToken.length in 20..512 && enrollmentToken.none(Char::isWhitespace)) {
             text(R.string.message_enter_enrollment)
         }
@@ -59,16 +59,31 @@ class DeviceServiceRepository(context: Context? = null) {
                 "device_name",
                 "${Build.MANUFACTURER} ${Build.MODEL} (${identity.keyId().take(8)})".trim(),
             )
-        val enrollment = performAuthentikRequest(
-            path = AGENT_ENROLL_PATH,
-            method = "POST",
-            body = body.toString(),
-            authorization = "Bearer $enrollmentToken",
-        )
-        if (enrollment.status !in 200..299) {
-            error(text(R.string.device_service_http_error, enrollment.status))
+        val enrollmentResponse = if (enrollment.tokenUuid != null) {
+            require(BuildConfig.ENROLLMENT_SERVICE_BASE_URL.startsWith("https://")) {
+                text(R.string.device_service_not_configured)
+            }
+            val portalBody = JSONObject()
+                .put("mode", mode.name.lowercase())
+                .put("device_serial", identifier)
+                .put("device_name", body.getString("device_name"))
+            performEnrollmentPortalRequest(
+                path = "/api/v1/enrollments/${enrollment.tokenUuid}/redeem",
+                body = portalBody.toString(),
+                authorization = "Bearer $enrollmentToken",
+            )
+        } else {
+            performAuthentikRequest(
+                path = AGENT_ENROLL_PATH,
+                method = "POST",
+                body = body.toString(),
+                authorization = "Bearer $enrollmentToken",
+            )
         }
-        val agentToken = JSONObject(enrollment.body).getString("token")
+        if (enrollmentResponse.status !in 200..299) {
+            error(text(R.string.device_service_http_error, enrollmentResponse.status))
+        }
+        val agentToken = JSONObject(enrollmentResponse.body).getString("token")
         val config = agentRequest(AGENT_CONFIG_PATH, "GET", null, agentToken)
         if (config.status !in 200..299) {
             error(text(R.string.device_status_unavailable, config.status))
@@ -317,6 +332,33 @@ class DeviceServiceRepository(context: Context? = null) {
                 connection.setRequestProperty("Content-Type", "application/json")
                 connection.outputStream.bufferedWriter().use { it.write(body) }
             }
+            val responseCode = connection.responseCode
+            val response = (if (responseCode in 200..299) connection.inputStream else connection.errorStream)
+                ?.bufferedReader()?.use { it.readText() }.orEmpty()
+            return HttpResponse(responseCode, response)
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    private fun performEnrollmentPortalRequest(
+        path: String,
+        body: String,
+        authorization: String,
+    ): HttpResponse {
+        val connection = URL(BuildConfig.ENROLLMENT_SERVICE_BASE_URL.trimEnd('/') + path)
+            .openConnection() as HttpURLConnection
+        try {
+            connection.instanceFollowRedirects = false
+            connection.requestMethod = "POST"
+            connection.connectTimeout = 10_000
+            connection.readTimeout = 20_000
+            connection.setRequestProperty("Accept", "application/json")
+            connection.setRequestProperty("Authorization", authorization)
+            connection.setRequestProperty("User-Agent", "MissionLebenPortal/${BuildConfig.VERSION_NAME}")
+            connection.doOutput = true
+            connection.setRequestProperty("Content-Type", "application/json")
+            connection.outputStream.bufferedWriter().use { it.write(body) }
             val responseCode = connection.responseCode
             val response = (if (responseCode in 200..299) connection.inputStream else connection.errorStream)
                 ?.bufferedReader()?.use { it.readText() }.orEmpty()

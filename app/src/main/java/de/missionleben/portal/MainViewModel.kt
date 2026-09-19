@@ -16,6 +16,7 @@ import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.data.PortalAuthenticationException
 import de.missionleben.portal.data.PortalRepository
 import de.missionleben.portal.device.DeviceServiceRepository
+import de.missionleben.portal.device.EnrollmentQrPayload
 import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
@@ -91,11 +92,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun selectMode(mode: DeviceMode) {
-        val pendingEnrollmentToken = _uiState.value.enrollmentTokenPrefill
-        val syncExistingDevice = pendingEnrollmentToken.isBlank() &&
-            preferences.deviceId != null &&
-            deviceService.endpointDevicesConfigured
+    private fun selectMode(mode: DeviceMode) {
         if (preferences.deviceMode != mode) {
             serializedAuthState = null
             dataEncryptionKey = null
@@ -113,13 +110,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 quickUnlockEnabled = false,
                 reauthenticationRequired = false,
                 notificationPrivacy = effectiveNotificationPrivacy(mode),
-                busy = syncExistingDevice,
+                busy = false,
                 message = null,
             )
-        }
-        when {
-            pendingEnrollmentToken.isNotBlank() -> enrollDevice(pendingEnrollmentToken)
-            syncExistingDevice -> syncDeviceStatus(blockLogin = true)
         }
     }
 
@@ -316,15 +309,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    fun enrollDevice(token: String) {
-        val mode = _uiState.value.mode ?: return
-        if (token.isBlank()) {
+    private fun enrollDevice(enrollment: EnrollmentQrPayload) {
+        val requestedMode = enrollment.mode ?: _uiState.value.mode
+        if (requestedMode == null || enrollment.token.isBlank()) {
             _uiState.update { it.copy(message = string(R.string.message_enter_enrollment)) }
             return
         }
+        if (_uiState.value.mode != requestedMode) selectMode(requestedMode)
         _uiState.update { it.copy(busy = true, message = null, enrollmentState = EnrollmentState.PENDING) }
         viewModelScope.launch {
-            runCatching { deviceService.enroll(token, mode, identity) }
+            runCatching { deviceService.enroll(enrollment, requestedMode, identity) }
                 .onSuccess { result ->
                     preferences.deviceId = result.deviceId
                     preferences.enrollmentState = if (result.trusted) EnrollmentState.TRUSTED else EnrollmentState.PENDING
@@ -333,7 +327,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             busy = false,
                             deviceId = result.deviceId,
                             enrollmentState = preferences.enrollmentState,
-                            enrollmentTokenPrefill = "",
                             message = if (result.trusted) {
                                 string(R.string.message_device_approved)
                             } else {
@@ -353,23 +346,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun enrollDeviceFromQr(value: String) {
-        val token = EnrollmentQrParser.tokenFrom(value)
-        if (token == null) {
+        val enrollment = EnrollmentQrParser.parse(value)
+        if (enrollment == null || (enrollment.mode == null && _uiState.value.mode == null)) {
             _uiState.update { it.copy(message = string(R.string.message_qr_invalid)) }
             return
         }
-        enrollDevice(token)
+        enrollDevice(enrollment)
     }
 
     fun acceptEnrollmentLink(uri: Uri?) {
-        if (uri?.scheme != "de.missionleben.portal" || uri.host != "enroll") return
-        val token = uri.getQueryParameter("token").orEmpty()
-        if (token.isBlank()) return
-        if (_uiState.value.mode == null) {
-            _uiState.update { it.copy(enrollmentTokenPrefill = token) }
-        } else {
-            enrollDevice(token)
-        }
+        val enrollment = uri?.toString()?.let(EnrollmentQrParser::parse) ?: return
+        if (enrollment.mode == null && _uiState.value.mode == null) return
+        enrollDevice(enrollment)
     }
 
     fun openTalkOn(targetId: String, talkUrl: String) {
