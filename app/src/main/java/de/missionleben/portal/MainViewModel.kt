@@ -11,6 +11,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import de.missionleben.portal.auth.AccessTokenFailure
 import de.missionleben.portal.auth.AuthRepository
+import de.missionleben.portal.auth.ReauthenticationPolicy
 import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.data.PortalAuthenticationException
 import de.missionleben.portal.data.PortalRepository
@@ -58,6 +59,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             pushConfigured = PushManager.configured,
             notificationPrivacy = effectiveNotificationPrivacy(preferences.deviceMode),
             quickUnlockEnabled = vault.hasSession(),
+            reauthenticationRequired = preferences.reauthenticationRequired,
         ),
     )
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -92,6 +94,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             serializedAuthState = null
             dataEncryptionKey = null
             vault.clear()
+            preferences.clearReauthentication()
             clearNotifications()
         }
         preferences.deviceMode = mode
@@ -102,6 +105,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 user = null,
                 applications = emptyList(),
                 quickUnlockEnabled = false,
+                reauthenticationRequired = false,
                 notificationPrivacy = effectiveNotificationPrivacy(mode),
                 busy = syncExistingDevice,
                 message = null,
@@ -120,6 +124,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         pendingVaultState = null
         dataEncryptionKey = null
         vault.clear()
+        preferences.clearReauthentication()
         clearNotifications()
         preferences.deviceMode = null
         _uiState.value = UiState(
@@ -135,9 +140,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun createLoginUrl(onSuccess: (String) -> Unit) {
         val mode = _uiState.value.mode ?: return
+        val reauthentication = ReauthenticationPolicy.request(
+            mode = mode,
+            enrollmentState = _uiState.value.enrollmentState,
+            reauthenticationRequired = preferences.reauthenticationRequired,
+            storedLoginHint = preferences.reauthenticationHint,
+        )
         _uiState.update { it.copy(busy = true, message = null) }
         authRepository.createAuthorizationUrl(
             mode = mode,
+            loginHint = reauthentication.loginHint,
+            forceReauthentication = reauthentication.forceLogin,
             onSuccess = {
                 _uiState.update { state -> state.copy(busy = false) }
                 onSuccess(it)
@@ -158,12 +171,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 serializedAuthState = serialized
                 val user = authRepository.identityFrom(serialized)
                 val personal = _uiState.value.mode == DeviceMode.PERSONAL
+                if (personal) {
+                    preferences.reauthenticationHint = user.loginHint
+                    preferences.reauthenticationRequired = false
+                } else {
+                    preferences.clearReauthentication()
+                }
                 pendingVaultState = if (personal) serialized else null
                 _uiState.update {
                     it.copy(
                         busy = false,
                         signedIn = true,
                         user = user,
+                        reauthenticationRequired = false,
                         vaultRequest = if (personal) VaultRequest.SEAL else VaultRequest.NONE,
                     )
                 }
@@ -199,6 +219,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     serializedAuthState = unlocked.serializedAuthState
                     dataEncryptionKey = unlocked.dataEncryptionKey
                     val user = authRepository.identityFrom(unlocked.serializedAuthState)
+                    if (ReauthenticationPolicy.hasReachedAbsoluteDeadline(user.authenticatedAtEpochSeconds)) {
+                        _uiState.update { it.copy(user = user) }
+                        sessionExpired()
+                        return
+                    }
                     _uiState.update {
                         it.copy(
                             signedIn = true,
@@ -233,6 +258,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadApplications() {
+        if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
         _uiState.update { it.copy(applicationsLoading = true) }
         authRepository.withFreshAccessToken(
@@ -265,6 +291,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun openApplication(url: String) {
+        if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState
         if (!_uiState.value.signedIn || state == null) {
             _uiState.update { it.copy(message = string(R.string.message_sign_in_to_open)) }
@@ -340,6 +367,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun openTalkOn(targetId: String, talkUrl: String) {
+        if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
         _uiState.update { it.copy(busy = true, message = null) }
         authRepository.withFreshAccessToken(
@@ -359,6 +387,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun sessionExpired() {
+        val expiredState = _uiState.value
+        val totpReauthenticationAvailable = ReauthenticationPolicy.canOfferTotpOnly(
+            mode = expiredState.mode,
+            enrollmentState = expiredState.enrollmentState,
+            loginHint = expiredState.user?.loginHint,
+        )
+        if (totpReauthenticationAvailable) {
+            preferences.reauthenticationHint = expiredState.user?.loginHint
+            preferences.reauthenticationRequired = true
+        } else {
+            preferences.clearReauthentication()
+        }
         serializedAuthState = null
         pendingVaultState = null
         pendingPushAction = null
@@ -372,6 +412,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 busy = true,
                 signedIn = false,
                 user = null,
+                reauthenticationRequired = totpReauthenticationAvailable,
                 quickUnlockEnabled = false,
                 vaultRequest = VaultRequest.NONE,
                 applications = emptyList(),
@@ -379,7 +420,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 linkTargets = emptyList(),
                 requestedUrl = null,
                 clearWebDataRequested = true,
-                message = string(R.string.message_session_expired),
+                message = if (totpReauthenticationAvailable) {
+                    string(R.string.message_session_reauth_required)
+                } else {
+                    string(R.string.message_session_expired)
+                },
             )
         }
     }
@@ -391,11 +436,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         pendingVaultState = null
         dataEncryptionKey = null
         vault.clear()
+        preferences.clearReauthentication()
         clearNotifications()
         _uiState.update {
             it.copy(
                 signedIn = false,
                 user = null,
+                reauthenticationRequired = false,
                 applications = emptyList(),
                 linkTargets = emptyList(),
                 quickUnlockEnabled = false,
@@ -444,12 +491,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         dataEncryptionKey?.fill(0)
                         dataEncryptionKey = null
                         vault.clear()
+                        preferences.clearReauthentication()
                         clearNotifications()
                         _uiState.update {
                             it.copy(
                                 enrollmentState = status,
                                 signedIn = false,
                                 user = null,
+                                reauthenticationRequired = false,
                                 applications = emptyList(),
                                 linkTargets = emptyList(),
                                 quickUnlockEnabled = false,
@@ -481,6 +530,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun syncPushRegistration() {
+        if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
         authRepository.withFreshAccessToken(
             serializedState = state,
@@ -589,6 +639,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             _uiState.update { onTransientFailure(it).copy(message = failure.message) }
         }
+    }
+
+    private fun expireAtAbsoluteDeadline(): Boolean {
+        val user = _uiState.value.user ?: return false
+        if (!ReauthenticationPolicy.hasReachedAbsoluteDeadline(user.authenticatedAtEpochSeconds)) {
+            return false
+        }
+        sessionExpired()
+        return true
     }
 
     private fun updateSerializedState(value: String) {

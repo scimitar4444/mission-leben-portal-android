@@ -25,6 +25,9 @@
     <string name="mode_shared">Спільний планшет</string>
     <string name="hello_name">Вітаємо, %1$s</string>
     <string name="secure_sign_in">Безпечний вхід</string>
+    <string name="reauthenticate_totp_title">Підтвердити TOTP</string>
+    <string name="reauthenticate_totp_description">Термін 90-денної авторизації завершився. Підтвердьте лише код TOTP; ім’я користувача та пароль не потрібні.</string>
+    <string name="reauthenticate_totp_action">Підтвердити TOTP</string>
     <string name="device_blocked_description">Цей пристрій заблоковано. Вхід і збережений сеанс вимкнено.</string>
     <string name="device_pending_description">Спочатку зареєструйте пристрій і отримайте схвалення в керуванні пристроями.</string>
     <string name="session_keystore_description">Ваш сеанс захищено Android Keystore.</string>
@@ -67,6 +70,7 @@
     <string name="privacy_detailed_description">Також показувати короткий попередній перегляд пошти або Talk.</string>
     <string name="message_auth_cancelled">Вхід скасовано.</string>
     <string name="message_session_expired">З міркувань безпеки термін дії сеансу завершився. Увійдіть знову.</string>
+    <string name="message_session_reauth_required">Термін 90-денної авторизації завершився. Підтвердьте код TOTP.</string>
     <string name="message_quick_access_enabled">Швидкий доступ увімкнено.</string>
     <string name="message_protected_session_failed">Не вдалося відкрити захищений сеанс: %1$s</string>
     <string name="message_apps_load_failed">Не вдалося завантажити програми.</string>

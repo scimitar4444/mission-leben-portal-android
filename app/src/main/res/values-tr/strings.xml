@@ -25,6 +25,9 @@
     <string name="mode_shared">Ortak tablet</string>
     <string name="hello_name">Merhaba, %1$s</string>
     <string name="secure_sign_in">Güvenli oturum aç</string>
+    <string name="reauthenticate_totp_title">TOTP’yi doğrula</string>
+    <string name="reauthenticate_totp_description">90 günlük oturumunun süresi doldu. Yalnızca TOTP kodunu doğrula; kullanıcı adı ve parola gerekmez.</string>
+    <string name="reauthenticate_totp_action">TOTP’yi doğrula</string>
     <string name="device_blocked_description">Bu cihaz engellendi. Oturum açma ve kayıtlı oturum devre dışı.</string>
     <string name="device_pending_description">Önce bu cihazı kaydedin ve cihaz yönetiminden onaylatın.</string>
     <string name="session_keystore_description">Oturumunuz Android Keystore ile korunuyor.</string>
@@ -67,6 +70,7 @@
     <string name="privacy_detailed_description">Ayrıca kısa posta veya Talk önizlemesi göster.</string>
     <string name="message_auth_cancelled">Oturum açma iptal edildi.</string>
     <string name="message_session_expired">Güvenlik nedeniyle oturumunuzun süresi doldu. Lütfen yeniden giriş yapın.</string>
+    <string name="message_session_reauth_required">90 günlük oturumunun süresi doldu. Lütfen TOTP kodunu doğrula.</string>
     <string name="message_quick_access_enabled">Hızlı erişim etkinleştirildi.</string>
     <string name="message_protected_session_failed">Korunan oturum açılamadı: %1$s</string>
     <string name="message_apps_load_failed">Uygulamalar yüklenemedi.</string>

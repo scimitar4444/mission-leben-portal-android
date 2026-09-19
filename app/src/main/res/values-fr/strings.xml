@@ -25,6 +25,9 @@
     <string name="mode_shared">Tablette partagée</string>
     <string name="hello_name">Bonjour, %1$s</string>
     <string name="secure_sign_in">Connexion sécurisée</string>
+    <string name="reauthenticate_totp_title">Confirmer le TOTP</string>
+    <string name="reauthenticate_totp_description">Votre connexion de 90 jours a expiré. Confirmez uniquement votre code TOTP ; l’identifiant et le mot de passe ne sont pas nécessaires.</string>
+    <string name="reauthenticate_totp_action">Confirmer le TOTP</string>
     <string name="device_blocked_description">Cet appareil est bloqué. La connexion et la session enregistrée sont désactivées.</string>
     <string name="device_pending_description">Enregistrez d’abord cet appareil et faites-le approuver dans la gestion des appareils.</string>
     <string name="session_keystore_description">Votre session est protégée par Android Keystore.</string>
@@ -67,6 +70,7 @@
     <string name="privacy_detailed_description">Afficher aussi un court aperçu de l’e-mail ou de Talk.</string>
     <string name="message_auth_cancelled">La connexion a été annulée.</string>
     <string name="message_session_expired">Pour des raisons de sécurité, votre session a expiré. Veuillez vous reconnecter.</string>
+    <string name="message_session_reauth_required">Votre connexion de 90 jours a expiré. Veuillez confirmer votre code TOTP.</string>
     <string name="message_quick_access_enabled">L’accès rapide est activé.</string>
     <string name="message_protected_session_failed">Impossible d’ouvrir la session protégée : %1$s</string>
     <string name="message_apps_load_failed">Impossible de charger les applications.</string>

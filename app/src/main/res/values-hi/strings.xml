@@ -25,6 +25,9 @@
     <string name="mode_shared">साझा टैबलेट</string>
     <string name="hello_name">नमस्ते, %1$s</string>
     <string name="secure_sign_in">सुरक्षित साइन इन</string>
+    <string name="reauthenticate_totp_title">TOTP की पुष्टि करें</string>
+    <string name="reauthenticate_totp_description">आपका 90-दिन का साइन इन समाप्त हो गया है। केवल TOTP कोड की पुष्टि करें; उपयोगकर्ता नाम और पासवर्ड की आवश्यकता नहीं है।</string>
+    <string name="reauthenticate_totp_action">TOTP की पुष्टि करें</string>
     <string name="device_blocked_description">यह डिवाइस ब्लॉक है। साइन इन और सेव किया गया सत्र बंद हैं।</string>
     <string name="device_pending_description">पहले डिवाइस रजिस्टर करें और डिवाइस प्रबंधन में इसे स्वीकृत करवाएँ।</string>
     <string name="session_keystore_description">आपका सत्र Android Keystore से सुरक्षित है।</string>
@@ -67,6 +70,7 @@
     <string name="privacy_detailed_description">मेल या Talk का छोटा पूर्वावलोकन भी दिखाएँ।</string>
     <string name="message_auth_cancelled">साइन इन रद्द कर दिया गया।</string>
     <string name="message_session_expired">सुरक्षा कारणों से आपका सत्र समाप्त हो गया है। कृपया फिर से साइन इन करें।</string>
+    <string name="message_session_reauth_required">आपका 90-दिन का साइन इन समाप्त हो गया है। कृपया TOTP कोड की पुष्टि करें।</string>
     <string name="message_quick_access_enabled">त्वरित पहुँच चालू है।</string>
     <string name="message_protected_session_failed">सुरक्षित सत्र नहीं खुल सका: %1$s</string>
     <string name="message_apps_load_failed">ऐप लोड नहीं हो सके।</string>

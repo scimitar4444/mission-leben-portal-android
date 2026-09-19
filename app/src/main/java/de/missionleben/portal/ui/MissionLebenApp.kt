@@ -298,7 +298,11 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
             Text(state.mode?.let { stringResource(it.labelRes) }.orEmpty(), color = Color(0xFFFFA1A7), fontWeight = FontWeight.Bold, fontSize = 12.sp)
             Spacer(Modifier.height(8.dp))
             Text(
-                if (state.signedIn) stringResource(R.string.hello_name, state.user?.displayName.orEmpty()) else stringResource(R.string.secure_sign_in),
+                when {
+                    state.signedIn -> stringResource(R.string.hello_name, state.user?.displayName.orEmpty())
+                    state.reauthenticationRequired -> stringResource(R.string.reauthenticate_totp_title)
+                    else -> stringResource(R.string.secure_sign_in)
+                },
                 color = Color.White,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
@@ -314,6 +318,8 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
                         stringResource(R.string.session_keystore_description)
                     state.signedIn && state.mode == DeviceMode.SHARED ->
                         stringResource(R.string.shared_session_description)
+                    state.reauthenticationRequired ->
+                        stringResource(R.string.reauthenticate_totp_description)
                     state.mode == DeviceMode.PERSONAL ->
                         stringResource(R.string.first_login_description)
                     else -> stringResource(R.string.shared_login_description)
@@ -330,7 +336,12 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
                     if (state.busy) {
                         CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                     } else {
-                        Text(stringResource(R.string.sign_in_with_authentik))
+                        Text(
+                            stringResource(
+                                if (state.reauthenticationRequired) R.string.reauthenticate_totp_action
+                                else R.string.sign_in_with_authentik,
+                            ),
+                        )
                     }
                 }
             }

@@ -20,7 +20,8 @@ val webAllowedHostSuffixes = providers.gradleProperty("ML_WEB_ALLOWED_HOST_SUFFI
     .orElse("mission-leben.de,akademie-mission-leben.de")
 val authentikAuthenticationFlowSlugs = providers.gradleProperty("ML_AUTHENTIK_AUTHENTICATION_FLOW_SLUGS")
     .orElse(
-        "mission-leben-browser-authentication,mission-leben-zimbra-authentication," +
+        "mission-leben-android-authentication,mission-leben-browser-authentication," +
+            "mission-leben-zimbra-authentication," +
             "default-authentication-flow,nextcloud-akademie-kerberos-sso",
     )
 val firebaseApplicationId = providers.gradleProperty("ML_FIREBASE_APPLICATION_ID").orElse("")
@@ -36,8 +37,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 23
-        versionName = "0.7.5"
+        versionCode = 24
+        versionName = "0.7.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it

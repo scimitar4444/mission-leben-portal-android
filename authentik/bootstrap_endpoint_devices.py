@@ -16,7 +16,13 @@ from authentik.endpoints.models import (
     EndpointStage,
     StageMode,
 )
-from authentik.flows.models import Flow, FlowStageBinding
+from authentik.flows.models import (
+    Flow,
+    FlowDesignation,
+    FlowStageBinding,
+    NotConfiguredAction,
+    Stage,
+)
 from authentik.policies.expression.models import ExpressionPolicy
 from authentik.policies.models import PolicyBinding
 from authentik.providers.oauth2.models import (
@@ -27,16 +33,23 @@ from authentik.providers.oauth2.models import (
     RedirectURIType,
     ScopeMapping,
 )
+from authentik.stages.authenticator_validate.models import (
+    AuthenticatorValidateStage,
+    DeviceClasses,
+)
 from authentik.stages.deny.models import DenyStage
+from authentik.stages.identification.models import IdentificationStage, UserFields
+from authentik.stages.password.models import PasswordStage
 from authentik.stages.user_login.models import UserLoginStage
 
 
 CONNECTOR_NAME = "Mission Leben Android"
 ACCESS_GROUP_NAME = "Mission Leben Android - Pilot"
 CERTIFICATE_NAME = "Mission Leben Android Endpoint Challenge"
-AUTHENTICATION_FLOW_SLUG = "mission-leben-browser-authentication"
+BASE_AUTHENTICATION_FLOW_SLUG = "mission-leben-browser-authentication"
+ANDROID_AUTHENTICATION_FLOW_SLUG = "mission-leben-android-authentication"
 PERSONAL_SESSION_FLOW_SLUGS = (
-    AUTHENTICATION_FLOW_SLUG,
+    ANDROID_AUTHENTICATION_FLOW_SLUG,
     "mission-leben-zimbra-authentication",
 )
 AUTHORIZATION_FLOW_SLUG = "default-provider-authorization-implicit-consent"
@@ -47,13 +60,21 @@ APPLICATION_NAME = "Mission Leben Zentral Android"
 APPLICATION_SLUG = "mission-leben-portal"
 CLIENT_ID = "mission-leben-android"
 REDIRECT_URI = "de.missionleben.portal:/oauth2redirect"
-TOTP_STAGE_NAMES = (
-    "MFA Zimbra App Android - TOTP",
-    "MFA verpflichtend",
-)
+PASSWORD_STAGE_NAME = "default-authentication-password"
+TOTP_CONFIGURATION_STAGE_NAME = "default-authenticator-totp-setup"
+ANDROID_IDENTIFICATION_STAGE_NAME = "Mission Leben Zentral Android - Benutzer"
+ANDROID_TOTP_STAGE_NAME = "Mission Leben Zentral Android - TOTP alle 90 Tage"
+ANDROID_SHARED_SESSION_STAGE_NAME = "Mission Leben Zentral Android - Shared Browsersitzung"
 PERSONAL_SESSION_STAGE_NAME = "Mission Leben Zentral Android - Persönliche Browsersitzung"
 PERSONAL_SESSION_POLICY_NAME = "Mission Leben Zentral Android - Persönlicher WebView"
-PERSONAL_SESSION_DURATION = "days=30"
+PERSONAL_SESSION_DURATION = "days=90"
+REFRESH_TOKEN_VALIDITY = "days=90"
+# authentik otherwise renews every rotating refresh token for another full
+# validity period. One second makes the 90-day lifetime effectively absolute.
+REFRESH_TOKEN_RENEWAL_THRESHOLD = "seconds=1"
+REAUTHENTICATION_VERIFIED_POLICY_NAME = (
+    "Mission Leben Zentral Android - Passwort nach Geräteprüfung überspringen"
+)
 MOBILE_APPLICATION_GROUP = "Mobil erreichbar"
 MOBILE_APPLICATION_SLUGS = (
     "zimbra-mail",
@@ -135,6 +156,46 @@ return (
 '''
 
 
+PERSONAL_REAUTHENTICATION_VERIFIED_EXPRESSION = r'''http_request = request.http_request
+if not http_request:
+    return False
+user_agent = http_request.META.get("HTTP_USER_AGENT", "")
+if not (
+    "Android" in user_agent
+    and "MissionLebenPortal/" in user_agent
+    and "MissionLebenMode/personal" in user_agent
+):
+    return False
+
+flow_plan = request.context.get("flow_plan")
+if not flow_plan:
+    return False
+application = flow_plan.context.get("application")
+if application is None or application.slug != "mission-leben-portal":
+    return False
+params = flow_plan.context.get("goauthentik.io/providers/oauth2/params")
+prompts = getattr(params, "prompt", set()) if params else set()
+if "login" not in prompts or not flow_plan.context.get("pending_user_identifier"):
+    return False
+
+device = request.context.get("device") or flow_plan.context.get("device")
+pending_user = flow_plan.context.get("pending_user")
+if device is None or pending_user is None or device.is_expired:
+    return False
+facts = device.facts.data
+reported_mode = (
+    facts.get("vendor", {})
+    .get("mission-leben.de/portal", {})
+    .get("mode")
+)
+if reported_mode != "personal":
+    return False
+
+from authentik.endpoints.connectors.agent.auth import check_device_policies
+return check_device_policies(device, pending_user, http_request).passing
+'''
+
+
 challenge_key = CertificateKeyPair.objects.filter(name=CERTIFICATE_NAME).first()
 if challenge_key is None:
     builder = CertificateBuilder(CERTIFICATE_NAME)
@@ -171,7 +232,20 @@ DeviceUserBinding.objects.update_or_create(
     defaults={"order": 0, "enabled": True, "negate": False, "is_primary": True},
 )
 
-authentication_flow = Flow.objects.get(slug=AUTHENTICATION_FLOW_SLUG)
+base_authentication_flow = Flow.objects.get(slug=BASE_AUTHENTICATION_FLOW_SLUG)
+authentication_flow, _ = Flow.objects.update_or_create(
+    slug=ANDROID_AUTHENTICATION_FLOW_SLUG,
+    defaults={
+        "name": "Mission Leben Zentral Android - Anmeldung",
+        "title": "Mission Leben Zentral",
+        "designation": FlowDesignation.AUTHENTICATION,
+        "authentication": base_authentication_flow.authentication,
+        "policy_engine_mode": base_authentication_flow.policy_engine_mode,
+        "compatibility_mode": base_authentication_flow.compatibility_mode,
+        "layout": base_authentication_flow.layout,
+        "denied_action": base_authentication_flow.denied_action,
+    },
+)
 authorization_flow = Flow.objects.get(slug=AUTHORIZATION_FLOW_SLUG)
 invalidation_flow = Flow.objects.get(slug=INVALIDATION_FLOW_SLUG)
 signing_key = CertificateKeyPair.objects.filter(name="authentik Self-signed Certificate").first()
@@ -199,7 +273,8 @@ provider, _ = OAuth2Provider.objects.update_or_create(
         ],
         "access_code_validity": "minutes=1",
         "access_token_validity": "minutes=5",
-        "refresh_token_validity": "days=30",
+        "refresh_token_validity": REFRESH_TOKEN_VALIDITY,
+        "refresh_token_threshold": REFRESH_TOKEN_RENEWAL_THRESHOLD,
         "signing_key": signing_key,
     },
 )
@@ -258,6 +333,42 @@ personal_webview_policy, _ = ExpressionPolicy.objects.update_or_create(
     name=PERSONAL_SESSION_POLICY_NAME,
     defaults={"expression": PERSONAL_WEBVIEW_EXPRESSION},
 )
+personal_reauthentication_verified_policy, _ = ExpressionPolicy.objects.update_or_create(
+    name=REAUTHENTICATION_VERIFIED_POLICY_NAME,
+    defaults={"expression": PERSONAL_REAUTHENTICATION_VERIFIED_EXPRESSION},
+)
+
+# The provider gets its own authentication flow. The existing central browser
+# flow contains conditional internal/external identification and SPNEGO policies;
+# modifying those bindings would risk unrelated applications. This simple,
+# policy-free stage can consume OIDC login_hint without showing a username page.
+identification_stage, _ = IdentificationStage.objects.update_or_create(
+    name=ANDROID_IDENTIFICATION_STAGE_NAME,
+    defaults={
+        "user_fields": [UserFields.USERNAME],
+        "case_insensitive_matching": True,
+        "show_matched_user": False,
+        "pretend_user_exists": True,
+        "enable_remember_me": False,
+        "password_stage": None,
+        "captcha_stage": None,
+        "webauthn_stage": None,
+    },
+)
+identification_binding, _ = FlowStageBinding.objects.update_or_create(
+    target=authentication_flow,
+    stage=identification_stage,
+    defaults={
+        "order": 10,
+        "evaluate_on_plan": False,
+        "re_evaluate_policies": True,
+    },
+)
+if identification_binding.policies.exists():
+    raise RuntimeError(
+        "The Android identification binding must not have policies; Authentik "
+        "otherwise cannot consume OIDC login_hint automatically"
+    )
 
 endpoint_stage, _ = EndpointStage.objects.update_or_create(
     name="Mission Leben Zentral Android - Endpoint prüfen",
@@ -267,7 +378,7 @@ endpoint_binding, _ = FlowStageBinding.objects.update_or_create(
     target=authentication_flow,
     stage=endpoint_stage,
     defaults={
-        "order": 35,
+        "order": 20,
         "evaluate_on_plan": False,
         "re_evaluate_policies": True,
     },
@@ -288,7 +399,7 @@ deny_binding, _ = FlowStageBinding.objects.update_or_create(
     target=authentication_flow,
     stage=deny_stage,
     defaults={
-        "order": 36,
+        "order": 21,
         "evaluate_on_plan": False,
         "re_evaluate_policies": True,
     },
@@ -299,19 +410,54 @@ PolicyBinding.objects.update_or_create(
     defaults={"order": 0, "enabled": True, "negate": False},
 )
 
-# A verified shared tablet is itself the second factor. Personal devices and
-# every request outside the Mission Leben app continue through the existing
-# TOTP stages unchanged.
-for totp_stage_name in TOTP_STAGE_NAMES:
-    totp_binding = FlowStageBinding.objects.get(
-        target=authentication_flow,
-        stage__name=totp_stage_name,
-    )
-    PolicyBinding.objects.update_or_create(
-        target=totp_binding,
-        policy=totp_required_policy,
-        defaults={"order": 10, "enabled": True, "negate": False},
-    )
+# Password remains mandatory for every first login and every untrusted device.
+# Only an explicit OIDC prompt=login request with login_hint from the Android
+# app can skip it, and only after the required Endpoint stage has verified the
+# registered personal device for the pending user. TOTP still runs afterwards.
+password_stage = PasswordStage.objects.get(name=PASSWORD_STAGE_NAME)
+password_binding, _ = FlowStageBinding.objects.update_or_create(
+    target=authentication_flow,
+    stage=password_stage,
+    defaults={
+        "order": 30,
+        "evaluate_on_plan": False,
+        "re_evaluate_policies": True,
+    },
+)
+PolicyBinding.objects.update_or_create(
+    target=password_binding,
+    policy=personal_reauthentication_verified_policy,
+    defaults={"order": 30, "enabled": True, "negate": True},
+)
+
+# A verified shared tablet is itself the second factor. Every personal login
+# uses a dedicated TOTP-only stage. Its threshold is zero,
+# so the 90-day prompt can never be skipped because a TOTP was used recently in
+# another Authentik flow.
+totp_stage, _ = AuthenticatorValidateStage.objects.update_or_create(
+    name=ANDROID_TOTP_STAGE_NAME,
+    defaults={
+        "not_configured_action": NotConfiguredAction.CONFIGURE,
+        "device_classes": [DeviceClasses.TOTP],
+        "last_auth_threshold": "seconds=0",
+    },
+)
+totp_configuration_stage = Stage.objects.get(name=TOTP_CONFIGURATION_STAGE_NAME)
+totp_stage.configuration_stages.set([totp_configuration_stage])
+totp_binding, _ = FlowStageBinding.objects.update_or_create(
+    target=authentication_flow,
+    stage=totp_stage,
+    defaults={
+        "order": 40,
+        "evaluate_on_plan": False,
+        "re_evaluate_policies": True,
+    },
+)
+PolicyBinding.objects.update_or_create(
+    target=totp_binding,
+    policy=totp_required_policy,
+    defaults={"order": 10, "enabled": True, "negate": False},
+)
 
 # Personal devices keep only the Authentik browser SSO cookie across WebView
 # process restarts. The OAuth refresh token remains separately protected by the
@@ -326,6 +472,24 @@ personal_session_stage, _ = UserLoginStage.objects.update_or_create(
         "remember_me_offset": "seconds=0",
         "remember_device": "seconds=0",
         "terminate_other_sessions": False,
+    },
+)
+shared_session_stage, _ = UserLoginStage.objects.update_or_create(
+    name=ANDROID_SHARED_SESSION_STAGE_NAME,
+    defaults={
+        "session_duration": "seconds=0",
+        "remember_me_offset": "seconds=0",
+        "remember_device": "seconds=0",
+        "terminate_other_sessions": False,
+    },
+)
+FlowStageBinding.objects.update_or_create(
+    target=authentication_flow,
+    stage=shared_session_stage,
+    defaults={
+        "order": 99,
+        "evaluate_on_plan": False,
+        "re_evaluate_policies": True,
     },
 )
 personal_session_bindings = []
@@ -369,8 +533,13 @@ print(
             "connector": str(connector.pk),
             "device_access_group": str(device_access_group.pk),
             "endpoint_stage": str(endpoint_stage.pk),
+            "authentication_flow": authentication_flow.slug,
+            "identification_stage": str(identification_stage.pk),
+            "totp_stage": str(totp_stage.pk),
             "personal_session_stage": str(personal_session_stage.pk),
             "personal_session_duration": PERSONAL_SESSION_DURATION,
+            "refresh_token_validity": REFRESH_TOKEN_VALIDITY,
+            "refresh_token_renewal_threshold": REFRESH_TOKEN_RENEWAL_THRESHOLD,
             "personal_session_flows": list(PERSONAL_SESSION_FLOW_SLUGS),
             "mobile_application_group": MOBILE_APPLICATION_GROUP,
             "mobile_application_slugs": list(MOBILE_APPLICATION_SLUGS),
