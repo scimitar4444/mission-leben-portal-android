@@ -40,6 +40,15 @@ data class LinkTarget(
     val online: Boolean,
 )
 
+enum class PortalCapability(val wireName: String) {
+    OPEN_TALK("open_talk"),
+    DEVICE_PROFILE_SWITCH("device_profile_switch");
+
+    companion object {
+        fun fromWireName(value: String): PortalCapability? = entries.firstOrNull { it.wireName == value }
+    }
+}
+
 data class LoginApprovalRequest(
     val requestId: String,
     val application: String,
@@ -82,6 +91,7 @@ data class UiState(
     val communicationServiceConfigured: Boolean = false,
     val pushConfigured: Boolean = false,
     val notificationPrivacy: NotificationPrivacy = NotificationPrivacy.MINIMAL,
+    val capabilities: Set<PortalCapability> = emptySet(),
     val linkTargets: List<LinkTarget> = emptyList(),
     val loginApprovalRequest: LoginApprovalRequest? = null,
     val loginApprovalSubmitting: Boolean = false,

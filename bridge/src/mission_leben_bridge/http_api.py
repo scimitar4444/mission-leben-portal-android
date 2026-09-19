@@ -153,6 +153,10 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                 self._empty(204)
                 return
 
+            if method == "GET" and path == "/v1/capabilities":
+                self._json(200, {"capabilities": self.server.service.capabilities(self._bearer())})
+                return
+
             if method == "GET" and path == "/v1/link-targets":
                 capability = parse_qs(parsed.query).get("capability", [""])[0]
                 results = self.server.service.link_targets(self._bearer(), capability)

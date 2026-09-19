@@ -20,6 +20,7 @@ import de.missionleben.portal.device.EnrollmentQrPayload
 import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
+import de.missionleben.portal.model.PortalCapability
 import de.missionleben.portal.model.UiState
 import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.PushAction
@@ -119,6 +120,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 message = null,
                 loginApprovalRequest = null,
                 loginApprovalSubmitting = false,
+                capabilities = emptySet(),
+                linkTargets = emptyList(),
             )
         }
     }
@@ -275,7 +278,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     runCatching { portalRepository.applications(token) }
                         .onSuccess { applications ->
                             _uiState.update { it.copy(applications = applications, applicationsLoading = false) }
-                            loadLinkTargetsWithToken(token)
+                            loadCapabilitiesWithToken(token)
                             syncPushRegistrationWithToken(token)
                             resolvePendingPushAction()
                         }
@@ -420,6 +423,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 applications = emptyList(),
                 applicationsLoading = false,
                 linkTargets = emptyList(),
+                capabilities = emptySet(),
                 requestedUrl = null,
                 clearWebDataRequested = true,
                 loginApprovalRequest = null,
@@ -449,6 +453,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 reauthenticationRequired = false,
                 applications = emptyList(),
                 linkTargets = emptyList(),
+                capabilities = emptySet(),
                 quickUnlockEnabled = false,
                 message = if (it.mode == DeviceMode.SHARED) {
                     string(R.string.message_shared_session_deleted)
@@ -719,6 +724,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                 reauthenticationRequired = false,
                                 applications = emptyList(),
                                 linkTargets = emptyList(),
+                                capabilities = emptySet(),
                                 quickUnlockEnabled = false,
                                 busy = false,
                                 clearWebDataRequested = true,
@@ -764,11 +770,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    private fun loadLinkTargetsWithToken(accessToken: String) {
+    private fun loadCapabilitiesWithToken(accessToken: String) {
         if (!deviceService.communicationConfigured) return
         viewModelScope.launch {
-            runCatching { deviceService.linkTargets(accessToken) }
-                .onSuccess { targets -> _uiState.update { it.copy(linkTargets = targets) } }
+            val capabilities = runCatching { deviceService.capabilities(accessToken) }
+                .getOrDefault(emptySet())
+            _uiState.update {
+                it.copy(
+                    capabilities = capabilities,
+                    linkTargets = if (PortalCapability.OPEN_TALK in capabilities) it.linkTargets else emptyList(),
+                )
+            }
+            if (PortalCapability.OPEN_TALK in capabilities) {
+                val targets = runCatching { deviceService.linkTargets(accessToken) }.getOrDefault(emptyList())
+                _uiState.update { it.copy(linkTargets = targets) }
+            }
         }
     }
 

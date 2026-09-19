@@ -2,6 +2,9 @@
 <resources>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_back">Geri</string>
+    <string name="open_action">Aç</string>
     <string name="language_title">Dil</string>
     <string name="language_description">Telefon dilini otomatik kullanın veya yalnızca bu uygulama için bir dil seçin.</string>
     <string name="language_system">Telefon dili</string>

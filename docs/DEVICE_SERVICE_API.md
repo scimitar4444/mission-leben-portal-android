@@ -4,6 +4,15 @@ Die Bridge unter `bridge/` ist ausschliesslich fuer Kommunikation und Signalisie
 
 Insbesondere besitzt die Bridge keine Enrollment-, Geraetestatus- oder Admin-Freigabe-API. Die frueheren Routen `/v1/enrollments`, `/v1/devices/*`, `/admin/v1/enrollment-tokens` und `/admin/v1/devices` existieren nicht.
 
+## Funktionsberechtigungen
+
+```http
+GET /v1/capabilities
+Authorization: Bearer <Authentik-OIDC-Access-Token>
+```
+
+Die Antwort enthaelt nur bekannte, in Authentik erteilte Capabilities. `open_talk` wird aus `ENT_TALK_RAUMUEBERGABE`, `device_profile_switch` aus `ENT_DEVICE_PROFILE_SWITCH` abgeleitet. `GET /v1/link-targets?capability=open_talk` und `POST /v1/handoffs` verweigern den Zugriff ohne `open_talk` serverseitig.
+
 ## Direkter Authentik-Geraetevertrag
 
 Die Android-App spricht fuer den Geraetelebenszyklus direkt mit Authentik:

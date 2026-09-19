@@ -47,6 +47,7 @@ class AuthRepository(context: Context) {
                 add("profile")
                 add("email")
                 add("goauthentik.io/api")
+                add("ml_features")
                 if (mode == DeviceMode.PERSONAL) add("offline_access")
             }
             val requestBuilder = AuthorizationRequest.Builder(

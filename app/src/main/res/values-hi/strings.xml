@@ -2,6 +2,9 @@
 <resources>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  पोर्टल</string>
+    <string name="settings_title">सेटिंग</string>
+    <string name="settings_back">वापस</string>
+    <string name="open_action">खोलें</string>
     <string name="language_title">भाषा</string>
     <string name="language_description">फ़ोन की भाषा अपने-आप अपनाएँ या केवल इस ऐप के लिए भाषा चुनें।</string>
     <string name="language_system">फ़ोन की भाषा</string>

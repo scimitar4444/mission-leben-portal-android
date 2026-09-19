@@ -29,7 +29,12 @@ class FakeAuthentik:
     def user_info(self, access_token: str) -> UserInfo:
         if access_token != "valid-token":
             raise AssertionError("unexpected test token")
-        return UserInfo("authentik-user-1", "user@example.invalid", "Test User")
+        return UserInfo(
+            "authentik-user-1",
+            "user@example.invalid",
+            "Test User",
+            frozenset({"open_talk", "device_profile_switch"}),
+        )
 
     def device_id(self, agent_token: str) -> str:
         if agent_token != "valid-agent-token":
@@ -128,6 +133,58 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual("Sender Name", detail["title"])
         self.assertEqual("Confidential subject", detail["summary"])
         self.assertEqual("", detail["preview"])
+
+    def test_capabilities_and_talk_handoff_are_authorized_server_side(self) -> None:
+        service = BridgeService(
+            self.store,
+            FakeAuthentik(),
+            self.fcm,
+            ({"id": "room-display", "name": "Raumdisplay", "location": "Zentrale", "online": True},),
+        )
+        self.assertEqual(
+            ["device_profile_switch", "open_talk"],
+            service.capabilities("valid-token"),
+        )
+        self.assertEqual(
+            "room-display",
+            service.link_targets("valid-token", "open_talk")[0]["id"],
+        )
+        self.assertEqual(
+            "accepted",
+            service.create_handoff(
+                "valid-token",
+                {
+                    "action": "open_talk",
+                    "target_device_id": "room-display",
+                    "room_token": "abcdef123456",
+                },
+            )["status"],
+        )
+
+    def test_talk_handoff_rejects_authenticated_user_without_capability(self) -> None:
+        class UnprivilegedAuthentik(FakeAuthentik):
+            def user_info(self, access_token: str) -> UserInfo:
+                user = super().user_info(access_token)
+                return UserInfo(user.subject, user.email, user.display_name)
+
+        service = BridgeService(
+            self.store,
+            UnprivilegedAuthentik(),
+            self.fcm,
+            ({"id": "room-display", "name": "Raumdisplay", "location": "Zentrale", "online": True},),
+        )
+        self.assertEqual([], service.capabilities("valid-token"))
+        with self.assertRaisesRegex(Exception, "required capability"):
+            service.link_targets("valid-token", "open_talk")
+        with self.assertRaisesRegex(Exception, "required capability"):
+            service.create_handoff(
+                "valid-token",
+                {
+                    "action": "open_talk",
+                    "target_device_id": "room-display",
+                    "room_token": "abcdef123456",
+                },
+            )
 
     def test_future_calendar_event_waits_for_dispatch_time(self) -> None:
         future = datetime.now(timezone.utc) + timedelta(hours=1)

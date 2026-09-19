@@ -8,6 +8,7 @@ import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
 import de.missionleben.portal.model.LoginApprovalRequest
+import de.missionleben.portal.model.PortalCapability
 import de.missionleben.portal.push.NotificationDetail
 import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.push.PushAction
@@ -113,6 +114,17 @@ class DeviceServiceRepository(context: Context? = null) {
                         online = item.optBoolean("online"),
                     ),
                 )
+            }
+        }
+    }
+
+    suspend fun capabilities(accessToken: String): Set<PortalCapability> = withContext(Dispatchers.IO) {
+        if (!communicationConfigured) return@withContext emptySet()
+        val root = JSONObject(request("/v1/capabilities", "GET", null, accessToken))
+        val values = root.optJSONArray("capabilities") ?: JSONArray()
+        buildSet {
+            for (index in 0 until values.length()) {
+                PortalCapability.fromWireName(values.optString(index))?.let(::add)
             }
         }
     }

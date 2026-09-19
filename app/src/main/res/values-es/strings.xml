@@ -2,6 +2,9 @@
 <resources>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_back">Atrás</string>
+    <string name="open_action">Abrir</string>
     <string name="language_title">Idioma</string>
     <string name="language_description">Usa automáticamente el idioma del teléfono o elige un idioma solo para esta aplicación.</string>
     <string name="language_system">Idioma del teléfono</string>

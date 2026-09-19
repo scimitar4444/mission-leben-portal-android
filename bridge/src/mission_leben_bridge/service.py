@@ -17,6 +17,7 @@ KEY_ID = re.compile(r"^[a-f0-9]{24}$")
 ROOM_TOKEN = re.compile(r"^[A-Za-z0-9_-]{6,128}$")
 EVENT_TYPES = {"open_mail", "open_calendar", "open_talk"}
 PRIVACY_LEVELS = {"minimal", "standard", "detailed"}
+KNOWN_CAPABILITIES = {"open_talk", "device_profile_switch"}
 
 
 class ApiError(Exception):
@@ -64,6 +65,15 @@ class BridgeService:
         user = self.authentik.user_info(bearer)
         self.store.upsert_user(user.subject, user.email, user.display_name, active=True)
         return user
+
+    def capabilities(self, bearer: str) -> list[str]:
+        user = self.authenticate(bearer)
+        return sorted(user.capabilities & KNOWN_CAPABILITIES)
+
+    @staticmethod
+    def _require_capability(user: UserInfo, capability: str) -> None:
+        if capability not in user.capabilities:
+            raise ApiError(403, "required capability is missing")
 
     def register_push(self, device_id: str, bearer: str, payload: dict[str, Any]) -> None:
         user = self.authenticate(bearer)
@@ -151,15 +161,17 @@ class BridgeService:
         self.store.unregister_auth_channel(device_id, user.subject)
 
     def link_targets(self, bearer: str, capability: str) -> list[dict[str, Any]]:
-        self.authenticate(bearer)
+        user = self.authenticate(bearer)
         if capability != "open_talk":
             return []
+        self._require_capability(user, capability)
         return [dict(target) for target in self.talk_targets]
 
     def create_handoff(self, bearer: str, payload: dict[str, Any]) -> dict[str, str]:
         user = self.authenticate(bearer)
         if payload.get("action") != "open_talk":
             raise ApiError(400, "only open_talk is supported")
+        self._require_capability(user, "open_talk")
         target_id = str(payload.get("target_device_id", ""))
         target = next((item for item in self.talk_targets if item["id"] == target_id), None)
         if target is None or not target["online"]:

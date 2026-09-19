@@ -22,6 +22,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - persönliche Geräte können Authentik-Anmeldungen im entsperrten Portal mit „Bestätigen“ oder „Ablehnen“ beantworten; ein sekundengenauer Countdown zeigt die verbleibende Gültigkeit der einzelnen Anfrage. Es gibt dabei keine zweite Biometrieabfrage. Die geöffnete App prüft alle zwei Sekunden, optionales FCM weckt sie später nur mit einer zufälligen Anfrage-ID. Authentik bleibt Benutzer- und Gerätequelle, Shared Tablets sind ausgeschlossen
 - persönliche Geräte müssen sich nach exakt 90 Tagen erneut bestätigen: Die App übernimmt den gespeicherten Benutzernamen, Authentik prüft zuerst Gerät und Benutzerbindung und fordert ein bereits vorhandenes TOTP an, ansonsten das Passwort. Eine TOTP-Einrichtung wird nie erzwungen
 - eine kompakte Anzeige nennt auf persönlichen Geräten die verbleibenden Tage der 90-Tage-Anmeldung
+- die tägliche Startseite zeigt nur Sitzungsstatus und freigegebene Anwendungen; Sprache, Benachrichtigungen, technische Gerätedaten und Updates liegen gesammelt unter **Einstellungen**
 - automatische OTA-Prüfung einmal je App-Start sowie eine manuelle Schaltfläche **Nach Updates suchen**; Updates kommen als öffentliches GitHub-Release und werden vor der Android-Installation anhand von Paketname, Version, Dateigröße, SHA-256 und App-Signatur geprüft
 - Shared Tablets: kein Refresh Token und keine persistente Mitarbeitersitzung
 - Authentik-Enrollment per verifiziertem HTTPS-App-Link mit einmaligem Token im URL-Fragment; eine vorhandene App öffnet direkt, andernfalls führt dieselbe Seite durch Installation und Einrichtung
@@ -33,7 +34,8 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - native Antwort auf die Authentik Endpoint-Stage-Challenge im WebView; der Device Token wird nie an JavaScript ausgegeben
 - Authentik Device Access Groups und deren Benutzer-/Gruppenbindungen steuern die Gerätefreigabe
 - nicht exportierbare P-256-Kommunikationsidentität im Android Keystore für signierte Benachrichtigungsabrufe
-- Nextcloud-Talk-Handoff an freigegebene Konferenzgeräte; übertragen wird ausschließlich der Raumtoken
+- Nextcloud-Talk-Handoff an freigegebene Konferenzgeräte; übertragen wird ausschließlich der Raumtoken. Oberfläche und Bridge verlangen dafür die kanonische Authentik-Berechtigung `ENT_TALK_RAUMUEBERGABE`
+- **Geräteprofil wechseln** erscheint ausschließlich mit der Authentik-Berechtigung `ENT_DEVICE_PROFILE_SWITCH`; im Pilot ist nur `pilot.user` Mitglied
 - optionale FCM-Hinweise für Mail, Termine, Talk und Gerätesicherheit ab Android 13
 - FCM transportiert nur eine Ereignis-ID; Details holt ein freigegebenes Gerät signiert von der eigenen Bridge
 - Datenschutzstufen `Diskret`, `Standard` und `Ausführlich`; Shared Tablets erzwingen neutrale Hinweise

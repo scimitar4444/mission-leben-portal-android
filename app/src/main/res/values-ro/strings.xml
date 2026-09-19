@@ -2,6 +2,9 @@
 <resources>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
+    <string name="settings_title">Setări</string>
+    <string name="settings_back">Înapoi</string>
+    <string name="open_action">Deschide</string>
     <string name="language_title">Limbă</string>
     <string name="language_description">Folosește automat limba telefonului sau alege o limbă doar pentru această aplicație.</string>
     <string name="language_system">Limba telefonului</string>

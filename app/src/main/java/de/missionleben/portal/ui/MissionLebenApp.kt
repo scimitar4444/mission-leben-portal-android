@@ -42,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,6 +61,7 @@ import de.missionleben.portal.auth.ReauthenticationPolicy
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
+import de.missionleben.portal.model.PortalCapability
 import de.missionleben.portal.model.PortalApplication
 import de.missionleben.portal.model.UiState
 import de.missionleben.portal.push.NotificationPrivacy
@@ -300,15 +302,46 @@ private fun Home(
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
+    var settingsOpen by rememberSaveable { mutableStateOf(false) }
+    var talkDialogOpen by rememberSaveable { mutableStateOf(false) }
+
+    if (settingsOpen) {
+        SettingsScreen(
+            state = state,
+            onBack = { settingsOpen = false },
+            onScanEnrollmentQr = onScanEnrollmentQr,
+            onRefreshDeviceStatus = onRefreshDeviceStatus,
+            onNotificationPrivacyChange = onNotificationPrivacyChange,
+            onLogout = onLogout,
+            onResetProfile = onResetProfile,
+            onDismissMessage = onDismissMessage,
+            onCheckForUpdates = onCheckForUpdates,
+            currentLanguageTag = currentLanguageTag,
+            onLanguageChange = onLanguageChange,
+        )
+        return
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 20.dp, top = 5.dp, end = 20.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { BrandHeader() }
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BrandHeader()
+                TextButton(onClick = { settingsOpen = true }) {
+                    Text(stringResource(R.string.settings_title))
+                }
+            }
+        }
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
-        item { WelcomePanel(state, onStartLogin, onLogout) }
-        item { DevicePanel(state, onScanEnrollmentQr, onRefreshDeviceStatus) }
+        item { AccountSummary(state, onStartLogin) }
+        item { DeviceStatusSummary(state, onScanEnrollmentQr, onRefreshDeviceStatus) }
 
         if (state.signedIn) {
             item {
@@ -321,7 +354,7 @@ private fun Home(
             }
             if (state.applicationsLoading) {
                 item {
-                    Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                    Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
@@ -337,13 +370,87 @@ private fun Home(
                     }
                 }
             }
-            item { TalkHandoffPanel(state, onOpenTalk) }
+            if (PortalCapability.OPEN_TALK in state.capabilities) {
+                item { TalkToolCard { talkDialogOpen = true } }
+            }
+        }
+    }
+
+    if (talkDialogOpen) {
+        TalkHandoffDialog(
+            state = state,
+            onOpenTalk = { target, url ->
+                talkDialogOpen = false
+                onOpenTalk(target, url)
+            },
+            onDismiss = { talkDialogOpen = false },
+        )
+    }
+}
+
+@Composable
+private fun SettingsScreen(
+    state: UiState,
+    onBack: () -> Unit,
+    onScanEnrollmentQr: () -> Unit,
+    onRefreshDeviceStatus: () -> Unit,
+    onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
+    onLogout: () -> Unit,
+    onResetProfile: () -> Unit,
+    onDismissMessage: () -> Unit,
+    onCheckForUpdates: () -> Unit,
+    currentLanguageTag: String?,
+    onLanguageChange: (String?) -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = onBack) { Text(stringResource(R.string.settings_back)) }
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    stringResource(R.string.settings_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+        state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
+        item { DevicePanel(state, onScanEnrollmentQr, onRefreshDeviceStatus) }
+        if (state.signedIn) {
             item { NotificationPrivacyPanel(state, onNotificationPrivacyChange) }
         }
-
         item { LanguagePanel(currentLanguageTag, onLanguageChange) }
-
-        item { UpdateFooter(state.updateStatus, onCheckForUpdates, onResetProfile) }
+        if (state.signedIn) {
+            item {
+                OutlinedButton(onClick = onLogout, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        if (state.mode == DeviceMode.SHARED) {
+                            stringResource(R.string.end_session_securely)
+                        } else {
+                            stringResource(R.string.sign_out)
+                        },
+                    )
+                }
+            }
+        }
+        item {
+            UpdateFooter(
+                status = state.updateStatus,
+                onCheckForUpdates = onCheckForUpdates,
+                onResetProfile = if (PortalCapability.DEVICE_PROFILE_SWITCH in state.capabilities) {
+                    onResetProfile
+                } else {
+                    null
+                },
+            )
+        }
     }
 }
 
@@ -391,9 +498,9 @@ private fun BrandHeader() {
         Image(
             painter = painterResource(R.drawable.ic_brand_mark),
             contentDescription = null,
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(40.dp),
         )
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(10.dp))
         Column {
             Text(stringResource(R.string.brand_name), fontWeight = FontWeight.Black, letterSpacing = 1.2.sp)
             Text(
@@ -408,58 +515,65 @@ private fun BrandHeader() {
 }
 
 @Composable
-private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () -> Unit) {
+private fun AccountSummary(state: UiState, onStartLogin: () -> Unit) {
     val deviceAllowsLogin = !state.deviceServiceConfigured || state.enrollmentState == EnrollmentState.TRUSTED
     Card(
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Ink),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(22.dp)) {
-            Text(state.mode?.let { stringResource(it.labelRes) }.orEmpty(), color = Color(0xFFFFA1A7), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                when {
-                    state.signedIn -> stringResource(R.string.hello_name, state.user?.displayName.orEmpty())
-                    state.reauthenticationRequired -> stringResource(R.string.reauthenticate_title)
-                    else -> stringResource(R.string.secure_sign_in)
-                },
-                color = Color.White,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                when {
-                    state.enrollmentState == EnrollmentState.BLOCKED ->
-                        stringResource(R.string.device_blocked_description)
-                    state.deviceServiceConfigured && state.enrollmentState != EnrollmentState.TRUSTED ->
-                        stringResource(R.string.device_pending_description)
-                    state.signedIn && state.mode == DeviceMode.PERSONAL && state.quickUnlockEnabled ->
-                        stringResource(R.string.session_keystore_description)
-                    state.signedIn && state.mode == DeviceMode.SHARED ->
-                        stringResource(R.string.shared_session_description)
-                    state.reauthenticationRequired ->
-                        stringResource(R.string.reauthenticate_description)
-                    state.mode == DeviceMode.PERSONAL ->
-                        stringResource(R.string.first_login_description)
-                    else -> stringResource(R.string.shared_login_description)
-                },
-                color = Color(0xFFD7CFDD),
-            )
-            if (state.signedIn && state.mode == DeviceMode.PERSONAL) {
-                val remainingDays = state.user?.let {
-                    ReauthenticationPolicy.remainingDays(it.authenticatedAtEpochSeconds)
-                } ?: 0L
-                Spacer(Modifier.height(12.dp))
-                SessionValidityPill(remainingDays)
-            }
-            Spacer(Modifier.height(18.dp))
-            if (state.signedIn) {
-                OutlinedButton(onClick = onLogout, enabled = !state.busy) {
-                    Text(if (state.mode == DeviceMode.SHARED) stringResource(R.string.end_session_securely) else stringResource(R.string.sign_out), color = Color.White)
+        if (state.signedIn) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.hello_name, state.user?.displayName.orEmpty()),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        state.mode?.let { stringResource(it.labelRes) }.orEmpty(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 12.sp,
+                    )
                 }
-            } else {
+                if (state.mode == DeviceMode.PERSONAL) {
+                    val remainingDays = state.user?.let {
+                        ReauthenticationPolicy.remainingDays(it.authenticatedAtEpochSeconds)
+                    } ?: 0L
+                    Spacer(Modifier.width(10.dp))
+                    SessionValidityPill(remainingDays)
+                }
+            }
+        } else {
+            Column(Modifier.padding(18.dp)) {
+                Text(
+                    if (state.reauthenticationRequired) {
+                        stringResource(R.string.reauthenticate_title)
+                    } else {
+                        stringResource(R.string.secure_sign_in)
+                    },
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    when {
+                        state.enrollmentState == EnrollmentState.BLOCKED -> stringResource(R.string.device_blocked_description)
+                        state.deviceServiceConfigured && state.enrollmentState != EnrollmentState.TRUSTED -> stringResource(R.string.device_pending_description)
+                        state.reauthenticationRequired -> stringResource(R.string.reauthenticate_description)
+                        state.mode == DeviceMode.PERSONAL -> stringResource(R.string.first_login_description)
+                        else -> stringResource(R.string.shared_login_description)
+                    },
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(Modifier.height(12.dp))
                 Button(onClick = onStartLogin, enabled = !state.busy && deviceAllowsLogin) {
                     if (state.busy) {
                         CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
@@ -485,16 +599,46 @@ private fun SessionValidityPill(remainingDays: Long) {
         else -> stringResource(R.string.session_valid_days, remainingDays)
     }
     Surface(
-        color = Color.White.copy(alpha = 0.12f),
+        color = MaterialTheme.colorScheme.primaryContainer,
         shape = CircleShape,
     ) {
         Text(
             label,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
         )
+    }
+}
+
+@Composable
+private fun DeviceStatusSummary(
+    state: UiState,
+    onScanEnrollmentQr: () -> Unit,
+    onRefreshDeviceStatus: () -> Unit,
+) {
+    if (state.enrollmentState != EnrollmentState.TRUSTED) {
+        DevicePanel(state, onScanEnrollmentQr, onRefreshDeviceStatus)
+        return
+    }
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.device_identity),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            StatusPill(state.enrollmentState)
+        }
     }
 }
 
@@ -580,14 +724,14 @@ private fun SectionTitle(title: String, subtitle: String, action: String, onActi
 @Composable
 private fun AppTile(application: PortalApplication, modifier: Modifier, onOpenUrl: (String) -> Unit) {
     Card(
-        modifier = modifier.height(142.dp).clickable { onOpenUrl(application.launchUrl) },
-        shape = RoundedCornerShape(18.dp),
+        modifier = modifier.height(106.dp).clickable { onOpenUrl(application.launchUrl) },
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier.padding(14.dp)) {
             Box(
-                Modifier.size(38.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+                Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -596,11 +740,8 @@ private fun AppTile(application: PortalApplication, modifier: Modifier, onOpenUr
                     fontWeight = FontWeight.Black,
                 )
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(8.dp))
             Text(application.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            if (application.publisher.isNotBlank()) {
-                Text(application.publisher, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, maxLines = 1)
-            }
         }
     }
 }
@@ -617,17 +758,46 @@ private fun EmptyApps(onOpenUrl: (String) -> Unit) {
 }
 
 @Composable
-private fun TalkHandoffPanel(state: UiState, onOpenTalk: (String, String) -> Unit) {
-    if (!state.communicationServiceConfigured) return
+private fun TalkToolCard(onOpen: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.talk_handoff_title), fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.talk_handoff_description),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            TextButton(onClick = onOpen) { Text(stringResource(R.string.open_action)) }
+        }
+    }
+}
+
+@Composable
+private fun TalkHandoffDialog(
+    state: UiState,
+    onOpenTalk: (String, String) -> Unit,
+    onDismiss: () -> Unit,
+) {
     var talkUrl by remember { mutableStateOf("") }
     var selected by remember { mutableStateOf<LinkTarget?>(null) }
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        shape = RoundedCornerShape(20.dp),
-    ) {
-        Column(Modifier.padding(20.dp)) {
-            Text(stringResource(R.string.talk_handoff_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.talk_handoff_title)) },
+        text = {
+            Column {
             Text(
                 stringResource(R.string.talk_handoff_description),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -657,12 +827,18 @@ private fun TalkHandoffPanel(state: UiState, onOpenTalk: (String, String) -> Uni
                 Text(stringResource(R.string.no_conference_device), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             }
             Spacer(Modifier.height(10.dp))
+            }
+        },
+        confirmButton = {
             Button(
                 onClick = { selected?.let { onOpenTalk(it.id, talkUrl) } },
                 enabled = selected != null && talkUrl.isNotBlank() && !state.busy,
             ) { Text(stringResource(R.string.open_on_target_device)) }
-        }
-    }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.settings_back)) }
+        },
+    )
 }
 
 @Composable
@@ -781,10 +957,23 @@ private fun StatusPillText(label: String, color: Color) {
 @Composable
 private fun MessageBanner(message: String, onDismiss: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onDismiss),
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         shape = RoundedCornerShape(14.dp),
     ) {
-        Text(message, modifier = Modifier.padding(14.dp), color = MaterialTheme.colorScheme.onSecondaryContainer)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 14.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                message,
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            TextButton(onClick = onDismiss) {
+                Text("×", color = MaterialTheme.colorScheme.onSecondaryContainer, fontSize = 20.sp)
+            }
+        }
     }
 }

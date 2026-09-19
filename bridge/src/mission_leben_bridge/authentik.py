@@ -6,6 +6,12 @@ import urllib.request
 from dataclasses import dataclass
 
 
+FEATURE_GROUP_CAPABILITIES = {
+    "ENT_TALK_RAUMUEBERGABE": "open_talk",
+    "ENT_DEVICE_PROFILE_SWITCH": "device_profile_switch",
+}
+
+
 class AuthenticationError(Exception):
     def __init__(self, message: str, *, permanent: bool = False):
         super().__init__(message)
@@ -17,6 +23,7 @@ class UserInfo:
     subject: str
     email: str
     display_name: str
+    capabilities: frozenset[str] = frozenset()
 
 
 class AuthentikClient:
@@ -46,7 +53,28 @@ class AuthentikClient:
             raise AuthenticationError("Authentik userinfo contains no subject")
         email = str(payload.get("email") or payload.get("preferred_username") or "").strip()
         name = str(payload.get("name") or payload.get("preferred_username") or email or subject).strip()
-        return UserInfo(subject=subject, email=email, display_name=name)
+        raw_capabilities = payload.get("ml_capabilities", [])
+        capabilities = {
+            str(value).strip()
+            for value in raw_capabilities
+            if isinstance(value, str) and value.strip()
+        } if isinstance(raw_capabilities, list) else set()
+        # Existing 90-day sessions were issued before the dedicated scope was
+        # introduced. Their profile scope still contains direct groups, so the
+        # two canonical pilot groups provide a bounded migration fallback.
+        raw_groups = payload.get("groups", [])
+        if isinstance(raw_groups, list):
+            capabilities.update(
+                FEATURE_GROUP_CAPABILITIES[group]
+                for group in raw_groups
+                if isinstance(group, str) and group in FEATURE_GROUP_CAPABILITIES
+            )
+        return UserInfo(
+            subject=subject,
+            email=email,
+            display_name=name,
+            capabilities=frozenset(capabilities),
+        )
 
     def device_id(self, agent_token: str) -> str:
         if not agent_token:
