@@ -17,6 +17,8 @@ Der QR-Code verwendet einen verifizierten HTTPS-App-Link. Ist Mission Leben Zent
 
 Die Android-App übernimmt den Gerätemodus aus dem QR-Code. Der öffentliche Redeem-Endpunkt registriert das Gerät direkt bei Authentik und löscht den Enrollment-Token vor der Antwort. Der Container läuft absichtlich mit genau einem Worker; mehrere Replikate benötigen zuerst eine gemeinsam genutzte Sperre.
 
+Pro Mitarbeiter bleibt genau ein persönliches Handy aktiv. Zeigt Authentik bereits ein aktives persönliches Gerät, kennzeichnet die Oberfläche den Vorgang als Austausch. Das bisherige Gerät bleibt bis zum erfolgreichen Enrollment des neuen Handys verwendbar und wird unmittelbar danach über Authentiks Endpoint-Ablaufdatum gesperrt. Die Historie bleibt dadurch in Authentik erhalten. Shared Tablets sind von dieser Austauschregel ausdrücklich ausgenommen.
+
 ## Rollen
 
 | Authentik-Gruppe | Bereich |
@@ -61,7 +63,7 @@ bereits weitere Provider oder ist die Browser-Adresse abweichend belegt,
 bricht das Skript aus Sicherheitsgründen ab, statt globale Einstellungen zu
 überschreiben.
 
-Der API-Schlüssel ist absichtlich nicht automatisch ablaufend, weil Authentik einen ablaufenden API-Schlüssel serverseitig rotiert, die gemountete Secret-Datei jedoch nicht aktualisieren kann. Er muss betrieblich regelmäßig kontrolliert rotiert werden. Durch seine eng begrenzten Rechte kann er keine Kennwörter ändern, Benutzer anlegen oder Anwendungen administrieren.
+Der API-Schlüssel ist absichtlich nicht automatisch ablaufend, weil Authentik einen ablaufenden API-Schlüssel serverseitig rotiert, die gemountete Secret-Datei jedoch nicht aktualisieren kann. Er muss betrieblich regelmäßig kontrolliert rotiert werden. Durch seine eng begrenzten Rechte kann er keine Kennwörter ändern, Benutzer anlegen oder Anwendungen administrieren. Für den sicheren Geräteaustausch besitzt er zusätzlich ausschließlich Lese- und Änderungsrechte auf Endpoint Devices; ein Löschrecht erhält er nicht.
 
 Für die App-Bestätigung legt `authentik/bootstrap_app_approval.py` vorher die Authentik-Duo-Stufe an. Deren ausgegebene `duo_stage_uuid` wird als `ML_ENROLL_APP_APPROVAL_STAGE_UUID` gesetzt. Das Portal legt bei jeder persönlichen Geräteinitialisierung idempotent ein bestätigtes Authentik-DuoDevice an: sowohl bei der Selbstregistrierung mit TOTP oder Passkey als auch bei der Einrichtung durch EL, PDL, zentrale Leitung oder IT. Dessen `duo_user_id` entspricht exakt dem stabilen OIDC-Subject des Benutzers. Shared Tablets erhalten kein solches Gerät. Die zusätzlichen Servicekonto-Rechte sind ausschließlich `view_authenticatorduostage` und `add_duodevice`.
 

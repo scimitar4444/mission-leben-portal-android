@@ -7,9 +7,8 @@ the token key. Required environment variables:
 * ``ML_AUTHENTIK_USERNAME`` for personal mode
 * ``ML_AUTHENTIK_GROUP`` for shared mode
 
-Personal devices fail closed until ``assign_device_access.py`` binds the newly
-created Device UUID to the named user. Shared tokens are tied to the selected
-facility group before enrollment.
+Personal and shared tokens are tied to the selected user or facility group
+before enrollment.
 """
 
 import os
@@ -23,7 +22,7 @@ from authentik.endpoints.models import DeviceAccessGroup, DeviceUserBinding
 
 
 CONNECTOR_NAME = "Mission Leben Android"
-PERSONAL_ACCESS_GROUP_NAME = "Mission Leben Android - Personal"
+PERSONAL_ACCESS_GROUP_PREFIX = "Mission Leben Android - Personal - "
 SHARED_ACCESS_GROUP_PREFIX = "Mission Leben Android - Shared - "
 
 
@@ -44,7 +43,27 @@ if mode == "personal":
     user = User.objects.get(username=username)
     if not user.is_active:
         raise RuntimeError("The selected Authentik user is inactive")
-    access_group = DeviceAccessGroup.objects.get(name=PERSONAL_ACCESS_GROUP_NAME)
+    access_group, _ = DeviceAccessGroup.objects.update_or_create(
+        name=PERSONAL_ACCESS_GROUP_PREFIX + str(user.uuid),
+        defaults={
+            "attributes": {
+                "mission-leben.de/purpose": "android-portal",
+                "mission-leben.de/status": "active",
+                "mission-leben.de/mode": "personal",
+                "mission-leben.de/user-uuid": str(user.uuid),
+                "mission-leben.de/username": user.username,
+            }
+        },
+    )
+    DeviceUserBinding.objects.filter(target=access_group).delete()
+    DeviceUserBinding.objects.create(
+        target=access_group,
+        user=user,
+        order=0,
+        enabled=True,
+        negate=False,
+        is_primary=True,
+    )
     token_name = f"Mission Leben Android personal {user.username}"
 else:
     group_name = required("ML_AUTHENTIK_GROUP")

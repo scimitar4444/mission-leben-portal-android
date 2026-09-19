@@ -21,12 +21,20 @@ DEVICE_SERIAL = re.compile(r"ml-android-[0-9a-f]{16,128}", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
+class RegisteredDevice:
+    device_uuid: str
+    name: str
+    last_seen: datetime | None
+
+
+@dataclass(frozen=True)
 class IssuedEnrollment:
     token_uuid: str
     token: str
     mode: str
     target_label: str
     expires: datetime
+    replaced_devices: tuple[RegisteredDevice, ...] = ()
 
     def deep_link(self) -> str:
         return "de.missionleben.portal://enroll?" + urlencode(
@@ -64,7 +72,21 @@ class EnrollmentService:
 
     async def employees_for(self, actor: Actor, search: str) -> list[dict[str, Any]]:
         allowed = None if actor.has_global_scope else actor.organization_names
-        return await self.authentik.employees(search, allowed)
+        employees = await self.authentik.employees(search, allowed)
+        if not employees:
+            return []
+        devices_by_user = await self._active_personal_devices_by_user()
+        return [
+            {
+                **employee,
+                "personal_devices": devices_by_user.get(str(employee["uuid"]), ()),
+            }
+            for employee in employees
+        ]
+
+    async def personal_devices_for_username(self, username: str) -> tuple[RegisteredDevice, ...]:
+        user = await self.authentik.employee_by_username(username)
+        return (await self._active_personal_devices_by_user()).get(str(user["uuid"]), ())
 
     async def issue_personal(self, actor: Actor, user_pk: int) -> IssuedEnrollment:
         user = await self.authentik.employee(user_pk)
@@ -94,6 +116,7 @@ class EnrollmentService:
         }
         access_group = await self._access_group(group_name, attributes)
         await self._ensure_binding(access_group["pbm_uuid"], user_pk=user_pk)
+        replaced_devices = await self._active_devices(access_group["pbm_uuid"])
         subject = str(user.get("uid", "")).strip()
         if not subject:
             raise AuthentikError(502, "Authentik hat keine stabile Benutzerkennung geliefert.")
@@ -109,6 +132,7 @@ class EnrollmentService:
                 "username": user["username"],
                 "self_service": self_service,
             },
+            replaced_devices=replaced_devices,
         )
 
     async def issue_shared(
@@ -191,6 +215,7 @@ class EnrollmentService:
         mode: str,
         target_label: str,
         target: dict[str, Any],
+        replaced_devices: tuple[RegisteredDevice, ...] = (),
     ) -> IssuedEnrollment:
         expires = datetime.now(UTC) + timedelta(seconds=self.settings.token_ttl_seconds)
         token_record = await self.authentik.create_enrollment_token(
@@ -219,7 +244,14 @@ class EnrollmentService:
             except Exception:
                 LOGGER.exception("failed to clean up enrollment token %s", token_uuid)
             raise
-        return IssuedEnrollment(token_uuid, token, mode, target_label, expires)
+        return IssuedEnrollment(
+            token_uuid,
+            token,
+            mode,
+            target_label,
+            expires,
+            replaced_devices,
+        )
 
     async def redeem(
         self,
@@ -253,6 +285,19 @@ class EnrollmentService:
             if access_group.get("attributes", {}).get("mission-leben.de/mode") != mode:
                 raise AuthentikError(403, "Der Registrierungscode passt nicht zum Gerätemodus.")
 
+            access_group_uuid = str(
+                access_group.get("pbm_uuid") or token_record.get("device_group") or ""
+            )
+            try:
+                UUID(access_group_uuid)
+            except ValueError as error:
+                raise AuthentikError(
+                    502, "Authentik hat keine gültige Gerätegruppe geliefert."
+                ) from error
+            previous_devices = (
+                await self._active_devices(access_group_uuid) if mode == "personal" else ()
+            )
+
             response = await self.authentik.enroll_agent(
                 presented_token,
                 {"device_serial": device_serial, "device_name": clean_name},
@@ -262,6 +307,19 @@ class EnrollmentService:
             except Exception:
                 LOGGER.exception("token deletion failed; forcing expiry for %s", token_uuid)
                 await self.authentik.expire_enrollment_token(token_record)
+
+            replaced_devices: list[RegisteredDevice] = []
+            if mode == "personal":
+                new_device_uuid = await self._replace_personal_devices(
+                    response,
+                    access_group_uuid,
+                    previous_devices,
+                )
+                replaced_devices = [
+                    device
+                    for device in previous_devices
+                    if device.device_uuid != new_device_uuid
+                ]
 
             try:
                 await self.authentik.audit(
@@ -274,11 +332,119 @@ class EnrollmentService:
                         "device_serial": device_serial,
                         "device_name": clean_name,
                         "access_group": access_group.get("name"),
+                        "replaced_device_uuids": [
+                            device.device_uuid for device in replaced_devices
+                        ],
                     },
                 )
             except Exception:
                 LOGGER.exception("failed to audit redeemed enrollment token %s", token_uuid)
             return response
+
+    async def _replace_personal_devices(
+        self,
+        enrollment_response: dict[str, Any],
+        access_group_uuid: str,
+        previous_devices: tuple[RegisteredDevice, ...],
+    ) -> str:
+        agent_token = str(enrollment_response.get("token", ""))
+        if not agent_token:
+            raise AuthentikError(502, "Authentik hat keinen Geräteschlüssel geliefert.")
+        new_device_uuid = await self.authentik.agent_device_id(agent_token)
+        new_device = await self.authentik.device(new_device_uuid)
+        if str(new_device.get("access_group") or "") != access_group_uuid:
+            await self._expire_new_device_after_failed_replacement(new_device_uuid)
+            raise AuthentikError(
+                502,
+                "Das neue Gerät wurde nicht der erwarteten Gerätegruppe zugeordnet.",
+            )
+
+        to_expire = [
+            device for device in previous_devices if device.device_uuid != new_device_uuid
+        ]
+        if not to_expire:
+            return new_device_uuid
+
+        expired_at = datetime.now(UTC)
+        try:
+            for device in to_expire:
+                await self.authentik.expire_device(device.device_uuid, expired_at)
+        except Exception as error:
+            await self._expire_new_device_after_failed_replacement(new_device_uuid)
+            raise AuthentikError(
+                502,
+                "Der sichere Geräteaustausch konnte nicht abgeschlossen werden. "
+                "Das neue Gerät wurde vorsorglich gesperrt; bitte erzeugen Sie einen neuen QR-Code.",
+            ) from error
+        return new_device_uuid
+
+    async def _expire_new_device_after_failed_replacement(self, device_uuid: str) -> None:
+        try:
+            await self.authentik.expire_device(device_uuid, datetime.now(UTC))
+        except Exception:
+            LOGGER.critical(
+                "failed to expire newly enrolled device %s after replacement failure",
+                device_uuid,
+                exc_info=True,
+            )
+
+    async def _active_personal_devices_by_user(
+        self,
+    ) -> dict[str, tuple[RegisteredDevice, ...]]:
+        devices_by_user: dict[str, list[RegisteredDevice]] = {}
+        for device in await self.authentik.devices():
+            if self._is_expired(device):
+                continue
+            attributes = (device.get("access_group_obj") or {}).get("attributes", {})
+            if attributes.get("mission-leben.de/mode") != "personal":
+                continue
+            user_uuid = str(attributes.get("mission-leben.de/user-uuid", ""))
+            if not user_uuid:
+                continue
+            devices_by_user.setdefault(user_uuid, []).append(self._registered_device(device))
+        return {
+            user_uuid: tuple(sorted(devices, key=lambda item: item.name.casefold()))
+            for user_uuid, devices in devices_by_user.items()
+        }
+
+    async def _active_devices(
+        self, access_group_uuid: str
+    ) -> tuple[RegisteredDevice, ...]:
+        return tuple(
+            self._registered_device(device)
+            for device in await self.authentik.devices(access_group_uuid)
+            if not self._is_expired(device)
+        )
+
+    @staticmethod
+    def _registered_device(device: dict[str, Any]) -> RegisteredDevice:
+        facts = device.get("facts") or {}
+        last_seen_raw = facts.get("created")
+        last_seen = None
+        if last_seen_raw:
+            try:
+                last_seen = datetime.fromisoformat(str(last_seen_raw).replace("Z", "+00:00"))
+            except ValueError:
+                LOGGER.warning("invalid device fact timestamp for %s", device.get("device_uuid"))
+        return RegisteredDevice(
+            device_uuid=str(device["device_uuid"]),
+            name=str(device.get("name") or "Unbenanntes Gerät"),
+            last_seen=last_seen,
+        )
+
+    @staticmethod
+    def _is_expired(device: dict[str, Any]) -> bool:
+        if not device.get("expiring"):
+            return False
+        expires_raw = device.get("expires")
+        if not expires_raw:
+            return False
+        try:
+            expires = datetime.fromisoformat(str(expires_raw).replace("Z", "+00:00"))
+        except ValueError:
+            LOGGER.warning("invalid device expiry for %s", device.get("device_uuid"))
+            return False
+        return expires <= datetime.now(UTC)
 
     def _assert_employee_scope(self, actor: Actor, user: dict[str, Any]) -> None:
         if actor.has_global_scope:

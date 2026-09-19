@@ -20,7 +20,7 @@ from authentik.core.models import Group, User
 from authentik.endpoints.models import Device, DeviceAccessGroup, DeviceUserBinding
 
 
-PERSONAL_ACCESS_GROUP_NAME = "Mission Leben Android - Personal"
+PERSONAL_ACCESS_GROUP_PREFIX = "Mission Leben Android - Personal - "
 SHARED_ACCESS_GROUP_PREFIX = "Mission Leben Android - Shared - "
 
 
@@ -46,26 +46,27 @@ with transaction.atomic():
             raise RuntimeError("The selected Authentik user is inactive")
 
         access_group, _ = DeviceAccessGroup.objects.update_or_create(
-            name=PERSONAL_ACCESS_GROUP_NAME,
+            name=PERSONAL_ACCESS_GROUP_PREFIX + str(user.uuid),
             defaults={
                 "attributes": {
                     "mission-leben.de/purpose": "android-portal",
                     "mission-leben.de/status": "active",
                     "mission-leben.de/mode": "personal",
+                    "mission-leben.de/user-uuid": str(user.uuid),
+                    "mission-leben.de/username": user.username,
                 }
             },
         )
-        # The personal access group deliberately has no broad user/group binding.
         DeviceUserBinding.objects.filter(target=access_group).delete()
-        DeviceUserBinding.objects.filter(target=device).delete()
         DeviceUserBinding.objects.create(
-            target=device,
+            target=access_group,
             user=user,
             order=0,
             enabled=True,
             negate=False,
             is_primary=True,
         )
+        DeviceUserBinding.objects.filter(target=device).delete()
         principal = user.username
     else:
         group_name = required("ML_AUTHENTIK_GROUP")

@@ -69,6 +69,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .person-row:last-child { border-bottom: 0; }
 .person-row span { display: flex; flex-direction: column; }
 .person-row small { color: var(--muted); }
+.person-row .existing-device { margin-top: 6px; color: var(--berry); font-weight: 700; }
 .card-form { max-width: 700px; }
 .self-card { margin: 0 auto; text-align: center; }
 .card-form label:not(:first-of-type) { margin-top: 22px; }
@@ -77,6 +78,13 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .hint { color: var(--muted); font-size: .9rem; }
 .notice { margin-top: 18px; padding: 16px; border-radius: 12px; background: #fff4d9; }
 .notice.error { background: #fde8e8; }
+.replacement-warning {
+  margin: 0 0 20px; padding: 16px; border: 1px solid #e6c36a; border-radius: 12px;
+  background: #fff4d9; color: var(--ink); text-align: left;
+}
+.replacement-warning ul { margin: 10px 0; padding-left: 22px; }
+.replacement-warning p { margin: 10px 0 0; }
+.replacement-warning small { color: var(--muted); }
 .target { display: inline-block; margin: 8px 0 0 !important; padding: 8px 15px; border-radius: 999px; background: #f1e7ec; color: var(--berry) !important; font-weight: 800; }
 .qr-card { max-width: 680px; margin: 0 auto; text-align: center; }
 .qr { max-width: 390px; margin: 0 auto; }

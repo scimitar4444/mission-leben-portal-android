@@ -53,6 +53,8 @@ ROLE_GROUPS = {
 PERMISSIONS = (
     "authentik_core.view_user",
     "authentik_core.view_group",
+    "authentik_endpoints.view_device",
+    "authentik_endpoints.change_device",
     "authentik_endpoints.view_deviceaccessgroup",
     "authentik_endpoints.add_deviceaccessgroup",
     "authentik_endpoints.change_deviceaccessgroup",

@@ -232,6 +232,33 @@ class AuthentikClient:
             },
         )
 
+    async def devices(self, access_group_uuid: str | None = None) -> list[dict[str, Any]]:
+        devices = await self._all_results(
+            "/endpoints/devices/", {"page_size": 100}
+        )
+        if access_group_uuid is None:
+            return devices
+        return [
+            device
+            for device in devices
+            if str(device.get("access_group") or "") == access_group_uuid
+        ]
+
+    async def device(self, device_uuid: str) -> dict[str, Any]:
+        UUID(device_uuid)
+        return await self._request("GET", f"/endpoints/devices/{device_uuid}/")
+
+    async def expire_device(self, device_uuid: str, expires: datetime) -> dict[str, Any]:
+        UUID(device_uuid)
+        return await self._request(
+            "PATCH",
+            f"/endpoints/devices/{device_uuid}/",
+            json={
+                "expiring": True,
+                "expires": expires.astimezone(UTC).isoformat().replace("+00:00", "Z"),
+            },
+        )
+
     async def create_enrollment_token(
         self, name: str, access_group_uuid: str, expires: datetime
     ) -> dict[str, Any]:
@@ -284,6 +311,16 @@ class AuthentikClient:
             json=payload,
             authorization=f"Bearer {enrollment_token}",
         )
+
+    async def agent_device_id(self, agent_token: str) -> str:
+        payload = await self._request(
+            "GET",
+            "/endpoints/agents/connectors/agent_config/",
+            authorization=f"Bearer {agent_token}",
+        )
+        device_uuid = str(payload.get("device_id", ""))
+        UUID(device_uuid)
+        return device_uuid
 
     async def audit(self, action: str, actor: dict[str, Any], context: dict[str, Any]) -> None:
         await self._request(

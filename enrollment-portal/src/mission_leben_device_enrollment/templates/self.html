@@ -8,8 +8,19 @@
 </section>
 <form class="card-form self-card" method="post" action="/self/enrollments">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% if existing_devices %}
+  <div class="replacement-warning">
+    <strong>Dieses Konto hat bereits ein persönliches Handy:</strong>
+    <ul>
+      {% for device in existing_devices %}
+      <li>{{ device.name }} <small>· zuletzt {{ device.last_seen | device_seen }}</small></li>
+      {% endfor %}
+    </ul>
+    <p>Das bisherige Handy wird erst gesperrt, nachdem dieses Gerät erfolgreich registriert wurde.</p>
+  </div>
+  {% endif %}
   <p>Nach dem Tippen kehren Sie automatisch zu <strong>Mission Leben Zentral</strong> zurück.</p>
-  <button class="primary" type="submit">Gerät jetzt registrieren</button>
+  <button class="primary" type="submit">{% if existing_devices %}Vorhandenes Handy ersetzen{% else %}Gerät jetzt registrieren{% endif %}</button>
   <p class="hint">Der einmalige Registrierungscode ist nur zehn Minuten gültig.</p>
 </form>
 {% if actor.can_manage_devices %}

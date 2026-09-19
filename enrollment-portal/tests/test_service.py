@@ -21,8 +21,14 @@ class FakeAuthentik:
         self.audit_events = []
         self.deleted_tokens = []
         self.enrolled = []
+        self.expired_devices = []
         self.login_approval_devices = []
         self._bindings = []
+        self.existing_group = None
+        self.device_uuid = "eeeeeeee-bbbb-cccc-dddd-eeeeeeeeeeee"
+        self.device_records = []
+        self.fail_enrollment = False
+        self.fail_expire_for = None
         self.user = {
             "pk": 42,
             "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
@@ -44,6 +50,7 @@ class FakeAuthentik:
             "connector": settings.agent_connector_uuid,
             "device_group": "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee",
             "device_group_obj": {
+                "pbm_uuid": "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee",
                 "name": "Mission Leben Android - Personal",
                 "attributes": {"mission-leben.de/mode": "personal"},
             },
@@ -69,7 +76,7 @@ class FakeAuthentik:
         return self.user
 
     async def access_group_by_name(self, _):
-        return None
+        return self.existing_group
 
     async def create_access_group(self, name, attributes):
         group = {
@@ -80,8 +87,13 @@ class FakeAuthentik:
         self.created_groups.append(group)
         return group
 
-    async def update_access_group(self, *_):
-        raise AssertionError("unexpected update")
+    async def update_access_group(self, group_uuid, name, attributes):
+        self.existing_group = {
+            "pbm_uuid": group_uuid,
+            "name": name,
+            "attributes": attributes,
+        }
+        return self.existing_group
 
     async def bindings(self, _):
         return self._bindings
@@ -91,6 +103,29 @@ class FakeAuthentik:
 
     async def create_group_binding(self, target_uuid, group_uuid):
         self.created_bindings.append(("group", target_uuid, group_uuid))
+
+    async def devices(self, access_group_uuid=None):
+        if access_group_uuid is None:
+            return list(self.device_records)
+        return [
+            device
+            for device in self.device_records
+            if device.get("access_group") == access_group_uuid
+        ]
+
+    async def device(self, device_uuid):
+        return next(
+            device for device in self.device_records if device["device_uuid"] == device_uuid
+        )
+
+    async def expire_device(self, device_uuid, expires):
+        if device_uuid == self.fail_expire_for:
+            raise AuthentikError(500, "forced expiry failure")
+        device = await self.device(device_uuid)
+        device["expiring"] = True
+        device["expires"] = expires.isoformat()
+        self.expired_devices.append(device_uuid)
+        return device
 
     async def ensure_login_approval_device(self, username, subject):
         self.login_approval_devices.append((username, subject))
@@ -121,8 +156,34 @@ class FakeAuthentik:
         return presented == "abcdefghijklmnopqrstuvwxyz0123456789_-"
 
     async def enroll_agent(self, token, payload):
+        if self.fail_enrollment:
+            raise AuthentikError(500, "forced enrollment failure")
         self.enrolled.append((token, payload))
+        existing = next(
+            (
+                device
+                for device in self.device_records
+                if device.get("attributes", {}).get("serial") == payload["device_serial"]
+            ),
+            None,
+        )
+        if existing is None:
+            self.device_records.append(
+                {
+                    "device_uuid": self.device_uuid,
+                    "name": payload["device_name"],
+                    "access_group": self.token_record["device_group"],
+                    "access_group_obj": self.token_record["device_group_obj"],
+                    "expiring": False,
+                    "expires": None,
+                    "facts": None,
+                    "attributes": {"serial": payload["device_serial"]},
+                }
+            )
         return {"token": "agent-device-token"}
+
+    async def agent_device_id(self, _):
+        return self.device_uuid
 
     async def expire_enrollment_token(self, _):
         raise AssertionError("delete should work")
@@ -221,6 +282,132 @@ async def test_redeem_enrolls_in_authentik_and_deletes_token(settings):
     assert authentik.deleted_tokens == [authentik.token_record["token_uuid"]]
     assert authentik.enrolled[0][1]["device_serial"] == "ml-android-1234567890abcdef"
     assert authentik.audit_events[-1][0] == "model_updated"
+
+
+@pytest.mark.asyncio
+async def test_personal_redeem_expires_previous_device_only_after_new_enrollment(settings):
+    authentik = FakeAuthentik(settings)
+    old_device_uuid = "ffffffff-bbbb-cccc-dddd-eeeeeeeeeeee"
+    authentik.device_records.append(
+        {
+            "device_uuid": old_device_uuid,
+            "name": "Altes Handy",
+            "access_group": authentik.token_record["device_group"],
+            "access_group_obj": authentik.token_record["device_group_obj"],
+            "expiring": False,
+            "expires": None,
+            "facts": {"created": "2026-09-19T08:15:00Z"},
+            "attributes": {"serial": "ml-android-fedcba0987654321"},
+        }
+    )
+    service = EnrollmentService(settings, authentik)
+
+    await service.redeem(
+        authentik.token_record["token_uuid"],
+        "abcdefghijklmnopqrstuvwxyz0123456789_-",
+        "personal",
+        "ml-android-1234567890abcdef",
+        "Neues Handy",
+    )
+
+    assert authentik.enrolled
+    assert authentik.expired_devices == [old_device_uuid]
+    assert authentik.device_records[-1]["device_uuid"] == authentik.device_uuid
+    assert authentik.device_records[-1]["expiring"] is False
+    assert authentik.audit_events[-1][2]["replaced_device_uuids"] == [old_device_uuid]
+
+
+@pytest.mark.asyncio
+async def test_reenrolling_same_device_does_not_expire_it(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.device_records.append(
+        {
+            "device_uuid": authentik.device_uuid,
+            "name": "Vorhandenes Handy",
+            "access_group": authentik.token_record["device_group"],
+            "access_group_obj": authentik.token_record["device_group_obj"],
+            "expiring": False,
+            "expires": None,
+            "facts": None,
+            "attributes": {"serial": "ml-android-1234567890abcdef"},
+        }
+    )
+    service = EnrollmentService(settings, authentik)
+
+    await service.redeem(
+        authentik.token_record["token_uuid"],
+        "abcdefghijklmnopqrstuvwxyz0123456789_-",
+        "personal",
+        "ml-android-1234567890abcdef",
+        "Vorhandenes Handy",
+    )
+
+    assert authentik.expired_devices == []
+
+
+@pytest.mark.asyncio
+async def test_failed_enrollment_keeps_previous_device_active(settings):
+    authentik = FakeAuthentik(settings)
+    old_device_uuid = "ffffffff-bbbb-cccc-dddd-eeeeeeeeeeee"
+    authentik.device_records.append(
+        {
+            "device_uuid": old_device_uuid,
+            "name": "Altes Handy",
+            "access_group": authentik.token_record["device_group"],
+            "access_group_obj": authentik.token_record["device_group_obj"],
+            "expiring": False,
+            "expires": None,
+            "facts": None,
+            "attributes": {"serial": "ml-android-fedcba0987654321"},
+        }
+    )
+    authentik.fail_enrollment = True
+    service = EnrollmentService(settings, authentik)
+
+    with pytest.raises(AuthentikError):
+        await service.redeem(
+            authentik.token_record["token_uuid"],
+            "abcdefghijklmnopqrstuvwxyz0123456789_-",
+            "personal",
+            "ml-android-1234567890abcdef",
+            "Neues Handy",
+        )
+
+    assert authentik.expired_devices == []
+    assert authentik.device_records[0]["expiring"] is False
+
+
+@pytest.mark.asyncio
+async def test_failed_old_device_expiry_locks_new_device(settings):
+    authentik = FakeAuthentik(settings)
+    old_device_uuid = "ffffffff-bbbb-cccc-dddd-eeeeeeeeeeee"
+    authentik.device_records.append(
+        {
+            "device_uuid": old_device_uuid,
+            "name": "Altes Handy",
+            "access_group": authentik.token_record["device_group"],
+            "access_group_obj": authentik.token_record["device_group_obj"],
+            "expiring": False,
+            "expires": None,
+            "facts": None,
+            "attributes": {"serial": "ml-android-fedcba0987654321"},
+        }
+    )
+    authentik.fail_expire_for = old_device_uuid
+    service = EnrollmentService(settings, authentik)
+
+    with pytest.raises(AuthentikError) as error:
+        await service.redeem(
+            authentik.token_record["token_uuid"],
+            "abcdefghijklmnopqrstuvwxyz0123456789_-",
+            "personal",
+            "ml-android-1234567890abcdef",
+            "Neues Handy",
+        )
+
+    assert error.value.status == 502
+    assert authentik.expired_devices == [authentik.device_uuid]
+    assert authentik.device_records[0]["expiring"] is False
 
 
 @pytest.mark.asyncio

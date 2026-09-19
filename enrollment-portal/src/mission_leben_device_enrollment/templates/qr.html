@@ -7,6 +7,17 @@
   <p class="target">{{ enrollment.target_label }}</p>
 </section>
 <section class="qr-card">
+  {% if enrollment.mode == "personal" and enrollment.replaced_devices %}
+  <div class="replacement-warning">
+    <strong>Dieses neue Handy ersetzt nach erfolgreicher Einrichtung:</strong>
+    <ul>
+      {% for device in enrollment.replaced_devices %}
+      <li>{{ device.name }} <small>· zuletzt {{ device.last_seen | device_seen }}</small></li>
+      {% endfor %}
+    </ul>
+    <p>Bis zum erfolgreichen Scan bleibt das bisherige Handy aktiv.</p>
+  </div>
+  {% endif %}
   <div class="qr" aria-label="Einrichtungs-QR-Code">{{ qr_svg | safe }}</div>
   <ol>
     <li>Auf dem neuen Gerät die normale Kamera öffnen.</li>

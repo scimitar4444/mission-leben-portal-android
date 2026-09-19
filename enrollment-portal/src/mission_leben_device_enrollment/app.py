@@ -40,6 +40,11 @@ def create_app(
         autoescape=select_autoescape(["html", "xml"]),
         undefined=StrictUndefined,
     )
+    templates.filters["device_seen"] = lambda value: (
+        value.astimezone(ZoneInfo(settings.display_timezone)).strftime("%d.%m.%Y, %H:%M Uhr")
+        if value is not None
+        else "noch keine Meldung"
+    )
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
@@ -148,6 +153,7 @@ def create_app(
         current = authenticated_actor(request)
         return html(
             "self.html",
+            existing_devices=await service.personal_devices_for_username(current.username),
             **page_context(current, "issue-self-personal"),
         )
 

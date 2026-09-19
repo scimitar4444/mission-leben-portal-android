@@ -26,8 +26,11 @@
     <span>
       <strong>{{ employee.name or employee.username }}</strong>
       <small>{{ employee.username }}</small>
+      {% for device in employee.personal_devices %}
+      <small class="existing-device">Vorhandenes Handy: {{ device.name }} · zuletzt {{ device.last_seen | device_seen }}</small>
+      {% endfor %}
     </span>
-    <button type="submit">Diese Person</button>
+    <button type="submit">{% if employee.personal_devices %}Handy ersetzen{% else %}Diese Person{% endif %}</button>
   </form>
   {% endfor %}
 </section>
