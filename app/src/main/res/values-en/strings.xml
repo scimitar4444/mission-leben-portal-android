@@ -26,6 +26,9 @@
     <string name="update_download_install">Download and install</string>
     <string name="update_downloading">Verifying and downloading update…</string>
     <string name="update_later">Later</string>
+    <string name="update_check_action">Check for updates</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_up_to_date">Mission Leben Zentral is up to date (version %1$s).</string>
     <string name="update_check_failed">Updates cannot be checked at the moment.</string>
     <string name="update_download_failed">The update could not be downloaded or verified securely.</string>
     <string name="update_install_permission_denied">Allow Mission Leben Zentral to install unknown apps, then try again.</string>
@@ -164,4 +167,16 @@
     <string name="channel_talk_description">Notifications about Talk activity</string>
     <string name="channel_security_name">Device security</string>
     <string name="channel_security_description">Important device security notifications</string>
+    <string name="login_approval_title">Login request</string>
+    <string name="login_approval_body">There is a login request.</string>
+    <string name="login_approval_application">Application: %1$s</string>
+    <string name="login_approval_sending">Sending response…</string>
+    <string name="login_approval_approve">Approve</string>
+    <string name="login_approval_deny">Deny</string>
+    <string name="login_approval_expired">The login request has expired.</string>
+    <string name="login_approval_approved">Login request approved.</string>
+    <string name="login_approval_denied">Login request denied.</string>
+    <string name="login_approval_failed">The login request could not be answered.</string>
+    <string name="login_approval_personal_only">Login requests can only be approved on personal devices.</string>
+    <string name="login_approval_invalid">Invalid login request.</string>
 </resources>

@@ -4,9 +4,17 @@ import base64
 import hashlib
 import json
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+
+DUO_INTEGRATION_KEY = re.compile(r"^[A-Za-z0-9]{20,64}$")
+API_HOSTNAME = re.compile(
+    r"^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+"
+    r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+)
 
 
 def _required(name: str, dev_mode: bool) -> str:
@@ -34,11 +42,19 @@ class Settings:
     nextcloud_backend_url: str
     talk_recipients: dict[str, tuple[str, ...]]
     nextcloud_user_subjects: dict[str, str]
+    duo_integration_key: str
+    duo_secret_key: bytes | None
+    duo_api_hostname: str
+    duo_approval_timeout_seconds: int
     dev_mode: bool
 
     @property
     def fcm_configured(self) -> bool:
         return bool(self.firebase_project_id and self.google_credentials_path)
+
+    @property
+    def duo_configured(self) -> bool:
+        return bool(self.duo_integration_key and self.duo_secret_key and self.duo_api_hostname)
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -77,6 +93,26 @@ class Settings:
         user_subjects_value = json.loads(os.getenv("BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON", "{}"))
         if not isinstance(recipients_value, dict) or not isinstance(user_subjects_value, dict):
             raise RuntimeError("Nextcloud mapping values must be JSON objects")
+        duo_integration_key = os.getenv("BRIDGE_DUO_INTEGRATION_KEY", "").strip()
+        duo_secret_value = os.getenv("BRIDGE_DUO_SECRET_KEY", "").strip()
+        duo_api_hostname = os.getenv("BRIDGE_DUO_API_HOSTNAME", "").strip().lower()
+        duo_values = (duo_integration_key, duo_secret_value, duo_api_hostname)
+        if any(duo_values) and not all(duo_values):
+            raise RuntimeError("All BRIDGE_DUO_* values must be configured together")
+        if duo_integration_key and not DUO_INTEGRATION_KEY.fullmatch(duo_integration_key):
+            raise RuntimeError(
+                "BRIDGE_DUO_INTEGRATION_KEY must contain 20 to 64 alphanumeric characters"
+            )
+        if duo_secret_value and len(duo_secret_value) < 32:
+            raise RuntimeError("BRIDGE_DUO_SECRET_KEY must contain at least 32 characters")
+        if duo_api_hostname and not API_HOSTNAME.fullmatch(duo_api_hostname):
+            raise RuntimeError("BRIDGE_DUO_API_HOSTNAME must be a hostname without scheme or path")
+        try:
+            duo_timeout = int(os.getenv("BRIDGE_DUO_APPROVAL_TIMEOUT_SECONDS", "60"))
+        except ValueError as error:
+            raise RuntimeError("BRIDGE_DUO_APPROVAL_TIMEOUT_SECONDS must be an integer") from error
+        if not 15 <= duo_timeout <= 90:
+            raise RuntimeError("BRIDGE_DUO_APPROVAL_TIMEOUT_SECONDS must be between 15 and 90")
         return cls(
             listen_host=os.getenv("BRIDGE_LISTEN_HOST", "0.0.0.0"),
             listen_port=int(os.getenv("BRIDGE_LISTEN_PORT", "8080")),
@@ -102,5 +138,9 @@ class Settings:
                 if isinstance(subjects, list)
             },
             nextcloud_user_subjects={str(user): str(subject) for user, subject in user_subjects_value.items()},
+            duo_integration_key=duo_integration_key,
+            duo_secret_key=duo_secret_value.encode() if duo_secret_value else None,
+            duo_api_hostname=duo_api_hostname,
+            duo_approval_timeout_seconds=duo_timeout,
             dev_mode=dev_mode,
         )

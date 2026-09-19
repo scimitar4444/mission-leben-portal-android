@@ -35,6 +35,7 @@ Sie speichert nur die für Kommunikation notwendige Zuordnung eines von Authenti
 - deduplizierte Quellereignisse und Versandstatus pro Gerät
 - Zimbra SOAP WaitSet für ausgewählte Konten, Mail-Suche und Kalenderinstanzen
 - Talk-Handoff-Vertrag mit fest konfigurierten Zielgeräten und maximal 30 Sekunden TTL
+- Authentik-App-Bestätigung über die normale Duo-Stufe und eine eng begrenzte, signierte Duo-Auth-API-Kompatibilität; die eigentliche Bestätigung kommt ausschließlich von einem persönlichen, live bei Authentik geprüften Endpoint
 
 ## Noch kein Produktionsversprechen
 
@@ -54,7 +55,9 @@ Für den ersten Kommunikations-Pilot ohne FCM, Zimbra und Talk steht eine reduzi
 sudo ./deploy/install-device-pilot.sh
 ```
 
-Die Nginx-Locations aus `deploy/nginx-device-bridge-location.conf` veröffentlichen nur `/device-bridge/healthz` und `/device-bridge/v1/`. Admin-, interne und Quellendpunkte bleiben von außen gesperrt. Der tägliche konsistente SQLite-Backupjob wird mit den beiden mitgelieferten systemd-Units aktiviert.
+Die Nginx-Locations aus `deploy/nginx-device-bridge-location.conf` veröffentlichen `/device-bridge/healthz`, `/device-bridge/v1/` sowie exakt die drei von Authentik signierten Routen `/auth/v2/ping`, `/auth/v2/check` und `/auth/v2/auth`. Admin-, interne und Quellendpunkte bleiben von außen gesperrt. Der tägliche konsistente SQLite-Backupjob wird mit den beiden mitgelieferten systemd-Units aktiviert.
+
+Für die App-Bestätigung müssen `BRIDGE_DUO_INTEGRATION_KEY`, `BRIDGE_DUO_SECRET_KEY` und `BRIDGE_DUO_API_HOSTNAME` mit der Authentik-Stufe aus `authentik/bootstrap_app_approval.py` übereinstimmen. Das API-Geheimnis wird nie an Android übertragen. `/auth/v2/auth` wartet höchstens 60 Sekunden; bei Zeitablauf, Bridge-Fehler oder unbekanntem/gesperrtem Endpoint liefert die Bridge ausdrücklich `deny`.
 
 Für den vollständigen Benachrichtigungspilot mit FCM, Zimbra und Talk gilt weiterhin:
 

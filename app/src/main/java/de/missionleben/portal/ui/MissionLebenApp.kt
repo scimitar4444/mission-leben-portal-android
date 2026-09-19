@@ -76,6 +76,9 @@ fun MissionLebenApp(
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
+    onCheckForUpdates: () -> Unit,
+    onApproveLogin: () -> Unit,
+    onDenyLogin: () -> Unit,
     onInstallUpdate: () -> Unit,
     onDismissUpdate: () -> Unit,
     currentLanguageTag: String?,
@@ -86,7 +89,15 @@ fun MissionLebenApp(
         color = MaterialTheme.colorScheme.background,
     ) {
         if (state.mode == null) {
-            Onboarding(onScanEnrollmentQr, onSelfEnrollment, currentLanguageTag, onLanguageChange)
+            Onboarding(
+                state = state,
+                onScanEnrollmentQr = onScanEnrollmentQr,
+                onSelfEnrollment = onSelfEnrollment,
+                onDismissMessage = onDismissMessage,
+                onCheckForUpdates = onCheckForUpdates,
+                currentLanguageTag = currentLanguageTag,
+                onLanguageChange = onLanguageChange,
+            )
         } else {
             Home(
                 state = state,
@@ -100,12 +111,47 @@ fun MissionLebenApp(
                 onLogout = onLogout,
                 onResetProfile = onResetProfile,
                 onDismissMessage = onDismissMessage,
+                onCheckForUpdates = onCheckForUpdates,
                 currentLanguageTag = currentLanguageTag,
                 onLanguageChange = onLanguageChange,
             )
         }
     }
-    state.availableUpdate?.let { update ->
+    state.loginApprovalRequest?.let { request ->
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text(stringResource(R.string.login_approval_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(stringResource(R.string.login_approval_body))
+                    if (request.application.isNotBlank()) {
+                        Text(
+                            stringResource(R.string.login_approval_application, request.application),
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                    if (state.loginApprovalSubmitting) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                            Spacer(Modifier.width(10.dp))
+                            Text(stringResource(R.string.login_approval_sending))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = onApproveLogin, enabled = !state.loginApprovalSubmitting) {
+                    Text(stringResource(R.string.login_approval_approve))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDenyLogin, enabled = !state.loginApprovalSubmitting) {
+                    Text(stringResource(R.string.login_approval_deny))
+                }
+            },
+        )
+    }
+    if (state.loginApprovalRequest == null) state.availableUpdate?.let { update ->
         val downloading = state.updateStatus == UpdateStatus.DOWNLOADING
         AlertDialog(
             onDismissRequest = { if (!downloading) onDismissUpdate() },
@@ -138,8 +184,11 @@ fun MissionLebenApp(
 
 @Composable
 private fun Onboarding(
+    state: UiState,
     onScanEnrollmentQr: () -> Unit,
     onSelfEnrollment: () -> Unit,
+    onDismissMessage: () -> Unit,
+    onCheckForUpdates: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
@@ -149,6 +198,7 @@ private fun Onboarding(
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         item { BrandHeader() }
+        state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
         item {
             Spacer(Modifier.height(8.dp))
             Text(stringResource(R.string.onboarding_scan_heading), fontSize = 32.sp, lineHeight = 36.sp, fontWeight = FontWeight.Black)
@@ -190,6 +240,7 @@ private fun Onboarding(
             )
         }
         item { LanguagePanel(currentLanguageTag, onLanguageChange) }
+        item { UpdateFooter(state.updateStatus, onCheckForUpdates) }
     }
 }
 
@@ -206,6 +257,7 @@ private fun Home(
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
+    onCheckForUpdates: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
@@ -252,15 +304,43 @@ private fun Home(
 
         item { LanguagePanel(currentLanguageTag, onLanguageChange) }
 
-        item {
-            HorizontalDivider(Modifier.padding(top = 8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(stringResource(R.string.version_format, BuildConfig.VERSION_NAME), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-                TextButton(onClick = onResetProfile) { Text(stringResource(R.string.switch_device_profile)) }
+        item { UpdateFooter(state.updateStatus, onCheckForUpdates, onResetProfile) }
+    }
+}
+
+@Composable
+private fun UpdateFooter(
+    status: UpdateStatus,
+    onCheckForUpdates: () -> Unit,
+    onResetProfile: (() -> Unit)? = null,
+) {
+    val checking = status == UpdateStatus.CHECKING
+    val actionEnabled = status != UpdateStatus.CHECKING &&
+        status != UpdateStatus.DOWNLOADING &&
+        status != UpdateStatus.READY
+    Column(Modifier.fillMaxWidth()) {
+        HorizontalDivider(Modifier.padding(top = 8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.version_format, BuildConfig.VERSION_NAME),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp,
+            )
+            TextButton(onClick = onCheckForUpdates, enabled = actionEnabled) {
+                Text(
+                    stringResource(
+                        if (checking) R.string.update_checking else R.string.update_check_action,
+                    ),
+                )
+            }
+        }
+        onResetProfile?.let { reset ->
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                TextButton(onClick = reset) { Text(stringResource(R.string.switch_device_profile)) }
             }
         }
     }

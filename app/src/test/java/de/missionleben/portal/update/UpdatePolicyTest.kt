@@ -1,9 +1,7 @@
 package de.missionleben.portal.update
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class UpdatePolicyTest {
@@ -54,14 +52,5 @@ class UpdatePolicyTest {
             ),
             26,
         )
-    }
-
-    @Test
-    fun `automatic check is throttled for six hours`() {
-        val now = 1_800_000_000_000L
-        assertTrue(UpdatePolicy.shouldCheck(0L, now))
-        assertFalse(UpdatePolicy.shouldCheck(now - UpdatePolicy.CHECK_INTERVAL_MILLIS + 1L, now))
-        assertTrue(UpdatePolicy.shouldCheck(now - UpdatePolicy.CHECK_INTERVAL_MILLIS, now))
-        assertTrue(UpdatePolicy.shouldCheck(now + 1L, now))
     }
 }

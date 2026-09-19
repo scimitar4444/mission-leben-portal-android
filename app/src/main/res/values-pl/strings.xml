@@ -26,6 +26,9 @@
     <string name="update_download_install">Pobierz i zainstaluj</string>
     <string name="update_downloading">Sprawdzanie i pobieranie aktualizacji…</string>
     <string name="update_later">Później</string>
+    <string name="update_check_action">Sprawdź aktualizacje</string>
+    <string name="update_checking">Sprawdzanie aktualizacji…</string>
+    <string name="update_up_to_date">Mission Leben Zentral jest aktualna (wersja %1$s).</string>
     <string name="update_check_failed">Obecnie nie można sprawdzić aktualizacji.</string>
     <string name="update_download_failed">Nie udało się bezpiecznie pobrać lub sprawdzić aktualizacji.</string>
     <string name="update_install_permission_denied">Zezwól Mission Leben Zentral na instalowanie nieznanych aplikacji i spróbuj ponownie.</string>
@@ -164,4 +167,16 @@
     <string name="channel_talk_description">Powiadomienia o aktywności Talk</string>
     <string name="channel_security_name">Bezpieczeństwo urządzenia</string>
     <string name="channel_security_description">Ważne powiadomienia o bezpieczeństwie urządzenia</string>
+    <string name="login_approval_title">Żądanie logowania</string>
+    <string name="login_approval_body">Oczekuje żądanie logowania.</string>
+    <string name="login_approval_application">Aplikacja: %1$s</string>
+    <string name="login_approval_sending">Wysyłanie odpowiedzi…</string>
+    <string name="login_approval_approve">Zatwierdź</string>
+    <string name="login_approval_deny">Odrzuć</string>
+    <string name="login_approval_expired">Żądanie logowania wygasło.</string>
+    <string name="login_approval_approved">Żądanie logowania zostało zatwierdzone.</string>
+    <string name="login_approval_denied">Żądanie logowania zostało odrzucone.</string>
+    <string name="login_approval_failed">Nie można było odpowiedzieć na żądanie logowania.</string>
+    <string name="login_approval_personal_only">Żądania logowania można zatwierdzać tylko na urządzeniach osobistych.</string>
+    <string name="login_approval_invalid">Nieprawidłowe żądanie logowania.</string>
 </resources>

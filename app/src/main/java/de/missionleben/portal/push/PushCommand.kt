@@ -4,6 +4,7 @@ sealed interface PushCommand {
     data class Legacy(val action: PushAction) : PushCommand
     data class Fetch(val eventId: String, val eventType: PushAction, val revision: String) : PushCommand
     data class Cancel(val eventId: String) : PushCommand
+    data class LoginApproval(val requestId: String) : PushCommand
 
     companion object {
         fun parse(data: Map<String, String>): PushCommand? {
@@ -20,6 +21,11 @@ sealed interface PushCommand {
                 "cancel_notification" -> {
                     val eventId = data["event_id"]?.takeIf(::validEventId) ?: return null
                     Cancel(eventId)
+                }
+
+                "fetch_login_approval" -> {
+                    val requestId = data["request_id"]?.takeIf(::validEventId) ?: return null
+                    LoginApproval(requestId)
                 }
 
                 else -> PushAction.fromWireName(actionName)?.let(::Legacy)

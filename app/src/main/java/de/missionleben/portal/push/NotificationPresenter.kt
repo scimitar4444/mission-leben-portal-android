@@ -34,6 +34,54 @@ object NotificationPresenter {
         NotificationManagerCompat.from(context).cancel(id)
     }
 
+    fun showLoginApproval(context: Context, requestId: String) {
+        if (
+            !PushCommand.validEventId(requestId) ||
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        val notificationId = loginApprovalNotificationId(requestId)
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(PortalFirebaseMessagingService.EXTRA_LOGIN_APPROVAL_REQUEST_ID, requestId)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            notificationId,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val title = context.getString(R.string.login_approval_title)
+        val body = context.getString(R.string.login_approval_body)
+        val notification = NotificationCompat.Builder(context, "security")
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setCategory(NotificationCompat.CATEGORY_CALL)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(
+                NotificationCompat.Builder(context, "security")
+                    .setSmallIcon(R.drawable.ic_notification)
+                    .setContentTitle(title)
+                    .setContentText(body)
+                    .build(),
+            )
+            .build()
+        NotificationManagerCompat.from(context).notify(notificationId, notification)
+    }
+
+    fun cancelLoginApproval(context: Context, requestId: String) {
+        if (!PushCommand.validEventId(requestId)) return
+        NotificationManagerCompat.from(context).cancel(loginApprovalNotificationId(requestId))
+    }
+
     private fun show(
         context: Context,
         action: PushAction,
@@ -92,6 +140,9 @@ object NotificationPresenter {
     }
 
     internal fun notificationId(eventId: String): Int = 1_000 + (eventId.hashCode() and 0x0fffffff)
+
+    internal fun loginApprovalNotificationId(requestId: String): Int =
+        300_000_000 + (requestId.hashCode() and 0x00ffffff)
 
     private fun category(action: PushAction): String = when (action) {
         PushAction.OPEN_MAIL, PushAction.OPEN_TALK -> NotificationCompat.CATEGORY_MESSAGE

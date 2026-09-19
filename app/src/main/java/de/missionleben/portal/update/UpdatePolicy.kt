@@ -3,7 +3,6 @@ package de.missionleben.portal.update
 import java.net.URI
 
 object UpdatePolicy {
-    const val CHECK_INTERVAL_MILLIS = 6L * 60L * 60L * 1_000L
     const val MAX_APK_SIZE_BYTES = 200L * 1024L * 1024L
 
     private const val PACKAGE_NAME = "de.missionleben.portal"
@@ -14,11 +13,6 @@ object UpdatePolicy {
     private val releaseAssetPathPattern = Regex(
         "^${Regex.escape(RELEASE_PATH_PREFIX)}[0-9A-Za-z._-]+/mission-leben-zentral\\.apk$",
     )
-
-    fun shouldCheck(lastCheckEpochMillis: Long, nowEpochMillis: Long): Boolean =
-        lastCheckEpochMillis <= 0L ||
-            nowEpochMillis < lastCheckEpochMillis ||
-            nowEpochMillis - lastCheckEpochMillis >= CHECK_INTERVAL_MILLIS
 
     fun availableUpdate(manifest: UpdateManifest, currentVersionCode: Long): AppUpdate? {
         require(manifest.schema == 1) { "Unsupported update manifest schema" }

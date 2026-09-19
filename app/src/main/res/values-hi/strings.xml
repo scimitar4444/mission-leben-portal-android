@@ -26,6 +26,9 @@
     <string name="update_download_install">डाउनलोड और इंस्टॉल करें</string>
     <string name="update_downloading">अपडेट की जाँच और डाउनलोड हो रहा है…</string>
     <string name="update_later">बाद में</string>
+    <string name="update_check_action">अपडेट खोजें</string>
+    <string name="update_checking">अपडेट की जाँच हो रही है…</string>
+    <string name="update_up_to_date">Mission Leben Zentral अद्यतित है (संस्करण %1$s)।</string>
     <string name="update_check_failed">अभी अपडेट की जाँच नहीं की जा सकती।</string>
     <string name="update_download_failed">अपडेट को सुरक्षित रूप से डाउनलोड या सत्यापित नहीं किया जा सका।</string>
     <string name="update_install_permission_denied">Mission Leben Zentral को अज्ञात ऐप इंस्टॉल करने की अनुमति दें और फिर प्रयास करें।</string>
@@ -164,4 +167,16 @@
     <string name="channel_talk_description">Talk गतिविधि की सूचनाएँ</string>
     <string name="channel_security_name">डिवाइस सुरक्षा</string>
     <string name="channel_security_description">डिवाइस सुरक्षा की महत्वपूर्ण सूचनाएँ</string>
+    <string name="login_approval_title">लॉगिन अनुरोध</string>
+    <string name="login_approval_body">एक लॉगिन अनुरोध मौजूद है।</string>
+    <string name="login_approval_application">ऐप्लिकेशन: %1$s</string>
+    <string name="login_approval_sending">उत्तर भेजा जा रहा है…</string>
+    <string name="login_approval_approve">स्वीकार करें</string>
+    <string name="login_approval_deny">अस्वीकार करें</string>
+    <string name="login_approval_expired">लॉगिन अनुरोध की समय-सीमा समाप्त हो गई है।</string>
+    <string name="login_approval_approved">लॉगिन अनुरोध स्वीकार कर लिया गया।</string>
+    <string name="login_approval_denied">लॉगिन अनुरोध अस्वीकार कर दिया गया।</string>
+    <string name="login_approval_failed">लॉगिन अनुरोध का उत्तर नहीं दिया जा सका।</string>
+    <string name="login_approval_personal_only">लॉगिन अनुरोध केवल निजी डिवाइस पर स्वीकार किए जा सकते हैं।</string>
+    <string name="login_approval_invalid">अमान्य लॉगिन अनुरोध।</string>
 </resources>

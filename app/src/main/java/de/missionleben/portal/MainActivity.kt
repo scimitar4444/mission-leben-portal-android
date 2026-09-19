@@ -24,6 +24,8 @@ import androidx.fragment.app.FragmentActivity
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.PortalFirebaseMessagingService
+import de.missionleben.portal.push.NotificationPresenter
+import de.missionleben.portal.push.PushCommand
 import de.missionleben.portal.push.PushManager
 import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.ui.MissionLebenApp
@@ -49,8 +51,11 @@ class MainActivity : FragmentActivity() {
 
     private val pushRegistrationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == PortalFirebaseMessagingService.ACTION_REGISTRATION_CHANGED) {
-                viewModel.syncPushRegistration()
+            when (intent?.action) {
+                PortalFirebaseMessagingService.ACTION_REGISTRATION_CHANGED -> viewModel.syncPushRegistration()
+                PortalFirebaseMessagingService.ACTION_LOGIN_APPROVAL_CHANGED -> {
+                    handleLoginApprovalWake(intent)
+                }
             }
         }
     }
@@ -114,6 +119,7 @@ class MainActivity : FragmentActivity() {
         PushManager.initialize(this)
         viewModel.acceptEnrollmentLink(intent?.data)
         viewModel.acceptPushAction(intent?.getStringExtra(PortalFirebaseMessagingService.EXTRA_PUSH_ACTION))
+        handleLoginApprovalWake(intent)
 
         setContent {
             MissionLebenTheme {
@@ -169,6 +175,9 @@ class MainActivity : FragmentActivity() {
                         }
                     },
                     onDismissMessage = viewModel::clearMessage,
+                    onCheckForUpdates = { viewModel.checkForUpdates(force = true) },
+                    onApproveLogin = { viewModel.decideLoginApproval(true) },
+                    onDenyLogin = { viewModel.decideLoginApproval(false) },
                     onInstallUpdate = viewModel::downloadUpdate,
                     onDismissUpdate = viewModel::dismissUpdate,
                     currentLanguageTag = currentLanguageTag(),
@@ -183,23 +192,41 @@ class MainActivity : FragmentActivity() {
         setIntent(intent)
         viewModel.acceptEnrollmentLink(intent.data)
         viewModel.acceptPushAction(intent.getStringExtra(PortalFirebaseMessagingService.EXTRA_PUSH_ACTION))
+        handleLoginApprovalWake(intent)
     }
 
     override fun onStart() {
         super.onStart()
         viewModel.checkForUpdates()
         viewModel.refreshDeviceStatus()
+        viewModel.startLoginApprovalPolling()
         ContextCompat.registerReceiver(
             this,
             pushRegistrationReceiver,
-            IntentFilter(PortalFirebaseMessagingService.ACTION_REGISTRATION_CHANGED),
+            IntentFilter().apply {
+                addAction(PortalFirebaseMessagingService.ACTION_REGISTRATION_CHANGED)
+                addAction(PortalFirebaseMessagingService.ACTION_LOGIN_APPROVAL_CHANGED)
+            },
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
+        MissionLebenApplication.setPortalVisible(true)
     }
 
     override fun onStop() {
+        MissionLebenApplication.setPortalVisible(false)
+        viewModel.stopLoginApprovalPolling()
         unregisterReceiver(pushRegistrationReceiver)
         super.onStop()
+    }
+
+    private fun handleLoginApprovalWake(intent: Intent?) {
+        val requestId = intent
+            ?.getStringExtra(PortalFirebaseMessagingService.EXTRA_LOGIN_APPROVAL_REQUEST_ID)
+            ?.takeIf(PushCommand::validEventId)
+            ?: return
+        NotificationPresenter.cancelLoginApproval(this, requestId)
+        intent.removeExtra(PortalFirebaseMessagingService.EXTRA_LOGIN_APPROVAL_REQUEST_ID)
+        viewModel.refreshLoginApproval()
     }
 
     private fun requestNotificationPermissionAfterLogin(signedIn: Boolean) {

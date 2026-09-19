@@ -26,6 +26,9 @@
     <string name="update_download_install">İndir ve yükle</string>
     <string name="update_downloading">Güncelleme doğrulanıyor ve indiriliyor…</string>
     <string name="update_later">Daha sonra</string>
+    <string name="update_check_action">Güncellemeleri denetle</string>
+    <string name="update_checking">Güncellemeler denetleniyor…</string>
+    <string name="update_up_to_date">Mission Leben Zentral güncel (sürüm %1$s).</string>
     <string name="update_check_failed">Güncellemeler şu anda denetlenemiyor.</string>
     <string name="update_download_failed">Güncelleme güvenli şekilde indirilemedi veya doğrulanamadı.</string>
     <string name="update_install_permission_denied">Mission Leben Zentral’in bilinmeyen uygulamaları yüklemesine izin verip yeniden deneyin.</string>
@@ -164,4 +167,16 @@
     <string name="channel_talk_description">Talk etkinlikleri hakkında bildirimler</string>
     <string name="channel_security_name">Cihaz güvenliği</string>
     <string name="channel_security_description">Önemli cihaz güvenliği bildirimleri</string>
+    <string name="login_approval_title">Oturum açma isteği</string>
+    <string name="login_approval_body">Bir oturum açma isteği var.</string>
+    <string name="login_approval_application">Uygulama: %1$s</string>
+    <string name="login_approval_sending">Yanıt gönderiliyor…</string>
+    <string name="login_approval_approve">Onayla</string>
+    <string name="login_approval_deny">Reddet</string>
+    <string name="login_approval_expired">Oturum açma isteğinin süresi doldu.</string>
+    <string name="login_approval_approved">Oturum açma isteği onaylandı.</string>
+    <string name="login_approval_denied">Oturum açma isteği reddedildi.</string>
+    <string name="login_approval_failed">Oturum açma isteği yanıtlanamadı.</string>
+    <string name="login_approval_personal_only">Oturum açma istekleri yalnızca kişisel cihazlarda onaylanabilir.</string>
+    <string name="login_approval_invalid">Geçersiz oturum açma isteği.</string>
 </resources>

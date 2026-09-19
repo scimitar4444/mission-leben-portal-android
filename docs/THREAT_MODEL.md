@@ -20,6 +20,9 @@
 | Refresh-Nutzung verlängert die Anmeldung unbegrenzt | App erzwingt unabhängig von Authentiks Rotation eine absolute Grenze von `auth_time + 90 Tage`; danach werden Token und Webdaten entfernt |
 | Angreifer nutzt den gespeicherten Anmeldenamen für passwortlosen Zugang | Der verkürzte 90-Tage-Flow läuft nur nach Prüfung von persönlichem Modus, Endpoint, Ablauf und direkter Benutzerbindung. Das Passwort entfällt ausschließlich, wenn derselbe Benutzer bereits ein bestätigtes TOTP besitzt; sonst wird das Passwort verlangt |
 | anderes Gerät kopiert Geräte-ID | P-256-Private-Key ist nicht exportierbar; Server verlangt Besitznachweis |
+| fremdes Gerät bestätigt eine Web-Anmeldung | Authentik ordnet den Benutzer der Anfrage zu; die Bridge liefert sie nur an persönliche Kommunikationsregistrierungen desselben OIDC-Subjects aus und verlangt eine frische P-256-Signatur sowie ein weiterhin gültiges Authentik-Device-Token |
+| Bridge-/Netzfehler lässt eine Anmeldung versehentlich durch | die Duo-kompatible API liefert bei Fehler, Zeitablauf, unbekanntem Ergebnis oder fehlendem Gerät ausdrücklich `deny`; nur ein rechtzeitiges, einmaliges `approve` wird zu `allow` |
+| App-Bestätigung erzeugt einen Anmelde-Loop | der eigene Android-OIDC-Flow enthält die zentrale App-Bestätigungsstufe nicht; sie ist nur eine Option in den zentralen Browser-Flows |
 | vorheriger Benutzer bleibt auf Shared Tablet angemeldet | kein `offline_access`, kein persistenter AuthState, prominente End-Session-Abmeldung |
 | unbekannte App wird sichtbar | Liste kommt aus policy-geprüfter Authentik-API |
 | kompromittiertes Handy schickt Schad-URL an PC | nur `open_talk(room_token)`, Ziel-URL entsteht im Companion |

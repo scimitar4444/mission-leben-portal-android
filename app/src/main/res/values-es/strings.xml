@@ -26,6 +26,9 @@
     <string name="update_download_install">Descargar e instalar</string>
     <string name="update_downloading">Verificando y descargando la actualización…</string>
     <string name="update_later">Más tarde</string>
+    <string name="update_check_action">Buscar actualizaciones</string>
+    <string name="update_checking">Buscando actualizaciones…</string>
+    <string name="update_up_to_date">Mission Leben Zentral está actualizada (versión %1$s).</string>
     <string name="update_check_failed">No se pueden buscar actualizaciones en este momento.</string>
     <string name="update_download_failed">No se pudo descargar o verificar la actualización de forma segura.</string>
     <string name="update_install_permission_denied">Permite que Mission Leben Zentral instale aplicaciones desconocidas y vuelve a intentarlo.</string>
@@ -164,4 +167,16 @@
     <string name="channel_talk_description">Notificaciones de actividad en Talk</string>
     <string name="channel_security_name">Seguridad del dispositivo</string>
     <string name="channel_security_description">Notificaciones importantes sobre la seguridad del dispositivo</string>
+    <string name="login_approval_title">Solicitud de inicio de sesión</string>
+    <string name="login_approval_body">Hay una solicitud de inicio de sesión.</string>
+    <string name="login_approval_application">Aplicación: %1$s</string>
+    <string name="login_approval_sending">Enviando respuesta…</string>
+    <string name="login_approval_approve">Confirmar</string>
+    <string name="login_approval_deny">Rechazar</string>
+    <string name="login_approval_expired">La solicitud de inicio de sesión ha caducado.</string>
+    <string name="login_approval_approved">Solicitud de inicio de sesión confirmada.</string>
+    <string name="login_approval_denied">Solicitud de inicio de sesión rechazada.</string>
+    <string name="login_approval_failed">No se pudo responder a la solicitud de inicio de sesión.</string>
+    <string name="login_approval_personal_only">Las solicitudes de inicio de sesión solo pueden confirmarse en dispositivos personales.</string>
+    <string name="login_approval_invalid">Solicitud de inicio de sesión no válida.</string>
 </resources>

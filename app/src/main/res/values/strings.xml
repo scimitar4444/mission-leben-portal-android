@@ -41,6 +41,9 @@
     <string name="update_download_install">Herunterladen und installieren</string>
     <string name="update_downloading">Update wird geprüft und heruntergeladen…</string>
     <string name="update_later">Später</string>
+    <string name="update_check_action">Nach Updates suchen</string>
+    <string name="update_checking">Suche nach Updates…</string>
+    <string name="update_up_to_date">Mission Leben Zentral ist aktuell (Version %1$s).</string>
     <string name="update_check_failed">Die Update-Prüfung ist derzeit nicht möglich.</string>
     <string name="update_download_failed">Das Update konnte nicht sicher heruntergeladen oder geprüft werden.</string>
     <string name="update_install_permission_denied">Erlaube Mission Leben Zentral bitte die Installation unbekannter Apps und versuche es erneut.</string>
@@ -188,4 +191,16 @@
     <string name="channel_talk_description">Hinweise auf Talk-Aktivitäten</string>
     <string name="channel_security_name">Gerätesicherheit</string>
     <string name="channel_security_description">Wichtige Hinweise zum Sicherheitsstatus des Geräts</string>
+    <string name="login_approval_title">Anmeldeanfrage</string>
+    <string name="login_approval_body">Es liegt eine Anmeldeanfrage vor.</string>
+    <string name="login_approval_application">Anwendung: %1$s</string>
+    <string name="login_approval_sending">Antwort wird gesendet…</string>
+    <string name="login_approval_approve">Bestätigen</string>
+    <string name="login_approval_deny">Ablehnen</string>
+    <string name="login_approval_expired">Die Anmeldeanfrage ist abgelaufen.</string>
+    <string name="login_approval_approved">Anmeldeanfrage wurde bestätigt.</string>
+    <string name="login_approval_denied">Anmeldeanfrage wurde abgelehnt.</string>
+    <string name="login_approval_failed">Die Anmeldeanfrage konnte nicht beantwortet werden.</string>
+    <string name="login_approval_personal_only">Anmeldeanfragen können nur auf persönlichen Geräten bestätigt werden.</string>
+    <string name="login_approval_invalid">Ungültige Anmeldeanfrage.</string>
 </resources>

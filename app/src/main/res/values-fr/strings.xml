@@ -26,6 +26,9 @@
     <string name="update_download_install">Télécharger et installer</string>
     <string name="update_downloading">Vérification et téléchargement de la mise à jour…</string>
     <string name="update_later">Plus tard</string>
+    <string name="update_check_action">Rechercher des mises à jour</string>
+    <string name="update_checking">Recherche de mises à jour…</string>
+    <string name="update_up_to_date">Mission Leben Zentral est à jour (version %1$s).</string>
     <string name="update_check_failed">La recherche de mises à jour est momentanément impossible.</string>
     <string name="update_download_failed">La mise à jour n’a pas pu être téléchargée ou vérifiée de manière sécurisée.</string>
     <string name="update_install_permission_denied">Autorisez Mission Leben Zentral à installer des applications inconnues, puis réessayez.</string>
@@ -164,4 +167,16 @@
     <string name="channel_talk_description">Notifications d’activité Talk</string>
     <string name="channel_security_name">Sécurité de l’appareil</string>
     <string name="channel_security_description">Notifications importantes sur la sécurité de l’appareil</string>
+    <string name="login_approval_title">Demande de connexion</string>
+    <string name="login_approval_body">Une demande de connexion est en attente.</string>
+    <string name="login_approval_application">Application : %1$s</string>
+    <string name="login_approval_sending">Envoi de la réponse…</string>
+    <string name="login_approval_approve">Confirmer</string>
+    <string name="login_approval_deny">Refuser</string>
+    <string name="login_approval_expired">La demande de connexion a expiré.</string>
+    <string name="login_approval_approved">Demande de connexion confirmée.</string>
+    <string name="login_approval_denied">Demande de connexion refusée.</string>
+    <string name="login_approval_failed">Impossible de répondre à la demande de connexion.</string>
+    <string name="login_approval_personal_only">Les demandes de connexion ne peuvent être confirmées que sur les appareils personnels.</string>
+    <string name="login_approval_invalid">Demande de connexion non valide.</string>
 </resources>

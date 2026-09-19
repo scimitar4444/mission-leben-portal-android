@@ -1,6 +1,6 @@
 # OTA-Updates
 
-Mission Leben Zentral prüft beim Wechsel in den Vordergrund automatisch, höchstens einmal in sechs Stunden, ob im öffentlichen GitHub-Projekt ein neueres Release vorhanden ist. Die feste Manifest-Adresse lautet:
+Mission Leben Zentral prüft einmal bei jedem echten App-Start automatisch, ob im öffentlichen GitHub-Projekt ein neueres Release vorhanden ist. Das Zurückkehren aus einer Web-Anwendung löst innerhalb desselben App-Laufs keine weitere Prüfung aus. Über **Nach Updates suchen** kann die Prüfung jederzeit manuell erzwungen werden. Die feste Manifest-Adresse lautet:
 
 ```text
 https://github.com/scimitar4444/mission-leben-portal-android/releases/latest/download/update.json

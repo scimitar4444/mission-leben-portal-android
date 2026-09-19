@@ -1,0 +1,7 @@
+services:
+  server:
+    volumes:
+      - ./ca/duo-client-ca.pem:${DUO_CLIENT_CA_PATH:?duo client CA path required}:ro
+  worker:
+    volumes:
+      - ./ca/duo-client-ca.pem:${DUO_CLIENT_CA_PATH:?duo client CA path required}:ro

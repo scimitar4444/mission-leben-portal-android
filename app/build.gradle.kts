@@ -59,8 +59,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 29
-        versionName = "0.8.1"
+        versionCode = 31
+        versionName = "0.9.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it

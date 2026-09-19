@@ -8,4 +8,14 @@ class MissionLebenApplication : Application() {
         super.onCreate()
         PushManager.initialize(this)
     }
+
+    companion object {
+        @Volatile
+        var portalVisible: Boolean = false
+            private set
+
+        fun setPortalVisible(visible: Boolean) {
+            portalVisible = visible
+        }
+    }
 }

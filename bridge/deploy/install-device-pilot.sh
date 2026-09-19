@@ -20,6 +20,8 @@ if [[ ! -f "$env_file" ]]; then
     umask 077
     internal_hmac_secret="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')"
     data_key="$(python3 -c 'import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b"=").decode())')"
+    duo_integration_key="$(python3 -c 'import secrets; print(secrets.token_hex(10).upper())')"
+    duo_secret_key="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')"
     printf '%s\n' \
         'BRIDGE_LISTEN_HOST=0.0.0.0' \
         'BRIDGE_LISTEN_PORT=8080' \
@@ -28,6 +30,10 @@ if [[ ! -f "$env_file" ]]; then
         'BRIDGE_AUTHENTIK_AGENT_CONFIG_URL=https://id.mission-leben.de/api/v3/endpoints/agents/connectors/agent_config/' \
         "BRIDGE_INTERNAL_HMAC_SECRET=$internal_hmac_secret" \
         "BRIDGE_DATA_KEY=$data_key" \
+        "BRIDGE_DUO_INTEGRATION_KEY=$duo_integration_key" \
+        "BRIDGE_DUO_SECRET_KEY=$duo_secret_key" \
+        'BRIDGE_DUO_API_HOSTNAME=id.mission-leben.de' \
+        'BRIDGE_DUO_APPROVAL_TIMEOUT_SECONDS=60' \
         'BRIDGE_FIREBASE_PROJECT_ID=' \
         'GOOGLE_APPLICATION_CREDENTIALS=' \
         'BRIDGE_TALK_TARGETS_JSON=[]' \
