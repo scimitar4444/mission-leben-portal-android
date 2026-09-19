@@ -170,6 +170,10 @@
     <string name="login_approval_title">Demande de connexion</string>
     <string name="login_approval_body">Une demande de connexion est en attente.</string>
     <string name="login_approval_application">Application : %1$s</string>
+    <plurals name="login_approval_expires_in_seconds">
+        <item quantity="one">Expire dans %1$d seconde</item>
+        <item quantity="other">Expire dans %1$d secondes</item>
+    </plurals>
     <string name="login_approval_sending">Envoi de la réponse…</string>
     <string name="login_approval_approve">Confirmer</string>
     <string name="login_approval_deny">Refuser</string>

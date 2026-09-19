@@ -170,6 +170,12 @@
     <string name="login_approval_title">Żądanie logowania</string>
     <string name="login_approval_body">Oczekuje żądanie logowania.</string>
     <string name="login_approval_application">Aplikacja: %1$s</string>
+    <plurals name="login_approval_expires_in_seconds">
+        <item quantity="one">Wygasa za %1$d sekundę</item>
+        <item quantity="few">Wygasa za %1$d sekundy</item>
+        <item quantity="many">Wygasa za %1$d sekund</item>
+        <item quantity="other">Wygasa za %1$d sekundy</item>
+    </plurals>
     <string name="login_approval_sending">Wysyłanie odpowiedzi…</string>
     <string name="login_approval_approve">Zatwierdź</string>
     <string name="login_approval_deny">Odrzuć</string>

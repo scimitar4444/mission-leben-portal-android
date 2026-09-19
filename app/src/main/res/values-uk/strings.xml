@@ -170,6 +170,12 @@
     <string name="login_approval_title">Запит на вхід</string>
     <string name="login_approval_body">Є запит на вхід.</string>
     <string name="login_approval_application">Застосунок: %1$s</string>
+    <plurals name="login_approval_expires_in_seconds">
+        <item quantity="one">Завершиться через %1$d секунду</item>
+        <item quantity="few">Завершиться через %1$d секунди</item>
+        <item quantity="many">Завершиться через %1$d секунд</item>
+        <item quantity="other">Завершиться через %1$d секунди</item>
+    </plurals>
     <string name="login_approval_sending">Надсилання відповіді…</string>
     <string name="login_approval_approve">Підтвердити</string>
     <string name="login_approval_deny">Відхилити</string>

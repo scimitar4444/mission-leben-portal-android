@@ -46,7 +46,15 @@ data class LoginApprovalRequest(
     val domain: String,
     val requestedAtEpochSeconds: Long,
     val expiresAtEpochSeconds: Long,
-)
+) {
+    fun remainingSeconds(
+        nowEpochSeconds: Long = System.currentTimeMillis() / 1_000L,
+    ): Long = (expiresAtEpochSeconds - nowEpochSeconds).coerceAtLeast(0L)
+
+    fun isExpired(
+        nowEpochSeconds: Long = System.currentTimeMillis() / 1_000L,
+    ): Boolean = remainingSeconds(nowEpochSeconds) == 0L
+}
 
 data class UserIdentity(
     val subject: String,

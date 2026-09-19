@@ -170,6 +170,10 @@
     <string name="login_approval_title">Login request</string>
     <string name="login_approval_body">There is a login request.</string>
     <string name="login_approval_application">Application: %1$s</string>
+    <plurals name="login_approval_expires_in_seconds">
+        <item quantity="one">Expires in %1$d second</item>
+        <item quantity="other">Expires in %1$d seconds</item>
+    </plurals>
     <string name="login_approval_sending">Sending response…</string>
     <string name="login_approval_approve">Approve</string>
     <string name="login_approval_deny">Deny</string>

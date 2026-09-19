@@ -194,6 +194,10 @@
     <string name="login_approval_title">Anmeldeanfrage</string>
     <string name="login_approval_body">Es liegt eine Anmeldeanfrage vor.</string>
     <string name="login_approval_application">Anwendung: %1$s</string>
+    <plurals name="login_approval_expires_in_seconds">
+        <item quantity="one">Läuft in %1$d Sekunde ab</item>
+        <item quantity="other">Läuft in %1$d Sekunden ab</item>
+    </plurals>
     <string name="login_approval_sending">Antwort wird gesendet…</string>
     <string name="login_approval_approve">Bestätigen</string>
     <string name="login_approval_deny">Ablehnen</string>

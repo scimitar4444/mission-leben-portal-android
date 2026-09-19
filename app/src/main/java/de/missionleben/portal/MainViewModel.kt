@@ -633,7 +633,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val state = _uiState.value
         val request = state.loginApprovalRequest ?: return
         val deviceId = state.deviceId ?: return
-        if (request.expiresAtEpochSeconds <= System.currentTimeMillis() / 1_000L) {
+        if (request.isExpired()) {
             NotificationPresenter.cancelLoginApproval(getApplication(), request.requestId)
             _uiState.update {
                 it.copy(
@@ -676,6 +676,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
             }
+        }
+    }
+
+    fun expireLoginApproval(requestId: String) {
+        val request = _uiState.value.loginApprovalRequest ?: return
+        if (request.requestId != requestId || !request.isExpired()) return
+        NotificationPresenter.cancelLoginApproval(getApplication(), request.requestId)
+        _uiState.update {
+            it.copy(
+                loginApprovalRequest = null,
+                loginApprovalSubmitting = false,
+                message = string(R.string.login_approval_expired),
+            )
         }
     }
 

@@ -170,6 +170,11 @@
     <string name="login_approval_title">Solicitare de autentificare</string>
     <string name="login_approval_body">Există o solicitare de autentificare.</string>
     <string name="login_approval_application">Aplicație: %1$s</string>
+    <plurals name="login_approval_expires_in_seconds">
+        <item quantity="one">Expiră în %1$d secundă</item>
+        <item quantity="few">Expiră în %1$d secunde</item>
+        <item quantity="other">Expiră în %1$d secunde</item>
+    </plurals>
     <string name="login_approval_sending">Se trimite răspunsul…</string>
     <string name="login_approval_approve">Confirmă</string>
     <string name="login_approval_deny">Respinge</string>

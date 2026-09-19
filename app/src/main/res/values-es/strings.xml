@@ -170,6 +170,10 @@
     <string name="login_approval_title">Solicitud de inicio de sesión</string>
     <string name="login_approval_body">Hay una solicitud de inicio de sesión.</string>
     <string name="login_approval_application">Aplicación: %1$s</string>
+    <plurals name="login_approval_expires_in_seconds">
+        <item quantity="one">Caduca en %1$d segundo</item>
+        <item quantity="other">Caduca en %1$d segundos</item>
+    </plurals>
     <string name="login_approval_sending">Enviando respuesta…</string>
     <string name="login_approval_approve">Confirmar</string>
     <string name="login_approval_deny">Rechazar</string>

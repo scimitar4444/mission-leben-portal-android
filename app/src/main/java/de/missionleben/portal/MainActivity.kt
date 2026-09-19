@@ -178,6 +178,7 @@ class MainActivity : FragmentActivity() {
                     onCheckForUpdates = { viewModel.checkForUpdates(force = true) },
                     onApproveLogin = { viewModel.decideLoginApproval(true) },
                     onDenyLogin = { viewModel.decideLoginApproval(false) },
+                    onLoginApprovalExpired = viewModel::expireLoginApproval,
                     onInstallUpdate = viewModel::downloadUpdate,
                     onDismissUpdate = viewModel::dismissUpdate,
                     currentLanguageTag = currentLanguageTag(),

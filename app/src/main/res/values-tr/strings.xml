@@ -170,6 +170,10 @@
     <string name="login_approval_title">Oturum açma isteği</string>
     <string name="login_approval_body">Bir oturum açma isteği var.</string>
     <string name="login_approval_application">Uygulama: %1$s</string>
+    <plurals name="login_approval_expires_in_seconds">
+        <item quantity="one">%1$d saniye içinde sona erer</item>
+        <item quantity="other">%1$d saniye içinde sona erer</item>
+    </plurals>
     <string name="login_approval_sending">Yanıt gönderiliyor…</string>
     <string name="login_approval_approve">Onayla</string>
     <string name="login_approval_deny">Reddet</string>
