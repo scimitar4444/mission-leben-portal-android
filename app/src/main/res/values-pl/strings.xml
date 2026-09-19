@@ -20,6 +20,15 @@
     <string name="web_apps_subtitle">Bezpośrednio z uprawnień Authentik</string>
     <string name="refresh">Odśwież</string>
     <string name="version_format">Wersja %1$s</string>
+    <string name="update_available_title">Dostępna aktualizacja</string>
+    <string name="update_available_description">Dostępna jest wersja %1$s. Podpisana aktualizacja zostanie pobrana z GitHub i sprawdzona przed instalacją.</string>
+    <string name="update_download_install">Pobierz i zainstaluj</string>
+    <string name="update_downloading">Sprawdzanie i pobieranie aktualizacji…</string>
+    <string name="update_later">Później</string>
+    <string name="update_check_failed">Obecnie nie można sprawdzić aktualizacji.</string>
+    <string name="update_download_failed">Nie udało się bezpiecznie pobrać lub sprawdzić aktualizacji.</string>
+    <string name="update_install_permission_denied">Zezwól Mission Leben Zentral na instalowanie nieznanych aplikacji i spróbuj ponownie.</string>
+    <string name="update_installer_unavailable">Nie udało się otworzyć instalatora pakietów Android.</string>
     <string name="switch_device_profile">Zmień profil urządzenia</string>
     <string name="mode_personal">Urządzenie osobiste</string>
     <string name="mode_shared">Współdzielony tablet</string>

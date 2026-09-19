@@ -3,6 +3,8 @@ package de.missionleben.portal.model
 import androidx.annotation.StringRes
 import de.missionleben.portal.R
 import de.missionleben.portal.push.NotificationPrivacy
+import de.missionleben.portal.update.AppUpdate
+import de.missionleben.portal.update.UpdateStatus
 
 enum class DeviceMode(@StringRes val labelRes: Int) {
     PERSONAL(R.string.mode_personal),
@@ -68,4 +70,6 @@ data class UiState(
     val enrollmentTokenPrefill: String = "",
     val requestedUrl: String? = null,
     val clearWebDataRequested: Boolean = false,
+    val availableUpdate: AppUpdate? = null,
+    val updateStatus: UpdateStatus = UpdateStatus.IDLE,
 )

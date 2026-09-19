@@ -27,6 +27,10 @@ import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.security.DeviceIdentity
 import de.missionleben.portal.security.SecureSessionVault
+import de.missionleben.portal.update.UpdatePolicy
+import de.missionleben.portal.update.UpdateRepository
+import de.missionleben.portal.update.UpdateStatus
+import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,11 +46,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val portalRepository = PortalRepository()
     private val deviceService = DeviceServiceRepository(application)
     private val pushStore = PushRegistrationStore(application)
+    private val updateRepository = UpdateRepository(application)
 
     private var serializedAuthState: String? = null
     private var dataEncryptionKey: ByteArray? = null
     private var pendingVaultState: String? = null
     private var pendingPushAction: PushAction? = null
+    private var downloadedUpdateFile: File? = null
 
     private val _uiState = MutableStateFlow(
         UiState(
@@ -457,6 +463,95 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun clearMessage() = _uiState.update { it.copy(message = null) }
+
+    fun checkForUpdates(force: Boolean = false) {
+        val status = _uiState.value.updateStatus
+        if (status == UpdateStatus.CHECKING || status == UpdateStatus.DOWNLOADING || status == UpdateStatus.READY) {
+            return
+        }
+        val now = System.currentTimeMillis()
+        if (!force && !UpdatePolicy.shouldCheck(preferences.lastUpdateCheckEpochMillis, now)) return
+        _uiState.update { it.copy(updateStatus = UpdateStatus.CHECKING) }
+        viewModelScope.launch {
+            runCatching { updateRepository.checkForUpdate() }
+                .onSuccess { update ->
+                    preferences.lastUpdateCheckEpochMillis = now
+                    _uiState.update {
+                        it.copy(
+                            availableUpdate = update,
+                            updateStatus = if (update == null) UpdateStatus.IDLE else UpdateStatus.AVAILABLE,
+                        )
+                    }
+                }
+                .onFailure {
+                    _uiState.update { state ->
+                        state.copy(
+                            updateStatus = UpdateStatus.IDLE,
+                            message = if (force) string(R.string.update_check_failed) else state.message,
+                        )
+                    }
+                }
+        }
+    }
+
+    fun downloadUpdate() {
+        val update = _uiState.value.availableUpdate ?: return
+        val cachedFile = downloadedUpdateFile
+        if (cachedFile?.isFile == true) {
+            _uiState.update { it.copy(updateStatus = UpdateStatus.READY) }
+            return
+        }
+        if (_uiState.value.updateStatus == UpdateStatus.DOWNLOADING) return
+        _uiState.update { it.copy(updateStatus = UpdateStatus.DOWNLOADING, message = null) }
+        viewModelScope.launch {
+            runCatching { updateRepository.downloadAndVerify(update) }
+                .onSuccess { file ->
+                    downloadedUpdateFile = file
+                    _uiState.update { it.copy(updateStatus = UpdateStatus.READY) }
+                }
+                .onFailure {
+                    downloadedUpdateFile = null
+                    _uiState.update {
+                        it.copy(
+                            updateStatus = UpdateStatus.AVAILABLE,
+                            message = string(R.string.update_download_failed),
+                        )
+                    }
+                }
+        }
+    }
+
+    fun readyUpdateFile(): File? = downloadedUpdateFile
+
+    fun updateInstallStarted() {
+        downloadedUpdateFile = null
+        _uiState.update { it.copy(availableUpdate = null, updateStatus = UpdateStatus.IDLE) }
+    }
+
+    fun updateInstallPermissionDenied() {
+        _uiState.update {
+            it.copy(
+                updateStatus = UpdateStatus.AVAILABLE,
+                message = string(R.string.update_install_permission_denied),
+            )
+        }
+    }
+
+    fun updateInstallFailed() {
+        _uiState.update {
+            it.copy(
+                updateStatus = UpdateStatus.AVAILABLE,
+                message = string(R.string.update_installer_unavailable),
+            )
+        }
+    }
+
+    fun dismissUpdate() {
+        if (_uiState.value.updateStatus == UpdateStatus.DOWNLOADING) return
+        downloadedUpdateFile?.delete()
+        downloadedUpdateFile = null
+        _uiState.update { it.copy(availableUpdate = null, updateStatus = UpdateStatus.IDLE) }
+    }
 
     fun acceptPushAction(value: String?) {
         val action = PushAction.fromWireName(value) ?: return

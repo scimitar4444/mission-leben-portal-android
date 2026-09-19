@@ -35,6 +35,15 @@
     <string name="web_apps_subtitle">Direkt aus deinen Authentik-Freigaben</string>
     <string name="refresh">Aktualisieren</string>
     <string name="version_format">Version %1$s</string>
+    <string name="update_available_title">Update verfügbar</string>
+    <string name="update_available_description">Version %1$s ist verfügbar. Das signierte Update wird von GitHub geladen und vor der Installation geprüft.</string>
+    <string name="update_download_install">Herunterladen und installieren</string>
+    <string name="update_downloading">Update wird geprüft und heruntergeladen…</string>
+    <string name="update_later">Später</string>
+    <string name="update_check_failed">Die Update-Prüfung ist derzeit nicht möglich.</string>
+    <string name="update_download_failed">Das Update konnte nicht sicher heruntergeladen oder geprüft werden.</string>
+    <string name="update_install_permission_denied">Erlaube Mission Leben Zentral bitte die Installation unbekannter Apps und versuche es erneut.</string>
+    <string name="update_installer_unavailable">Der Android-Paketinstaller konnte nicht geöffnet werden.</string>
     <string name="switch_device_profile">Geräteprofil wechseln</string>
     <string name="mode_personal">Persönliches Gerät</string>
     <string name="mode_shared">Gemeinsam genutztes Tablet</string>

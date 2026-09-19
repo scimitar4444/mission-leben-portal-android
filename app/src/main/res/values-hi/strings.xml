@@ -20,6 +20,15 @@
     <string name="web_apps_subtitle">सीधे आपकी Authentik अनुमतियों से</string>
     <string name="refresh">रीफ़्रेश करें</string>
     <string name="version_format">संस्करण %1$s</string>
+    <string name="update_available_title">अपडेट उपलब्ध है</string>
+    <string name="update_available_description">संस्करण %1$s उपलब्ध है। हस्ताक्षरित अपडेट GitHub से डाउनलोड होगा और इंस्टॉल करने से पहले जाँचा जाएगा।</string>
+    <string name="update_download_install">डाउनलोड और इंस्टॉल करें</string>
+    <string name="update_downloading">अपडेट की जाँच और डाउनलोड हो रहा है…</string>
+    <string name="update_later">बाद में</string>
+    <string name="update_check_failed">अभी अपडेट की जाँच नहीं की जा सकती।</string>
+    <string name="update_download_failed">अपडेट को सुरक्षित रूप से डाउनलोड या सत्यापित नहीं किया जा सका।</string>
+    <string name="update_install_permission_denied">Mission Leben Zentral को अज्ञात ऐप इंस्टॉल करने की अनुमति दें और फिर प्रयास करें।</string>
+    <string name="update_installer_unavailable">Android पैकेज इंस्टॉलर नहीं खोला जा सका।</string>
     <string name="switch_device_profile">डिवाइस प्रोफ़ाइल बदलें</string>
     <string name="mode_personal">निजी डिवाइस</string>
     <string name="mode_shared">साझा टैबलेट</string>

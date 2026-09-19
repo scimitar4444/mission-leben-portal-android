@@ -28,6 +28,24 @@ val firebaseApplicationId = providers.gradleProperty("ML_FIREBASE_APPLICATION_ID
 val firebaseApiKey = providers.gradleProperty("ML_FIREBASE_API_KEY").orElse("")
 val firebaseProjectId = providers.gradleProperty("ML_FIREBASE_PROJECT_ID").orElse("")
 val firebaseSenderId = providers.gradleProperty("ML_FIREBASE_SENDER_ID").orElse("")
+val updateManifestUrl =
+    "https://github.com/scimitar4444/mission-leben-portal-android/" +
+        "releases/latest/download/update.json"
+
+val releaseStoreFile = providers.environmentVariable("ML_ANDROID_KEYSTORE_FILE").orNull
+val releaseStorePassword = providers.environmentVariable("ML_ANDROID_KEYSTORE_PASSWORD").orNull
+val releaseKeyAlias = providers.environmentVariable("ML_ANDROID_KEY_ALIAS").orNull
+val releaseKeyPassword = providers.environmentVariable("ML_ANDROID_KEY_PASSWORD").orNull
+val releaseSigningValues = listOf(
+    releaseStoreFile,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+)
+if (releaseSigningValues.any { !it.isNullOrBlank() } && releaseSigningValues.any { it.isNullOrBlank() }) {
+    throw GradleException("All ML_ANDROID_KEYSTORE_* signing variables must be set together")
+}
+val releaseSigningConfigured = releaseSigningValues.all { !it.isNullOrBlank() }
 
 android {
     namespace = "de.missionleben.portal"
@@ -37,8 +55,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 25
-        versionName = "0.7.7"
+        versionCode = 26
+        versionName = "0.7.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
@@ -61,6 +79,25 @@ android {
         buildConfigField("String", "FIREBASE_API_KEY", firebaseApiKey.get().asBuildConfigString())
         buildConfigField("String", "FIREBASE_PROJECT_ID", firebaseProjectId.get().asBuildConfigString())
         buildConfigField("String", "FIREBASE_SENDER_ID", firebaseSenderId.get().asBuildConfigString())
+        buildConfigField("String", "UPDATE_MANIFEST_URL", updateManifestUrl.asBuildConfigString())
+    }
+
+    signingConfigs {
+        if (releaseSigningConfigured) {
+            create("release") {
+                storeFile = file(requireNotNull(releaseStoreFile))
+                storePassword = requireNotNull(releaseStorePassword)
+                keyAlias = requireNotNull(releaseKeyAlias)
+                keyPassword = requireNotNull(releaseKeyPassword)
+            }
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.findByName("release")
+            isMinifyEnabled = false
+        }
     }
 
     buildFeatures {
