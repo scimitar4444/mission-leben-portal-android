@@ -1,7 +1,9 @@
 services:
   device-enrollment:
     build: .
+    container_name: mission-leben-device-enrollment
     restart: unless-stopped
+    init: true
     env_file: .env
     ports:
       - "127.0.0.1:8081:8080"
@@ -17,6 +19,13 @@ services:
       - ALL
     pids_limit: 128
     mem_limit: 256m
+    cpus: 0.5
+    stop_grace_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
     healthcheck:
       test:
         - CMD

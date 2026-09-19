@@ -37,6 +37,7 @@ APPLICATION_SLUG = "mission-leben-device-init"
 SERVICE_USERNAME = "svc-mission-leben-device-enrollment"
 SERVICE_TOKEN_IDENTIFIER = "mission-leben-device-enrollment-api"
 DEFAULT_EXTERNAL_HOST = "https://geraete.mission-leben.de"
+DEFAULT_AUTHENTIK_BROWSER_ORIGIN = "https://id.mission-leben.de"
 AUTHENTICATION_FLOW_SLUG = "mission-leben-device-init-authentication"
 AUTHORIZATION_FLOW_SLUG = "mission-leben-device-init-authorization"
 IDENTIFICATION_STAGE_NAME = "Mission Leben Geräte-Einrichtung - Benutzer"
@@ -69,6 +70,9 @@ PERMISSIONS = (
 
 
 external_host = os.environ.get("ML_ENROLL_PUBLIC_ORIGIN", DEFAULT_EXTERNAL_HOST).strip().rstrip("/")
+authentik_browser_origin = os.environ.get(
+    "ML_ENROLL_AUTHENTIK_BROWSER_ORIGIN", DEFAULT_AUTHENTIK_BROWSER_ORIGIN
+).strip().rstrip("/")
 authentication_flow, _ = Flow.objects.update_or_create(
     slug=AUTHENTICATION_FLOW_SLUG,
     defaults={
@@ -236,6 +240,34 @@ if unexpected_bindings.exists():
 PolicyBinding.objects.filter(target=application, group__in=operator_groups).delete()
 
 embedded_outpost = Outpost.objects.get(managed=MANAGED_OUTPOST)
+outpost_config = embedded_outpost.config
+configured_browser_origin = outpost_config.authentik_host_browser.rstrip("/")
+if configured_browser_origin and configured_browser_origin != authentik_browser_origin:
+    raise RuntimeError(
+        "Embedded outpost already uses a different authentik_host_browser; "
+        "review it manually before changing the device portal"
+    )
+configured_authentik_origin = outpost_config.authentik_host.rstrip("/")
+if (
+    configured_authentik_origin != authentik_browser_origin
+    and embedded_outpost.providers.exclude(pk=provider.pk).exists()
+):
+    raise RuntimeError(
+        "Embedded outpost already serves other providers and uses a different "
+        "authentik_host; review it manually before changing the device portal"
+    )
+outpost_config_changed = False
+if configured_authentik_origin != authentik_browser_origin:
+    # The embedded outpost uses its public authentik_host for browser redirects.
+    # Its internal API connection continues through authentik's local IPC path.
+    outpost_config.authentik_host = authentik_browser_origin
+    outpost_config_changed = True
+if not configured_browser_origin:
+    outpost_config.authentik_host_browser = authentik_browser_origin
+    outpost_config_changed = True
+if outpost_config_changed:
+    embedded_outpost.config = outpost_config
+    embedded_outpost.save(update_fields=["_config"])
 embedded_outpost.providers.add(provider)
 
 service_user, _ = User.objects.update_or_create(
