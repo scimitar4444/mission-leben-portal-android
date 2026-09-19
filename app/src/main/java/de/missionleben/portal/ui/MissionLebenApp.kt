@@ -408,11 +408,12 @@ private fun StatusPill(state: EnrollmentState) {
 @Composable
 private fun SectionTitle(title: String, subtitle: String, action: String, onAction: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-        Column {
+        Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         }
-        TextButton(onClick = onAction) { Text(action) }
+        Spacer(Modifier.width(8.dp))
+        TextButton(onClick = onAction) { Text(action, maxLines = 1) }
     }
 }
 
@@ -621,9 +622,9 @@ private fun StatusPillText(label: String, color: Color) {
 private fun MessageBanner(message: String, onDismiss: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onDismiss),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         shape = RoundedCornerShape(14.dp),
     ) {
-        Text(message, modifier = Modifier.padding(14.dp), color = MaterialTheme.colorScheme.onPrimaryContainer)
+        Text(message, modifier = Modifier.padding(14.dp), color = MaterialTheme.colorScheme.onSecondaryContainer)
     }
 }
