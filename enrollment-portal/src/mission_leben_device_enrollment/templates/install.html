@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Mission Leben Zentral installieren{% endblock %}
+{% block content %}
+<section class="intro centered install-intro">
+  <span class="step">Sichere Geräte-Einrichtung</span>
+  <h1>Mission Leben Zentral</h1>
+  <p>Installieren Sie zuerst die App. Kehren Sie danach auf diese Seite zurück und setzen Sie die Einrichtung fort.</p>
+</section>
+
+<section class="install-card" aria-labelledby="install-heading">
+  <div class="install-step">
+    <span class="install-number" aria-hidden="true">1</span>
+    <div>
+      <h2 id="install-heading">App installieren</h2>
+      <p>Laden Sie die offizielle App herunter und bestätigen Sie die Installation in Android.</p>
+      <a class="button primary" href="{{ apk_download_url }}" rel="noreferrer">App herunterladen</a>
+      <p class="hint">Beim ersten Mal kann Android nach <strong>„Apps aus dieser Quelle zulassen“</strong> fragen.</p>
+    </div>
+  </div>
+
+  <div class="install-divider" aria-hidden="true"></div>
+
+  <div class="install-step">
+    <span class="install-number" aria-hidden="true">2</span>
+    <div>
+      <h2>Gerät einrichten</h2>
+      <p>Nach abgeschlossener Installation hierher zurückkehren und die Einrichtung fortsetzen.</p>
+      <a id="continue-enrollment" class="button primary disabled" aria-disabled="true">Einrichtung fortsetzen</a>
+      <p id="enrollment-status" class="hint" role="status">Einrichtungslink wird geprüft …</p>
+    </div>
+  </div>
+</section>
+
+<noscript>
+  <section class="notice error-notice">Für die sichere Übergabe des einmaligen Einrichtungscodes muss JavaScript im Browser aktiviert sein.</section>
+</noscript>
+<script src="/static/install.js" defer></script>
+{% endblock %}

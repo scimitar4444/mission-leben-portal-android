@@ -11,7 +11,9 @@ Für eine Einrichtung im Auftrag:
 1. Als IT, zentrale Leitung, EL oder PDL die Verwaltungsseite öffnen.
 2. Gerätetyp wählen: Mitarbeiter-Handy oder gemeinsames Tablet.
 3. Mitarbeiter beziehungsweise Einrichtung auswählen.
-4. Den fünf Minuten gültigen QR-Code mit Mission Leben Zentral scannen.
+4. Den zehn Minuten gültigen QR-Code mit der normalen Kamera des neuen Geräts scannen.
+
+Der QR-Code verwendet einen verifizierten HTTPS-App-Link. Ist Mission Leben Zentral bereits installiert, öffnet Android direkt die App. Andernfalls erscheint eine öffentliche Seite mit genau zwei Schritten: App herunterladen und anschließend Einrichtung fortsetzen. Das Enrollment-Geheimnis steht ausschließlich im URL-Fragment hinter `#`; Browser und Reverse Proxy senden es daher nicht an den Webserver oder in dessen Zugriffsprotokoll.
 
 Die Android-App übernimmt den Gerätemodus aus dem QR-Code. Der öffentliche Redeem-Endpunkt registriert das Gerät direkt bei Authentik und löscht den Enrollment-Token vor der Antwort. Der Container läuft absichtlich mit genau einem Worker; mehrere Replikate benötigen zuerst eine gemeinsam genutzte Sperre.
 
@@ -66,7 +68,7 @@ chmod 0600 secrets/*
 podman compose -f compose.example.yml up -d --build
 ```
 
-In `.env` muss `ML_ENROLL_AGENT_CONNECTOR_UUID` auf den vorhandenen Connector `Mission Leben Android` und `ML_ENROLL_APP_APPROVAL_STAGE_UUID` auf die ausgegebene App-Bestätigungsstufe zeigen. Der Container bindet nur an `127.0.0.1:8081`; extern wird ausschließlich der Reverse Proxy veröffentlicht. `deploy/nginx-forward-auth.conf` ist ein gehärtetes Beispiel für `geraete.mission-leben.de`.
+In `.env` muss `ML_ENROLL_AGENT_CONNECTOR_UUID` auf den vorhandenen Connector `Mission Leben Android`, `ML_ENROLL_APP_APPROVAL_STAGE_UUID` auf die ausgegebene App-Bestätigungsstufe und `ML_ENROLL_ANDROID_CERT_SHA256_FINGERPRINTS` auf den SHA-256-Fingerabdruck des endgültigen Android-Produktionszertifikats zeigen. Der Container bindet nur an `127.0.0.1:8081`; extern wird ausschließlich der Reverse Proxy veröffentlicht. `deploy/nginx-forward-auth.conf` ist ein gehärtetes Beispiel für `geraete.mission-leben.de`. Die Installationsseite, ihre beiden statischen Dateien und `/.well-known/assetlinks.json` müssen ohne Authentik-Anmeldung erreichbar sein; alle Verwaltungsseiten bleiben geschützt.
 
 ## Tests
 

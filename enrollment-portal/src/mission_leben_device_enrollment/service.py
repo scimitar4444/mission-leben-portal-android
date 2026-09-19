@@ -28,8 +28,20 @@ class IssuedEnrollment:
     target_label: str
     expires: datetime
 
-    def qr_payload(self) -> str:
+    def deep_link(self) -> str:
         return "de.missionleben.portal://enroll?" + urlencode(
+            {
+                "token": self.token,
+                "token_id": self.token_uuid,
+                "mode": self.mode,
+            }
+        )
+
+    def install_link(self, public_origin: str) -> str:
+        # URL fragments are not sent to the web server, reverse proxy, or
+        # Referer targets. The short-lived enrollment credential stays local
+        # to the phone until it is handed to the Android app.
+        return public_origin.rstrip("/") + "/install#" + urlencode(
             {
                 "token": self.token,
                 "token_id": self.token_uuid,

@@ -3,17 +3,17 @@
 {% block content %}
 <section class="intro centered">
   <span class="step">Schritt 3 von 3</span>
-  <h1>Jetzt das neue Gerät scannen lassen</h1>
+  <h1>Ein QR-Code für Installation und Einrichtung</h1>
   <p class="target">{{ enrollment.target_label }}</p>
 </section>
 <section class="qr-card">
   <div class="qr" aria-label="Einrichtungs-QR-Code">{{ qr_svg | safe }}</div>
   <ol>
-    <li>Mission Leben Zentral auf dem neuen Gerät öffnen.</li>
-    <li><strong>„QR-Code scannen“</strong> antippen.</li>
-    <li>Das neue Gerät auf diesen Code richten.</li>
+    <li>Auf dem neuen Gerät die normale Kamera öffnen.</li>
+    <li>Den QR-Code scannen und den angezeigten Link öffnen.</li>
+    <li>Falls nötig, die App installieren und <strong>„Einrichtung fortsetzen“</strong> antippen.</li>
   </ol>
-  <div class="expiry">Der Code gilt nur bis {{ expires_local }} und wird nach dem ersten erfolgreichen Scan entwertet.</div>
+  <div class="expiry">Der Code gilt nur bis {{ expires_local }} und wird nach der ersten erfolgreichen Einrichtung entwertet.</div>
 </section>
 <div class="actions">
   <a class="button secondary" href="/">Weiteres Gerät einrichten</a>

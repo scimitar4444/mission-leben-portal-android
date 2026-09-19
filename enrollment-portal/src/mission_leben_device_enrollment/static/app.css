@@ -87,6 +87,24 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .error-card { max-width: 620px; margin: 40px auto; text-align: center; }
 .error-symbol { display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; background: #fde8e8; color: #a11e2b; font-size: 2rem; font-weight: 900; }
 
+.install-intro { max-width: 680px; margin-inline: auto; }
+.install-card {
+  max-width: 720px; margin: 1.25rem auto 0; padding: 1.5rem;
+  border-radius: 20px; background: var(--paper); box-shadow: 0 10px 30px rgb(54 20 41 / .07);
+}
+.install-step {
+  display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: 1rem; align-items: start;
+}
+.install-step h2 { margin: 0 0 .4rem; }
+.install-number {
+  display: grid; width: 2.6rem; height: 2.6rem; place-items: center;
+  border-radius: 50%; color: #fff; background: var(--berry); font-size: 1.2rem; font-weight: 800;
+}
+.install-divider { height: 1px; margin: 1.5rem 0; background: var(--line); }
+.button.disabled { pointer-events: none; opacity: .5; }
+.error-text { color: #a11e2b; }
+.error-notice { max-width: 720px; margin: 1rem auto; }
+
 @media (max-width: 700px) {
   .identity { display: none; }
   .shell { padding-top: 28px; }

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
+from urllib.parse import urlsplit
 
 import pytest
 from fastapi.testclient import TestClient
@@ -144,8 +146,14 @@ async def test_personal_enrollment_is_bound_before_qr_is_issued(settings):
     assert authentik.login_approval_devices == [
         (authentik.user["username"], authentik.user["uid"])
     ]
-    assert "token_id=" in issued.qr_payload()
-    assert "mode=personal" in issued.qr_payload()
+    assert "token_id=" in issued.deep_link()
+    assert "mode=personal" in issued.deep_link()
+    assert issued.install_link(settings.public_origin).startswith(
+        "https://geraete.example.org/install#token="
+    )
+    split_install_link = urlsplit(issued.install_link(settings.public_origin))
+    assert split_install_link.query == ""
+    assert "token=abcdefghijklmnopqrstuvwxyz0123456789_-" in split_install_link.fragment
     assert authentik.audit_events[0][0] == "model_created"
 
 
@@ -265,9 +273,19 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
             data={"employee_pk": "42", "csrf_token": csrf_token},
         )
         assert response.status_code == 200
-        assert "Jetzt das neue Gerät scannen lassen" in response.text
+        assert "Ein QR-Code für Installation und Einrichtung" in response.text
         assert "<svg" in response.text
         assert "abcdefghijklmnopqrstuvwxyz0123456789_-" not in response.text
+
+        installer = client.get("/install#fragment-is-not-sent")
+        assert installer.status_code == 200
+        assert "App herunterladen" in installer.text
+        assert settings.apk_download_url in installer.text
+        assert "script-src 'self'" in installer.headers["content-security-policy"]
+        assert "script-src" not in home.headers["content-security-policy"]
+
+        asset_links_unconfigured = client.get("/.well-known/assetlinks.json")
+        assert asset_links_unconfigured.status_code == 503
 
         invalid_redeem = client.post(
             "/api/v1/enrollments/cccccccc-bbbb-cccc-dddd-eeeeeeeeeeee/redeem",
@@ -280,6 +298,30 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
         )
         assert invalid_redeem.status_code == 401
         assert invalid_redeem.json() == {"error": "Registrierungscode ist ungültig."}
+
+
+def test_asset_links_publishes_only_configured_production_certificate(settings):
+    fingerprint = ":".join(["AB"] * 32)
+    configured = replace(
+        settings,
+        android_cert_sha256_fingerprints=(fingerprint,),
+    )
+    app = create_app(configured, FakeAuthentik(configured))
+
+    with TestClient(app) as client:
+        response = client.get("/.well-known/assetlinks.json")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "relation": ["delegate_permission/common.handle_all_urls"],
+            "target": {
+                "namespace": "android_app",
+                "package_name": "de.missionleben.portal",
+                "sha256_cert_fingerprints": [fingerprint],
+            },
+        }
+    ]
 
 
 def test_normal_employee_can_only_create_own_enrollment(settings):

@@ -28,11 +28,28 @@ class EnrollmentQrParserTest {
     }
 
     @Test
+    fun acceptsVerifiedHttpsInstallLinkWithSecretInFragment() {
+        val token = "abcdefghijklmnopqrstuvwxyz0123456789_-"
+        val tokenUuid = "123e4567-e89b-12d3-a456-426614174000"
+        val payload = EnrollmentQrParser.parse(
+            "https://geraete.mission-leben.de/install#token=$token&token_id=$tokenUuid&mode=personal",
+        )
+        assertEquals(token, payload?.token)
+        assertEquals(tokenUuid, payload?.tokenUuid)
+        assertEquals(DeviceMode.PERSONAL, payload?.mode)
+    }
+
+    @Test
     fun rejectsRawTokenAndForeignLink() {
         assertNull(EnrollmentQrParser.tokenFrom("abcdefghijklmnopqrstuvwxyz0123456789"))
         assertNull(
             EnrollmentQrParser.tokenFrom(
                 "https://example.org/enroll?token=abcdefghijklmnopqrstuvwxyz0123456789",
+            ),
+        )
+        assertNull(
+            EnrollmentQrParser.tokenFrom(
+                "https://geraete.mission-leben.de/install?token=abcdefghijklmnopqrstuvwxyz0123456789",
             ),
         )
     }

@@ -24,11 +24,11 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - eine kompakte Anzeige nennt auf persönlichen Geräten die verbleibenden Tage der 90-Tage-Anmeldung
 - automatische OTA-Prüfung einmal je App-Start sowie eine manuelle Schaltfläche **Nach Updates suchen**; Updates kommen als öffentliches GitHub-Release und werden vor der Android-Installation anhand von Paketname, Version, Dateigröße, SHA-256 und App-Signatur geprüft
 - Shared Tablets: kein Refresh Token und keine persistente Mitarbeitersitzung
-- Authentik-Enrollment per Deep Link `de.missionleben.portal://enroll?token=…&token_id=…&mode=…`; Authentik erzeugt Device, Connection, Device Token und Fakten-Snapshots
+- Authentik-Enrollment per verifiziertem HTTPS-App-Link mit einmaligem Token im URL-Fragment; eine vorhandene App öffnet direkt, andernfalls führt dieselbe Seite durch Installation und Einrichtung
 - integrierter QR-Scanner für Enrollment-Links; ein Scan startet die Authentik-Geräteregistrierung ohne Abtippen
 - eigener zustandsloser Geräte-Einrichtungscontainer für IT, Leitungen in der Zentrale, EL und PDL; Rollen und `ORG_*`-Bereiche werden serverseitig in Authentik geprüft, eine GF-Sonderrolle existiert nicht
 - persönliche Selbstregistrierung für aktive Mitarbeiter mit bereits vorhandenem TOTP: Anmeldung im geschützten App-Browser, direkte Bindung an das eigene Authentik-Konto und automatischer Rücksprung zur App; keine Mitarbeitersuche und keine TOTP-Einrichtung
-- neue Geräte wählen ihren persönlichen oder Shared-Modus ausschließlich aus dem fünf Minuten gültigen QR-Code; der Container entwertet den Authentik-Enrollment-Token nach dem ersten erfolgreichen Einlösen
+- neue Geräte wählen ihren persönlichen oder Shared-Modus ausschließlich aus dem zehn Minuten gültigen QR-Code; der Container entwertet den Authentik-Enrollment-Token nach dem ersten erfolgreichen Einlösen
 - verschlüsselte Speicherung des Authentik-Device-Tokens unter einem Android-Keystore-Schlüssel
 - native Antwort auf die Authentik Endpoint-Stage-Challenge im WebView; der Device Token wird nie an JavaScript ausgegeben
 - Authentik Device Access Groups und deren Benutzer-/Gruppenbindungen steuern die Gerätefreigabe

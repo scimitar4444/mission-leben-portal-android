@@ -58,6 +58,7 @@ def create_app(
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
         response = await call_next(request)
+        script_policy = "script-src 'self'; " if request.url.path == "/install" else ""
         response.headers["Cache-Control"] = "no-store"
         response.headers["Pragma"] = "no-cache"
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -65,7 +66,7 @@ def create_app(
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Content-Security-Policy"] = (
-            "default-src 'none'; style-src 'self'; img-src 'self' data:; "
+            f"default-src 'none'; style-src 'self'; {script_policy}img-src 'self' data:; "
             "font-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
         )
         return response
@@ -86,7 +87,7 @@ def create_app(
         }
 
     def qr_svg(enrollment: IssuedEnrollment) -> str:
-        qr = segno.make(enrollment.qr_payload(), error="m")
+        qr = segno.make(enrollment.install_link(settings.public_origin), error="m")
         return qr.svg_inline(scale=5, border=2, dark="#5b1438", light="#ffffff")
 
     @app.exception_handler(AuthentikError)
@@ -111,6 +112,29 @@ def create_app(
     async def healthz():
         return {"status": "ok"}
 
+    @app.get("/install", response_class=HTMLResponse)
+    async def install():
+        return html("install.html", apk_download_url=settings.apk_download_url)
+
+    @app.get("/.well-known/assetlinks.json")
+    async def asset_links():
+        if not settings.android_cert_sha256_fingerprints:
+            raise HTTPException(503, "Android-App-Link ist noch nicht konfiguriert.")
+        return JSONResponse(
+            [
+                {
+                    "relation": ["delegate_permission/common.handle_all_urls"],
+                    "target": {
+                        "namespace": "android_app",
+                        "package_name": "de.missionleben.portal",
+                        "sha256_cert_fingerprints": list(
+                            settings.android_cert_sha256_fingerprints
+                        ),
+                    },
+                }
+            ]
+        )
+
     @app.get("/", response_class=HTMLResponse)
     async def home(request: Request):
         current = actor(request)
@@ -132,7 +156,7 @@ def create_app(
         current = authenticated_actor(request)
         csrf.verify_request(request, current, "issue-self-personal", csrf_token)
         enrollment = await service.issue_self_personal(current)
-        return RedirectResponse(enrollment.qr_payload(), status_code=303)
+        return RedirectResponse(enrollment.deep_link(), status_code=303)
 
     @app.get("/personal", response_class=HTMLResponse)
     async def personal(request: Request, q: str = ""):

@@ -14,13 +14,22 @@ data class EnrollmentQrPayload(
 object EnrollmentQrParser {
     fun parse(value: String): EnrollmentQrPayload? {
         val uri = runCatching { URI(value.trim()) }.getOrNull() ?: return null
-        if (!uri.scheme.equals(SCHEME, ignoreCase = true) || !uri.host.equals(HOST, ignoreCase = true)) {
-            return null
-        }
-        if (uri.rawUserInfo != null || uri.port != -1 || !uri.rawPath.isNullOrEmpty() || uri.rawFragment != null) {
-            return null
-        }
-        val values = uri.rawQuery.orEmpty()
+        val rawParameters = when {
+            uri.scheme.equals(APP_SCHEME, ignoreCase = true) &&
+                uri.host.equals(APP_HOST, ignoreCase = true) &&
+                uri.rawUserInfo == null &&
+                uri.port == -1 &&
+                uri.rawPath.isNullOrEmpty() &&
+                uri.rawFragment == null -> uri.rawQuery
+            uri.scheme.equals("https", ignoreCase = true) &&
+                uri.host.equals(WEB_HOST, ignoreCase = true) &&
+                uri.rawUserInfo == null &&
+                uri.port == -1 &&
+                uri.rawPath == WEB_PATH &&
+                uri.rawQuery == null -> uri.rawFragment
+            else -> null
+        } ?: return null
+        val values = rawParameters
             .split('&')
             .mapNotNull { parameter ->
                 val parts = parameter.split('=', limit = 2)
@@ -49,7 +58,9 @@ object EnrollmentQrParser {
 
     fun tokenFrom(value: String): String? = parse(value)?.token
 
-    private const val SCHEME = "de.missionleben.portal"
-    private const val HOST = "enroll"
+    private const val APP_SCHEME = "de.missionleben.portal"
+    private const val APP_HOST = "enroll"
+    private const val WEB_HOST = "geraete.mission-leben.de"
+    private const val WEB_PATH = "/install"
     private val ALLOWED_PARAMETERS = setOf("token", "token_id", "mode")
 }

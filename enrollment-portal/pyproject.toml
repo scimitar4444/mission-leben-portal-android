@@ -31,7 +31,7 @@ mission-leben-device-enrollment = "mission_leben_device_enrollment.__main__:main
 where = ["src"]
 
 [tool.setuptools.package-data]
-mission_leben_device_enrollment = ["templates/*.html", "static/*.css"]
+mission_leben_device_enrollment = ["templates/*.html", "static/*.css", "static/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

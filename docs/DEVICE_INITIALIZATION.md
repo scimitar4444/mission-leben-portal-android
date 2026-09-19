@@ -32,6 +32,7 @@ Der Container verifiziert UUID, Tokenwert, Connector, Ablaufzeit, Gerätemodus u
 - Der Container legt eine persönliche Device Access Group pro Benutzer-UUID an.
 - Diese Gruppe besitzt genau eine primäre Benutzerbindung. Unerwartete zusätzliche Bindungen führen zu einem harten Abbruch.
 - Der QR-Code bindet den Endpoint bereits vor der ersten Kennwortprüfung an diesen Benutzer.
+- Derselbe verifizierte HTTPS-App-Link öffnet eine vorhandene App direkt oder führt auf einem neuen Gerät durch Installation und anschließende Einrichtung. Der Einmal-Token bleibt im URL-Fragment und erreicht den Webserver nicht.
 - Die Android-App fordert nach erfolgreichem Enrollment die normale App-Anmeldung an; Benutzername und Kennwort allein funktionieren auf einem fremden, nicht registrierten Gerät nicht.
 
 ## Shared Tablet
@@ -51,8 +52,8 @@ Der Container verifiziert UUID, Tokenwert, Connector, Ablaufzeit, Gerätemodus u
 
 ## Betriebsregeln
 
-- QR-Gültigkeit: fünf Minuten, konfigurierbar nur zwischen zwei und zehn Minuten.
+- QR-Gültigkeit: zehn Minuten, konfigurierbar nur zwischen zwei und zehn Minuten.
 - Genau ein Container-Worker. Vor horizontaler Skalierung ist eine verteilte Einmal-Sperre erforderlich.
 - API- und CSRF-Schlüssel ausschließlich als Read-only-Container-Secrets mit Modus `0600`.
 - Authentik-Audit muss bereits beim Erzeugen des QR-Codes funktionieren; sonst wird der Token gelöscht und kein QR angezeigt.
-- App-Version 0.8.1 oder neuer ist für die TOTP-Selbstregistrierung erforderlich. Der automatisch erkannte QR-Modus und der einmalige Redeem-Ablauf funktionieren ab 0.8.0.
+- App-Version 0.10.0 oder neuer ist für den verifizierten HTTPS-App-Link erforderlich. Die TOTP-Selbstregistrierung funktioniert ab 0.8.1.
