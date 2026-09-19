@@ -19,6 +19,18 @@ class IdentityDisplayNameTest {
     }
 
     @Test
+    fun `extracts given name from directory formatted full names`() {
+        assertEquals(
+            "Christian",
+            IdentityDisplayName.select(null, "Thiele, Christian", "cthiele", null, "Mitarbeiter:in"),
+        )
+        assertEquals(
+            "Christian",
+            IdentityDisplayName.select(null, "Christian Thiele", "cthiele", null, "Mitarbeiter:in"),
+        )
+    }
+
+    @Test
     fun `falls back through stable identity claims`() {
         assertEquals("cthiele", IdentityDisplayName.select("", null, "cthiele", "c@example.org", "Mitarbeiter:in"))
         assertEquals("Mitarbeiter:in", IdentityDisplayName.select(null, " ", "", null, "Mitarbeiter:in"))
