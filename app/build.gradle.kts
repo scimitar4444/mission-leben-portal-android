@@ -18,6 +18,11 @@ val deviceServiceBaseUrl = providers.gradleProperty("ML_DEVICE_SERVICE_BASE_URL"
     .orElse("https://id.mission-leben.de/device-bridge")
 val webAllowedHostSuffixes = providers.gradleProperty("ML_WEB_ALLOWED_HOST_SUFFIXES")
     .orElse("mission-leben.de,akademie-mission-leben.de")
+val authentikAuthenticationFlowSlugs = providers.gradleProperty("ML_AUTHENTIK_AUTHENTICATION_FLOW_SLUGS")
+    .orElse(
+        "mission-leben-browser-authentication,mission-leben-zimbra-authentication," +
+            "default-authentication-flow,nextcloud-akademie-kerberos-sso",
+    )
 val firebaseApplicationId = providers.gradleProperty("ML_FIREBASE_APPLICATION_ID").orElse("")
 val firebaseApiKey = providers.gradleProperty("ML_FIREBASE_API_KEY").orElse("")
 val firebaseProjectId = providers.gradleProperty("ML_FIREBASE_PROJECT_ID").orElse("")
@@ -31,8 +36,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 19
-        versionName = "0.7.1"
+        versionCode = 20
+        versionName = "0.7.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
@@ -46,6 +51,11 @@ android {
         buildConfigField("String", "PORTAL_URL", "${authentikBaseUrl.get()}/if/user/".asBuildConfigString())
         buildConfigField("String", "DEVICE_SERVICE_BASE_URL", deviceServiceBaseUrl.get().asBuildConfigString())
         buildConfigField("String", "WEB_ALLOWED_HOST_SUFFIXES", webAllowedHostSuffixes.get().asBuildConfigString())
+        buildConfigField(
+            "String",
+            "AUTHENTIK_AUTHENTICATION_FLOW_SLUGS",
+            authentikAuthenticationFlowSlugs.get().asBuildConfigString(),
+        )
         buildConfigField("String", "FIREBASE_APPLICATION_ID", firebaseApplicationId.get().asBuildConfigString())
         buildConfigField("String", "FIREBASE_API_KEY", firebaseApiKey.get().asBuildConfigString())
         buildConfigField("String", "FIREBASE_PROJECT_ID", firebaseProjectId.get().asBuildConfigString())

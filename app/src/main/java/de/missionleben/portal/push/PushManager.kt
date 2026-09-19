@@ -43,6 +43,13 @@ object PushManager {
         }
     }
 
+    fun unregister() {
+        if (!configured) return
+        FirebaseMessaging.getInstance().unregister().addOnFailureListener { error ->
+            Log.w(TAG, "FCM installation unregistration failed", error)
+        }
+    }
+
     fun installationId(context: Context): String? = PushRegistrationStore(context).installationId
 
     private fun createChannels(context: Context) {

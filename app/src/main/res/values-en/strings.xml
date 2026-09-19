@@ -66,6 +66,7 @@
     <string name="privacy_detailed_label">Detailed</string>
     <string name="privacy_detailed_description">Also show a short mail or Talk preview.</string>
     <string name="message_auth_cancelled">Sign-in was cancelled.</string>
+    <string name="message_session_expired">For security reasons, your session has expired. Please sign in again.</string>
     <string name="message_quick_access_enabled">Quick access is enabled.</string>
     <string name="message_protected_session_failed">The protected session could not be opened: %1$s</string>
     <string name="message_apps_load_failed">Apps could not be loaded.</string>

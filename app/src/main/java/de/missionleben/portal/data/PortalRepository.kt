@@ -49,6 +49,9 @@ class PortalRepository {
             connection.setRequestProperty("User-Agent", "MissionLebenPortal/${BuildConfig.VERSION_NAME}")
             val body = (if (connection.responseCode in 200..299) connection.inputStream else connection.errorStream)
                 ?.bufferedReader()?.use { it.readText() }.orEmpty()
+            if (connection.responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                throw PortalAuthenticationException()
+            }
             if (connection.responseCode !in 200..299) {
                 error("Authentik API antwortet mit HTTP ${connection.responseCode}: ${body.take(180)}")
             }
@@ -67,6 +70,8 @@ class PortalRepository {
         }
     }
 }
+
+class PortalAuthenticationException : IllegalStateException("Authentik session is no longer authorized")
 
 internal object PortalApplicationFilter {
     const val MOBILE_GROUP = "Mobil erreichbar"

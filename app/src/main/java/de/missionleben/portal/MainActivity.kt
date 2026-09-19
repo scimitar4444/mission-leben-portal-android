@@ -74,6 +74,14 @@ class MainActivity : FragmentActivity() {
         viewModel.completeAuthorization(redirectUri)
     }
 
+    private val appBrowserLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == RESULT_OK && PortalBrowserActivity.sessionExpired(result.data)) {
+            viewModel.sessionExpired()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         PushManager.initialize(this)
@@ -118,7 +126,7 @@ class MainActivity : FragmentActivity() {
                             }
                         }
                     },
-                    onOpenUrl = ::openUrl,
+                    onOpenUrl = viewModel::openApplication,
                     onReloadApplications = viewModel::loadApplications,
                     onScanEnrollmentQr = ::scanEnrollmentQr,
                     onRefreshDeviceStatus = viewModel::refreshDeviceStatus,
@@ -175,7 +183,7 @@ class MainActivity : FragmentActivity() {
 
     private fun openUrl(url: String) {
         val mode = viewModel.uiState.value.mode ?: return
-        startActivity(PortalBrowserActivity.appIntent(this, url, mode))
+        appBrowserLauncher.launch(PortalBrowserActivity.appIntent(this, url, mode))
     }
 
     private fun openLogout(url: String) {

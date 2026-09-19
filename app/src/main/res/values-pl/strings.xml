@@ -66,6 +66,7 @@
     <string name="privacy_detailed_label">Szczegółowe</string>
     <string name="privacy_detailed_description">Pokazuj także krótki podgląd wiadomości lub Talk.</string>
     <string name="message_auth_cancelled">Logowanie anulowano.</string>
+    <string name="message_session_expired">Ze względów bezpieczeństwa sesja wygasła. Zaloguj się ponownie.</string>
     <string name="message_quick_access_enabled">Szybki dostęp jest włączony.</string>
     <string name="message_protected_session_failed">Nie udało się otworzyć chronionej sesji: %1$s</string>
     <string name="message_apps_load_failed">Nie udało się załadować aplikacji.</string>

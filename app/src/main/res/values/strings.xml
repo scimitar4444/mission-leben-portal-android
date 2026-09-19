@@ -85,6 +85,7 @@
     <string name="privacy_detailed_description">Zusätzlich eine kurze Mail- oder Talk-Vorschau anzeigen.</string>
 
     <string name="message_auth_cancelled">Anmeldung wurde abgebrochen.</string>
+    <string name="message_session_expired">Ihre Sitzung ist aus Sicherheitsgründen abgelaufen. Bitte melden Sie sich erneut an.</string>
     <string name="message_quick_access_enabled">Schnellzugang ist aktiviert.</string>
     <string name="message_protected_session_failed">Geschützte Sitzung konnte nicht geöffnet werden: %1$s</string>
     <string name="message_apps_load_failed">Apps konnten nicht geladen werden.</string>
