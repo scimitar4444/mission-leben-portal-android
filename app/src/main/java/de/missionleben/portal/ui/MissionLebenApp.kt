@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.missionleben.portal.BuildConfig
 import de.missionleben.portal.R
+import de.missionleben.portal.auth.ReauthenticationPolicy
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
@@ -300,7 +301,7 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
             Text(
                 when {
                     state.signedIn -> stringResource(R.string.hello_name, state.user?.displayName.orEmpty())
-                    state.reauthenticationRequired -> stringResource(R.string.reauthenticate_totp_title)
+                    state.reauthenticationRequired -> stringResource(R.string.reauthenticate_title)
                     else -> stringResource(R.string.secure_sign_in)
                 },
                 color = Color.White,
@@ -319,13 +320,20 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
                     state.signedIn && state.mode == DeviceMode.SHARED ->
                         stringResource(R.string.shared_session_description)
                     state.reauthenticationRequired ->
-                        stringResource(R.string.reauthenticate_totp_description)
+                        stringResource(R.string.reauthenticate_description)
                     state.mode == DeviceMode.PERSONAL ->
                         stringResource(R.string.first_login_description)
                     else -> stringResource(R.string.shared_login_description)
                 },
                 color = Color(0xFFD7CFDD),
             )
+            if (state.signedIn && state.mode == DeviceMode.PERSONAL) {
+                val remainingDays = state.user?.let {
+                    ReauthenticationPolicy.remainingDays(it.authenticatedAtEpochSeconds)
+                } ?: 0L
+                Spacer(Modifier.height(12.dp))
+                SessionValidityPill(remainingDays)
+            }
             Spacer(Modifier.height(18.dp))
             if (state.signedIn) {
                 OutlinedButton(onClick = onLogout, enabled = !state.busy) {
@@ -338,7 +346,7 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
                     } else {
                         Text(
                             stringResource(
-                                if (state.reauthenticationRequired) R.string.reauthenticate_totp_action
+                                if (state.reauthenticationRequired) R.string.reauthenticate_action
                                 else R.string.sign_in_with_authentik,
                             ),
                         )
@@ -346,6 +354,27 @@ private fun WelcomePanel(state: UiState, onStartLogin: () -> Unit, onLogout: () 
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SessionValidityPill(remainingDays: Long) {
+    val label = when (remainingDays) {
+        0L -> stringResource(R.string.session_valid_today)
+        1L -> stringResource(R.string.session_valid_one_day)
+        else -> stringResource(R.string.session_valid_days, remainingDays)
+    }
+    Surface(
+        color = Color.White.copy(alpha = 0.12f),
+        shape = CircleShape,
+    ) {
+        Text(
+            label,
+            color = Color.White,
+            modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 

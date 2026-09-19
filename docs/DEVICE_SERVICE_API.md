@@ -23,7 +23,7 @@ POST /api/v3/endpoints/agents/connectors/check_in/
 Authorization: Bearer+Agent <Authentik-DeviceToken>
 ```
 
-Das Device Token wird auf Android mit einem nicht exportierbaren AES-256-GCM-Schluessel aus dem Android Keystore verschluesselt. Die App verwendet es ausserdem zum Beantworten der Authentik Endpoint-Stage-Challenge. Eine nachgelagerte Authentik-Policy prueft Ablauf und Device Access Group nach der TOTP-Stufe.
+Das Device Token wird auf Android mit einem nicht exportierbaren AES-256-GCM-Schluessel aus dem Android Keystore verschluesselt. Die App verwendet es ausserdem zum Beantworten der Authentik Endpoint-Stage-Challenge. Eine nachgelagerte Authentik-Policy prueft Ablauf, gemeldeten Modus und die direkte Benutzer- beziehungsweise Einrichtungsgruppenbindung, bevor Passwort oder vorhandenes TOTP akzeptiert werden.
 
 ## Freigegebene Link-Ziele
 

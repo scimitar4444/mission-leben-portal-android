@@ -59,7 +59,7 @@ class ReauthenticationPolicyTest {
     @Test
     fun `missing identity always falls back to full login`() {
         assertFalse(
-            ReauthenticationPolicy.canOfferTotpOnly(
+            ReauthenticationPolicy.canOfferBoundDeviceReauthentication(
                 mode = DeviceMode.PERSONAL,
                 enrollmentState = EnrollmentState.TRUSTED,
                 loginHint = "",
@@ -95,5 +95,16 @@ class ReauthenticationPolicyTest {
                 nowEpochSeconds = 1_700_000_000L,
             ),
         )
+    }
+
+    @Test
+    fun `remaining days round partial days up for a useful countdown`() {
+        val authenticatedAt = 1_700_000_000L
+        val oneSecondAfterLogin = authenticatedAt + 1L
+        val oneSecondBeforeDeadline = authenticatedAt + (90L * 24L * 60L * 60L) - 1L
+
+        assertEquals(90L, ReauthenticationPolicy.remainingDays(authenticatedAt, oneSecondAfterLogin))
+        assertEquals(1L, ReauthenticationPolicy.remainingDays(authenticatedAt, oneSecondBeforeDeadline))
+        assertEquals(0L, ReauthenticationPolicy.remainingDays(authenticatedAt, oneSecondBeforeDeadline + 1L))
     }
 }

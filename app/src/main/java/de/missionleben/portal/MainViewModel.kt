@@ -388,12 +388,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun sessionExpired() {
         val expiredState = _uiState.value
-        val totpReauthenticationAvailable = ReauthenticationPolicy.canOfferTotpOnly(
+        val boundDeviceReauthenticationAvailable = ReauthenticationPolicy.canOfferBoundDeviceReauthentication(
             mode = expiredState.mode,
             enrollmentState = expiredState.enrollmentState,
             loginHint = expiredState.user?.loginHint,
         )
-        if (totpReauthenticationAvailable) {
+        if (boundDeviceReauthenticationAvailable) {
             preferences.reauthenticationHint = expiredState.user?.loginHint
             preferences.reauthenticationRequired = true
         } else {
@@ -412,7 +412,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 busy = true,
                 signedIn = false,
                 user = null,
-                reauthenticationRequired = totpReauthenticationAvailable,
+                reauthenticationRequired = boundDeviceReauthenticationAvailable,
                 quickUnlockEnabled = false,
                 vaultRequest = VaultRequest.NONE,
                 applications = emptyList(),
@@ -420,7 +420,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 linkTargets = emptyList(),
                 requestedUrl = null,
                 clearWebDataRequested = true,
-                message = if (totpReauthenticationAvailable) {
+                message = if (boundDeviceReauthenticationAvailable) {
                     string(R.string.message_session_reauth_required)
                 } else {
                     string(R.string.message_session_expired)
