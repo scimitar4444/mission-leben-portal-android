@@ -6,6 +6,7 @@
     <string name="language_description">Usa automáticamente el idioma del teléfono o elige un idioma solo para esta aplicación.</string>
     <string name="language_system">Idioma del teléfono</string>
     <string name="onboarding_heading">Un portal. Todas las aplicaciones.</string>
+    <string name="onboarding_scan_heading">Configurar dispositivo</string>
     <string name="onboarding_body">Inicia sesión de forma segura con Authentik y abre únicamente las aplicaciones web autorizadas para ti.</string>
     <string name="onboarding_employee_eyebrow">PARA EL PERSONAL</string>
     <string name="onboarding_personal_title">Mi dispositivo personal</string>

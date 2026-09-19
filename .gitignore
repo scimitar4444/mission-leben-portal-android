@@ -18,3 +18,8 @@ bridge/secrets/*
 !bridge/secrets/*.example.json
 **/__pycache__/
 **/*.pyc
+**/.pytest_cache/
+**/*.egg-info/
+**/.venv/
+enrollment-portal/.env
+enrollment-portal/secrets/

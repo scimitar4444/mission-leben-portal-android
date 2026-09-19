@@ -6,6 +6,7 @@
     <string name="language_description">Folosește automat limba telefonului sau alege o limbă doar pentru această aplicație.</string>
     <string name="language_system">Limba telefonului</string>
     <string name="onboarding_heading">Un portal. Toate aplicațiile.</string>
+    <string name="onboarding_scan_heading">Configurează dispozitivul</string>
     <string name="onboarding_body">Autentifică-te în siguranță prin Authentik și deschide doar aplicațiile web aprobate pentru tine.</string>
     <string name="onboarding_employee_eyebrow">PENTRU ANGAJAȚI</string>
     <string name="onboarding_personal_title">Dispozitivul meu personal</string>

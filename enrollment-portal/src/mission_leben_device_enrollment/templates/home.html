@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Gerät auswählen{% endblock %}
+{% block content %}
+<section class="intro">
+  <span class="step">Schritt 1 von 3</span>
+  <h1>Welches Gerät möchten Sie einrichten?</h1>
+  <p>Wählen Sie die passende Geräteart. Alles Weitere wird automatisch vorbereitet.</p>
+</section>
+<section class="choice-grid">
+  <a class="choice-card" href="/personal">
+    <span class="choice-icon" aria-hidden="true">📱</span>
+    <strong>Mitarbeiter-Handy</strong>
+    <span>Das Gerät gehört genau einer Mitarbeiterin oder einem Mitarbeiter.</span>
+    <b>Auswählen →</b>
+  </a>
+  <a class="choice-card" href="/shared">
+    <span class="choice-icon" aria-hidden="true">▣</span>
+    <strong>Gemeinsames Tablet</strong>
+    <span>Mehrere Beschäftigte einer Einrichtung verwenden dieses Tablet.</span>
+    <b>Auswählen →</b>
+  </a>
+</section>
+{% endblock %}

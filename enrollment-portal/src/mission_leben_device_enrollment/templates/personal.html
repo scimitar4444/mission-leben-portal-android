@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Mitarbeiter auswählen{% endblock %}
+{% block content %}
+<a class="back" href="/">← Zurück</a>
+<section class="intro">
+  <span class="step">Schritt 2 von 3</span>
+  <h1>Für wen ist das Gerät?</h1>
+  <p>Geben Sie mindestens zwei Buchstaben des Namens ein.</p>
+</section>
+<form class="search" method="get" action="/personal">
+  <label for="q">Mitarbeiter suchen</label>
+  <div class="search-row">
+    <input id="q" name="q" value="{{ query }}" minlength="2" maxlength="80" autocomplete="off" autofocus required>
+    <button type="submit">Suchen</button>
+  </div>
+</form>
+{% if query and not employees %}
+<div class="notice">Keine passende Person in Ihrem Zuständigkeitsbereich gefunden.</div>
+{% endif %}
+{% if employees %}
+<section class="results" aria-label="Suchergebnisse">
+  {% for employee in employees %}
+  <form method="post" action="/personal/enrollments" class="person-row">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="employee_pk" value="{{ employee.pk }}">
+    <span>
+      <strong>{{ employee.name or employee.username }}</strong>
+      <small>{{ employee.username }}</small>
+    </span>
+    <button type="submit">Diese Person</button>
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

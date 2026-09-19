@@ -6,6 +6,7 @@
     <string name="language_description">फ़ोन की भाषा अपने-आप अपनाएँ या केवल इस ऐप के लिए भाषा चुनें।</string>
     <string name="language_system">फ़ोन की भाषा</string>
     <string name="onboarding_heading">एक पोर्टल। सभी ऐप।</string>
+    <string name="onboarding_scan_heading">डिवाइस सेट करें</string>
     <string name="onboarding_body">Authentik से सुरक्षित रूप से साइन इन करें और केवल आपके लिए स्वीकृत वेब ऐप खोलें।</string>
     <string name="onboarding_employee_eyebrow">कर्मचारियों के लिए</string>
     <string name="onboarding_personal_title">मेरा निजी डिवाइस</string>
