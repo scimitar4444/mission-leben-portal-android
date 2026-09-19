@@ -57,7 +57,21 @@ class EnrollmentService:
     async def issue_personal(self, actor: Actor, user_pk: int) -> IssuedEnrollment:
         user = await self.authentik.employee(user_pk)
         self._assert_employee_scope(actor, user)
+        return await self._issue_personal_for_user(actor, user, self_service=False)
+
+    async def issue_self_personal(self, actor: Actor) -> IssuedEnrollment:
+        user = await self.authentik.employee_by_username(actor.username)
+        return await self._issue_personal_for_user(actor, user, self_service=True)
+
+    async def _issue_personal_for_user(
+        self,
+        actor: Actor,
+        user: dict[str, Any],
+        *,
+        self_service: bool,
+    ) -> IssuedEnrollment:
         user_uuid = str(user["uuid"])
+        user_pk = int(user["pk"])
         group_name = PERSONAL_PREFIX + user_uuid
         attributes = {
             "mission-leben.de/purpose": "android-portal",
@@ -73,7 +87,12 @@ class EnrollmentService:
             access_group=access_group,
             mode="personal",
             target_label=user.get("name") or user["username"],
-            target={"user_pk": user_pk, "user_uuid": user_uuid, "username": user["username"]},
+            target={
+                "user_pk": user_pk,
+                "user_uuid": user_uuid,
+                "username": user["username"],
+                "self_service": self_service,
+            },
         )
 
     async def issue_shared(
@@ -262,5 +281,5 @@ class EnrollmentService:
             "username": actor.username,
             "name": actor.display_name,
             "uid": actor.uid,
-            "role": actor.role.value,
+            "role": actor.role.value if actor.role is not None else "self_totp",
         }

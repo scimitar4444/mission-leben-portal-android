@@ -45,6 +45,7 @@ import androidx.webkit.WebViewFeature
 import de.missionleben.portal.BuildConfig
 import de.missionleben.portal.R
 import de.missionleben.portal.device.DeviceServiceRepository
+import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
 import org.json.JSONObject
 import java.io.File
@@ -59,6 +60,7 @@ class PortalBrowserActivity : FragmentActivity() {
     private var logoutFinished = false
     private var endpointBridgeInstalled = false
     private var authorizationResultDelivered = false
+    private var selfEnrollmentResultDelivered = false
     private var sessionExpiredResultDelivered = false
     private var talkChatNoticeShown = false
     private val deviceService by lazy { DeviceServiceRepository(applicationContext) }
@@ -350,6 +352,19 @@ class PortalBrowserActivity : FragmentActivity() {
     private fun handleNavigation(url: String, isMainFrame: Boolean): Boolean {
         if (!isMainFrame) return false
         if (interceptExpiredSession(url)) return true
+        if (intent.getBooleanExtra(EXTRA_SELF_ENROLLMENT, false)) {
+            val enrollment = EnrollmentQrParser.parse(url)
+            if (
+                enrollment?.tokenUuid != null &&
+                enrollment.mode == DeviceMode.PERSONAL &&
+                !selfEnrollmentResultDelivered
+            ) {
+                selfEnrollmentResultDelivered = true
+                setResult(RESULT_OK, Intent().setData(Uri.parse(url)))
+                finish()
+                return true
+            }
+        }
         if (policy.isAuthorizationRedirect(url)) {
             if (!authorizationResultDelivered) {
                 authorizationResultDelivered = true
@@ -379,7 +394,8 @@ class PortalBrowserActivity : FragmentActivity() {
 
     private fun interceptExpiredSession(url: String): Boolean {
         val isApplicationBrowser = !intent.hasExtra(EXTRA_REDIRECT_URI) &&
-            !intent.getBooleanExtra(EXTRA_LOGOUT, false)
+            !intent.getBooleanExtra(EXTRA_LOGOUT, false) &&
+            !intent.getBooleanExtra(EXTRA_SELF_ENROLLMENT, false)
         if (!isApplicationBrowser || !sessionPolicy.isInteractiveAuthentication(url)) return false
         if (!sessionExpiredResultDelivered) {
             sessionExpiredResultDelivered = true
@@ -525,6 +541,7 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_DEVICE_MODE = "device_mode"
         private const val EXTRA_CLEAR_BEFORE_LOAD = "clear_before_load"
         private const val EXTRA_LOGOUT = "logout"
+        private const val EXTRA_SELF_ENROLLMENT = "self_enrollment"
         private const val DOWNLOAD_PREFERENCES = "protected_web_downloads"
         private const val DOWNLOAD_IDS = "download_ids"
         private const val ENDPOINT_BRIDGE_NAME = "MissionLebenEndpoint"
@@ -567,6 +584,20 @@ class PortalBrowserActivity : FragmentActivity() {
                 ?: intent?.getStringExtra(EXTRA_AUTHORIZATION_RESPONSE)
                 ?: return null
             return runCatching { Uri.parse(response) }.getOrNull()
+        }
+
+        fun selfEnrollmentIntent(context: Context): Intent =
+            Intent(context, PortalBrowserActivity::class.java)
+                .putExtra(EXTRA_URL, BuildConfig.SELF_ENROLLMENT_URL)
+                .putExtra(EXTRA_DEVICE_MODE, DeviceMode.PERSONAL.name)
+                .putExtra(EXTRA_TITLE, context.getString(R.string.self_enrollment_browser_title))
+                .putExtra(EXTRA_CLEAR_BEFORE_LOAD, true)
+                .putExtra(EXTRA_SELF_ENROLLMENT, true)
+
+        fun selfEnrollmentResponse(intent: Intent?): Uri? = intent?.data?.let { uri ->
+            EnrollmentQrParser.parse(uri.toString())
+                ?.takeIf { it.tokenUuid != null && it.mode == DeviceMode.PERSONAL }
+                ?.let { uri }
         }
 
         fun sessionExpired(intent: Intent?): Boolean =

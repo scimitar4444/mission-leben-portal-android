@@ -7,12 +7,12 @@ from zoneinfo import ZoneInfo
 
 import segno
 from fastapi import FastAPI, Form, Header, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 from pydantic import BaseModel, Field
 
-from .auth import Actor, CsrfProtector, actor_from_request
+from .auth import Actor, CsrfProtector, actor_from_request, authenticated_actor_from_request
 from .authentik import AuthentikClient, AuthentikError
 from .config import Settings
 from .service import EnrollmentService, IssuedEnrollment
@@ -73,6 +73,9 @@ def create_app(
     def actor(request: Request) -> Actor:
         return actor_from_request(request, settings)
 
+    def authenticated_actor(request: Request) -> Actor:
+        return authenticated_actor_from_request(request, settings)
+
     def html(name: str, status: int = 200, **context) -> HTMLResponse:
         return HTMLResponse(templates.get_template(name).render(**context), status_code=status)
 
@@ -112,6 +115,24 @@ def create_app(
     async def home(request: Request):
         current = actor(request)
         return html("home.html", **page_context(current))
+
+    @app.get("/self", response_class=HTMLResponse)
+    async def self_enrollment(request: Request):
+        current = authenticated_actor(request)
+        return html(
+            "self.html",
+            **page_context(current, "issue-self-personal"),
+        )
+
+    @app.post("/self/enrollments")
+    async def issue_self_enrollment(
+        request: Request,
+        csrf_token: str = Form(...),
+    ):
+        current = authenticated_actor(request)
+        csrf.verify_request(request, current, "issue-self-personal", csrf_token)
+        enrollment = await service.issue_self_personal(current)
+        return RedirectResponse(enrollment.qr_payload(), status_code=303)
 
     @app.get("/personal", response_class=HTMLResponse)
     async def personal(request: Request, q: str = ""):

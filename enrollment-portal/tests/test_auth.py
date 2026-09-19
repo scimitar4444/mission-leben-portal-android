@@ -4,7 +4,12 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from mission_leben_device_enrollment.auth import CsrfProtector, Role, actor_from_request
+from mission_leben_device_enrollment.auth import (
+    CsrfProtector,
+    Role,
+    actor_from_request,
+    authenticated_actor_from_request,
+)
 
 
 def request(headers: dict[str, str]) -> Request:
@@ -60,6 +65,16 @@ def test_unrelated_or_gf_group_has_no_permission(settings):
         with pytest.raises(HTTPException) as error:
             actor_from_request(request(authentik_headers(groups)), settings)
         assert error.value.status_code == 403
+
+
+def test_normal_employee_is_authenticated_only_for_self_service(settings):
+    headers = authentik_headers("Mitarbeitende|ORG_HAUS_1")
+    self_actor = authenticated_actor_from_request(request(headers), settings)
+    assert self_actor.role is None
+    assert not self_actor.can_manage_devices
+    with pytest.raises(HTTPException) as error:
+        actor_from_request(request(headers), settings)
+    assert error.value.status_code == 403
 
 
 def test_proxy_app_header_is_mandatory(settings):

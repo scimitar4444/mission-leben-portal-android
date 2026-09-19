@@ -60,6 +60,10 @@ class FakeAuthentik:
         assert user_pk == self.user["pk"]
         return self.user
 
+    async def employee_by_username(self, username):
+        assert username == self.user["username"]
+        return self.user
+
     async def access_group_by_name(self, _):
         return None
 
@@ -146,6 +150,27 @@ async def test_personal_enrollment_fails_outside_el_scope(settings):
         await service.issue_personal(actor(organizations=frozenset({"ORG_HAUS_2"})), 42)
     assert error.value.status == 403
     assert not authentik.created_groups
+
+
+@pytest.mark.asyncio
+async def test_totp_self_enrollment_binds_only_authenticated_employee(settings):
+    authentik = FakeAuthentik(settings)
+    service = EnrollmentService(settings, authentik)
+    self_actor = Actor(
+        "self-id",
+        authentik.user["username"],
+        authentik.user["name"],
+        None,
+        frozenset(),
+    )
+
+    issued = await service.issue_self_personal(self_actor)
+
+    assert issued.mode == "personal"
+    assert authentik.created_bindings == [
+        ("user", "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee", authentik.user["pk"])
+    ]
+    assert authentik.audit_events[0][1]["role"] == "self_totp"
 
 
 @pytest.mark.asyncio
@@ -244,3 +269,46 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
         )
         assert invalid_redeem.status_code == 401
         assert invalid_redeem.json() == {"error": "Registrierungscode ist ungültig."}
+
+
+def test_normal_employee_can_only_create_own_enrollment(settings):
+    authentik = FakeAuthentik(settings)
+    app = create_app(settings, authentik)
+    headers = {
+        "x-authentik-meta-app": settings.proxy_app_slug,
+        "x-authentik-uid": "self-id",
+        "x-authentik-username": authentik.user["username"],
+        "x-authentik-name": authentik.user["name"],
+        "x-authentik-groups": "Mitarbeitende",
+    }
+    self_actor = Actor(
+        "self-id",
+        authentik.user["username"],
+        authentik.user["name"],
+        None,
+        frozenset(),
+    )
+    csrf_token = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(
+        self_actor, "issue-self-personal"
+    )
+
+    with TestClient(app) as client:
+        page = client.get("/self", headers=headers)
+        assert page.status_code == 200
+        assert "Dieses Gerät registrieren" in page.text
+
+        management = client.get("/", headers=headers)
+        assert management.status_code == 403
+
+        response = client.post(
+            "/self/enrollments",
+            headers={**headers, "origin": settings.public_origin},
+            data={"csrf_token": csrf_token},
+            follow_redirects=False,
+        )
+        assert response.status_code == 303
+        assert response.headers["location"].startswith("de.missionleben.portal://enroll?")
+        assert "mode=personal" in response.headers["location"]
+        assert authentik.created_bindings == [
+            ("user", "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee", authentik.user["pk"])
+        ]

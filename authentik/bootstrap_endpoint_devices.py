@@ -18,12 +18,13 @@ from authentik.endpoints.models import (
 )
 from authentik.flows.models import (
     Flow,
+    FlowAuthenticationRequirement,
     FlowDesignation,
     FlowStageBinding,
     NotConfiguredAction,
 )
 from authentik.policies.expression.models import ExpressionPolicy
-from authentik.policies.models import PolicyBinding
+from authentik.policies.models import PolicyBinding, PolicyEngineMode
 from authentik.providers.oauth2.models import (
     ClientType,
     GrantType,
@@ -48,13 +49,13 @@ PERSONAL_ACCESS_GROUP_NAME = "Mission Leben Android - Personal"
 CERTIFICATE_NAME = "Mission Leben Android Endpoint Challenge"
 BASE_AUTHENTICATION_FLOW_SLUG = "mission-leben-browser-authentication"
 ANDROID_AUTHENTICATION_FLOW_SLUG = "mission-leben-android-authentication"
+ANDROID_AUTHORIZATION_FLOW_SLUG = "mission-leben-android-authorization"
 PERSONAL_SESSION_FLOW_SLUGS = (
     ANDROID_AUTHENTICATION_FLOW_SLUG,
     "mission-leben-zimbra-authentication",
 )
-AUTHORIZATION_FLOW_SLUG = "default-provider-authorization-implicit-consent"
 INVALIDATION_FLOW_SLUG = "default-provider-invalidation-flow"
-PILOT_GROUP_NAME = "authentik Admins"
+LEGACY_PILOT_GROUP_NAME = "authentik Admins"
 PROVIDER_NAME = "Provider for Mission Leben Zentral Android"
 APPLICATION_NAME = "Mission Leben Zentral Android"
 APPLICATION_SLUG = "mission-leben-portal"
@@ -117,6 +118,50 @@ reported_mode = (
     .get("mode")
 )
 if approved_mode not in ("personal", "shared") or reported_mode != approved_mode:
+    return True
+
+from authentik.endpoints.connectors.agent.auth import check_device_policies
+return not check_device_policies(device, pending_user, http_request).passing
+'''
+
+
+# The OAuth provider's authorization flow runs even if authentik already has a
+# browser session. It must therefore prove the endpoint again instead of
+# trusting that session. Unlike the authentication-flow policy, this one is
+# intentionally fail-closed for every non-app User-Agent and can fall back to
+# the already authenticated request user.
+DENY_OIDC_DEVICE_ACCESS_EXPRESSION = r'''http_request = request.http_request
+if not http_request:
+    return True
+user_agent = http_request.META.get("HTTP_USER_AGENT", "")
+if "Android" not in user_agent or "MissionLebenPortal/" not in user_agent:
+    return True
+
+flow_plan = request.context.get("flow_plan")
+device = request.context.get("device")
+if device is None and flow_plan:
+    device = flow_plan.context.get("device")
+pending_user = flow_plan.context.get("pending_user") if flow_plan else None
+if pending_user is None:
+    pending_user = http_request.user
+if (
+    device is None
+    or pending_user is None
+    or getattr(pending_user, "is_anonymous", True)
+    or device.is_expired
+):
+    return True
+
+access_group = device.access_group
+approved_mode = access_group.attributes.get("mission-leben.de/mode") if access_group else None
+reported_mode = (
+    device.facts.data.get("vendor", {})
+    .get("mission-leben.de/portal", {})
+    .get("mode")
+)
+if approved_mode not in ("personal", "shared") or reported_mode != approved_mode:
+    return True
+if f"MissionLebenMode/{approved_mode}" not in user_agent:
     return True
 
 from authentik.endpoints.connectors.agent.auth import check_device_policies
@@ -211,8 +256,6 @@ personal_access_group, _ = DeviceAccessGroup.objects.update_or_create(
         }
     },
 )
-pilot_group = Group.objects.get(name=PILOT_GROUP_NAME)
-
 # Personal devices receive a DeviceUserBinding after enrollment. With no
 # binding on this access group, an unassigned device fails closed.
 DeviceUserBinding.objects.filter(target=personal_access_group).delete()
@@ -243,7 +286,16 @@ authentication_flow, _ = Flow.objects.update_or_create(
         "denied_action": base_authentication_flow.denied_action,
     },
 )
-authorization_flow = Flow.objects.get(slug=AUTHORIZATION_FLOW_SLUG)
+authorization_flow, _ = Flow.objects.update_or_create(
+    slug=ANDROID_AUTHORIZATION_FLOW_SLUG,
+    defaults={
+        "name": "Mission Leben Zentral Android - Autorisierung",
+        "title": "Gerät bestätigen",
+        "designation": FlowDesignation.AUTHORIZATION,
+        "authentication": FlowAuthenticationRequirement.REQUIRE_AUTHENTICATED,
+        "policy_engine_mode": PolicyEngineMode.MODE_ANY,
+    },
+)
 invalidation_flow = Flow.objects.get(slug=INVALIDATION_FLOW_SLUG)
 signing_key = CertificateKeyPair.objects.filter(name="authentik Self-signed Certificate").first()
 if signing_key is None:
@@ -290,6 +342,7 @@ application, _ = Application.objects.update_or_create(
         "meta_description": "Sicherer Android-Zugang zu den freigegebenen Mission-Leben-Anwendungen",
         "meta_publisher": "Mission Leben",
         "meta_hide": True,
+        "policy_engine_mode": PolicyEngineMode.MODE_ANY,
     },
 )
 
@@ -308,11 +361,22 @@ if missing_mobile_slugs:
     )
 mobile_applications.update(group=MOBILE_APPLICATION_GROUP)
 
-PolicyBinding.objects.update_or_create(
-    target=application,
-    group=pilot_group,
-    defaults={"order": 0, "enabled": True, "negate": False},
-)
+# The Android client is no longer an administrator-only pilot. Authentication
+# still fails closed for every unregistered or wrongly bound endpoint, and the
+# applications shown after login keep their existing APP_* policies. Remove
+# only the known former pilot binding and stop on any unknown application rule.
+legacy_pilot_group = Group.objects.filter(name=LEGACY_PILOT_GROUP_NAME).first()
+unexpected_application_bindings = PolicyBinding.objects.filter(target=application)
+if legacy_pilot_group is not None:
+    unexpected_application_bindings = unexpected_application_bindings.exclude(
+        group=legacy_pilot_group
+    )
+if unexpected_application_bindings.exists():
+    raise RuntimeError(
+        "Mission Leben Zentral Android has unexpected application bindings; review them manually"
+    )
+if legacy_pilot_group is not None:
+    PolicyBinding.objects.filter(target=application, group=legacy_pilot_group).delete()
 
 portal_request_policy, _ = ExpressionPolicy.objects.update_or_create(
     name="Mission Leben Zentral Android - App-Anfrage",
@@ -321,6 +385,10 @@ portal_request_policy, _ = ExpressionPolicy.objects.update_or_create(
 deny_device_policy, _ = ExpressionPolicy.objects.update_or_create(
     name="Mission Leben Zentral Android - Gerätezugriff verweigern",
     defaults={"expression": DENY_DEVICE_ACCESS_EXPRESSION},
+)
+deny_oidc_device_policy, _ = ExpressionPolicy.objects.update_or_create(
+    name="Mission Leben Zentral Android - OIDC-Gerätezugriff verweigern",
+    defaults={"expression": DENY_OIDC_DEVICE_ACCESS_EXPRESSION},
 )
 reauthentication_totp_policy = ExpressionPolicy.objects.filter(
     name=REAUTHENTICATION_TOTP_POLICY_NAME
@@ -410,6 +478,54 @@ PolicyBinding.objects.update_or_create(
     policy=deny_device_policy,
     defaults={"order": 0, "enabled": True, "negate": False},
 )
+
+# A valid authentik browser cookie is not sufficient for this public OIDC
+# client. The provider-specific authorization flow always performs another
+# signed endpoint challenge and validates the authenticated user against the
+# device's direct personal binding or facility group binding.
+authorization_endpoint_binding, _ = FlowStageBinding.objects.update_or_create(
+    target=authorization_flow,
+    stage=endpoint_stage,
+    defaults={
+        "order": 10,
+        "evaluate_on_plan": False,
+        "re_evaluate_policies": True,
+    },
+)
+if authorization_endpoint_binding.policies.exists():
+    raise RuntimeError(
+        "The Android authorization endpoint binding must run unconditionally"
+    )
+authorization_deny_binding, _ = FlowStageBinding.objects.update_or_create(
+    target=authorization_flow,
+    stage=deny_stage,
+    defaults={
+        "order": 11,
+        "evaluate_on_plan": False,
+        "re_evaluate_policies": True,
+    },
+)
+unexpected_authorization_deny_policies = PolicyBinding.objects.filter(
+    target=authorization_deny_binding
+).exclude(
+    policy=deny_oidc_device_policy
+)
+if unexpected_authorization_deny_policies.exists():
+    raise RuntimeError(
+        "The Android authorization deny binding has unexpected policies; review them manually"
+    )
+PolicyBinding.objects.update_or_create(
+    target=authorization_deny_binding,
+    policy=deny_oidc_device_policy,
+    defaults={"order": 0, "enabled": True, "negate": False},
+)
+unexpected_authorization_bindings = FlowStageBinding.objects.filter(
+    target=authorization_flow
+).exclude(pk__in=(authorization_endpoint_binding.pk, authorization_deny_binding.pk))
+if unexpected_authorization_bindings.exists():
+    raise RuntimeError(
+        "Android authorization flow has unexpected stage bindings; review them manually"
+    )
 
 # Password remains mandatory for the first login, shared tablets and personal
 # users without TOTP. At the explicit 90-day renewal only, a bound personal
@@ -552,6 +668,7 @@ print(
             "personal_device_access_group": str(personal_access_group.pk),
             "endpoint_stage": str(endpoint_stage.pk),
             "authentication_flow": authentication_flow.slug,
+            "authorization_flow": authorization_flow.slug,
             "identification_stage": str(identification_stage.pk),
             "totp_stage": str(totp_stage.pk),
             "personal_session_stage": str(personal_session_stage.pk),
@@ -561,7 +678,7 @@ print(
             "personal_session_flows": list(PERSONAL_SESSION_FLOW_SLUGS),
             "mobile_application_group": MOBILE_APPLICATION_GROUP,
             "mobile_application_slugs": list(MOBILE_APPLICATION_SLUGS),
-            "pilot_group": pilot_group.name,
+            "application_access": "active endpoint-bound authentik users",
         },
         sort_keys=True,
     )

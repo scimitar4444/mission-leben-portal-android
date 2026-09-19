@@ -137,6 +137,24 @@ class AuthentikClient:
             raise AuthentikError(400, "Dieser Mitarbeiter kann nicht ausgewählt werden.")
         return user
 
+    async def employee_by_username(self, username: str) -> dict[str, Any]:
+        payload = await self._request(
+            "GET",
+            "/core/users/",
+            params={"username": username, "include_groups": "true", "page_size": 2},
+        )
+        matches = [
+            user
+            for user in payload["results"]
+            if str(user.get("username", "")).casefold() == username.casefold()
+        ]
+        if len(matches) != 1:
+            raise AuthentikError(403, "Das angemeldete Mitarbeiterkonto ist nicht eindeutig.")
+        user = matches[0]
+        if not user.get("is_active") or user.get("type") == "service_account":
+            raise AuthentikError(403, "Dieses Mitarbeiterkonto darf kein Gerät registrieren.")
+        return user
+
     async def access_group_by_name(self, name: str) -> dict[str, Any] | None:
         results = await self._all_results(
             "/endpoints/device_access_groups/", {"search": name, "page_size": 100}

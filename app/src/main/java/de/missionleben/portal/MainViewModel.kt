@@ -309,7 +309,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    private fun enrollDevice(enrollment: EnrollmentQrPayload) {
+    private fun enrollDevice(enrollment: EnrollmentQrPayload, onSuccess: (() -> Unit)? = null) {
         val requestedMode = enrollment.mode ?: _uiState.value.mode
         if (requestedMode == null || enrollment.token.isBlank()) {
             _uiState.update { it.copy(message = string(R.string.message_enter_enrollment)) }
@@ -335,6 +335,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     }
                     if (serializedAuthState != null) loadApplications()
+                    onSuccess?.invoke()
                 }
                 .onFailure { error ->
                     preferences.enrollmentState = EnrollmentState.NOT_ENROLLED
@@ -345,13 +346,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun enrollDeviceFromQr(value: String) {
+    fun enrollDeviceFromQr(value: String, onSuccess: (() -> Unit)? = null) {
         val enrollment = EnrollmentQrParser.parse(value)
         if (enrollment == null || (enrollment.mode == null && _uiState.value.mode == null)) {
             _uiState.update { it.copy(message = string(R.string.message_qr_invalid)) }
             return
         }
-        enrollDevice(enrollment)
+        enrollDevice(enrollment, onSuccess)
     }
 
     fun acceptEnrollmentLink(uri: Uri?) {

@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.PortalFirebaseMessagingService
 import de.missionleben.portal.push.PushManager
@@ -94,6 +95,20 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    private val selfEnrollmentLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode != RESULT_OK) return@registerForActivityResult
+        val enrollment = PortalBrowserActivity.selfEnrollmentResponse(result.data) ?: return@registerForActivityResult
+        viewModel.enrollDeviceFromQr(enrollment.toString()) {
+            viewModel.createLoginUrl { url ->
+                authorizationLauncher.launch(
+                    PortalBrowserActivity.authorizationIntent(this, url, DeviceMode.PERSONAL),
+                )
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         PushManager.initialize(this)
@@ -139,6 +154,11 @@ class MainActivity : FragmentActivity() {
                     onOpenUrl = viewModel::openApplication,
                     onReloadApplications = viewModel::loadApplications,
                     onScanEnrollmentQr = ::scanEnrollmentQr,
+                    onSelfEnrollment = {
+                        selfEnrollmentLauncher.launch(
+                            PortalBrowserActivity.selfEnrollmentIntent(this@MainActivity),
+                        )
+                    },
                     onRefreshDeviceStatus = viewModel::refreshDeviceStatus,
                     onOpenTalk = viewModel::openTalkOn,
                     onNotificationPrivacyChange = viewModel::setNotificationPrivacy,

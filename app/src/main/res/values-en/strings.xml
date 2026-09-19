@@ -52,8 +52,11 @@
     <string name="sign_in_with_authentik">Sign in with Authentik</string>
     <string name="device_identity">Device identity</string>
     <string name="device_key_format">Key %1$s…</string>
-    <string name="enrollment_instruction">Scan the QR code from Mission Leben device management.</string>
+    <string name="enrollment_instruction">Register your personal device with TOTP or scan a QR code from management or IT.</string>
     <string name="scan_enrollment_qr">Scan QR code</string>
+    <string name="self_enrollment_action">Register with TOTP</string>
+    <string name="self_enrollment_hint">For your personal device. You need an existing TOTP.</string>
+    <string name="enrollment_qr_alternative">Alternatively: QR code from management or IT</string>
     <string name="manual_enrollment_fallback">Alternative for support only:</string>
     <string name="device_api_not_configured">The device API is not configured in this build yet. See docs/AUTHENTIK_SETUP.md.</string>
     <string name="enrollment_code">Enrollment code</string>
@@ -128,6 +131,7 @@
     <string name="browser_download_failed">The download could not be started.</string>
     <string name="browser_web_application">Web application</string>
     <string name="browser_sign_in_title">Sign in securely</string>
+    <string name="self_enrollment_browser_title">Register device with TOTP</string>
     <string name="browser_sign_out_title">Ending session</string>
     <string name="device_service_not_configured">Mission Leben Device Service is not configured yet.</string>
     <string name="device_status_unavailable">Device status is unavailable (HTTP %1$d).</string>
