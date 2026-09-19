@@ -59,8 +59,15 @@ class PortalBrowserActivity : FragmentActivity() {
     private var logoutFinished = false
     private var endpointBridgeInstalled = false
     private var authorizationResultDelivered = false
+    private var sessionExpiredResultDelivered = false
     private var talkChatNoticeShown = false
     private val deviceService by lazy { DeviceServiceRepository(applicationContext) }
+    private val sessionPolicy by lazy {
+        WebSessionPolicy(
+            BuildConfig.AUTHENTIK_BASE_URL,
+            BuildConfig.AUTHENTIK_AUTHENTICATION_FLOW_SLUGS,
+        )
+    }
     private val authentikOrigin by lazy {
         Uri.parse(BuildConfig.AUTHENTIK_BASE_URL).let { "${it.scheme}://${it.authority}" }
     }
@@ -270,8 +277,14 @@ class PortalBrowserActivity : FragmentActivity() {
         @Deprecated("Compatibility for old WebView providers")
         override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = handleNavigation(url, true)
 
+        override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+            if (interceptExpiredSession(url)) return
+            super.onPageStarted(view, url, favicon)
+        }
+
         override fun onPageFinished(view: WebView, url: String) {
             super.onPageFinished(view, url)
+            if (interceptExpiredSession(url)) return
             titleView.text = view.title?.takeIf { it.isNotBlank() } ?: titleView.text
             if (isAuthentikOrigin(url)) view.evaluateJavascript(ENDPOINT_BRIDGE_SCRIPT, null)
             if (TalkChatPolicy.isTalkPage(url)) {
@@ -332,6 +345,7 @@ class PortalBrowserActivity : FragmentActivity() {
 
     private fun handleNavigation(url: String, isMainFrame: Boolean): Boolean {
         if (!isMainFrame) return false
+        if (interceptExpiredSession(url)) return true
         if (policy.isAuthorizationRedirect(url)) {
             if (!authorizationResultDelivered) {
                 authorizationResultDelivered = true
@@ -355,6 +369,19 @@ class PortalBrowserActivity : FragmentActivity() {
             runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
         } else {
             Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show()
+        }
+        return true
+    }
+
+    private fun interceptExpiredSession(url: String): Boolean {
+        val isApplicationBrowser = !intent.hasExtra(EXTRA_REDIRECT_URI) &&
+            !intent.getBooleanExtra(EXTRA_LOGOUT, false)
+        if (!isApplicationBrowser || !sessionPolicy.isInteractiveAuthentication(url)) return false
+        if (!sessionExpiredResultDelivered) {
+            sessionExpiredResultDelivered = true
+            webView.stopLoading()
+            setResult(RESULT_OK, Intent().putExtra(EXTRA_SESSION_EXPIRED, true))
+            finish()
         }
         return true
     }
@@ -490,6 +517,7 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_REDIRECT_URI = "redirect_uri"
         private const val EXTRA_AUTHORIZATION_RESPONSE = "authorization_response"
+        private const val EXTRA_SESSION_EXPIRED = "session_expired"
         private const val EXTRA_DEVICE_MODE = "device_mode"
         private const val EXTRA_CLEAR_BEFORE_LOAD = "clear_before_load"
         private const val EXTRA_LOGOUT = "logout"
@@ -536,6 +564,9 @@ class PortalBrowserActivity : FragmentActivity() {
                 ?: return null
             return runCatching { Uri.parse(response) }.getOrNull()
         }
+
+        fun sessionExpired(intent: Intent?): Boolean =
+            intent?.getBooleanExtra(EXTRA_SESSION_EXPIRED, false) == true
 
         fun logoutIntent(context: Context, url: String, mode: DeviceMode): Intent =
             Intent(context, PortalBrowserActivity::class.java)

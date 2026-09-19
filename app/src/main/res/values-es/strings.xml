@@ -66,6 +66,7 @@
     <string name="privacy_detailed_label">Detallado</string>
     <string name="privacy_detailed_description">Mostrar también una vista previa breve del correo o de Talk.</string>
     <string name="message_auth_cancelled">Se canceló el inicio de sesión.</string>
+    <string name="message_session_expired">Por motivos de seguridad, tu sesión ha caducado. Vuelve a iniciar sesión.</string>
     <string name="message_quick_access_enabled">El acceso rápido está activado.</string>
     <string name="message_protected_session_failed">No se pudo abrir la sesión protegida: %1$s</string>
     <string name="message_apps_load_failed">No se pudieron cargar las aplicaciones.</string>

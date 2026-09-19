@@ -115,20 +115,52 @@ class AuthRepository(context: Context) {
     fun withFreshAccessToken(
         serializedState: String,
         onSuccess: (accessToken: String, updatedState: String) -> Unit,
-        onError: (String) -> Unit,
+        onError: (AccessTokenFailure) -> Unit,
     ) {
         val state = try {
             AuthState.jsonDeserialize(serializedState)
         } catch (error: Exception) {
-            onError(context.getString(R.string.auth_saved_session_invalid))
+            onError(
+                AccessTokenFailure(
+                    message = context.getString(R.string.auth_saved_session_invalid),
+                    reauthenticationRequired = true,
+                ),
+            )
             return
         }
-        state.performActionWithFreshTokens(authorizationService) { accessToken, _, error ->
-            if (accessToken == null) {
-                onError(context.getString(R.string.auth_session_refresh_failed))
-            } else {
-                onSuccess(accessToken, state.jsonSerializeString())
+        if (!state.isAuthorized || (state.needsTokenRefresh && state.refreshToken.isNullOrBlank())) {
+            onError(
+                AccessTokenFailure(
+                    message = context.getString(R.string.auth_session_refresh_failed),
+                    reauthenticationRequired = true,
+                ),
+            )
+            return
+        }
+        runCatching {
+            state.performActionWithFreshTokens(authorizationService) { accessToken, _, error ->
+                if (accessToken == null) {
+                    onError(
+                        AccessTokenFailure(
+                            message = context.getString(R.string.auth_session_refresh_failed),
+                            reauthenticationRequired = TokenRefreshFailurePolicy.requiresReauthentication(
+                                oauthError = error?.error,
+                                stateAuthorized = state.isAuthorized,
+                            ),
+                        ),
+                    )
+                } else {
+                    onSuccess(accessToken, state.jsonSerializeString())
+                }
             }
+        }.onFailure {
+            onError(
+                AccessTokenFailure(
+                    message = context.getString(R.string.auth_session_refresh_failed),
+                    reauthenticationRequired = !state.isAuthorized ||
+                        (state.needsTokenRefresh && state.refreshToken.isNullOrBlank()),
+                ),
+            )
         }
     }
 

@@ -66,6 +66,7 @@
     <string name="privacy_detailed_label">विस्तृत</string>
     <string name="privacy_detailed_description">मेल या Talk का छोटा पूर्वावलोकन भी दिखाएँ।</string>
     <string name="message_auth_cancelled">साइन इन रद्द कर दिया गया।</string>
+    <string name="message_session_expired">सुरक्षा कारणों से आपका सत्र समाप्त हो गया है। कृपया फिर से साइन इन करें।</string>
     <string name="message_quick_access_enabled">त्वरित पहुँच चालू है।</string>
     <string name="message_protected_session_failed">सुरक्षित सत्र नहीं खुल सका: %1$s</string>
     <string name="message_apps_load_failed">ऐप लोड नहीं हो सके।</string>

@@ -66,6 +66,7 @@
     <string name="privacy_detailed_label">Докладно</string>
     <string name="privacy_detailed_description">Також показувати короткий попередній перегляд пошти або Talk.</string>
     <string name="message_auth_cancelled">Вхід скасовано.</string>
+    <string name="message_session_expired">З міркувань безпеки термін дії сеансу завершився. Увійдіть знову.</string>
     <string name="message_quick_access_enabled">Швидкий доступ увімкнено.</string>
     <string name="message_protected_session_failed">Не вдалося відкрити захищений сеанс: %1$s</string>
     <string name="message_apps_load_failed">Не вдалося завантажити програми.</string>

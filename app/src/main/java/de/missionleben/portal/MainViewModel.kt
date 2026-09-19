@@ -9,8 +9,10 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import de.missionleben.portal.auth.AccessTokenFailure
 import de.missionleben.portal.auth.AuthRepository
 import de.missionleben.portal.data.AppPreferences
+import de.missionleben.portal.data.PortalAuthenticationException
 import de.missionleben.portal.data.PortalRepository
 import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrParser
@@ -246,13 +248,38 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             resolvePendingPushAction()
                         }
                         .onFailure { error ->
-                            _uiState.update {
-                                it.copy(applicationsLoading = false, message = string(R.string.message_apps_load_failed))
+                            if (error is PortalAuthenticationException) {
+                                sessionExpired()
+                            } else {
+                                _uiState.update {
+                                    it.copy(applicationsLoading = false, message = string(R.string.message_apps_load_failed))
+                                }
                             }
                         }
                 }
             },
-            onError = { message -> _uiState.update { it.copy(applicationsLoading = false, message = message) } },
+            onError = { failure ->
+                handleAccessTokenFailure(failure) { it.copy(applicationsLoading = false) }
+            },
+        )
+    }
+
+    fun openApplication(url: String) {
+        val state = serializedAuthState
+        if (!_uiState.value.signedIn || state == null) {
+            _uiState.update { it.copy(message = string(R.string.message_sign_in_to_open)) }
+            return
+        }
+        _uiState.update { it.copy(busy = true, message = null) }
+        authRepository.withFreshAccessToken(
+            serializedState = state,
+            onSuccess = { _, updatedState ->
+                updateSerializedState(updatedState)
+                _uiState.update { it.copy(busy = false, requestedUrl = url) }
+            },
+            onError = { failure ->
+                handleAccessTokenFailure(failure) { it.copy(busy = false) }
+            },
         )
     }
 
@@ -325,8 +352,36 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         .onFailure { error -> _uiState.update { it.copy(busy = false, message = error.message) } }
                 }
             },
-            onError = { message -> _uiState.update { it.copy(busy = false, message = message) } },
+            onError = { failure ->
+                handleAccessTokenFailure(failure) { it.copy(busy = false) }
+            },
         )
+    }
+
+    fun sessionExpired() {
+        serializedAuthState = null
+        pendingVaultState = null
+        pendingPushAction = null
+        dataEncryptionKey?.fill(0)
+        dataEncryptionKey = null
+        vault.clear()
+        clearNotifications()
+        PushManager.unregister()
+        _uiState.update {
+            it.copy(
+                busy = true,
+                signedIn = false,
+                user = null,
+                quickUnlockEnabled = false,
+                vaultRequest = VaultRequest.NONE,
+                applications = emptyList(),
+                applicationsLoading = false,
+                linkTargets = emptyList(),
+                requestedUrl = null,
+                clearWebDataRequested = true,
+                message = string(R.string.message_session_expired),
+            )
+        }
     }
 
     fun logout(onBrowserLogout: (String) -> Unit) {
@@ -364,7 +419,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun consumeRequestedUrl() = _uiState.update { it.copy(requestedUrl = null) }
 
-    fun consumeWebDataClearRequest() = _uiState.update { it.copy(clearWebDataRequested = false) }
+    fun consumeWebDataClearRequest() = _uiState.update {
+        it.copy(clearWebDataRequested = false, busy = false)
+    }
 
     fun refreshDeviceStatus() {
         syncDeviceStatus(blockLogin = false)
@@ -431,7 +488,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 updateSerializedState(updatedState)
                 syncPushRegistrationWithToken(token)
             },
-            onError = { },
+            onError = { failure ->
+                if (failure.reauthenticationRequired) sessionExpired()
+            },
         )
     }
 
@@ -517,7 +576,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (application == null) {
             _uiState.update { it.copy(message = string(R.string.message_app_not_approved)) }
         } else {
-            _uiState.update { it.copy(requestedUrl = application.launchUrl, message = null) }
+            openApplication(application.launchUrl)
+        }
+    }
+
+    private fun handleAccessTokenFailure(
+        failure: AccessTokenFailure,
+        onTransientFailure: (UiState) -> UiState,
+    ) {
+        if (failure.reauthenticationRequired) {
+            sessionExpired()
+        } else {
+            _uiState.update { onTransientFailure(it).copy(message = failure.message) }
         }
     }
 

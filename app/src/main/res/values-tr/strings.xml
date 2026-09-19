@@ -66,6 +66,7 @@
     <string name="privacy_detailed_label">Ayrıntılı</string>
     <string name="privacy_detailed_description">Ayrıca kısa posta veya Talk önizlemesi göster.</string>
     <string name="message_auth_cancelled">Oturum açma iptal edildi.</string>
+    <string name="message_session_expired">Güvenlik nedeniyle oturumunuzun süresi doldu. Lütfen yeniden giriş yapın.</string>
     <string name="message_quick_access_enabled">Hızlı erişim etkinleştirildi.</string>
     <string name="message_protected_session_failed">Korunan oturum açılamadı: %1$s</string>
     <string name="message_apps_load_failed">Uygulamalar yüklenemedi.</string>

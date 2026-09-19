@@ -66,6 +66,7 @@
     <string name="privacy_detailed_label">Détaillé</string>
     <string name="privacy_detailed_description">Afficher aussi un court aperçu de l’e-mail ou de Talk.</string>
     <string name="message_auth_cancelled">La connexion a été annulée.</string>
+    <string name="message_session_expired">Pour des raisons de sécurité, votre session a expiré. Veuillez vous reconnecter.</string>
     <string name="message_quick_access_enabled">L’accès rapide est activé.</string>
     <string name="message_protected_session_failed">Impossible d’ouvrir la session protégée : %1$s</string>
     <string name="message_apps_load_failed">Impossible de charger les applications.</string>

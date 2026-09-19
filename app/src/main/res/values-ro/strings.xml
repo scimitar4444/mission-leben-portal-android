@@ -66,6 +66,7 @@
     <string name="privacy_detailed_label">Detaliat</string>
     <string name="privacy_detailed_description">Afișează și o scurtă previzualizare a e-mailului sau Talk.</string>
     <string name="message_auth_cancelled">Autentificarea a fost anulată.</string>
+    <string name="message_session_expired">Din motive de securitate, sesiunea a expirat. Autentifică-te din nou.</string>
     <string name="message_quick_access_enabled">Accesul rapid este activat.</string>
     <string name="message_protected_session_failed">Sesiunea protejată nu a putut fi deschisă: %1$s</string>
     <string name="message_apps_load_failed">Aplicațiile nu au putut fi încărcate.</string>
