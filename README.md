@@ -21,6 +21,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - persönliche Geräte: Refresh Token wird mit einem zufälligen Datenschlüssel verschlüsselt; nur Biometrie oder Gerätecode kann diesen Schlüssel über Android Keystore freigeben
 - persönliche Geräte müssen sich nach exakt 90 Tagen erneut bestätigen: Die App übernimmt den gespeicherten Benutzernamen, Authentik prüft zuerst Gerät und Benutzerbindung und fordert ein bereits vorhandenes TOTP an, ansonsten das Passwort. Eine TOTP-Einrichtung wird nie erzwungen
 - eine kompakte Anzeige nennt auf persönlichen Geräten die verbleibenden Tage der 90-Tage-Anmeldung
+- automatische OTA-Prüfung beim App-Start, höchstens alle sechs Stunden; Updates kommen als öffentliches GitHub-Release und werden vor der Android-Installation anhand von Paketname, Version, Dateigröße, SHA-256 und App-Signatur geprüft
 - Shared Tablets: kein Refresh Token und keine persistente Mitarbeitersitzung
 - Authentik-Enrollment per Code oder Deep Link `de.missionleben.portal://enroll?token=…`; Authentik erzeugt Device, Connection, Device Token und Fakten-Snapshots
 - integrierter QR-Scanner für Enrollment-Links; ein Scan startet die Authentik-Geräteregistrierung ohne Abtippen
@@ -103,6 +104,7 @@ Der Enrollment-Scanner verwendet den Google Code Scanner. Die Erkennung läuft a
 `ML_DEVICE_SERVICE_BASE_URL` zeigt im Pilot auf den eigenen Kommunikationscontainer. Er läuft separat hinter TLS und enthält keine Authentik-Gerätefreigaben.
 
 Die Authentik-Seite ist in [docs/AUTHENTIK_SETUP.md](docs/AUTHENTIK_SETUP.md) beschrieben.
+Build, Signierung und Veröffentlichung der OTA-Releases sind in [docs/OTA_UPDATES.md](docs/OTA_UPDATES.md) beschrieben. Der private Signierschlüssel bleibt außerhalb von GitHub.
 
 ## Projektstruktur
 
@@ -123,6 +125,7 @@ docs/
   DEVICE_SERVICE_API.md
   FCM_SETUP.md
   NOTIFICATIONS.md
+  OTA_UPDATES.md
   THREAT_MODEL.md
 ```
 

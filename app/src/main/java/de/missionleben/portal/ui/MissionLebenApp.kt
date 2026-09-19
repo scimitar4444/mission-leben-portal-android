@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -60,6 +61,7 @@ import de.missionleben.portal.model.LinkTarget
 import de.missionleben.portal.model.PortalApplication
 import de.missionleben.portal.model.UiState
 import de.missionleben.portal.push.NotificationPrivacy
+import de.missionleben.portal.update.UpdateStatus
 
 @Composable
 fun MissionLebenApp(
@@ -75,6 +77,8 @@ fun MissionLebenApp(
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
+    onInstallUpdate: () -> Unit,
+    onDismissUpdate: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
@@ -101,6 +105,35 @@ fun MissionLebenApp(
                 onLanguageChange = onLanguageChange,
             )
         }
+    }
+    state.availableUpdate?.let { update ->
+        val downloading = state.updateStatus == UpdateStatus.DOWNLOADING
+        AlertDialog(
+            onDismissRequest = { if (!downloading) onDismissUpdate() },
+            title = { Text(stringResource(R.string.update_available_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.update_available_description, update.versionName))
+                    if (downloading) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                            Spacer(Modifier.width(10.dp))
+                            Text(stringResource(R.string.update_downloading))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = onInstallUpdate, enabled = !downloading) {
+                    Text(stringResource(R.string.update_download_install))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismissUpdate, enabled = !downloading) {
+                    Text(stringResource(R.string.update_later))
+                }
+            },
+        )
     }
 }
 

@@ -27,6 +27,8 @@ import de.missionleben.portal.push.PushManager
 import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.ui.MissionLebenApp
 import de.missionleben.portal.ui.MissionLebenTheme
+import de.missionleben.portal.update.UpdateInstaller
+import de.missionleben.portal.update.UpdateStatus
 import de.missionleben.portal.web.PortalBrowserActivity
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
@@ -56,6 +58,16 @@ class MainActivity : FragmentActivity() {
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
         if (granted) PushManager.register()
+    }
+
+    private val updatePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) {
+        if (UpdateInstaller.canRequestInstalls(this)) {
+            installVerifiedUpdate()
+        } else {
+            viewModel.updateInstallPermissionDenied()
+        }
     }
 
     private val authorizationLauncher = registerForActivityResult(
@@ -110,6 +122,9 @@ class MainActivity : FragmentActivity() {
                         }
                     }
                 }
+                LaunchedEffect(state.updateStatus) {
+                    if (state.updateStatus == UpdateStatus.READY) installVerifiedUpdate()
+                }
                 MissionLebenApp(
                     state = state,
                     onSelectMode = { mode ->
@@ -139,6 +154,8 @@ class MainActivity : FragmentActivity() {
                         }
                     },
                     onDismissMessage = viewModel::clearMessage,
+                    onInstallUpdate = viewModel::downloadUpdate,
+                    onDismissUpdate = viewModel::dismissUpdate,
                     currentLanguageTag = currentLanguageTag(),
                     onLanguageChange = ::setAppLanguage,
                 )
@@ -155,6 +172,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onStart() {
         super.onStart()
+        viewModel.checkForUpdates()
         viewModel.refreshDeviceStatus()
         ContextCompat.registerReceiver(
             this,
@@ -199,6 +217,17 @@ class MainActivity : FragmentActivity() {
             .addOnFailureListener {
                 Toast.makeText(this, R.string.qr_scanner_unavailable, Toast.LENGTH_LONG).show()
             }
+    }
+
+    private fun installVerifiedUpdate() {
+        val apk = viewModel.readyUpdateFile() ?: return
+        if (!UpdateInstaller.canRequestInstalls(this)) {
+            updatePermissionLauncher.launch(UpdateInstaller.permissionIntent(this))
+            return
+        }
+        runCatching { startActivity(UpdateInstaller.installIntent(this, apk)) }
+            .onSuccess { viewModel.updateInstallStarted() }
+            .onFailure { viewModel.updateInstallFailed() }
     }
 
     private fun handleVaultRequest(request: VaultRequest) {

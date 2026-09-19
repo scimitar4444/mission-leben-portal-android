@@ -20,6 +20,15 @@
     <string name="web_apps_subtitle">Doğrudan Authentik izinlerinizden</string>
     <string name="refresh">Yenile</string>
     <string name="version_format">Sürüm %1$s</string>
+    <string name="update_available_title">Güncelleme mevcut</string>
+    <string name="update_available_description">%1$s sürümü mevcut. İmzalı güncelleme GitHub’dan indirilir ve kurulumdan önce doğrulanır.</string>
+    <string name="update_download_install">İndir ve yükle</string>
+    <string name="update_downloading">Güncelleme doğrulanıyor ve indiriliyor…</string>
+    <string name="update_later">Daha sonra</string>
+    <string name="update_check_failed">Güncellemeler şu anda denetlenemiyor.</string>
+    <string name="update_download_failed">Güncelleme güvenli şekilde indirilemedi veya doğrulanamadı.</string>
+    <string name="update_install_permission_denied">Mission Leben Zentral’in bilinmeyen uygulamaları yüklemesine izin verip yeniden deneyin.</string>
+    <string name="update_installer_unavailable">Android paket yükleyicisi açılamadı.</string>
     <string name="switch_device_profile">Cihaz profilini değiştir</string>
     <string name="mode_personal">Kişisel cihaz</string>
     <string name="mode_shared">Ortak tablet</string>

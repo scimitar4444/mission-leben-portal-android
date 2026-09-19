@@ -20,6 +20,15 @@
     <string name="web_apps_subtitle">Direct din aprobările tale Authentik</string>
     <string name="refresh">Actualizează</string>
     <string name="version_format">Versiunea %1$s</string>
+    <string name="update_available_title">Actualizare disponibilă</string>
+    <string name="update_available_description">Versiunea %1$s este disponibilă. Actualizarea semnată va fi descărcată de pe GitHub și verificată înainte de instalare.</string>
+    <string name="update_download_install">Descarcă și instalează</string>
+    <string name="update_downloading">Se verifică și se descarcă actualizarea…</string>
+    <string name="update_later">Mai târziu</string>
+    <string name="update_check_failed">Actualizările nu pot fi verificate momentan.</string>
+    <string name="update_download_failed">Actualizarea nu a putut fi descărcată sau verificată în siguranță.</string>
+    <string name="update_install_permission_denied">Permite aplicației Mission Leben Zentral să instaleze aplicații necunoscute, apoi încearcă din nou.</string>
+    <string name="update_installer_unavailable">Programul de instalare Android nu a putut fi deschis.</string>
     <string name="switch_device_profile">Schimbă profilul dispozitivului</string>
     <string name="mode_personal">Dispozitiv personal</string>
     <string name="mode_shared">Tabletă partajată</string>

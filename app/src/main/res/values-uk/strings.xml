@@ -20,6 +20,15 @@
     <string name="web_apps_subtitle">Безпосередньо з ваших дозволів Authentik</string>
     <string name="refresh">Оновити</string>
     <string name="version_format">Версія %1$s</string>
+    <string name="update_available_title">Доступне оновлення</string>
+    <string name="update_available_description">Доступна версія %1$s. Підписане оновлення буде завантажено з GitHub і перевірено перед встановленням.</string>
+    <string name="update_download_install">Завантажити та встановити</string>
+    <string name="update_downloading">Перевірка та завантаження оновлення…</string>
+    <string name="update_later">Пізніше</string>
+    <string name="update_check_failed">Наразі неможливо перевірити оновлення.</string>
+    <string name="update_download_failed">Не вдалося безпечно завантажити або перевірити оновлення.</string>
+    <string name="update_install_permission_denied">Дозвольте Mission Leben Zentral установлювати невідомі програми та повторіть спробу.</string>
+    <string name="update_installer_unavailable">Не вдалося відкрити інсталятор пакетів Android.</string>
     <string name="switch_device_profile">Змінити профіль пристрою</string>
     <string name="mode_personal">Особистий пристрій</string>
     <string name="mode_shared">Спільний планшет</string>
