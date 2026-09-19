@@ -16,6 +16,16 @@ class IdentityDisplayNameTest {
                 fallback = "Mitarbeiter:in",
             ),
         )
+        assertEquals(
+            "Christian",
+            IdentityDisplayName.select(
+                givenName = "Thiele, Christian",
+                fullName = "Thiele, Christian",
+                preferredUsername = "cthiele",
+                email = "christian@example.org",
+                fallback = "Mitarbeiter:in",
+            ),
+        )
     }
 
     @Test

@@ -9,15 +9,11 @@ internal object IdentityDisplayName {
         fallback: String,
     ): String {
         val explicitGivenName = givenName.orEmpty().trim()
-        if (explicitGivenName.isNotBlank()) return explicitGivenName
+        if (explicitGivenName.isNotBlank()) return firstNameFrom(explicitGivenName)
 
         val normalizedFullName = fullName.orEmpty().trim()
         if (normalizedFullName.isNotBlank()) {
-            val likelyGivenName = if (',' in normalizedFullName) {
-                normalizedFullName.substringAfter(',').trim()
-            } else {
-                normalizedFullName
-            }.substringBefore(' ').trim()
+            val likelyGivenName = firstNameFrom(normalizedFullName)
             if (likelyGivenName.isNotBlank()) return likelyGivenName
         }
 
@@ -26,4 +22,10 @@ internal object IdentityDisplayName {
             .firstOrNull(String::isNotBlank)
             ?: fallback
     }
+
+    private fun firstNameFrom(value: String): String = if (',' in value) {
+        value.substringAfter(',').trim()
+    } else {
+        value.trim()
+    }.substringBefore(' ').trim()
 }
