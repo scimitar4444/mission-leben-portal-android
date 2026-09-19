@@ -18,13 +18,13 @@
 | APK wird dekompiliert | Public OIDC Client ohne Client-Secret |
 | Refresh Token wird aus App-Daten kopiert | zweistufige Envelope-Verschlüsselung; Master-Key im Android Keystore, Freigabe nur per Biometrie/Gerätecode |
 | Refresh-Nutzung verlängert die Anmeldung unbegrenzt | App erzwingt unabhängig von Authentiks Rotation eine absolute Grenze von `auth_time + 90 Tage`; danach werden Token und Webdaten entfernt |
-| Angreifer nutzt den gespeicherten Anmeldenamen für passwortlosen Zugang | Passwort darf nur bei explizitem 90-Tage-Flow entfallen, nachdem Authentik das registrierte persönliche Endpoint-Gerät, dessen Ablauf, Benutzerbindung und Policies geprüft hat; TOTP bleibt zwingend |
+| Angreifer nutzt den gespeicherten Anmeldenamen für passwortlosen Zugang | Der verkürzte 90-Tage-Flow läuft nur nach Prüfung von persönlichem Modus, Endpoint, Ablauf und direkter Benutzerbindung. Das Passwort entfällt ausschließlich, wenn derselbe Benutzer bereits ein bestätigtes TOTP besitzt; sonst wird das Passwort verlangt |
 | anderes Gerät kopiert Geräte-ID | P-256-Private-Key ist nicht exportierbar; Server verlangt Besitznachweis |
 | vorheriger Benutzer bleibt auf Shared Tablet angemeldet | kein `offline_access`, kein persistenter AuthState, prominente End-Session-Abmeldung |
 | unbekannte App wird sichtbar | Liste kommt aus policy-geprüfter Authentik-API |
 | kompromittiertes Handy schickt Schad-URL an PC | nur `open_talk(room_token)`, Ziel-URL entsteht im Companion |
 | ausgeschiedener Mitarbeiter nutzt App weiter | Authentik-User und Anwendungssitzungen zentral sperren, Refresh Token widerrufen, Gerätebindung sperren und lokales Löschsignal auslösen |
-| verlorenes Shared Tablet dient als zweiter Faktor | Authentik-Device sofort ablaufen lassen oder löschen; die App verwirft daraufhin Sitzung und Webdaten. Nur die serverseitig als `shared` freigegebene Access Group darf TOTP ersetzen |
+| verlorenes Shared Tablet dient als zweiter Faktor | Authentik-Device sofort ablaufen lassen oder löschen; die App verwirft daraufhin Sitzung und Webdaten. Zusätzlich muss der Benutzer Mitglied der exakt zugeordneten `ORG_*`-Einrichtungsgruppe sein und sein Passwort eingeben |
 | WebView lädt manipulierte Inhalte | nur HTTPS auf konfigurierten Domain-Endungen, kein Datei-/Content-Zugriff, kein Mixed Content, Safe Browsing und harte TLS-Fehlerbehandlung; die einzige JavaScript-Schnittstelle signiert nur Authentik-Endpoint-Challenges auf der exakten Authentik-Origin und gibt kein Token aus |
 | Webseite greift unbemerkt auf Kamera/Mikrofon zu | nur explizit bekannte WebRTC-Ressourcen, erlaubte HTTPS-Origin und Android-Laufzeitfreigabe |
 | vorheriger Benutzer hinterlässt Browserdaten | Cookie-Speicher, DOM-/Webspeicher, HTTP-Zugangsdaten, Cache, Formulardaten und App-Downloads werden bei Abmeldung/Profilwechsel gelöscht |
@@ -32,7 +32,7 @@
 | FCM oder ein fremder Push schleust Text oder Schad-URL ein | FCM enthält nur Ereignis-ID, Typ und Revision; App ignoriert freie Texte/URLs und öffnet ausschließlich eine passende Authentik-App |
 | Ereignis-ID wird abgegriffen | Detailabruf verlangt vertrauenswürdiges gebundenes Gerät, P-256-Signatur, Zeitfenster und einmalige Nonce |
 | fremder QR-Code schleust eine URL oder einen Token ein | Scanner akzeptiert ausschließlich den exakten App-Deep-Link `de.missionleben.portal://enroll` mit genau einem plausiblen Token; QR-Auswertung und Übergabe bleiben lokal |
-| Enrollment-QR wird kopiert | QR gilt wie der Authentik-Enrollment-Token als Geheimnis, wird nur kurzlebig ausgegeben und als Datei mit Modus `0600` erzeugt |
+| Enrollment-QR wird kopiert | QR gilt wie der Authentik-Enrollment-Token als Geheimnis, wird nur kurzlebig und modus-/principal-spezifisch ausgegeben und als Datei mit Modus `0600` erzeugt. Ein persönliches Gerät bleibt bis zur direkten Benutzerbindung unbenutzbar |
 | Sperrbildschirm verrät Fachdaten | Android-Notification ist `PRIVATE` und besitzt eine neutrale öffentliche Version; Shared Tablets erzwingen `minimal` |
 | Bridge-Datenbank wird kopiert | FCM-Installations-IDs und die für Live-Prüfungen benötigten Authentik-Device-Token sind mit AES-256-GCM verschlüsselt; Schlüssel liegt nur als Server-Secret vor |
 | Zimbra-Integrationskonto wird missbraucht | eigener Worker je Mailbox-Server, explizite Konto-ID-Liste, Secret-Datei, keine Benutzerkennwörter und begrenzte Suchabfragen; Rechte und Audit müssen vor Produktion geprüft werden |

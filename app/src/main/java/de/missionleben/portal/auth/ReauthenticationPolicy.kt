@@ -28,7 +28,7 @@ object ReauthenticationPolicy {
         )
     }
 
-    fun canOfferTotpOnly(
+    fun canOfferBoundDeviceReauthentication(
         mode: DeviceMode?,
         enrollmentState: EnrollmentState,
         loginHint: String?,
@@ -41,4 +41,16 @@ object ReauthenticationPolicy {
         nowEpochSeconds: Long = System.currentTimeMillis() / 1_000L,
     ): Boolean = authenticatedAtEpochSeconds <= 0L ||
         nowEpochSeconds >= authenticatedAtEpochSeconds + SESSION_LIFETIME_SECONDS
+
+    fun remainingDays(
+        authenticatedAtEpochSeconds: Long,
+        nowEpochSeconds: Long = System.currentTimeMillis() / 1_000L,
+    ): Long {
+        if (authenticatedAtEpochSeconds <= 0L) return 0L
+        val remainingSeconds = authenticatedAtEpochSeconds + SESSION_LIFETIME_SECONDS - nowEpochSeconds
+        if (remainingSeconds <= 0L) return 0L
+        return (remainingSeconds + SECONDS_PER_DAY - 1L) / SECONDS_PER_DAY
+    }
+
+    private const val SECONDS_PER_DAY = 24L * 60L * 60L
 }

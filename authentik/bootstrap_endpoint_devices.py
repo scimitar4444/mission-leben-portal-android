@@ -21,7 +21,6 @@ from authentik.flows.models import (
     FlowDesignation,
     FlowStageBinding,
     NotConfiguredAction,
-    Stage,
 )
 from authentik.policies.expression.models import ExpressionPolicy
 from authentik.policies.models import PolicyBinding
@@ -44,7 +43,8 @@ from authentik.stages.user_login.models import UserLoginStage
 
 
 CONNECTOR_NAME = "Mission Leben Android"
-ACCESS_GROUP_NAME = "Mission Leben Android - Pilot"
+LEGACY_ACCESS_GROUP_NAME = "Mission Leben Android - Pilot"
+PERSONAL_ACCESS_GROUP_NAME = "Mission Leben Android - Personal"
 CERTIFICATE_NAME = "Mission Leben Android Endpoint Challenge"
 BASE_AUTHENTICATION_FLOW_SLUG = "mission-leben-browser-authentication"
 ANDROID_AUTHENTICATION_FLOW_SLUG = "mission-leben-android-authentication"
@@ -61,9 +61,9 @@ APPLICATION_SLUG = "mission-leben-portal"
 CLIENT_ID = "mission-leben-android"
 REDIRECT_URI = "de.missionleben.portal:/oauth2redirect"
 PASSWORD_STAGE_NAME = "default-authentication-password"
-TOTP_CONFIGURATION_STAGE_NAME = "default-authenticator-totp-setup"
 ANDROID_IDENTIFICATION_STAGE_NAME = "Mission Leben Zentral Android - Benutzer"
-ANDROID_TOTP_STAGE_NAME = "Mission Leben Zentral Android - TOTP alle 90 Tage"
+ANDROID_TOTP_STAGE_NAME = "Mission Leben Zentral Android - Vorhandenes TOTP bei Wiederanmeldung"
+LEGACY_ANDROID_TOTP_STAGE_NAME = "Mission Leben Zentral Android - TOTP alle 90 Tage"
 ANDROID_SHARED_SESSION_STAGE_NAME = "Mission Leben Zentral Android - Shared Browsersitzung"
 PERSONAL_SESSION_STAGE_NAME = "Mission Leben Zentral Android - Persönliche Browsersitzung"
 PERSONAL_SESSION_POLICY_NAME = "Mission Leben Zentral Android - Persönlicher WebView"
@@ -72,7 +72,10 @@ REFRESH_TOKEN_VALIDITY = "days=90"
 # authentik otherwise renews every rotating refresh token for another full
 # validity period. One second makes the 90-day lifetime effectively absolute.
 REFRESH_TOKEN_RENEWAL_THRESHOLD = "seconds=1"
-REAUTHENTICATION_VERIFIED_POLICY_NAME = (
+REAUTHENTICATION_TOTP_POLICY_NAME = (
+    "Mission Leben Zentral Android - Vorhandenes TOTP bei Wiederanmeldung"
+)
+LEGACY_REAUTHENTICATION_POLICY_NAME = (
     "Mission Leben Zentral Android - Passwort nach Geräteprüfung überspringen"
 )
 MOBILE_APPLICATION_GROUP = "Mobil erreichbar"
@@ -106,37 +109,14 @@ pending_user = flow_plan.context.get("pending_user") if flow_plan else None
 if device is None or pending_user is None or device.is_expired:
     return True
 
-from authentik.endpoints.connectors.agent.auth import check_device_policies
-return not check_device_policies(device, pending_user, http_request).passing
-'''
-
-
-TOTP_REQUIRED_EXPRESSION = r'''http_request = request.http_request
-if not http_request:
-    return True
-user_agent = http_request.META.get("HTTP_USER_AGENT", "")
-if "Android" not in user_agent or "MissionLebenPortal/" not in user_agent:
-    return True
-
-flow_plan = request.context.get("flow_plan")
-device = request.context.get("device")
-if device is None and flow_plan:
-    device = flow_plan.context.get("device")
-pending_user = flow_plan.context.get("pending_user") if flow_plan else None
-if device is None or pending_user is None or device.is_expired:
-    return True
-
-# Both values must agree. The access-group attribute is the server-side approval;
-# the fact records which operating mode the installed app is actually using.
 access_group = device.access_group
 approved_mode = access_group.attributes.get("mission-leben.de/mode") if access_group else None
-facts = device.facts.data
 reported_mode = (
-    facts.get("vendor", {})
+    device.facts.data.get("vendor", {})
     .get("mission-leben.de/portal", {})
     .get("mode")
 )
-if approved_mode != "shared" or reported_mode != "shared":
+if approved_mode not in ("personal", "shared") or reported_mode != approved_mode:
     return True
 
 from authentik.endpoints.connectors.agent.auth import check_device_policies
@@ -144,19 +124,7 @@ return not check_device_policies(device, pending_user, http_request).passing
 '''
 
 
-PERSONAL_WEBVIEW_EXPRESSION = r'''http_request = request.http_request
-if not http_request:
-    return False
-user_agent = http_request.META.get("HTTP_USER_AGENT", "")
-return (
-    "Android" in user_agent
-    and "MissionLebenPortal/" in user_agent
-    and "MissionLebenMode/personal" in user_agent
-)
-'''
-
-
-PERSONAL_REAUTHENTICATION_VERIFIED_EXPRESSION = r'''http_request = request.http_request
+PERSONAL_REAUTHENTICATION_TOTP_EXPRESSION = r'''http_request = request.http_request
 if not http_request:
     return False
 user_agent = http_request.META.get("HTTP_USER_AGENT", "")
@@ -182,17 +150,35 @@ device = request.context.get("device") or flow_plan.context.get("device")
 pending_user = flow_plan.context.get("pending_user")
 if device is None or pending_user is None or device.is_expired:
     return False
-facts = device.facts.data
+
+access_group = device.access_group
+approved_mode = access_group.attributes.get("mission-leben.de/mode") if access_group else None
 reported_mode = (
-    facts.get("vendor", {})
+    device.facts.data.get("vendor", {})
     .get("mission-leben.de/portal", {})
     .get("mode")
 )
-if reported_mode != "personal":
+if approved_mode != "personal" or reported_mode != "personal":
     return False
 
 from authentik.endpoints.connectors.agent.auth import check_device_policies
-return check_device_policies(device, pending_user, http_request).passing
+if not check_device_policies(device, pending_user, http_request).passing:
+    return False
+
+from authentik.stages.authenticator_totp.models import TOTPDevice
+return TOTPDevice.objects.filter(user=pending_user, confirmed=True).exists()
+'''
+
+
+PERSONAL_WEBVIEW_EXPRESSION = r'''http_request = request.http_request
+if not http_request:
+    return False
+user_agent = http_request.META.get("HTTP_USER_AGENT", "")
+return (
+    "Android" in user_agent
+    and "MissionLebenPortal/" in user_agent
+    and "MissionLebenMode/personal" in user_agent
+)
 '''
 
 
@@ -215,22 +201,33 @@ connector, _ = AgentConnector.objects.update_or_create(
     },
 )
 
-device_access_group, _ = DeviceAccessGroup.objects.update_or_create(
-    name=ACCESS_GROUP_NAME,
+personal_access_group, _ = DeviceAccessGroup.objects.update_or_create(
+    name=PERSONAL_ACCESS_GROUP_NAME,
     defaults={
         "attributes": {
             "mission-leben.de/purpose": "android-portal",
             "mission-leben.de/status": "pilot",
-            "mission-leben.de/mode": "shared",
+            "mission-leben.de/mode": "personal",
         }
     },
 )
 pilot_group = Group.objects.get(name=PILOT_GROUP_NAME)
-DeviceUserBinding.objects.update_or_create(
-    target=device_access_group,
-    group=pilot_group,
-    defaults={"order": 0, "enabled": True, "negate": False, "is_primary": True},
-)
+
+# Personal devices receive a DeviceUserBinding after enrollment. With no
+# binding on this access group, an unassigned device fails closed.
+DeviceUserBinding.objects.filter(target=personal_access_group).delete()
+
+# The former pilot group allowed every pilot user on every pilot device. Remove
+# that broad binding; assign_device_access.py migrates devices to a user or a
+# facility group explicitly.
+legacy_access_group = DeviceAccessGroup.objects.filter(name=LEGACY_ACCESS_GROUP_NAME).first()
+if legacy_access_group:
+    DeviceUserBinding.objects.filter(target=legacy_access_group).delete()
+    legacy_access_group.attributes = {
+        **legacy_access_group.attributes,
+        "mission-leben.de/status": "legacy-unassigned",
+    }
+    legacy_access_group.save(update_fields=["attributes"])
 
 base_authentication_flow = Flow.objects.get(slug=BASE_AUTHENTICATION_FLOW_SLUG)
 authentication_flow, _ = Flow.objects.update_or_create(
@@ -325,17 +322,21 @@ deny_device_policy, _ = ExpressionPolicy.objects.update_or_create(
     name="Mission Leben Zentral Android - Gerätezugriff verweigern",
     defaults={"expression": DENY_DEVICE_ACCESS_EXPRESSION},
 )
-totp_required_policy, _ = ExpressionPolicy.objects.update_or_create(
-    name="Mission Leben Zentral Android - TOTP erforderlich",
-    defaults={"expression": TOTP_REQUIRED_EXPRESSION},
-)
+reauthentication_totp_policy = ExpressionPolicy.objects.filter(
+    name=REAUTHENTICATION_TOTP_POLICY_NAME
+).first()
+if reauthentication_totp_policy is None:
+    reauthentication_totp_policy = ExpressionPolicy.objects.filter(
+        name=LEGACY_REAUTHENTICATION_POLICY_NAME
+    ).first()
+if reauthentication_totp_policy is None:
+    reauthentication_totp_policy = ExpressionPolicy(name=REAUTHENTICATION_TOTP_POLICY_NAME)
+reauthentication_totp_policy.name = REAUTHENTICATION_TOTP_POLICY_NAME
+reauthentication_totp_policy.expression = PERSONAL_REAUTHENTICATION_TOTP_EXPRESSION
+reauthentication_totp_policy.save()
 personal_webview_policy, _ = ExpressionPolicy.objects.update_or_create(
     name=PERSONAL_SESSION_POLICY_NAME,
     defaults={"expression": PERSONAL_WEBVIEW_EXPRESSION},
-)
-personal_reauthentication_verified_policy, _ = ExpressionPolicy.objects.update_or_create(
-    name=REAUTHENTICATION_VERIFIED_POLICY_NAME,
-    defaults={"expression": PERSONAL_REAUTHENTICATION_VERIFIED_EXPRESSION},
 )
 
 # The provider gets its own authentication flow. The existing central browser
@@ -410,10 +411,9 @@ PolicyBinding.objects.update_or_create(
     defaults={"order": 0, "enabled": True, "negate": False},
 )
 
-# Password remains mandatory for every first login and every untrusted device.
-# Only an explicit OIDC prompt=login request with login_hint from the Android
-# app can skip it, and only after the required Endpoint stage has verified the
-# registered personal device for the pending user. TOTP still runs afterwards.
+# Password remains mandatory for the first login, shared tablets and personal
+# users without TOTP. At the explicit 90-day renewal only, a bound personal
+# device with an already configured TOTP authenticator uses that TOTP instead.
 password_stage = PasswordStage.objects.get(name=PASSWORD_STAGE_NAME)
 password_binding, _ = FlowStageBinding.objects.update_or_create(
     target=authentication_flow,
@@ -426,24 +426,33 @@ password_binding, _ = FlowStageBinding.objects.update_or_create(
 )
 PolicyBinding.objects.update_or_create(
     target=password_binding,
-    policy=personal_reauthentication_verified_policy,
+    policy=reauthentication_totp_policy,
     defaults={"order": 30, "enabled": True, "negate": True},
 )
 
-# A verified shared tablet is itself the second factor. Every personal login
-# uses a dedicated TOTP-only stage. Its threshold is zero,
-# so the 90-day prompt can never be skipped because a TOTP was used recently in
-# another Authentik flow.
-totp_stage, _ = AuthenticatorValidateStage.objects.update_or_create(
-    name=ANDROID_TOTP_STAGE_NAME,
-    defaults={
-        "not_configured_action": NotConfiguredAction.CONFIGURE,
-        "device_classes": [DeviceClasses.TOTP],
-        "last_auth_threshold": "seconds=0",
-    },
-)
-totp_configuration_stage = Stage.objects.get(name=TOTP_CONFIGURATION_STAGE_NAME)
-totp_stage.configuration_stages.set([totp_configuration_stage])
+# This stage never configures TOTP. It runs only during the 90-day renewal when
+# the bound personal user already owns a confirmed TOTP authenticator.
+totp_stage = AuthenticatorValidateStage.objects.filter(name=ANDROID_TOTP_STAGE_NAME).first()
+if totp_stage is None:
+    totp_stage = AuthenticatorValidateStage.objects.filter(
+        name=LEGACY_ANDROID_TOTP_STAGE_NAME
+    ).first()
+if totp_stage is None:
+    totp_stage = AuthenticatorValidateStage(name=ANDROID_TOTP_STAGE_NAME)
+totp_stage.name = ANDROID_TOTP_STAGE_NAME
+totp_stage.not_configured_action = NotConfiguredAction.SKIP
+totp_stage.device_classes = [DeviceClasses.TOTP]
+totp_stage.last_auth_threshold = "seconds=0"
+totp_stage.save()
+totp_stage.configuration_stages.clear()
+legacy_totp_stages = AuthenticatorValidateStage.objects.filter(
+    name=LEGACY_ANDROID_TOTP_STAGE_NAME
+).exclude(pk=totp_stage.pk)
+FlowStageBinding.objects.filter(
+    target=authentication_flow,
+    stage__in=legacy_totp_stages,
+).delete()
+legacy_totp_stages.delete()
 totp_binding, _ = FlowStageBinding.objects.update_or_create(
     target=authentication_flow,
     stage=totp_stage,
@@ -453,11 +462,20 @@ totp_binding, _ = FlowStageBinding.objects.update_or_create(
         "re_evaluate_policies": True,
     },
 )
+PolicyBinding.objects.filter(target=totp_binding).exclude(
+    policy=reauthentication_totp_policy
+).delete()
 PolicyBinding.objects.update_or_create(
     target=totp_binding,
-    policy=totp_required_policy,
+    policy=reauthentication_totp_policy,
     defaults={"order": 10, "enabled": True, "negate": False},
 )
+ExpressionPolicy.objects.filter(
+    name="Mission Leben Zentral Android - TOTP erforderlich"
+).delete()
+ExpressionPolicy.objects.filter(name=LEGACY_REAUTHENTICATION_POLICY_NAME).exclude(
+    pk=reauthentication_totp_policy.pk
+).delete()
 
 # Personal devices keep only the Authentik browser SSO cookie across WebView
 # process restarts. The OAuth refresh token remains separately protected by the
@@ -531,7 +549,7 @@ print(
             "application": application.slug,
             "client_id": provider.client_id,
             "connector": str(connector.pk),
-            "device_access_group": str(device_access_group.pk),
+            "personal_device_access_group": str(personal_access_group.pk),
             "endpoint_stage": str(endpoint_stage.pk),
             "authentication_flow": authentication_flow.slug,
             "identification_stage": str(identification_stage.pk),

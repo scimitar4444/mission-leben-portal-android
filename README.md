@@ -7,8 +7,8 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 ## Funktionen
 
 - Anmeldung über Authentik mit OAuth 2.0 Authorization Code + PKCE
-- die erforderliche Authentik-Endpoint-Prüfung läuft in der App nach dem Passwort und vor MFA
-- ein serverseitig als `shared` freigegebenes und vom Gerät ebenfalls als `shared` gemeldetes Tablet ersetzt TOTP; persönliche und nicht registrierte Geräte durchlaufen weiter TOTP
+- die erforderliche Authentik-Endpoint-Prüfung läuft nach der Benutzererkennung und vor der Kennwort-/TOTP-Prüfung; Gerät und Benutzer beziehungsweise Einrichtungsgruppe müssen in Authentik zusammenpassen
+- persönliche Geräte sind genau einem Benutzer zugeordnet; Shared Tablets hängen an der vorhandenen `ORG_*`-Einrichtungsgruppe ihres Standorts
 - Telefonsprache oder direkte App-Auswahl für Deutsch, Englisch, Türkisch, Hindi, Spanisch, Französisch, Polnisch, Rumänisch und Ukrainisch; Deutsch bleibt die Rückfallsprache
 - sichtbare Web-Apps werden live aus `/api/v3/core/applications/` geladen und zusätzlich auf die zentrale Authentik-Anwendungsgruppe `Mobil erreichbar` begrenzt
 - Zimbra, Exchange OWA, Talk-Chat und jede weitere mobil freigegebene Webanwendung laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung; die eigenständige Nextcloud-App und Warden sind mobil ausgeblendet
@@ -19,7 +19,8 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - Talk läuft im Webcontainer bewusst als reiner Chat; Kamera- und Mikrofonanforderungen werden dort unabhängig von den Android-Berechtigungen abgewiesen. Die App blendet die Nextcloud-Kopfzeile aus und öffnet beim nächsten Start direkt den zuletzt verwendeten Raum; Abmelden/Zurücksetzen löscht diese lokale Erinnerung.
 - Cookies, Webspeicher, HTTP-Zugangsdaten, Cache und geschützte Downloads werden bei sicherer Abmeldung oder Profilwechsel gelöscht
 - persönliche Geräte: Refresh Token wird mit einem zufälligen Datenschlüssel verschlüsselt; nur Biometrie oder Gerätecode kann diesen Schlüssel über Android Keystore freigeben
-- persönliche Geräte müssen sich nach exakt 90 Tagen erneut bestätigen: Die App übernimmt den gespeicherten Benutzernamen intern, Authentik prüft zuerst das weiterhin freigegebene Gerät und fordert anschließend nur den TOTP-Code an. Bei fehlender oder gesperrter Gerätefreigabe gilt wieder die vollständige Anmeldung
+- persönliche Geräte müssen sich nach exakt 90 Tagen erneut bestätigen: Die App übernimmt den gespeicherten Benutzernamen, Authentik prüft zuerst Gerät und Benutzerbindung und fordert ein bereits vorhandenes TOTP an, ansonsten das Passwort. Eine TOTP-Einrichtung wird nie erzwungen
+- eine kompakte Anzeige nennt auf persönlichen Geräten die verbleibenden Tage der 90-Tage-Anmeldung
 - Shared Tablets: kein Refresh Token und keine persistente Mitarbeitersitzung
 - Authentik-Enrollment per Code oder Deep Link `de.missionleben.portal://enroll?token=…`; Authentik erzeugt Device, Connection, Device Token und Fakten-Snapshots
 - integrierter QR-Scanner für Enrollment-Links; ein Scan startet die Authentik-Geräteregistrierung ohne Abtippen
@@ -46,9 +47,9 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 | `offline_access` angefordert | kein `offline_access` |
 | Sitzung verschlüsselt gespeichert | Sitzung nur im Arbeitsspeicher |
 | Biometrie oder Gerätecode öffnet lokalen Tresor | Benutzer meldet sich jedes Mal über Authentik an |
-| feste 90-Tage-Laufzeit; danach Geräteprüfung und TOTP ohne erneute Eingabe von Benutzername/Passwort | Gerätefreigabe kann separat gesperrt werden; vor jeder neuen Anmeldung werden Webdaten entfernt |
+| feste 90-Tage-Laufzeit mit Tagesanzeige; danach Geräteprüfung und vorhandenes TOTP, ansonsten Passwort | Zugriff nur für Mitglieder der zugeordneten `ORG_*`-Einrichtungsgruppe; vor jeder neuen Anmeldung werden Webdaten entfernt |
 
-Biometrie gibt auf persönlichen Geräten ausschließlich die bereits aufgebaute lokale Sitzung frei. Bei der Erstanmeldung bleiben Benutzername, Passwort und TOTP Pflicht. Erst bei der planmäßigen Wiederanmeldung nach 90 Tagen darf Authentik das Passwort ersetzen – und nur durch die Kombination aus bekanntem Benutzer, kryptografisch geprüftem persönlichen Gerät und frischem TOTP. Auf gemeinsam genutzten Tablets wird keine persönliche Sitzung dauerhaft gespeichert; dort bildet der kryptografische Authentik-Gerätenachweis neben dem Passwort den zweiten Faktor.
+Biometrie gibt auf persönlichen Geräten ausschließlich die bereits aufgebaute lokale Sitzung frei. Bei der Erstanmeldung sind Benutzername und Passwort erforderlich; der geprüfte Authentik-Endpoint bildet den Gerätefaktor. Bei der planmäßigen Wiederanmeldung nach 90 Tagen verwendet Authentik ein bereits eingerichtetes TOTP, andernfalls erneut das Passwort. Die App richtet TOTP nicht ein. Auf gemeinsam genutzten Tablets wird keine persönliche Sitzung dauerhaft gespeichert; dort müssen sowohl der Gerätenachweis als auch die Einrichtungsgruppen-Mitgliedschaft und das persönliche Passwort stimmen.
 
 ## Bauen
 

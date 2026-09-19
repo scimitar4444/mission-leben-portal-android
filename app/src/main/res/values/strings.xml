@@ -23,7 +23,7 @@
     <string name="onboarding_body">Melde dich sicher über Authentik an und starte genau die Web-Apps, die für dich freigegeben sind.</string>
     <string name="onboarding_employee_eyebrow">FÜR MITARBEITENDE</string>
     <string name="onboarding_personal_title">Mein persönliches Gerät</string>
-    <string name="onboarding_personal_description">Erste Anmeldung mit Passwort und TOTP. Danach schützt Biometrie oder dein Gerätecode die lokale Sitzung.</string>
+    <string name="onboarding_personal_description">Erste Anmeldung mit Benutzername und Passwort. Danach schützt Biometrie oder dein Gerätecode die lokale Sitzung.</string>
     <string name="onboarding_personal_action">Persönlich einrichten</string>
     <string name="onboarding_shared_eyebrow">FÜR HÄUSER UND BEREICHE</string>
     <string name="onboarding_shared_title">Gemeinsam genutztes Tablet</string>
@@ -40,14 +40,17 @@
     <string name="mode_shared">Gemeinsam genutztes Tablet</string>
     <string name="hello_name">Hallo %1$s</string>
     <string name="secure_sign_in">Sicher anmelden</string>
-    <string name="reauthenticate_totp_title">TOTP bestätigen</string>
-    <string name="reauthenticate_totp_description">Deine 90-Tage-Anmeldung ist abgelaufen. Bestätige nur deinen TOTP-Code; Benutzername und Passwort sind nicht nötig.</string>
-    <string name="reauthenticate_totp_action">TOTP bestätigen</string>
+    <string name="reauthenticate_title">Anmeldung erneuern</string>
+    <string name="reauthenticate_description">Deine 90-Tage-Anmeldung ist abgelaufen. Authentik fragt deinen vorhandenen TOTP-Code ab, ansonsten dein Passwort.</string>
+    <string name="reauthenticate_action">Anmeldung erneuern</string>
     <string name="device_blocked_description">Dieses Gerät ist gesperrt. Anmeldung und gespeicherte Sitzung sind deaktiviert.</string>
     <string name="device_pending_description">Bitte das Gerät zuerst registrieren und durch die Geräteverwaltung freigeben lassen.</string>
     <string name="session_keystore_description">Deine Sitzung ist mit dem Android-Keystore geschützt.</string>
     <string name="shared_session_description">Diese Anmeldung wird auf dem Tablet nicht gespeichert. Bitte danach abmelden.</string>
-    <string name="first_login_description">Beim ersten Mal: Benutzername, Passwort und TOTP. Danach genügt Biometrie oder Gerätecode.</string>
+    <string name="first_login_description">Beim ersten Mal: Benutzername und Passwort. Danach genügt Biometrie oder Gerätecode.</string>
+    <string name="session_valid_days">Anmeldung noch %1$d Tage gültig</string>
+    <string name="session_valid_one_day">Anmeldung noch 1 Tag gültig</string>
+    <string name="session_valid_today">Anmeldung heute erneuern</string>
     <string name="shared_login_description">Jede Person meldet sich separat an. Auf diesem Tablet bleibt kein persönlicher Token zurück.</string>
     <string name="end_session_securely">Sitzung sicher beenden</string>
     <string name="sign_out">Abmelden</string>
@@ -89,7 +92,7 @@
 
     <string name="message_auth_cancelled">Anmeldung wurde abgebrochen.</string>
     <string name="message_session_expired">Deine Sitzung ist aus Sicherheitsgründen abgelaufen. Bitte melde dich erneut an.</string>
-    <string name="message_session_reauth_required">Die 90-Tage-Anmeldung ist abgelaufen. Bitte bestätige deinen TOTP-Code.</string>
+    <string name="message_session_reauth_required">Die 90-Tage-Anmeldung ist abgelaufen. Bitte erneuere sie mit deinem vorhandenen TOTP-Code oder deinem Passwort.</string>
     <string name="message_quick_access_enabled">Schnellzugang ist aktiviert.</string>
     <string name="message_protected_session_failed">Geschützte Sitzung konnte nicht geöffnet werden: %1$s</string>
     <string name="message_apps_load_failed">Apps konnten nicht geladen werden.</string>
