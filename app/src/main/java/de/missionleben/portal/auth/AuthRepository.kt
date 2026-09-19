@@ -169,10 +169,13 @@ class AuthRepository(context: Context) {
         val claims = decodeJwtPayload(state.idToken)
         return UserIdentity(
             subject = claims.optString("sub"),
-            displayName = claims.optString("name")
-                .ifBlank { claims.optString("preferred_username") }
-                .ifBlank { claims.optString("email") }
-                .ifBlank { context.getString(R.string.employee_fallback) },
+            displayName = IdentityDisplayName.select(
+                givenName = claims.optString("given_name"),
+                fullName = claims.optString("name"),
+                preferredUsername = claims.optString("preferred_username"),
+                email = claims.optString("email"),
+                fallback = context.getString(R.string.employee_fallback),
+            ),
             email = claims.optString("email"),
         )
     }
