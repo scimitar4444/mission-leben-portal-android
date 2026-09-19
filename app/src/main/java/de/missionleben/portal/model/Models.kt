@@ -40,6 +40,14 @@ data class LinkTarget(
     val online: Boolean,
 )
 
+data class LoginApprovalRequest(
+    val requestId: String,
+    val application: String,
+    val domain: String,
+    val requestedAtEpochSeconds: Long,
+    val expiresAtEpochSeconds: Long,
+)
+
 data class UserIdentity(
     val subject: String,
     val displayName: String,
@@ -67,6 +75,8 @@ data class UiState(
     val pushConfigured: Boolean = false,
     val notificationPrivacy: NotificationPrivacy = NotificationPrivacy.MINIMAL,
     val linkTargets: List<LinkTarget> = emptyList(),
+    val loginApprovalRequest: LoginApprovalRequest? = null,
+    val loginApprovalSubmitting: Boolean = false,
     val requestedUrl: String? = null,
     val clearWebDataRequested: Boolean = false,
     val availableUpdate: AppUpdate? = null,

@@ -63,6 +63,39 @@ Vor dem Speichern prueft die Bridge das Benutzer-Access-Token ueber Authentik Us
 
 Die FCM-Installations-ID und das Authentik-Device-Token werden getrennt mit AES-256-GCM verschluesselt gespeichert. Der P-256-Schluessel dient nur der Kommunikationssignatur; sein privater Teil verlaesst den Android Keystore nie. `standard` liefert Titel und Zusammenfassung, `detailed` zusaetzlich eine kurze Vorschau, `minimal` nur einen neutralen lokalen Hinweis. Shared Tablets werden server- und clientseitig immer auf `minimal` reduziert.
 
+## Authentik-Anmeldung in der App bestaetigen
+
+Ein persoenliches Geraet registriert denselben Authentik-geprueften Kommunikationsschluessel unabhaengig von FCM:
+
+```http
+PUT /v1/auth/registrations/{authentik-device-uuid}
+Authorization: Bearer <authentik-user-access-token>
+Content-Type: application/json
+
+{
+  "mode": "personal",
+  "app_version": "0.9.0",
+  "authentik_device_token": "...",
+  "key_id": "...",
+  "public_key_jwk": {"kty":"EC","crv":"P-256","kid":"...","x":"...","y":"..."}
+}
+```
+
+Die App fragt im Vordergrund alle zwei Sekunden signiert ab:
+
+```http
+GET /v1/auth/requests/pending
+X-ML-Device-ID: ...
+X-ML-Key-ID: ...
+X-ML-Timestamp: ...
+X-ML-Nonce: ...
+X-ML-Signature: ...
+```
+
+Eine Antwort wird mit derselben kanonischen P-256-Signatur und dem unveraenderten JSON-Body an `POST /v1/auth/requests/{request_id}/decision` gesendet. Eine Anfrage kann nur einmal und vor Ablauf beantwortet werden. Nur persoenliche Registrierungen desselben stabilen Authentik-Subjects sehen sie.
+
+Authentik ruft parallel seine normale Duo-Stufe gegen `/auth/v2/auth` auf. Der Bridge-Endpunkt akzeptiert ausschließlich Duo-Sig-V5 mit dem gemeinsamen HMAC-Geheimnis. `approve` wird als `allow` abgebildet; Ablehnung, Zeitablauf, unbekannter Benutzer, gesperrtes Authentik-Gerät und jeder interne Fehler werden ausdrücklich als `deny` zurückgegeben. Die Android-App selbst verwendet einen getrennten Authentik-Flow ohne diese Stufe, damit keine zirkuläre Anmeldung entstehen kann.
+
 Bei Abmeldung oder Profil-Reset:
 
 ```http
@@ -105,6 +138,17 @@ FCM enthaelt ausschliesslich:
   "revision": "1"
 }
 ```
+
+Fuer eine Authentik-Anmeldebestaetigung enthaelt FCM ausschliesslich:
+
+```json
+{
+  "action": "fetch_login_approval",
+  "request_id": "opaque-id"
+}
+```
+
+Die App ruft den Inhalt anschliessend signiert ab. Eine Zustimmung oder Ablehnung wird nie als FCM-Aktion angeboten.
 
 ## Signierter Detailabruf
 

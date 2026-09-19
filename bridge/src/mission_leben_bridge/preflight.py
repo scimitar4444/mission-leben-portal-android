@@ -13,8 +13,13 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from cryptography.hazmat.primitives import serialization
 
 
-COMPONENTS = ("bridge", "fcm", "zimbra", "talk")
+COMPONENTS = ("bridge", "login_approval", "fcm", "zimbra", "talk")
 ROOM_TOKEN = re.compile(r"^[A-Za-z0-9_-]{6,128}$")
+DUO_INTEGRATION_KEY = re.compile(r"^[A-Za-z0-9]{20,64}$")
+API_HOSTNAME = re.compile(
+    r"^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+"
+    r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+)
 DEFAULT_DATABASE_PATH = "/data/bridge.sqlite3"
 DEFAULT_AUTHENTIK_USERINFO_URL = "https://id.mission-leben.de/application/o/userinfo/"
 DEFAULT_AUTHENTIK_AGENT_CONFIG_URL = (
@@ -113,6 +118,33 @@ def check_fcm(environment: Mapping[str, str]) -> dict[str, Any]:
             serialization.load_pem_private_key(private_key.encode(), password=None)
         except (ValueError, TypeError):
             issues.append("Firebase-Dienstkonto enthält keinen gültigen privaten Schlüssel")
+    return _report("invalid" if issues else "ready", issues)
+
+
+def check_login_approval(environment: Mapping[str, str]) -> dict[str, Any]:
+    integration_key = _value(environment, "BRIDGE_DUO_INTEGRATION_KEY")
+    secret_key = _value(environment, "BRIDGE_DUO_SECRET_KEY")
+    api_hostname = _value(environment, "BRIDGE_DUO_API_HOSTNAME")
+    if not any((integration_key, secret_key, api_hostname)):
+        return _report("disabled", [])
+
+    issues: list[str] = []
+    if not DUO_INTEGRATION_KEY.fullmatch(integration_key):
+        issues.append(
+            "BRIDGE_DUO_INTEGRATION_KEY muss 20 bis 64 alphanumerische Zeichen enthalten"
+        )
+    if len(secret_key) < 32:
+        issues.append("BRIDGE_DUO_SECRET_KEY fehlt oder ist kürzer als 32 Zeichen")
+    if not API_HOSTNAME.fullmatch(api_hostname) or api_hostname != api_hostname.lower():
+        issues.append(
+            "BRIDGE_DUO_API_HOSTNAME muss ein kleingeschriebener Hostname ohne Schema oder Pfad sein"
+        )
+    try:
+        timeout = int(_value(environment, "BRIDGE_DUO_APPROVAL_TIMEOUT_SECONDS") or "60")
+        if not 15 <= timeout <= 90:
+            raise ValueError
+    except ValueError:
+        issues.append("BRIDGE_DUO_APPROVAL_TIMEOUT_SECONDS muss zwischen 15 und 90 liegen")
     return _report("invalid" if issues else "ready", issues)
 
 
@@ -232,6 +264,7 @@ def evaluate(environment: Mapping[str, str], required: set[str] | None = None) -
         raise ValueError("unknown required component")
     components = {
         "bridge": check_bridge(environment),
+        "login_approval": check_login_approval(environment),
         "fcm": check_fcm(environment),
         "zimbra": check_zimbra(environment),
         "talk": check_talk(environment),
@@ -267,7 +300,10 @@ def main() -> None:
     parser.add_argument(
         "--require",
         default="",
-        help="Kommagetrennte Pflichtkomponenten: fcm,zimbra,talk (bridge ist immer Pflicht).",
+        help=(
+            "Kommagetrennte Pflichtkomponenten: login_approval,fcm,zimbra,talk "
+            "(bridge ist immer Pflicht)."
+        ),
     )
     arguments = parser.parse_args()
     environment = dict(os.environ)

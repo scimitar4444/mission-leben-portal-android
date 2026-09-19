@@ -26,6 +26,9 @@
     <string name="update_download_install">Descarcă și instalează</string>
     <string name="update_downloading">Se verifică și se descarcă actualizarea…</string>
     <string name="update_later">Mai târziu</string>
+    <string name="update_check_action">Caută actualizări</string>
+    <string name="update_checking">Se caută actualizări…</string>
+    <string name="update_up_to_date">Mission Leben Zentral este actualizată (versiunea %1$s).</string>
     <string name="update_check_failed">Actualizările nu pot fi verificate momentan.</string>
     <string name="update_download_failed">Actualizarea nu a putut fi descărcată sau verificată în siguranță.</string>
     <string name="update_install_permission_denied">Permite aplicației Mission Leben Zentral să instaleze aplicații necunoscute, apoi încearcă din nou.</string>
@@ -164,4 +167,16 @@
     <string name="channel_talk_description">Notificări despre activitatea Talk</string>
     <string name="channel_security_name">Securitatea dispozitivului</string>
     <string name="channel_security_description">Notificări importante privind securitatea dispozitivului</string>
+    <string name="login_approval_title">Solicitare de autentificare</string>
+    <string name="login_approval_body">Există o solicitare de autentificare.</string>
+    <string name="login_approval_application">Aplicație: %1$s</string>
+    <string name="login_approval_sending">Se trimite răspunsul…</string>
+    <string name="login_approval_approve">Confirmă</string>
+    <string name="login_approval_deny">Respinge</string>
+    <string name="login_approval_expired">Solicitarea de autentificare a expirat.</string>
+    <string name="login_approval_approved">Solicitarea de autentificare a fost confirmată.</string>
+    <string name="login_approval_denied">Solicitarea de autentificare a fost respinsă.</string>
+    <string name="login_approval_failed">Nu s-a putut răspunde la solicitarea de autentificare.</string>
+    <string name="login_approval_personal_only">Solicitările de autentificare pot fi confirmate numai pe dispozitive personale.</string>
+    <string name="login_approval_invalid">Solicitare de autentificare nevalidă.</string>
 </resources>

@@ -19,9 +19,10 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - Talk läuft im Webcontainer bewusst als reiner Chat; Kamera- und Mikrofonanforderungen werden dort unabhängig von den Android-Berechtigungen abgewiesen. Die App blendet die Nextcloud-Kopfzeile aus und öffnet beim nächsten Start direkt den zuletzt verwendeten Raum; Abmelden/Zurücksetzen löscht diese lokale Erinnerung.
 - Cookies, Webspeicher, HTTP-Zugangsdaten, Cache und geschützte Downloads werden bei sicherer Abmeldung oder Profilwechsel gelöscht
 - persönliche Geräte: Refresh Token wird mit einem zufälligen Datenschlüssel verschlüsselt; nur Biometrie oder Gerätecode kann diesen Schlüssel über Android Keystore freigeben
+- persönliche Geräte können Authentik-Anmeldungen im entsperrten Portal mit „Bestätigen“ oder „Ablehnen“ beantworten; es gibt dabei keine zweite Biometrieabfrage. Die geöffnete App prüft alle zwei Sekunden, optionales FCM weckt sie später nur mit einer zufälligen Anfrage-ID. Authentik bleibt Benutzer- und Gerätequelle, Shared Tablets sind ausgeschlossen
 - persönliche Geräte müssen sich nach exakt 90 Tagen erneut bestätigen: Die App übernimmt den gespeicherten Benutzernamen, Authentik prüft zuerst Gerät und Benutzerbindung und fordert ein bereits vorhandenes TOTP an, ansonsten das Passwort. Eine TOTP-Einrichtung wird nie erzwungen
 - eine kompakte Anzeige nennt auf persönlichen Geräten die verbleibenden Tage der 90-Tage-Anmeldung
-- automatische OTA-Prüfung beim App-Start, höchstens alle sechs Stunden; Updates kommen als öffentliches GitHub-Release und werden vor der Android-Installation anhand von Paketname, Version, Dateigröße, SHA-256 und App-Signatur geprüft
+- automatische OTA-Prüfung einmal je App-Start sowie eine manuelle Schaltfläche **Nach Updates suchen**; Updates kommen als öffentliches GitHub-Release und werden vor der Android-Installation anhand von Paketname, Version, Dateigröße, SHA-256 und App-Signatur geprüft
 - Shared Tablets: kein Refresh Token und keine persistente Mitarbeitersitzung
 - Authentik-Enrollment per Deep Link `de.missionleben.portal://enroll?token=…&token_id=…&mode=…`; Authentik erzeugt Device, Connection, Device Token und Fakten-Snapshots
 - integrierter QR-Scanner für Enrollment-Links; ein Scan startet die Authentik-Geräteregistrierung ohne Abtippen
@@ -50,7 +51,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 | Benutzer dauerhaft zugeordnet | kein fester Benutzer |
 | `offline_access` angefordert | kein `offline_access` |
 | Sitzung verschlüsselt gespeichert | Sitzung nur im Arbeitsspeicher |
-| Biometrie oder Gerätecode öffnet lokalen Tresor | Benutzer meldet sich jedes Mal über Authentik an |
+| Biometrie oder Gerätecode öffnet lokalen Tresor; eine danach sichtbare Anmeldeanfrage benötigt keine zweite Biometrieabfrage | Benutzer meldet sich jedes Mal über Authentik an; keine App-Bestätigung |
 | feste 90-Tage-Laufzeit mit Tagesanzeige; danach Geräteprüfung und vorhandenes TOTP, ansonsten Passwort | Zugriff nur für Mitglieder der zugeordneten `ORG_*`-Einrichtungsgruppe; vor jeder neuen Anmeldung werden Webdaten entfernt |
 
 Biometrie gibt auf persönlichen Geräten ausschließlich die bereits aufgebaute lokale Sitzung frei. Bei der Erstanmeldung sind Benutzername und Passwort erforderlich; der geprüfte Authentik-Endpoint bildet den Gerätefaktor. Bei der planmäßigen Wiederanmeldung nach 90 Tagen verwendet Authentik ein bereits eingerichtetes TOTP, andernfalls erneut das Passwort. Die App richtet TOTP nicht ein. Auf gemeinsam genutzten Tablets wird keine persönliche Sitzung dauerhaft gespeichert; dort müssen sowohl der Gerätenachweis als auch die Einrichtungsgruppen-Mitgliedschaft und das persönliche Passwort stimmen.

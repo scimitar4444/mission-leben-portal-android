@@ -26,6 +26,9 @@
     <string name="update_download_install">Завантажити та встановити</string>
     <string name="update_downloading">Перевірка та завантаження оновлення…</string>
     <string name="update_later">Пізніше</string>
+    <string name="update_check_action">Перевірити оновлення</string>
+    <string name="update_checking">Перевірка оновлень…</string>
+    <string name="update_up_to_date">Mission Leben Zentral оновлено (версія %1$s).</string>
     <string name="update_check_failed">Наразі неможливо перевірити оновлення.</string>
     <string name="update_download_failed">Не вдалося безпечно завантажити або перевірити оновлення.</string>
     <string name="update_install_permission_denied">Дозвольте Mission Leben Zentral установлювати невідомі програми та повторіть спробу.</string>
@@ -164,4 +167,16 @@
     <string name="channel_talk_description">Сповіщення про активність Talk</string>
     <string name="channel_security_name">Безпека пристрою</string>
     <string name="channel_security_description">Важливі сповіщення про безпеку пристрою</string>
+    <string name="login_approval_title">Запит на вхід</string>
+    <string name="login_approval_body">Є запит на вхід.</string>
+    <string name="login_approval_application">Застосунок: %1$s</string>
+    <string name="login_approval_sending">Надсилання відповіді…</string>
+    <string name="login_approval_approve">Підтвердити</string>
+    <string name="login_approval_deny">Відхилити</string>
+    <string name="login_approval_expired">Термін дії запиту на вхід минув.</string>
+    <string name="login_approval_approved">Запит на вхід підтверджено.</string>
+    <string name="login_approval_denied">Запит на вхід відхилено.</string>
+    <string name="login_approval_failed">Не вдалося відповісти на запит на вхід.</string>
+    <string name="login_approval_personal_only">Запити на вхід можна підтверджувати лише на особистих пристроях.</string>
+    <string name="login_approval_invalid">Недійсний запит на вхід.</string>
 </resources>

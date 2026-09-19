@@ -6,6 +6,7 @@ import unittest
 import hashlib
 import hmac
 import json
+import threading
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -145,6 +146,103 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual(0, result["dispatched"])
         self.assertEqual([], self.fcm.messages)
         self.assertEqual(0, self.service.dispatch_due_events())
+
+    def test_foreground_login_approval_is_device_signed_and_one_time(self) -> None:
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        numbers = private_key.public_key().public_numbers()
+        jwk = {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": base64url_encode(numbers.x.to_bytes(32, "big")),
+            "y": base64url_encode(numbers.y.to_bytes(32, "big")),
+        }
+        jwk["kid"] = device_key_id(jwk)
+        device_id = "11111111-1111-1111-1111-111111111111"
+        self.service.register_auth_channel(
+            device_id,
+            "valid-token",
+            {
+                "authentik_device_token": "valid-agent-token",
+                "mode": "personal",
+                "app_version": "0.9.0",
+                "key_id": jwk["kid"],
+                "public_key_jwk": jwk,
+            },
+        )
+
+        result: list[bool] = []
+        worker = threading.Thread(
+            target=lambda: result.append(
+                self.service.request_login_approval(
+                    subject="authentik-user-1",
+                    application="Zimbra",
+                    domain="id.example.invalid",
+                    display_username="test.user",
+                    source_ip="192.0.2.10",
+                    timeout_seconds=5,
+                )
+            )
+        )
+        worker.start()
+
+        pending = None
+        for _ in range(50):
+            pending = self.store.pending_auth_request_for_device(device_id)
+            if pending is not None:
+                break
+            time.sleep(0.02)
+        self.assertIsNotNone(pending)
+
+        pending_path = "/v1/auth/requests/pending"
+        timestamp = str(int(time.time()))
+        nonce = "pending-request-nonce-1234"
+        canonical = canonical_device_request(
+            "GET", pending_path, device_id, jwk["kid"], timestamp, nonce
+        )
+        signature = base64url_encode(
+            private_key.sign(canonical, ec.ECDSA(hashes.SHA256()))
+        )
+        response = self.service.pending_login_approval(
+            device_id=device_id,
+            key_id=jwk["kid"],
+            timestamp=timestamp,
+            nonce=nonce,
+            signature=signature,
+            path=pending_path,
+        )
+        request_id = response["request"]["request_id"]
+        self.assertEqual("Zimbra", response["request"]["application"])
+
+        decision_path = f"/v1/auth/requests/{request_id}/decision"
+        decision_body = b'{"decision":"approve"}'
+        decision_timestamp = str(int(time.time()))
+        decision_nonce = "decision-request-nonce-123"
+        decision_canonical = canonical_device_request(
+            "POST",
+            decision_path,
+            device_id,
+            jwk["kid"],
+            decision_timestamp,
+            decision_nonce,
+            decision_body,
+        )
+        decision_signature = base64url_encode(
+            private_key.sign(decision_canonical, ec.ECDSA(hashes.SHA256()))
+        )
+        self.service.decide_login_approval(
+            request_id=request_id,
+            approved=True,
+            raw_body=decision_body,
+            device_id=device_id,
+            key_id=jwk["kid"],
+            timestamp=decision_timestamp,
+            nonce=decision_nonce,
+            signature=decision_signature,
+            path=decision_path,
+        )
+        worker.join(timeout=2)
+        self.assertEqual([True], result)
+        self.assertIsNone(self.store.pending_auth_request_for_device(device_id))
 
     def test_talk_bot_signature_and_recipient_mapping(self) -> None:
         secret = b"talk-bot-secret"

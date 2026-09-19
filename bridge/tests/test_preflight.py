@@ -32,6 +32,7 @@ class PreflightTest(unittest.TestCase):
 
         self.assertEqual("ready", result["status"])
         self.assertEqual("ready", result["components"]["bridge"]["status"])
+        self.assertEqual("disabled", result["components"]["login_approval"]["status"])
         self.assertEqual("disabled", result["components"]["fcm"]["status"])
         self.assertEqual("disabled", result["components"]["zimbra"]["status"])
         self.assertEqual("disabled", result["components"]["talk"]["status"])
@@ -57,6 +58,31 @@ class PreflightTest(unittest.TestCase):
 
         self.assertEqual("not_ready", result["status"])
         self.assertEqual("disabled", result["components"]["fcm"]["status"])
+
+    def test_complete_login_approval_configuration_is_ready(self) -> None:
+        environment = {
+            **self.environment,
+            "BRIDGE_DUO_INTEGRATION_KEY": "A" * 20,
+            "BRIDGE_DUO_SECRET_KEY": "s" * 40,
+            "BRIDGE_DUO_API_HOSTNAME": "id.example.invalid",
+            "BRIDGE_DUO_APPROVAL_TIMEOUT_SECONDS": "60",
+        }
+
+        result = evaluate(environment, {"login_approval"})
+
+        self.assertEqual("ready", result["status"])
+        self.assertEqual("ready", result["components"]["login_approval"]["status"])
+
+    def test_partial_login_approval_configuration_is_invalid(self) -> None:
+        environment = {
+            **self.environment,
+            "BRIDGE_DUO_INTEGRATION_KEY": "A" * 20,
+        }
+
+        result = evaluate(environment)
+
+        self.assertEqual("not_ready", result["status"])
+        self.assertEqual("invalid", result["components"]["login_approval"]["status"])
 
     def test_complete_notification_configuration_is_ready_and_does_not_leak_secrets(self) -> None:
         private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)

@@ -39,7 +39,7 @@ services:
   preflight:
     profiles: ["tools"]
     build: .
-    command: ["mission-leben-bridge-preflight", "--require", "fcm,zimbra,talk"]
+    command: ["mission-leben-bridge-preflight", "--require", "login_approval,fcm,zimbra,talk"]
     env_file: .env
     volumes:
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro

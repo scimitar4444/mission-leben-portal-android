@@ -155,6 +155,23 @@ class AuthentikClient:
             raise AuthentikError(403, "Dieses Mitarbeiterkonto darf kein Gerät registrieren.")
         return user
 
+    async def ensure_login_approval_device(self, username: str, subject: str) -> None:
+        stage_uuid = self.settings.app_approval_stage_uuid
+        if not stage_uuid:
+            return
+        payload = await self._request(
+            "POST",
+            f"/stages/authenticator/duo/{stage_uuid}/import_device_manual/",
+            expected={204, 400},
+            json={"username": username, "duo_user_id": subject},
+        )
+        if payload is None:
+            return
+        errors = payload.get("non_field_errors", []) if isinstance(payload, dict) else []
+        if any("exists already" in str(error).lower() for error in errors):
+            return
+        raise AuthentikError(409, "Die App-Bestätigung konnte nicht zugeordnet werden.")
+
     async def access_group_by_name(self, name: str) -> dict[str, Any] | None:
         results = await self._all_results(
             "/endpoints/device_access_groups/", {"search": name, "page_size": 100}

@@ -63,6 +63,8 @@ PERMISSIONS = (
     "authentik_endpoints_connectors_agent.delete_enrollmenttoken",
     "authentik_endpoints_connectors_agent.view_enrollment_token_key",
     "authentik_events.add_event",
+    "authentik_stages_authenticator_duo.view_authenticatorduostage",
+    "authentik_stages_authenticator_duo.add_duodevice",
 )
 
 

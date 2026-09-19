@@ -15,6 +15,7 @@ Android-App:
 
 - getrennte Kanäle für Mail, Termine, Talk und Gerätesicherheit
 - Data Messages mit fester Aktionsliste; freie URLs und FCM-Texte werden ignoriert
+- Anmeldeanfragen werden per FCM nur mit einer zufälligen Anfrage-ID geweckt; Details und Entscheidung bleiben in der entsperrten App
 - sofortiger neutraler Hinweis und nachgelagerter Detailabruf über einen Android-Job
 - Detailabruf mit Geräte-ID, Schlüssel-ID, Zeitstempel, Nonce und P-256-Signatur
 - Sperrbildschirm-Version ohne Absender, Betreff, Termin oder Vorschau

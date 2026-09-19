@@ -53,4 +53,26 @@ class PushCommandTest {
         )
         assertTrue(result is PushCommand.Cancel)
     }
+
+    @Test
+    fun `parses login approval wake without accepting content or actions`() {
+        val result = PushCommand.parse(
+            mapOf(
+                "action" to "fetch_login_approval",
+                "request_id" to "approval_01JABCDEF0123456789",
+                "application" to "Ignored",
+                "approve" to "true",
+            ),
+        )
+
+        assertEquals(PushCommand.LoginApproval("approval_01JABCDEF0123456789"), result)
+        assertNull(
+            PushCommand.parse(
+                mapOf(
+                    "action" to "fetch_login_approval",
+                    "request_id" to "../approval",
+                ),
+            ),
+        )
+    }
 }

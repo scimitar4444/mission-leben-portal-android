@@ -5,6 +5,7 @@ import threading
 
 from .authentik import AuthentikClient
 from .config import Settings
+from .duo_compat import DuoCompatApi, DuoCompatSettings
 from .fcm import FcmSender, NullFcmSender
 from .http_api import BridgeHttpServer
 from .security import SecretBox
@@ -26,6 +27,17 @@ def main() -> None:
         else NullFcmSender()
     )
     service = BridgeService(store, authentik, fcm, settings.talk_targets)
+    duo_api = None
+    if settings.duo_configured and settings.duo_secret_key is not None:
+        duo_api = DuoCompatApi(
+            DuoCompatSettings(
+                integration_key=settings.duo_integration_key,
+                secret_key=settings.duo_secret_key,
+                api_hostname=settings.duo_api_hostname,
+                approval_timeout_seconds=settings.duo_approval_timeout_seconds,
+            ),
+            service,
+        )
     stop_dispatcher = threading.Event()
 
     def dispatch_due_events() -> None:
@@ -37,12 +49,13 @@ def main() -> None:
 
     dispatcher = threading.Thread(target=dispatch_due_events, name="notification-dispatcher", daemon=True)
     dispatcher.start()
-    server = BridgeHttpServer(settings, service)
+    server = BridgeHttpServer(settings, service, duo_api)
     logging.getLogger("mission_leben_bridge").info(
-        "bridge listening on %s:%d (FCM configured: %s)",
+        "bridge listening on %s:%d (FCM configured: %s, login approval configured: %s)",
         settings.listen_host,
         settings.listen_port,
         fcm.configured,
+        duo_api is not None,
     )
     try:
         server.serve_forever()

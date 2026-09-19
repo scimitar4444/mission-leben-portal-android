@@ -82,6 +82,10 @@ class EnrollmentService:
         }
         access_group = await self._access_group(group_name, attributes)
         await self._ensure_binding(access_group["pbm_uuid"], user_pk=user_pk)
+        subject = str(user.get("uid", "")).strip()
+        if not subject:
+            raise AuthentikError(502, "Authentik hat keine stabile Benutzerkennung geliefert.")
+        await self.authentik.ensure_login_approval_device(user["username"], subject)
         return await self._issue(
             actor=actor,
             access_group=access_group,

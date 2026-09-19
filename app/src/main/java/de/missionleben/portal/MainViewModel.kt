@@ -25,17 +25,20 @@ import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.PushAction
 import de.missionleben.portal.push.PushManager
 import de.missionleben.portal.push.NotificationPrivacy
+import de.missionleben.portal.push.NotificationPresenter
 import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.security.DeviceIdentity
 import de.missionleben.portal.security.SecureSessionVault
-import de.missionleben.portal.update.UpdatePolicy
 import de.missionleben.portal.update.UpdateRepository
 import de.missionleben.portal.update.UpdateStatus
 import java.io.File
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.crypto.Cipher
 
@@ -54,6 +57,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var pendingVaultState: String? = null
     private var pendingPushAction: PushAction? = null
     private var downloadedUpdateFile: File? = null
+    private var automaticUpdateCheckStarted = false
+    private var loginApprovalPollingJob: Job? = null
 
     private val _uiState = MutableStateFlow(
         UiState(
@@ -112,6 +117,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 notificationPrivacy = effectiveNotificationPrivacy(mode),
                 busy = false,
                 message = null,
+                loginApprovalRequest = null,
+                loginApprovalSubmitting = false,
             )
         }
     }
@@ -415,6 +422,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 linkTargets = emptyList(),
                 requestedUrl = null,
                 clearWebDataRequested = true,
+                loginApprovalRequest = null,
+                loginApprovalSubmitting = false,
                 message = if (boundDeviceReauthenticationAvailable) {
                     string(R.string.message_session_reauth_required)
                 } else {
@@ -446,6 +455,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     string(R.string.message_signed_out)
                 },
+                loginApprovalRequest = null,
+                loginApprovalSubmitting = false,
             )
         }
         onBrowserLogout(authRepository.endSessionUrl())
@@ -458,17 +469,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (status == UpdateStatus.CHECKING || status == UpdateStatus.DOWNLOADING || status == UpdateStatus.READY) {
             return
         }
-        val now = System.currentTimeMillis()
-        if (!force && !UpdatePolicy.shouldCheck(preferences.lastUpdateCheckEpochMillis, now)) return
-        _uiState.update { it.copy(updateStatus = UpdateStatus.CHECKING) }
+        if (!force && automaticUpdateCheckStarted) return
+        automaticUpdateCheckStarted = true
+        _uiState.update {
+            it.copy(
+                updateStatus = UpdateStatus.CHECKING,
+                message = if (force) null else it.message,
+            )
+        }
         viewModelScope.launch {
             runCatching { updateRepository.checkForUpdate() }
                 .onSuccess { update ->
-                    preferences.lastUpdateCheckEpochMillis = now
                     _uiState.update {
                         it.copy(
                             availableUpdate = update,
                             updateStatus = if (update == null) UpdateStatus.IDLE else UpdateStatus.AVAILABLE,
+                            message = if (force && update == null) {
+                                string(R.string.update_up_to_date, BuildConfig.VERSION_NAME)
+                            } else {
+                                it.message
+                            },
                         )
                     }
                 }
@@ -558,6 +578,107 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         syncDeviceStatus(blockLogin = false)
     }
 
+    fun startLoginApprovalPolling() {
+        if (loginApprovalPollingJob?.isActive == true) return
+        loginApprovalPollingJob = viewModelScope.launch {
+            while (isActive) {
+                val state = _uiState.value
+                val deviceId = state.deviceId
+                if (
+                    state.signedIn &&
+                    state.mode == DeviceMode.PERSONAL &&
+                    state.enrollmentState == EnrollmentState.TRUSTED &&
+                    state.communicationServiceConfigured &&
+                    deviceId != null &&
+                    !state.loginApprovalSubmitting
+                ) {
+                    fetchLoginApproval(deviceId)
+                }
+                delay(2_000)
+            }
+        }
+    }
+
+    fun refreshLoginApproval() {
+        val state = _uiState.value
+        val deviceId = state.deviceId ?: return
+        if (
+            !state.signedIn ||
+            state.mode != DeviceMode.PERSONAL ||
+            state.enrollmentState != EnrollmentState.TRUSTED ||
+            !state.communicationServiceConfigured ||
+            state.loginApprovalSubmitting
+        ) {
+            return
+        }
+        viewModelScope.launch { fetchLoginApproval(deviceId) }
+    }
+
+    private suspend fun fetchLoginApproval(deviceId: String) {
+        runCatching { deviceService.pendingLoginApproval(deviceId, identity) }
+            .onSuccess { request ->
+                val current = _uiState.value.loginApprovalRequest
+                if (request != current) {
+                    _uiState.update { it.copy(loginApprovalRequest = request) }
+                }
+            }
+    }
+
+    fun stopLoginApprovalPolling() {
+        loginApprovalPollingJob?.cancel()
+        loginApprovalPollingJob = null
+    }
+
+    fun decideLoginApproval(approved: Boolean) {
+        val state = _uiState.value
+        val request = state.loginApprovalRequest ?: return
+        val deviceId = state.deviceId ?: return
+        if (request.expiresAtEpochSeconds <= System.currentTimeMillis() / 1_000L) {
+            NotificationPresenter.cancelLoginApproval(getApplication(), request.requestId)
+            _uiState.update {
+                it.copy(
+                    loginApprovalRequest = null,
+                    loginApprovalSubmitting = false,
+                    message = string(R.string.login_approval_expired),
+                )
+            }
+            return
+        }
+        _uiState.update { it.copy(loginApprovalSubmitting = true) }
+        viewModelScope.launch {
+            runCatching {
+                deviceService.decideLoginApproval(
+                    requestId = request.requestId,
+                    approved = approved,
+                    deviceId = deviceId,
+                    identity = identity,
+                )
+            }.onSuccess {
+                NotificationPresenter.cancelLoginApproval(getApplication(), request.requestId)
+                _uiState.update {
+                    it.copy(
+                        loginApprovalRequest = null,
+                        loginApprovalSubmitting = false,
+                        message = string(
+                            if (approved) {
+                                R.string.login_approval_approved
+                            } else {
+                                R.string.login_approval_denied
+                            },
+                        ),
+                    )
+                }
+            }.onFailure {
+                _uiState.update {
+                    it.copy(
+                        loginApprovalSubmitting = false,
+                        message = string(R.string.login_approval_failed),
+                    )
+                }
+            }
+        }
+    }
+
     private fun syncDeviceStatus(blockLogin: Boolean) {
         if (!deviceService.endpointDevicesConfigured) return
         val deviceId = preferences.deviceId ?: return
@@ -589,6 +710,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                 busy = false,
                                 clearWebDataRequested = true,
                                 message = string(R.string.message_device_blocked_clearing),
+                                loginApprovalRequest = null,
+                                loginApprovalSubmitting = false,
                             )
                         }
                     } else {
@@ -637,8 +760,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun syncPushRegistrationWithToken(accessToken: String) {
-        if (!deviceService.communicationConfigured || !PushManager.configured) return
+        if (!deviceService.communicationConfigured) return
         val deviceId = _uiState.value.deviceId ?: return
+        val mode = _uiState.value.mode ?: return
+        if (mode == DeviceMode.PERSONAL) {
+            viewModelScope.launch {
+                runCatching {
+                    deviceService.registerLoginApproval(accessToken, deviceId, mode)
+                }
+            }
+        }
+        if (!PushManager.configured) return
         if (ContextCompat.checkSelfPermission(
                 getApplication(),
                 Manifest.permission.POST_NOTIFICATIONS,
@@ -652,7 +784,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch { runCatching { deviceService.unregisterPush(accessToken, deviceId) } }
             return
         }
-        val mode = _uiState.value.mode ?: return
         val privacy = effectiveNotificationPrivacy(mode)
         viewModelScope.launch {
             runCatching { deviceService.registerPush(accessToken, deviceId, installationId, mode, privacy) }
@@ -666,7 +797,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             onSuccess = { accessToken, updatedState ->
                 viewModelScope.launch {
                     if (registeredDeviceId != null) {
-                        runCatching { deviceService.unregisterPush(accessToken, registeredDeviceId) }
+                        runCatching { deviceService.unregisterCommunication(accessToken, registeredDeviceId) }
                     }
                     authRepository.revoke(updatedState)
                 }
@@ -754,6 +885,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         getApplication<Application>().getString(resourceId, *formatArgs)
 
     override fun onCleared() {
+        loginApprovalPollingJob?.cancel()
         dataEncryptionKey?.fill(0)
         authRepository.dispose()
         super.onCleared()

@@ -12,6 +12,7 @@ from .store import Store
 
 
 EVENT_ID = re.compile(r"^[A-Za-z0-9_-]{16,128}$")
+AUTH_REQUEST_ID = re.compile(r"^[A-Za-z0-9_-]{24,128}$")
 KEY_ID = re.compile(r"^[a-f0-9]{24}$")
 ROOM_TOKEN = re.compile(r"^[A-Za-z0-9_-]{6,128}$")
 EVENT_TYPES = {"open_mail", "open_calendar", "open_talk"}
@@ -107,9 +108,47 @@ class BridgeService:
         except PermissionError as error:
             raise ApiError(403, str(error)) from error
 
+    def register_auth_channel(self, device_id: str, bearer: str, payload: dict[str, Any]) -> None:
+        user = self.authenticate(bearer)
+        if payload.get("mode") != "personal":
+            raise ApiError(403, "login approvals require a personal device")
+        key_id = str(payload.get("key_id", ""))
+        jwk = payload.get("public_key_jwk")
+        agent_token = _text(payload.get("authentik_device_token"), 4096, required=True)
+        if not KEY_ID.fullmatch(key_id) or not isinstance(jwk, dict):
+            raise ApiError(400, "a valid communication key is required")
+        try:
+            derived_key_id = device_key_id(jwk)
+        except (ValueError, KeyError) as error:
+            raise ApiError(400, "the communication public key is invalid") from error
+        if derived_key_id != key_id or jwk.get("kid") != key_id:
+            raise ApiError(400, "key_id does not match the communication public key")
+        try:
+            verified_device_id = self.authentik.device_id(agent_token)
+        except AuthenticationError as error:
+            raise ApiError(403 if error.permanent else 503, str(error)) from error
+        if verified_device_id != device_id:
+            raise ApiError(403, "Authentik device token does not match the device id")
+        try:
+            self.store.register_auth_channel(
+                device_id=device_id,
+                subject=user.subject,
+                agent_token=agent_token,
+                key_id=key_id,
+                public_jwk=jwk,
+                mode="personal",
+                app_version=_text(payload.get("app_version"), 30),
+            )
+        except PermissionError as error:
+            raise ApiError(403, str(error)) from error
+
     def unregister_push(self, device_id: str, bearer: str) -> None:
         user = self.authenticate(bearer)
         self.store.unregister_push(device_id, user.subject)
+
+    def unregister_auth_channel(self, device_id: str, bearer: str) -> None:
+        user = self.authenticate(bearer)
+        self.store.unregister_auth_channel(device_id, user.subject)
 
     def link_targets(self, bearer: str, capability: str) -> list[dict[str, Any]]:
         self.authenticate(bearer)
@@ -255,6 +294,127 @@ class BridgeService:
         }
         return detail
 
+    def request_login_approval(
+        self,
+        *,
+        subject: str,
+        application: str,
+        domain: str,
+        display_username: str,
+        source_ip: str,
+        timeout_seconds: int,
+    ) -> bool:
+        active_registrations = []
+        for registration in self.store.auth_registrations_for_subject(subject):
+            try:
+                if self.authentik.device_id(registration["agent_token"]) == registration["device_id"]:
+                    active_registrations.append(registration)
+                    self.store.touch_registration(registration["device_id"])
+                else:
+                    self.store.remove_registration(registration["device_id"])
+            except AuthenticationError as error:
+                if error.permanent:
+                    self.store.remove_registration(registration["device_id"])
+        if not active_registrations:
+            return False
+
+        request = self.store.create_auth_request(
+            subject=subject,
+            application=_text(application, 100),
+            domain=_text(domain, 200),
+            display_username=_text(display_username, 200),
+            source_ip=_text(source_ip, 64),
+            ttl=timeout_seconds,
+        )
+        for registration in active_registrations:
+            if not registration.get("push_enabled") or not registration.get("installation_id"):
+                continue
+            try:
+                self.fcm.send(
+                    registration["installation_id"],
+                    {
+                        "action": "fetch_login_approval",
+                        "request_id": request["request_id"],
+                    },
+                )
+            except FcmSendError as error:
+                if error.permanent_token_failure:
+                    self.store.remove_registration_by_token(registration["installation_id"])
+
+        deadline = time.monotonic() + timeout_seconds
+        while time.monotonic() < deadline:
+            status = self.store.auth_request_status(request["request_id"])
+            if status == "approved":
+                return True
+            if status in {"denied", "expired", None}:
+                return False
+            time.sleep(0.2)
+        return False
+
+    def pending_login_approval(
+        self,
+        *,
+        device_id: str,
+        key_id: str,
+        timestamp: str,
+        nonce: str,
+        signature: str,
+        path: str,
+    ) -> dict[str, Any]:
+        registration = self._verify_device_request(
+            method="GET",
+            path=path,
+            device_id=device_id,
+            key_id=key_id,
+            timestamp=timestamp,
+            nonce=nonce,
+            signature=signature,
+        )
+        if registration["mode"] != "personal":
+            raise ApiError(403, "login approvals require a personal device")
+        request = self.store.pending_auth_request_for_device(device_id)
+        if request is None:
+            return {"request": None}
+        return {
+            "request": {
+                "request_id": request["request_id"],
+                "application": request["application"],
+                "domain": request["domain"],
+                "requested_at": request["created_at"],
+                "expires_at": request["expires_at"],
+            }
+        }
+
+    def decide_login_approval(
+        self,
+        *,
+        request_id: str,
+        approved: bool,
+        raw_body: bytes,
+        device_id: str,
+        key_id: str,
+        timestamp: str,
+        nonce: str,
+        signature: str,
+        path: str,
+    ) -> None:
+        if not AUTH_REQUEST_ID.fullmatch(request_id):
+            raise ApiError(400, "invalid authentication request id")
+        registration = self._verify_device_request(
+            method="POST",
+            path=path,
+            device_id=device_id,
+            key_id=key_id,
+            timestamp=timestamp,
+            nonce=nonce,
+            signature=signature,
+            body=raw_body,
+        )
+        if registration["mode"] != "personal":
+            raise ApiError(403, "login approvals require a personal device")
+        if not self.store.decide_auth_request(request_id, device_id, approved):
+            raise ApiError(409, "authentication request is no longer pending")
+
     def _verify_device_request(
         self,
         *,
@@ -265,6 +425,7 @@ class BridgeService:
         timestamp: str,
         nonce: str,
         signature: str,
+        body: bytes = b"",
     ) -> dict[str, Any]:
         if not 16 <= len(nonce) <= 128:
             raise ApiError(400, "invalid nonce")
@@ -278,20 +439,24 @@ class BridgeService:
         registration = self.store.get_registration(device_id)
         if registration is None or registration["key_id"] != key_id:
             raise ApiError(403, "device identity is unknown")
-        canonical = canonical_device_request(method, path, device_id, key_id, timestamp, nonce)
+        canonical = canonical_device_request(
+            method, path, device_id, key_id, timestamp, nonce, body
+        )
         if not verify_device_signature(registration["public_jwk"], signature, canonical):
             raise ApiError(401, "invalid device signature")
         if not self.store.consume_nonce(device_id, nonce, now + 180):
             raise ApiError(409, "request nonce was already used")
-        try:
-            verified_device_id = self.authentik.device_id(registration["agent_token"])
-        except AuthenticationError as error:
-            if error.permanent:
+        if now - int(registration["last_verified_at"]) >= 30:
+            try:
+                verified_device_id = self.authentik.device_id(registration["agent_token"])
+            except AuthenticationError as error:
+                if error.permanent:
+                    self.store.remove_registration(device_id)
+                raise ApiError(403 if error.permanent else 503, str(error)) from error
+            if verified_device_id != device_id:
                 self.store.remove_registration(device_id)
-            raise ApiError(403 if error.permanent else 503, str(error)) from error
-        if verified_device_id != device_id:
-            self.store.remove_registration(device_id)
-            raise ApiError(403, "Authentik device token does not match the device id")
+                raise ApiError(403, "Authentik device token does not match the device id")
+            self.store.touch_registration(device_id)
         return registration
 
     @staticmethod

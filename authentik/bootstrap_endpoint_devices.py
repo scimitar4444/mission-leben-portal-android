@@ -6,6 +6,7 @@ No enrollment token or secret is printed or stored by this script.
 
 import json
 
+from authentik.common.oauth.constants import SubModes
 from authentik.core.models import Application, Group
 from authentik.crypto.builder import CertificateBuilder, PrivateKeyAlg
 from authentik.crypto.models import CertificateKeyPair
@@ -324,6 +325,9 @@ provider, _ = OAuth2Provider.objects.update_or_create(
         "access_token_validity": "minutes=5",
         "refresh_token_validity": REFRESH_TOKEN_VALIDITY,
         "refresh_token_threshold": REFRESH_TOKEN_RENEWAL_THRESHOLD,
+        # The bridge stores this stable subject after OIDC login. App-approval
+        # DuoDevice records use the same Authentik user.uid value.
+        "sub_mode": SubModes.HASHED_USER_ID,
         "signing_key": signing_key,
     },
 )

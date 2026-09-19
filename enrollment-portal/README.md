@@ -51,6 +51,8 @@ Das Skript ist idempotent und erstellt:
 
 Der API-Schlüssel ist absichtlich nicht automatisch ablaufend, weil Authentik einen ablaufenden API-Schlüssel serverseitig rotiert, die gemountete Secret-Datei jedoch nicht aktualisieren kann. Er muss betrieblich regelmäßig kontrolliert rotiert werden. Durch seine eng begrenzten Rechte kann er keine Kennwörter ändern, Benutzer anlegen oder Anwendungen administrieren.
 
+Für die App-Bestätigung legt `authentik/bootstrap_app_approval.py` vorher die Authentik-Duo-Stufe an. Deren ausgegebene `duo_stage_uuid` wird als `ML_ENROLL_APP_APPROVAL_STAGE_UUID` gesetzt. Das Portal legt bei jeder persönlichen Geräteinitialisierung idempotent ein bestätigtes Authentik-DuoDevice an: sowohl bei der TOTP-Selbstregistrierung als auch bei der Einrichtung durch EL, PDL, zentrale Leitung oder IT. Dessen `duo_user_id` entspricht exakt dem stabilen OIDC-Subject des Benutzers. Shared Tablets erhalten kein solches Gerät. Die zusätzlichen Servicekonto-Rechte sind ausschließlich `view_authenticatorduostage` und `add_duodevice`.
+
 Anschließend EL, PDL, zentrale Leitungen und IT ihren jeweiligen Rollengruppen hinzufügen. Zentrale Leitungen, EL und PDL benötigen zusätzlich die zugehörigen bestehenden `ORG_*`-Gruppen. IT benötigt keine `ORG_*`-Mitgliedschaft.
 
 ## Container starten
@@ -64,7 +66,7 @@ chmod 0600 secrets/*
 podman compose -f compose.example.yml up -d --build
 ```
 
-In `.env` muss `ML_ENROLL_AGENT_CONNECTOR_UUID` auf den vorhandenen Connector `Mission Leben Android` zeigen. Der Container bindet nur an `127.0.0.1:8081`; extern wird ausschließlich der Reverse Proxy veröffentlicht. `deploy/nginx-forward-auth.conf` ist ein gehärtetes Beispiel für `geraete.mission-leben.de`.
+In `.env` muss `ML_ENROLL_AGENT_CONNECTOR_UUID` auf den vorhandenen Connector `Mission Leben Android` und `ML_ENROLL_APP_APPROVAL_STAGE_UUID` auf die ausgegebene App-Bestätigungsstufe zeigen. Der Container bindet nur an `127.0.0.1:8081`; extern wird ausschließlich der Reverse Proxy veröffentlicht. `deploy/nginx-forward-auth.conf` ist ein gehärtetes Beispiel für `geraete.mission-leben.de`.
 
 ## Tests
 

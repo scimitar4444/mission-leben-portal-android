@@ -7,6 +7,7 @@ import de.missionleben.portal.R
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
+import de.missionleben.portal.model.LoginApprovalRequest
 import de.missionleben.portal.push.NotificationDetail
 import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.push.PushAction
@@ -150,9 +151,38 @@ class DeviceServiceRepository(context: Context? = null) {
         request("/v1/push/registrations/${encodePathSegment(deviceId)}", "PUT", body.toString(), accessToken)
     }
 
+    suspend fun registerLoginApproval(
+        accessToken: String,
+        deviceId: String,
+        mode: DeviceMode,
+    ) = withContext(Dispatchers.IO) {
+        require(communicationConfigured) { text(R.string.device_service_not_configured) }
+        require(mode == DeviceMode.PERSONAL) { text(R.string.login_approval_personal_only) }
+        val credential = credentialVault?.load() ?: error(text(R.string.device_status_unknown))
+        require(credential.deviceId == deviceId) { text(R.string.device_status_unknown) }
+        val identity = DeviceIdentity()
+        val body = JSONObject()
+            .put("mode", "personal")
+            .put("app_version", BuildConfig.VERSION_NAME)
+            .put("authentik_device_token", credential.token)
+            .put("key_id", identity.keyId())
+            .put("public_key_jwk", identity.publicJwk())
+        request(
+            "/v1/auth/registrations/${encodePathSegment(deviceId)}",
+            "PUT",
+            body.toString(),
+            accessToken,
+        )
+    }
+
     suspend fun unregisterPush(accessToken: String, deviceId: String) = withContext(Dispatchers.IO) {
         if (!communicationConfigured) return@withContext
         request("/v1/push/registrations/${encodePathSegment(deviceId)}", "DELETE", null, accessToken)
+    }
+
+    suspend fun unregisterCommunication(accessToken: String, deviceId: String) = withContext(Dispatchers.IO) {
+        if (!communicationConfigured) return@withContext
+        request("/v1/auth/registrations/${encodePathSegment(deviceId)}", "DELETE", null, accessToken)
     }
 
     suspend fun deviceStatus(
@@ -198,7 +228,7 @@ class DeviceServiceRepository(context: Context? = null) {
             method = "GET",
             body = null,
             accessToken = null,
-            headers = signedHeaders(path, deviceId, identity),
+            headers = signedHeaders("GET", path, null, deviceId, identity),
         )
         if (response.status !in 200..299) {
             throw NotificationFetchException(
@@ -212,6 +242,60 @@ class DeviceServiceRepository(context: Context? = null) {
             throw NotificationFetchException(false, text(R.string.notification_details_mismatch))
         }
         detail
+    }
+
+    suspend fun pendingLoginApproval(
+        deviceId: String,
+        identity: DeviceIdentity,
+    ): LoginApprovalRequest? = withContext(Dispatchers.IO) {
+        require(communicationConfigured) { text(R.string.device_service_not_configured) }
+        val path = "/v1/auth/requests/pending"
+        val response = performRequest(
+            path = path,
+            method = "GET",
+            body = null,
+            accessToken = null,
+            headers = signedHeaders("GET", path, null, deviceId, identity),
+        )
+        if (response.status !in 200..299) {
+            error(text(R.string.device_service_http_error, response.status))
+        }
+        val root = JSONObject(response.body)
+        if (root.isNull("request")) return@withContext null
+        val request = root.getJSONObject("request")
+        LoginApprovalRequest(
+            requestId = request.getString("request_id"),
+            application = request.optString("application"),
+            domain = request.optString("domain"),
+            requestedAtEpochSeconds = request.getLong("requested_at"),
+            expiresAtEpochSeconds = request.getLong("expires_at"),
+        )
+    }
+
+    suspend fun decideLoginApproval(
+        requestId: String,
+        approved: Boolean,
+        deviceId: String,
+        identity: DeviceIdentity,
+    ) = withContext(Dispatchers.IO) {
+        require(communicationConfigured) { text(R.string.device_service_not_configured) }
+        require(requestId.matches(Regex("[A-Za-z0-9_-]{24,128}"))) {
+            text(R.string.login_approval_invalid)
+        }
+        val path = "/v1/auth/requests/${encodePathSegment(requestId)}/decision"
+        val body = JSONObject()
+            .put("decision", if (approved) "approve" else "deny")
+            .toString()
+        val response = performRequest(
+            path = path,
+            method = "POST",
+            body = body,
+            accessToken = null,
+            headers = signedHeaders("POST", path, body, deviceId, identity),
+        )
+        if (response.status !in 200..299) {
+            error(text(R.string.device_service_http_error, response.status))
+        }
     }
 
     internal fun extractTalkToken(value: String): String {
@@ -235,18 +319,25 @@ class DeviceServiceRepository(context: Context? = null) {
     private fun encodePathSegment(value: String): String = java.net.URLEncoder.encode(value, Charsets.UTF_8.name())
         .replace("+", "%20")
 
-    private fun signedHeaders(path: String, deviceId: String, identity: DeviceIdentity): Map<String, String> {
+    private fun signedHeaders(
+        method: String,
+        path: String,
+        body: String?,
+        deviceId: String,
+        identity: DeviceIdentity,
+    ): Map<String, String> {
         val timestamp = Instant.now().epochSecond.toString()
         val nonceBytes = ByteArray(18).also(SecureRandom()::nextBytes)
         val nonce = Base64.getUrlEncoder().withoutPadding().encodeToString(nonceBytes)
         val keyId = identity.keyId()
         val canonical = DeviceRequestSignature.canonical(
-            method = "GET",
+            method = method,
             path = path,
             deviceId = deviceId,
             keyId = keyId,
             timestamp = timestamp,
             nonce = nonce,
+            body = body.orEmpty(),
         )
         return mapOf(
             "X-ML-Device-ID" to deviceId,

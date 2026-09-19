@@ -54,6 +54,17 @@ Beispiel:
 
 FCM erhält keinen Absender, Betreff, Termin, Raum oder Vorschautext. Die App akzeptiert für Detailmeldungen nur `fetch_notification` sowie die Ereignistypen `open_mail`, `open_calendar` und `open_talk`. Benutzer, Gerät und Berechtigung werden unmittelbar vor jedem Versand erneut geprüft. Anschließend lädt nur das freigegebene Gerät die Details über eine signierte HTTPS-Anfrage aus der Bridge.
 
+Eine Authentik-Anmeldeanfrage verwendet ebenfalls nur einen Weckimpuls:
+
+```json
+{
+  "action": "fetch_login_approval",
+  "request_id": "<opaque-id>"
+}
+```
+
+Ist das Portal sichtbar, lädt es die Anfrage sofort signiert nach. Im Hintergrund erscheint nur der lokale Hinweis „Anmeldeanfrage“. Die Benachrichtigung enthält bewusst keine Schaltfläche zum Bestätigen oder Ablehnen; diese Entscheidung ist ausschließlich in der entsperrten App möglich. Ohne FCM findet die geöffnete App neue Anfragen weiterhin durch das Zwei-Sekunden-Polling.
+
 ## 4. Funktionstest
 
 1. signierte App mit den vier Clientwerten bauen und installieren,
@@ -65,5 +76,6 @@ FCM erhält keinen Absender, Betreff, Termin, Raum oder Vorschautext. Die App ak
 7. verifizieren, dass der Sperrbildschirm keine Fachdaten zeigt und nach dem Entsperren die gewählte Datenschutzstufe greift,
 8. antippen und prüfen, dass nur die passende freigegebene Authentik-App geöffnet wird,
 9. abmelden und prüfen, dass `DELETE /v1/push/registrations/{device_id}` die Zuordnung entfernt.
+10. eine Authentik-Anmeldeanfrage auslösen und prüfen, dass FCM nur `action` und `request_id` enthält, die Benachrichtigung die App öffnet und die Entscheidung erst dort möglich ist.
 
 Offizielle Grundlagen: [Firebase in Android einrichten](https://firebase.google.com/docs/android/setup), [FCM für Android](https://firebase.google.com/docs/cloud-messaging/android/get-started), [vertrauenswürdige Serverumgebung](https://firebase.google.com/docs/cloud-messaging/server-environment).

@@ -126,7 +126,28 @@ Die alten Skripte `create_enrollment_token.py`, `assign_device_access.py` und `g
 
 Gerät sperren: Unter **Endpoint Devices → Devices** das Gerät ablaufen lassen oder löschen. Dadurch lehnt `agent_config` das Device Token ab; die App löscht Sitzung und Webdaten, und die Kommunikations-Bridge verwirft die Push-Zuordnung bei ihrer nächsten Live-Prüfung.
 
-## 6. Policy-Grundsätze
+## 6. App-Bestätigung als Authentik-Faktor
+
+Die App-Bestätigung verwendet die in Authentik Community vorhandene Duo-Stufe, aber keinen Duo-Cloud-Dienst und keine Enterprise-Funktion. Die Stufe spricht die signierte Duo Auth API gegen den separaten Kommunikationscontainer. Authentik bleibt für Benutzer, `DuoDevice`, MFA-Auswahl und Endpoint Devices zuständig; die Bridge speichert nur kurzlebige Anmeldeanfragen und die bereits für Kommunikation benötigte Gerätezuordnung.
+
+Nach PostgreSQL- und Bridge-Backup werden einmalige, zufällige Werte erzeugt und sowohl in der Root-only Bridge-`.env` als auch beim Bootstrap als `ML_APP_APPROVAL_INTEGRATION_KEY`, `ML_APP_APPROVAL_SECRET_KEY` und `ML_APP_APPROVAL_API_HOSTNAME=id.mission-leben.de` verwendet. `authentik/bootstrap_app_approval.py`:
+
+- legt `Mission Leben Zentral - App-Bestätigung` als Duo-Stufe an,
+- ergänzt `duo` in der vorhandenen Stufe `MFA verpflichtend`, ohne TOTP oder WebAuthn zu entfernen,
+- verweigert die Einrichtung, falls die zentrale MFA-Stufe versehentlich im Android-Anmeldeflow liegt,
+- prüft, dass der Android-OIDC-Provider `hashed_user_id` verwendet,
+- verknüpft bestehende aktive persönliche Endpoint-Bindungen über `user.uid`,
+- überspringt gruppengebundene Shared Tablets.
+
+Die ausgegebene `duo_stage_uuid` wird im Geräte-Einrichtungscontainer als `ML_ENROLL_APP_APPROVAL_STAGE_UUID` gesetzt. Neue persönliche Registrierungen erhalten damit automatisch den Faktor. Der Android-OIDC-Flow bleibt absichtlich ohne diese Stufe: Die App muss sich zuerst selbst öffnen können, bevor sie andere Anmeldungen bestätigt.
+
+Solange FCM noch nicht konfiguriert ist, sieht die geöffnete App eine Anfrage spätestens nach etwa zwei Sekunden. Ist die App bereits entsperrt, erscheint keine zweite Biometrieabfrage. Später kann FCM lediglich das sofortige Abrufen anstoßen; Anwendungsname oder andere Anmeldedaten werden nicht über FCM versendet.
+
+Der von Authentik 2026.8.3 verwendete Duo-Python-Client besitzt eine eigene, gegenüber dem Betriebssystem verkleinerte CA-Liste. Das auf `id.mission-leben.de` eingesetzte Let's-Encrypt-Zertifikat wird deshalb ohne Ergänzung abgelehnt, obwohl die normale Authentik-HTTPS-Prüfung erfolgreich ist. Auf dem Authentik-Docker-Host erzeugt `authentik/prepare_duo_ca_bundle.sh` aus der mitgelieferten Duo-Liste plus `ISRG Root X1` und `ISRG Root X2` eine gezielte Erweiterung. `authentik/docker-compose.duo-ca.example.yml` wird als `docker-compose.override.yml` abgelegt; der vom Skript ausgegebene `DUO_CLIENT_CA_PATH` kommt in die Root-only `.env`. Server und Worker mounten die Datei ausschließlich lesbar. Die TLS-Prüfung darf nicht deaktiviert werden.
+
+Nach jedem Authentik-Update muss das Skript vor dem Neustart erneut gegen den neuen Server-Container ausgeführt werden. Danach sind `docker compose config -q`, der Authentik-Readiness-Endpunkt und ein signiertes `stage.auth_client().ping()` zu prüfen. Ändert sich der Python-Pfad, wird ausschließlich `DUO_CLIENT_CA_PATH` auf den neu ausgegebenen Wert aktualisiert.
+
+## 7. Policy-Grundsätze
 
 - Die Erstanmeldung auf einem persönlichen Gerät benötigt Benutzername, Passwort und den korrekt zum Benutzer gebundenen Endpoint; eine TOTP-Registrierung wird nicht angeboten.
 - Nach 90 Tagen verwendet ein persönlicher Benutzer sein bereits vorhandenes TOTP. Ohne bestätigtes TOTP fordert Authentik stattdessen das Passwort. Der bekannte Benutzername wird von der App übernommen.

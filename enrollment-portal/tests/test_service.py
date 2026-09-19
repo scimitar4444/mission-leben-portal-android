@@ -19,11 +19,13 @@ class FakeAuthentik:
         self.audit_events = []
         self.deleted_tokens = []
         self.enrolled = []
+        self.login_approval_devices = []
         self._bindings = []
         self.user = {
             "pk": 42,
             "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
             "username": "m.beispiel",
+            "uid": "authentik-stable-subject",
             "name": "Maria Beispiel",
             "is_active": True,
             "type": "internal",
@@ -88,6 +90,9 @@ class FakeAuthentik:
     async def create_group_binding(self, target_uuid, group_uuid):
         self.created_bindings.append(("group", target_uuid, group_uuid))
 
+    async def ensure_login_approval_device(self, username, subject):
+        self.login_approval_devices.append((username, subject))
+
     async def create_enrollment_token(self, name, access_group_uuid, expires):
         return {
             "token_uuid": self.token_record["token_uuid"],
@@ -136,6 +141,9 @@ async def test_personal_enrollment_is_bound_before_qr_is_issued(settings):
     assert authentik.created_bindings == [
         ("user", "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee", 42)
     ]
+    assert authentik.login_approval_devices == [
+        (authentik.user["username"], authentik.user["uid"])
+    ]
     assert "token_id=" in issued.qr_payload()
     assert "mode=personal" in issued.qr_payload()
     assert authentik.audit_events[0][0] == "model_created"
@@ -169,6 +177,9 @@ async def test_totp_self_enrollment_binds_only_authenticated_employee(settings):
     assert issued.mode == "personal"
     assert authentik.created_bindings == [
         ("user", "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee", authentik.user["pk"])
+    ]
+    assert authentik.login_approval_devices == [
+        (authentik.user["username"], authentik.user["uid"])
     ]
     assert authentik.audit_events[0][1]["role"] == "self_totp"
 

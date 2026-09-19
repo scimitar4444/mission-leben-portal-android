@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS push_registrations (
     mode TEXT NOT NULL CHECK (mode IN ('personal', 'shared')),
     privacy TEXT NOT NULL CHECK (privacy IN ('minimal', 'standard', 'detailed')),
     app_version TEXT NOT NULL,
+    push_enabled INTEGER NOT NULL DEFAULT 1,
     updated_at INTEGER NOT NULL,
     last_verified_at INTEGER NOT NULL
 );
@@ -81,7 +82,24 @@ CREATE TABLE IF NOT EXISTS handoffs (
     created_at INTEGER NOT NULL
 );
 
-PRAGMA user_version=2;
+CREATE TABLE IF NOT EXISTS auth_requests (
+    request_id TEXT PRIMARY KEY,
+    subject TEXT NOT NULL,
+    application TEXT NOT NULL,
+    domain TEXT NOT NULL,
+    display_username TEXT NOT NULL,
+    source_ip TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'denied', 'expired')),
+    approving_device_id TEXT,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL,
+    completed_at INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS auth_requests_subject_status
+ON auth_requests(subject, status, expires_at);
+
+PRAGMA user_version=3;
 """
 
 
@@ -102,6 +120,15 @@ class Store:
         self._migrate_legacy_device_store()
         with self._connect() as connection:
             connection.executescript(SCHEMA)
+            columns = {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(push_registrations)").fetchall()
+            }
+            if "push_enabled" not in columns:
+                connection.execute(
+                    "ALTER TABLE push_registrations ADD COLUMN push_enabled INTEGER NOT NULL DEFAULT 1"
+                )
+            connection.execute("PRAGMA user_version=3")
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path, timeout=15, factory=ClosingConnection)
@@ -140,6 +167,7 @@ class Store:
                     mode TEXT NOT NULL CHECK (mode IN ('personal', 'shared')),
                     privacy TEXT NOT NULL CHECK (privacy IN ('minimal', 'standard', 'detailed')),
                     app_version TEXT NOT NULL,
+                    push_enabled INTEGER NOT NULL DEFAULT 1,
                     updated_at INTEGER NOT NULL,
                     last_verified_at INTEGER NOT NULL
                 );
@@ -223,8 +251,9 @@ class Store:
                 """
                 INSERT INTO push_registrations(
                     device_id, subject, installation_id_ciphertext, agent_token_ciphertext,
-                    key_id, public_jwk, mode, privacy, app_version, updated_at, last_verified_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    key_id, public_jwk, mode, privacy, app_version, push_enabled,
+                    updated_at, last_verified_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
                 ON CONFLICT(device_id) DO UPDATE SET
                     subject=excluded.subject,
                     installation_id_ciphertext=excluded.installation_id_ciphertext,
@@ -234,6 +263,7 @@ class Store:
                     mode=excluded.mode,
                     privacy=excluded.privacy,
                     app_version=excluded.app_version,
+                    push_enabled=1,
                     updated_at=excluded.updated_at,
                     last_verified_at=excluded.last_verified_at
                 """,
@@ -252,7 +282,70 @@ class Store:
                 ),
             )
 
+    def register_auth_channel(
+        self,
+        *,
+        device_id: str,
+        subject: str,
+        agent_token: str,
+        key_id: str,
+        public_jwk: dict[str, Any],
+        mode: str,
+        app_version: str,
+    ) -> None:
+        if mode != "personal":
+            raise PermissionError("login approvals require a personal device")
+        now = int(time.time())
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            existing = connection.execute(
+                "SELECT subject, mode FROM push_registrations WHERE device_id = ?",
+                (device_id,),
+            ).fetchone()
+            if existing and (existing["mode"] != "personal" or existing["subject"] != subject):
+                raise PermissionError("personal device is assigned to a different user")
+            connection.execute(
+                """
+                INSERT INTO push_registrations(
+                    device_id, subject, installation_id_ciphertext, agent_token_ciphertext,
+                    key_id, public_jwk, mode, privacy, app_version, push_enabled,
+                    updated_at, last_verified_at
+                ) VALUES (?, ?, ?, ?, ?, ?, 'personal', 'minimal', ?, 0, ?, ?)
+                ON CONFLICT(device_id) DO UPDATE SET
+                    subject=excluded.subject,
+                    agent_token_ciphertext=excluded.agent_token_ciphertext,
+                    key_id=excluded.key_id,
+                    public_jwk=excluded.public_jwk,
+                    mode='personal',
+                    app_version=excluded.app_version,
+                    updated_at=excluded.updated_at,
+                    last_verified_at=excluded.last_verified_at
+                """,
+                (
+                    device_id,
+                    subject,
+                    self.secret_box.encrypt(""),
+                    self.secret_box.encrypt(agent_token),
+                    key_id,
+                    compact_json(public_jwk),
+                    app_version,
+                    now,
+                    now,
+                ),
+            )
+
     def unregister_push(self, device_id: str, subject: str) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                UPDATE push_registrations
+                SET installation_id_ciphertext = ?, push_enabled = 0, updated_at = ?
+                WHERE device_id = ? AND subject = ?
+                """,
+                (self.secret_box.encrypt(""), int(time.time()), device_id, subject),
+            )
+
+    def unregister_auth_channel(self, device_id: str, subject: str) -> None:
         with self._connect() as connection:
             connection.execute(
                 "DELETE FROM push_registrations WHERE device_id = ? AND subject = ?",
@@ -281,7 +374,19 @@ class Store:
                 """
                 SELECT r.* FROM push_registrations r
                 JOIN users u ON u.subject = r.subject
-                WHERE r.subject = ? AND u.active = 1
+                WHERE r.subject = ? AND u.active = 1 AND r.push_enabled = 1
+                """,
+                (subject,),
+            ).fetchall()
+        return [value for row in rows if (value := self._decode_registration(row)) is not None]
+
+    def auth_registrations_for_subject(self, subject: str) -> list[dict[str, Any]]:
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT r.* FROM push_registrations r
+                JOIN users u ON u.subject = r.subject
+                WHERE r.subject = ? AND u.active = 1 AND r.mode = 'personal'
                 """,
                 (subject,),
             ).fetchall()
@@ -418,6 +523,105 @@ class Store:
             except sqlite3.IntegrityError:
                 return False
         return True
+
+    def create_auth_request(
+        self,
+        *,
+        subject: str,
+        application: str,
+        domain: str,
+        display_username: str,
+        source_ip: str,
+        ttl: int,
+    ) -> dict[str, Any]:
+        now = int(time.time())
+        request_id = secrets.token_urlsafe(24)
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE auth_requests SET status = 'expired', completed_at = ? "
+                "WHERE status = 'pending' AND expires_at <= ?",
+                (now, now),
+            )
+            connection.execute(
+                """
+                INSERT INTO auth_requests(
+                    request_id, subject, application, domain, display_username,
+                    source_ip, status, created_at, expires_at
+                ) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+                """,
+                (
+                    request_id,
+                    subject,
+                    application,
+                    domain,
+                    display_username,
+                    source_ip,
+                    now,
+                    now + ttl,
+                ),
+            )
+            row = connection.execute(
+                "SELECT * FROM auth_requests WHERE request_id = ?", (request_id,)
+            ).fetchone()
+        return dict(row)
+
+    def pending_auth_request_for_device(self, device_id: str) -> dict[str, Any] | None:
+        now = int(time.time())
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE auth_requests SET status = 'expired', completed_at = ? "
+                "WHERE status = 'pending' AND expires_at <= ?",
+                (now, now),
+            )
+            row = connection.execute(
+                """
+                SELECT a.* FROM auth_requests a
+                JOIN push_registrations r ON r.subject = a.subject
+                JOIN users u ON u.subject = a.subject
+                WHERE r.device_id = ?
+                  AND r.mode = 'personal'
+                  AND u.active = 1
+                  AND a.status = 'pending'
+                  AND a.expires_at > ?
+                ORDER BY a.created_at DESC
+                LIMIT 1
+                """,
+                (device_id, now),
+            ).fetchone()
+        return dict(row) if row is not None else None
+
+    def decide_auth_request(self, request_id: str, device_id: str, approved: bool) -> bool:
+        now = int(time.time())
+        status = "approved" if approved else "denied"
+        with self._connect() as connection:
+            cursor = connection.execute(
+                """
+                UPDATE auth_requests
+                SET status = ?, approving_device_id = ?, completed_at = ?
+                WHERE request_id = ?
+                  AND status = 'pending'
+                  AND expires_at > ?
+                  AND subject = (
+                      SELECT subject FROM push_registrations
+                      WHERE device_id = ? AND mode = 'personal'
+                  )
+                """,
+                (status, device_id, now, request_id, now, device_id),
+            )
+        return cursor.rowcount == 1
+
+    def auth_request_status(self, request_id: str) -> str | None:
+        now = int(time.time())
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE auth_requests SET status = 'expired', completed_at = ? "
+                "WHERE request_id = ? AND status = 'pending' AND expires_at <= ?",
+                (now, request_id, now),
+            )
+            row = connection.execute(
+                "SELECT status FROM auth_requests WHERE request_id = ?", (request_id,)
+            ).fetchone()
+        return str(row["status"]) if row is not None else None
 
     def touch_registration(self, device_id: str) -> None:
         with self._connect() as connection:

@@ -42,10 +42,6 @@ class AppPreferences(context: Context) {
         get() = preferences.getBoolean(KEY_REAUTHENTICATION_REQUIRED, false)
         set(value) = preferences.edit().putBoolean(KEY_REAUTHENTICATION_REQUIRED, value).apply()
 
-    var lastUpdateCheckEpochMillis: Long
-        get() = preferences.getLong(KEY_LAST_UPDATE_CHECK_EPOCH_MILLIS, 0L)
-        set(value) = preferences.edit().putLong(KEY_LAST_UPDATE_CHECK_EPOCH_MILLIS, value).apply()
-
     fun clearReauthentication() {
         preferences.edit()
             .remove(KEY_REAUTHENTICATION_HINT)
@@ -69,6 +65,5 @@ class AppPreferences(context: Context) {
         const val KEY_ENROLLMENT_STATE = "enrollment_state"
         const val KEY_REAUTHENTICATION_HINT = "reauthentication_hint"
         const val KEY_REAUTHENTICATION_REQUIRED = "reauthentication_required"
-        const val KEY_LAST_UPDATE_CHECK_EPOCH_MILLIS = "last_update_check_epoch_millis"
     }
 }
