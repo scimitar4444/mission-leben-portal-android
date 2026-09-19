@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -73,7 +77,10 @@ fun MissionLebenApp(
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    Surface(
+        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
+        color = MaterialTheme.colorScheme.background,
+    ) {
         if (state.mode == null) {
             Onboarding(onSelectMode, currentLanguageTag, onLanguageChange)
         } else {
@@ -104,7 +111,7 @@ private fun Onboarding(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 34.dp),
+        contentPadding = PaddingValues(start = 24.dp, top = 15.dp, end = 24.dp, bottom = 34.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         item { BrandHeader() }
@@ -124,7 +131,8 @@ private fun Onboarding(
                 title = stringResource(R.string.onboarding_personal_title),
                 description = stringResource(R.string.onboarding_personal_description),
                 action = stringResource(R.string.onboarding_personal_action),
-                accent = Coral,
+                accent = MaterialTheme.colorScheme.primary,
+                accentContent = MaterialTheme.colorScheme.onPrimary,
                 onClick = { onSelectMode(DeviceMode.PERSONAL) },
             )
         }
@@ -134,7 +142,8 @@ private fun Onboarding(
                 title = stringResource(R.string.onboarding_shared_title),
                 description = stringResource(R.string.onboarding_shared_description),
                 action = stringResource(R.string.onboarding_shared_action),
-                accent = Ink,
+                accent = MaterialTheme.colorScheme.secondary,
+                accentContent = MaterialTheme.colorScheme.onSecondary,
                 onClick = { onSelectMode(DeviceMode.SHARED) },
             )
         }
@@ -156,6 +165,7 @@ private fun ModeCard(
     description: String,
     action: String,
     accent: Color,
+    accentContent: Color,
     onClick: () -> Unit,
 ) {
     Card(
@@ -171,7 +181,10 @@ private fun ModeCard(
             Spacer(Modifier.height(8.dp))
             Text(description, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(18.dp))
-            Button(onClick = onClick, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
+            Button(
+                onClick = onClick,
+                colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = accentContent),
+            ) {
                 Text(action)
             }
         }
@@ -196,7 +209,7 @@ private fun Home(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
+        contentPadding = PaddingValues(start = 20.dp, top = 5.dp, end = 20.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { BrandHeader() }
@@ -216,7 +229,7 @@ private fun Home(
             if (state.applicationsLoading) {
                 item {
                     Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Coral)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
             } else if (state.applications.isEmpty()) {
@@ -262,7 +275,13 @@ private fun BrandHeader() {
         Spacer(Modifier.width(12.dp))
         Column {
             Text(stringResource(R.string.brand_name), fontWeight = FontWeight.Black, letterSpacing = 1.2.sp)
-            Text(stringResource(R.string.brand_portal), color = Coral, fontWeight = FontWeight.ExtraBold, fontSize = 11.sp, letterSpacing = 2.sp)
+            Text(
+                stringResource(R.string.brand_portal),
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 11.sp,
+                letterSpacing = 2.sp,
+            )
         }
     }
 }
@@ -372,10 +391,13 @@ private fun DevicePanel(
 
 @Composable
 private fun StatusPill(state: EnrollmentState) {
+    val darkTheme = isSystemInDarkTheme()
     val (label, color) = when (state) {
         EnrollmentState.NOT_ENROLLED -> stringResource(R.string.status_not_registered) to MaterialTheme.colorScheme.onSurfaceVariant
-        EnrollmentState.PENDING -> stringResource(R.string.status_pending) to Color(0xFFAD6800)
-        EnrollmentState.TRUSTED -> stringResource(R.string.status_trusted) to Success
+        EnrollmentState.PENDING -> stringResource(R.string.status_pending) to
+            if (darkTheme) Color(0xFFFFC46B) else Color(0xFFAD6800)
+        EnrollmentState.TRUSTED -> stringResource(R.string.status_trusted) to
+            if (darkTheme) Color(0xFF62D6A8) else Success
         EnrollmentState.BLOCKED -> stringResource(R.string.status_blocked) to MaterialTheme.colorScheme.error
     }
     Surface(color = color.copy(alpha = 0.12f), shape = CircleShape) {
@@ -403,8 +425,15 @@ private fun AppTile(application: PortalApplication, modifier: Modifier, onOpenUr
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
-            Box(Modifier.size(38.dp).clip(CircleShape).background(Lavender), contentAlignment = Alignment.Center) {
-                Text(application.name.take(1).uppercase(), color = CoralDark, fontWeight = FontWeight.Black)
+            Box(
+                Modifier.size(38.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    application.name.take(1).uppercase(),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = FontWeight.Black,
+                )
             }
             Spacer(Modifier.height(12.dp))
             Text(application.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -433,7 +462,7 @@ private fun TalkHandoffPanel(state: UiState, onOpenTalk: (String, String) -> Uni
     var selected by remember { mutableStateOf<LinkTarget?>(null) }
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Lavender),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(20.dp),
     ) {
         Column(Modifier.padding(20.dp)) {
@@ -456,7 +485,10 @@ private fun TalkHandoffPanel(state: UiState, onOpenTalk: (String, String) -> Uni
                 state.linkTargets.forEach { target ->
                     val active = selected?.id == target.id
                     OutlinedButton(onClick = { selected = target }, enabled = target.online) {
-                        Text((if (target.online) "● " else "○ ") + target.name, color = if (active) CoralDark else MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            (if (target.online) "● " else "○ ") + target.name,
+                            color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        )
                     }
                 }
             }

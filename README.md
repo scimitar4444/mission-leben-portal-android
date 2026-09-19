@@ -11,9 +11,10 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - ein serverseitig als `shared` freigegebenes und vom Gerät ebenfalls als `shared` gemeldetes Tablet ersetzt TOTP; persönliche und nicht registrierte Geräte durchlaufen weiter TOTP
 - Telefonsprache oder direkte App-Auswahl für Deutsch, Englisch, Türkisch, Hindi, Spanisch, Französisch, Polnisch, Rumänisch und Ukrainisch; Deutsch bleibt die Rückfallsprache
 - sichtbare Web-Apps werden live aus `/api/v3/core/applications/` geladen und zusätzlich auf die zentrale Authentik-Anwendungsgruppe `Mobil erreichbar` begrenzt
-- Zimbra, Exchange OWA und Talk-Chat laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung; die eigenständige Nextcloud-App und Warden sind mobil ausgeblendet
-- vor jedem App-Start wird der OIDC-Token geprüft; führt eine abgelaufene Web-Sitzung zurück zur interaktiven Authentik-Anmeldung, schließt die App den Webcontainer, löscht nur die Benutzersitzung und fordert zur sicheren Neuanmeldung auf. Die Gerätefreigabe bleibt erhalten
+- Zimbra, Exchange OWA, Talk-Chat und jede weitere mobil freigegebene Webanwendung laufen in einem gehärteten In-App-Webcontainer mit gemeinsamer Authentik-Sitzung; die eigenständige Nextcloud-App und Warden sind mobil ausgeblendet
+- vor jedem Start einer freigegebenen Webanwendung wird der OIDC-Token geprüft; führt eine abgelaufene Web-Sitzung zurück zur interaktiven Authentik-Anmeldung, schließt die App den Webcontainer, löscht nur die Benutzersitzung und fordert zur sicheren Neuanmeldung auf. Die Gerätefreigabe bleibt erhalten
 - der Browsermotor wird über Android System WebView unabhängig von der APK aktualisiert
+- Hell-/Dunkelmodus folgen dem Android-System; WebView meldet denselben Modus über `prefers-color-scheme` an Zimbra und andere Webanwendungen und darf Seiten ohne eigenes Dunkelthema bei Bedarf algorithmisch abdunkeln
 - nur konfigurierte HTTPS-Domains dürfen im Container laden; fremde Links wechseln in den Systembrowser
 - Talk läuft im Webcontainer bewusst als reiner Chat; Kamera- und Mikrofonanforderungen werden dort unabhängig von den Android-Berechtigungen abgewiesen. Die App blendet die Nextcloud-Kopfzeile aus und öffnet beim nächsten Start direkt den zuletzt verwendeten Raum; Abmelden/Zurücksetzen löscht diese lokale Erinnerung.
 - Cookies, Webspeicher, HTTP-Zugangsdaten, Cache und geschützte Downloads werden bei sicherer Abmeldung oder Profilwechsel gelöscht

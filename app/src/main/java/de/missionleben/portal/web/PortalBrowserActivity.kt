@@ -142,11 +142,11 @@ class PortalBrowserActivity : FragmentActivity() {
     private fun buildLayout(initialTitle: String) {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.rgb(250, 247, 252))
+            setBackgroundColor(ContextCompat.getColor(this@PortalBrowserActivity, R.color.ml_surface))
         }
         ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            view.setPadding(systemBars.left, systemBars.top + dp(5), systemBars.right, systemBars.bottom)
             insets
         }
         val toolbar = LinearLayout(this).apply {
@@ -178,6 +178,7 @@ class PortalBrowserActivity : FragmentActivity() {
         }
         webView = WebView(this).apply {
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
+            setBackgroundColor(ContextCompat.getColor(this@PortalBrowserActivity, R.color.ml_surface))
         }
         root.addView(toolbar, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)))
         root.addView(progress, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(2)))
@@ -211,6 +212,9 @@ class PortalBrowserActivity : FragmentActivity() {
                 webView.settings,
                 WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP,
             )
+        }
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+            WebSettingsCompat.setAlgorithmicDarkeningAllowed(webView.settings, true)
         }
         CookieManager.getInstance().apply {
             setAcceptCookie(true)

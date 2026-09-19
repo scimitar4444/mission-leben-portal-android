@@ -38,7 +38,7 @@
     <string name="switch_device_profile">Geräteprofil wechseln</string>
     <string name="mode_personal">Persönliches Gerät</string>
     <string name="mode_shared">Gemeinsam genutztes Tablet</string>
-    <string name="hello_name">Hallo, %1$s</string>
+    <string name="hello_name">Hallo %1$s</string>
     <string name="secure_sign_in">Sicher anmelden</string>
     <string name="device_blocked_description">Dieses Gerät ist gesperrt. Anmeldung und gespeicherte Sitzung sind deaktiviert.</string>
     <string name="device_pending_description">Bitte das Gerät zuerst registrieren und durch die Geräteverwaltung freigeben lassen.</string>
@@ -85,7 +85,7 @@
     <string name="privacy_detailed_description">Zusätzlich eine kurze Mail- oder Talk-Vorschau anzeigen.</string>
 
     <string name="message_auth_cancelled">Anmeldung wurde abgebrochen.</string>
-    <string name="message_session_expired">Ihre Sitzung ist aus Sicherheitsgründen abgelaufen. Bitte melden Sie sich erneut an.</string>
+    <string name="message_session_expired">Deine Sitzung ist aus Sicherheitsgründen abgelaufen. Bitte melde dich erneut an.</string>
     <string name="message_quick_access_enabled">Schnellzugang ist aktiviert.</string>
     <string name="message_protected_session_failed">Geschützte Sitzung konnte nicht geöffnet werden: %1$s</string>
     <string name="message_apps_load_failed">Apps konnten nicht geladen werden.</string>
