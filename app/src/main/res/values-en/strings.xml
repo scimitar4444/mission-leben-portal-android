@@ -25,6 +25,9 @@
     <string name="mode_shared">Shared tablet</string>
     <string name="hello_name">Hello, %1$s</string>
     <string name="secure_sign_in">Sign in securely</string>
+    <string name="reauthenticate_totp_title">Confirm TOTP</string>
+    <string name="reauthenticate_totp_description">Your 90-day sign-in has expired. Confirm only your TOTP code; your username and password are not required.</string>
+    <string name="reauthenticate_totp_action">Confirm TOTP</string>
     <string name="device_blocked_description">This device is blocked. Sign-in and the stored session are disabled.</string>
     <string name="device_pending_description">Register this device first and have it approved in device management.</string>
     <string name="session_keystore_description">Your session is protected by the Android Keystore.</string>
@@ -67,6 +70,7 @@
     <string name="privacy_detailed_description">Also show a short mail or Talk preview.</string>
     <string name="message_auth_cancelled">Sign-in was cancelled.</string>
     <string name="message_session_expired">For security reasons, your session has expired. Please sign in again.</string>
+    <string name="message_session_reauth_required">Your 90-day sign-in has expired. Please confirm your TOTP code.</string>
     <string name="message_quick_access_enabled">Quick access is enabled.</string>
     <string name="message_protected_session_failed">The protected session could not be opened: %1$s</string>
     <string name="message_apps_load_failed">Apps could not be loaded.</string>

@@ -31,6 +31,8 @@ class AuthRepository(context: Context) {
 
     fun createAuthorizationUrl(
         mode: DeviceMode,
+        loginHint: String? = null,
+        forceReauthentication: Boolean = false,
         onSuccess: (String) -> Unit,
         onError: (String) -> Unit,
     ) {
@@ -47,12 +49,15 @@ class AuthRepository(context: Context) {
                 add("goauthentik.io/api")
                 if (mode == DeviceMode.PERSONAL) add("offline_access")
             }
-            val request = AuthorizationRequest.Builder(
+            val requestBuilder = AuthorizationRequest.Builder(
                 configuration,
                 BuildConfig.OIDC_CLIENT_ID,
                 ResponseTypeValues.CODE,
                 Uri.parse(BuildConfig.OIDC_REDIRECT_URI),
-            ).setScopes(scopes).build()
+            ).setScopes(scopes)
+            if (!loginHint.isNullOrBlank()) requestBuilder.setLoginHint(loginHint)
+            if (forceReauthentication) requestBuilder.setPromptValues("login")
+            val request = requestBuilder.build()
             pendingAuthorizationRequest = request
             onSuccess(request.toUri().toString())
         }
@@ -167,16 +172,22 @@ class AuthRepository(context: Context) {
     fun identityFrom(serializedState: String): UserIdentity {
         val state = AuthState.jsonDeserialize(serializedState)
         val claims = decodeJwtPayload(state.idToken)
+        val email = claims.optString("email").trim()
+        val preferredUsername = claims.optString("preferred_username").trim()
+        val authenticatedAt = claims.optLong("auth_time").takeIf { it > 0L }
+            ?: claims.optLong("iat")
         return UserIdentity(
             subject = claims.optString("sub"),
             displayName = IdentityDisplayName.select(
                 givenName = claims.optString("given_name"),
                 fullName = claims.optString("name"),
-                preferredUsername = claims.optString("preferred_username"),
-                email = claims.optString("email"),
+                preferredUsername = preferredUsername,
+                email = email,
                 fallback = context.getString(R.string.employee_fallback),
             ),
-            email = claims.optString("email"),
+            email = email,
+            loginHint = preferredUsername.ifBlank { email },
+            authenticatedAtEpochSeconds = authenticatedAt,
         )
     }
 

@@ -7,7 +7,7 @@ import org.junit.Test
 class WebSessionPolicyTest {
     private val policy = WebSessionPolicy(
         authentikBaseUrl = "https://id.mission-leben.de",
-        authenticationFlowSlugs = "default-authentication-flow,mission-leben-browser-authentication",
+        authenticationFlowSlugs = "default-authentication-flow,mission-leben-android-authentication,mission-leben-browser-authentication",
     )
 
     @Test
@@ -15,6 +15,11 @@ class WebSessionPolicyTest {
         assertTrue(
             policy.isInteractiveAuthentication(
                 "https://id.mission-leben.de/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F",
+            ),
+        )
+        assertTrue(
+            policy.isInteractiveAuthentication(
+                "https://id.mission-leben.de/if/flow/mission-leben-android-authentication/",
             ),
         )
         assertTrue(

@@ -25,6 +25,9 @@
     <string name="mode_shared">Tabletă partajată</string>
     <string name="hello_name">Bună, %1$s</string>
     <string name="secure_sign_in">Autentificare sigură</string>
+    <string name="reauthenticate_totp_title">Confirmă TOTP</string>
+    <string name="reauthenticate_totp_description">Autentificarea de 90 de zile a expirat. Confirmă doar codul TOTP; numele de utilizator și parola nu sunt necesare.</string>
+    <string name="reauthenticate_totp_action">Confirmă TOTP</string>
     <string name="device_blocked_description">Acest dispozitiv este blocat. Autentificarea și sesiunea salvată sunt dezactivate.</string>
     <string name="device_pending_description">Înregistrează mai întâi dispozitivul și obține aprobarea lui în administrarea dispozitivelor.</string>
     <string name="session_keystore_description">Sesiunea ta este protejată de Android Keystore.</string>
@@ -67,6 +70,7 @@
     <string name="privacy_detailed_description">Afișează și o scurtă previzualizare a e-mailului sau Talk.</string>
     <string name="message_auth_cancelled">Autentificarea a fost anulată.</string>
     <string name="message_session_expired">Din motive de securitate, sesiunea a expirat. Autentifică-te din nou.</string>
+    <string name="message_session_reauth_required">Autentificarea de 90 de zile a expirat. Confirmă codul TOTP.</string>
     <string name="message_quick_access_enabled">Accesul rapid este activat.</string>
     <string name="message_protected_session_failed">Sesiunea protejată nu a putut fi deschisă: %1$s</string>
     <string name="message_apps_load_failed">Aplicațiile nu au putut fi încărcate.</string>

@@ -17,6 +17,8 @@
 |---|---|
 | APK wird dekompiliert | Public OIDC Client ohne Client-Secret |
 | Refresh Token wird aus App-Daten kopiert | zweistufige Envelope-Verschlüsselung; Master-Key im Android Keystore, Freigabe nur per Biometrie/Gerätecode |
+| Refresh-Nutzung verlängert die Anmeldung unbegrenzt | App erzwingt unabhängig von Authentiks Rotation eine absolute Grenze von `auth_time + 90 Tage`; danach werden Token und Webdaten entfernt |
+| Angreifer nutzt den gespeicherten Anmeldenamen für passwortlosen Zugang | Passwort darf nur bei explizitem 90-Tage-Flow entfallen, nachdem Authentik das registrierte persönliche Endpoint-Gerät, dessen Ablauf, Benutzerbindung und Policies geprüft hat; TOTP bleibt zwingend |
 | anderes Gerät kopiert Geräte-ID | P-256-Private-Key ist nicht exportierbar; Server verlangt Besitznachweis |
 | vorheriger Benutzer bleibt auf Shared Tablet angemeldet | kein `offline_access`, kein persistenter AuthState, prominente End-Session-Abmeldung |
 | unbekannte App wird sichtbar | Liste kommt aus policy-geprüfter Authentik-API |

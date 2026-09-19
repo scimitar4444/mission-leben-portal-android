@@ -42,6 +42,8 @@ data class UserIdentity(
     val subject: String,
     val displayName: String,
     val email: String,
+    val loginHint: String,
+    val authenticatedAtEpochSeconds: Long,
 )
 
 data class UiState(
@@ -50,6 +52,7 @@ data class UiState(
     val message: String? = null,
     val signedIn: Boolean = false,
     val user: UserIdentity? = null,
+    val reauthenticationRequired: Boolean = false,
     val quickUnlockEnabled: Boolean = false,
     val vaultRequest: VaultRequest = VaultRequest.NONE,
     val applications: List<PortalApplication> = emptyList(),

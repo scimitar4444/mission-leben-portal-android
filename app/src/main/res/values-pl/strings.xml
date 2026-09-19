@@ -25,6 +25,9 @@
     <string name="mode_shared">Współdzielony tablet</string>
     <string name="hello_name">Witaj, %1$s</string>
     <string name="secure_sign_in">Bezpieczne logowanie</string>
+    <string name="reauthenticate_totp_title">Potwierdź TOTP</string>
+    <string name="reauthenticate_totp_description">90-dniowe logowanie wygasło. Potwierdź tylko kod TOTP; nazwa użytkownika i hasło nie są potrzebne.</string>
+    <string name="reauthenticate_totp_action">Potwierdź TOTP</string>
     <string name="device_blocked_description">To urządzenie jest zablokowane. Logowanie i zapisana sesja są wyłączone.</string>
     <string name="device_pending_description">Najpierw zarejestruj urządzenie i uzyskaj jego zatwierdzenie w zarządzaniu urządzeniami.</string>
     <string name="session_keystore_description">Twoja sesja jest chroniona przez Android Keystore.</string>
@@ -67,6 +70,7 @@
     <string name="privacy_detailed_description">Pokazuj także krótki podgląd wiadomości lub Talk.</string>
     <string name="message_auth_cancelled">Logowanie anulowano.</string>
     <string name="message_session_expired">Ze względów bezpieczeństwa sesja wygasła. Zaloguj się ponownie.</string>
+    <string name="message_session_reauth_required">90-dniowe logowanie wygasło. Potwierdź kod TOTP.</string>
     <string name="message_quick_access_enabled">Szybki dostęp jest włączony.</string>
     <string name="message_protected_session_failed">Nie udało się otworzyć chronionej sesji: %1$s</string>
     <string name="message_apps_load_failed">Nie udało się załadować aplikacji.</string>
