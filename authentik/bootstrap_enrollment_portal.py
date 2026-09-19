@@ -110,11 +110,12 @@ authorization_mfa, _ = AuthenticatorValidateStage.objects.update_or_create(
     name=AUTHORIZATION_MFA_STAGE_NAME,
     defaults={
         "not_configured_action": NotConfiguredAction.DENY,
-        "device_classes": [DeviceClasses.TOTP],
-        # The same stage is present in both flows. A fresh login validates TOTP
-        # in the authentication flow and the short-lived stage cookie prevents
-        # a duplicate prompt in authorization. An older authentik session has
-        # no such cookie and is therefore challenged by authorization.
+        "device_classes": [DeviceClasses.TOTP, DeviceClasses.WEBAUTHN],
+        # The same stage is present in both flows. A fresh login validates an
+        # enrolled TOTP authenticator or passkey in the authentication flow;
+        # the short-lived stage cookie prevents a duplicate prompt in
+        # authorization. An older authentik session has no such cookie and is
+        # therefore challenged by authorization.
         "last_auth_threshold": "minutes=2",
     },
 )
@@ -151,7 +152,7 @@ if unexpected_authentication_bindings.exists():
 
 # A pre-existing authentik browser session may have been created with only a
 # password. This provider-specific authorization flow therefore always demands
-# an already configured TOTP factor before the portal is entered.
+# an already configured TOTP authenticator or passkey before the portal is entered.
 authorization_flow, _ = Flow.objects.update_or_create(
     slug=AUTHORIZATION_FLOW_SLUG,
     defaults={
@@ -207,7 +208,7 @@ application, _ = Application.objects.update_or_create(
         "name": APPLICATION_NAME,
         "provider": provider,
         "meta_launch_url": external_host + "/self",
-        "meta_description": "Eigenes Gerät per TOTP oder Geräte im Auftrag initialisieren",
+        "meta_description": "Eigenes Gerät per TOTP oder Passkey registrieren",
         "meta_publisher": "Mission Leben",
         "meta_hide": False,
         "policy_engine_mode": PolicyEngineMode.MODE_ANY,
@@ -226,10 +227,11 @@ for name, role in ROLE_GROUPS.items():
     group.save(update_fields=["is_superuser", "attributes"])
     operator_groups.append(group)
 
-# Every active user with an existing TOTP may enter the self-service page. The
-# portal itself still checks the four operator roles before exposing employee
-# search or shared-device initialization. Remove only bindings managed by the
-# previous role-gated version and fail closed on every unknown binding.
+# Every active user with an existing TOTP authenticator or passkey may enter
+# the self-service page. The portal itself still checks the four operator roles
+# before exposing employee search or shared-device initialization. Remove only
+# bindings managed by the previous role-gated version and fail closed on every
+# unknown binding.
 unexpected_bindings = PolicyBinding.objects.filter(target=application).exclude(
     group__in=operator_groups
 )

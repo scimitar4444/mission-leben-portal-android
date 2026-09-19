@@ -55,10 +55,10 @@
     <string name="sign_in_with_authentik">Authentik से साइन इन करें</string>
     <string name="device_identity">डिवाइस पहचान</string>
     <string name="device_key_format">कुंजी %1$s…</string>
-    <string name="enrollment_instruction">अपने व्यक्तिगत डिवाइस को TOTP से पंजीकृत करें या प्रबंधन अथवा IT का QR कोड स्कैन करें।</string>
+    <string name="enrollment_instruction">अपने व्यक्तिगत डिवाइस को TOTP या पासकी से पंजीकृत करें, या प्रबंधन अथवा IT का QR कोड स्कैन करें।</string>
     <string name="scan_enrollment_qr">QR कोड स्कैन करें</string>
-    <string name="self_enrollment_action">TOTP से स्वयं पंजीकरण करें</string>
-    <string name="self_enrollment_hint">आपके व्यक्तिगत डिवाइस के लिए। पहले से सेट किया गया TOTP आवश्यक है।</string>
+    <string name="self_enrollment_action">TOTP या पासकी से पंजीकरण करें</string>
+    <string name="self_enrollment_hint">आपके व्यक्तिगत डिवाइस के लिए। पहले से सेट किया गया TOTP या पासकी आवश्यक है।</string>
     <string name="enrollment_qr_alternative">विकल्प: प्रबंधन या IT से QR कोड</string>
     <string name="manual_enrollment_fallback">केवल सहायता के लिए वैकल्पिक:</string>
     <string name="device_api_not_configured">इस बिल्ड में डिवाइस API अभी कॉन्फ़िगर नहीं है। docs/AUTHENTIK_SETUP.md देखें।</string>
@@ -134,7 +134,7 @@
     <string name="browser_download_failed">डाउनलोड शुरू नहीं हो सका।</string>
     <string name="browser_web_application">वेब ऐप</string>
     <string name="browser_sign_in_title">सुरक्षित साइन इन</string>
-    <string name="self_enrollment_browser_title">TOTP से डिवाइस पंजीकृत करें</string>
+    <string name="self_enrollment_browser_title">डिवाइस को सुरक्षित रूप से पंजीकृत करें</string>
     <string name="browser_sign_out_title">सत्र समाप्त हो रहा है</string>
     <string name="device_service_not_configured">Mission Leben Device Service अभी कॉन्फ़िगर नहीं है।</string>
     <string name="device_status_unavailable">डिवाइस स्थिति उपलब्ध नहीं है (HTTP %1$d)।</string>

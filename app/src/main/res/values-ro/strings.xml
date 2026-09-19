@@ -55,10 +55,10 @@
     <string name="sign_in_with_authentik">Autentificare cu Authentik</string>
     <string name="device_identity">Identitatea dispozitivului</string>
     <string name="device_key_format">Cheie %1$s…</string>
-    <string name="enrollment_instruction">Înregistrează dispozitivul personal cu TOTP sau scanează un cod QR de la conducere ori IT.</string>
+    <string name="enrollment_instruction">Înregistrează dispozitivul personal cu TOTP sau o cheie de acces ori scanează un cod QR de la conducere sau IT.</string>
     <string name="scan_enrollment_qr">Scanează codul QR</string>
-    <string name="self_enrollment_action">Înregistrare cu TOTP</string>
-    <string name="self_enrollment_hint">Pentru dispozitivul personal. Este necesar un TOTP configurat deja.</string>
+    <string name="self_enrollment_action">Înregistrare cu TOTP sau cheie de acces</string>
+    <string name="self_enrollment_hint">Pentru dispozitivul personal. Este necesar un TOTP sau o cheie de acces configurată deja.</string>
     <string name="enrollment_qr_alternative">Alternativă: cod QR de la conducere sau IT</string>
     <string name="manual_enrollment_fallback">Alternativă doar pentru asistență:</string>
     <string name="device_api_not_configured">API-ul dispozitivelor nu este încă configurat în această versiune. Vezi docs/AUTHENTIK_SETUP.md.</string>
@@ -134,7 +134,7 @@
     <string name="browser_download_failed">Descărcarea nu a putut fi pornită.</string>
     <string name="browser_web_application">Aplicație web</string>
     <string name="browser_sign_in_title">Autentificare sigură</string>
-    <string name="self_enrollment_browser_title">Înregistrează dispozitivul cu TOTP</string>
+    <string name="self_enrollment_browser_title">Înregistrează dispozitivul în siguranță</string>
     <string name="browser_sign_out_title">Sesiunea se încheie</string>
     <string name="device_service_not_configured">Mission Leben Device Service nu este încă configurat.</string>
     <string name="device_status_unavailable">Starea dispozitivului nu este disponibilă (HTTP %1$d).</string>

@@ -63,7 +63,10 @@ def create_app(
         response.headers["Pragma"] = "no-cache"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Referrer-Policy"] = "no-referrer"
+        # Some privacy-focused WebViews omit Origin on same-origin form posts.
+        # Keep a same-origin Referer as the CSRF verifier's safe fallback while
+        # still preventing the portal URL from leaking to other origins.
+        response.headers["Referrer-Policy"] = "same-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Content-Security-Policy"] = (
             f"default-src 'none'; style-src 'self'; {script_policy}img-src 'self' data:; "

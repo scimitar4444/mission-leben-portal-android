@@ -55,10 +55,10 @@
     <string name="sign_in_with_authentik">Увійти через Authentik</string>
     <string name="device_identity">Ідентифікація пристрою</string>
     <string name="device_key_format">Ключ %1$s…</string>
-    <string name="enrollment_instruction">Зареєструйте особистий пристрій через TOTP або відскануйте QR-код від керівництва чи ІТ.</string>
+    <string name="enrollment_instruction">Зареєструйте особистий пристрій через TOTP або ключ доступу чи відскануйте QR-код від керівництва або ІТ.</string>
     <string name="scan_enrollment_qr">Сканувати QR-код</string>
-    <string name="self_enrollment_action">Зареєструватися через TOTP</string>
-    <string name="self_enrollment_hint">Для особистого пристрою. Потрібен уже налаштований TOTP.</string>
+    <string name="self_enrollment_action">Зареєструватися через TOTP або ключ доступу</string>
+    <string name="self_enrollment_hint">Для особистого пристрою. Потрібен уже налаштований TOTP або ключ доступу.</string>
     <string name="enrollment_qr_alternative">Альтернатива: QR-код від керівництва або ІТ</string>
     <string name="manual_enrollment_fallback">Альтернатива лише для служби підтримки:</string>
     <string name="device_api_not_configured">API пристроїв ще не налаштовано в цій збірці. Див. docs/AUTHENTIK_SETUP.md.</string>
@@ -134,7 +134,7 @@
     <string name="browser_download_failed">Не вдалося почати завантаження.</string>
     <string name="browser_web_application">Вебпрограма</string>
     <string name="browser_sign_in_title">Безпечний вхід</string>
-    <string name="self_enrollment_browser_title">Зареєструвати пристрій через TOTP</string>
+    <string name="self_enrollment_browser_title">Безпечно зареєструвати пристрій</string>
     <string name="browser_sign_out_title">Завершення сеансу</string>
     <string name="device_service_not_configured">Mission Leben Device Service ще не налаштовано.</string>
     <string name="device_status_unavailable">Стан пристрою недоступний (HTTP %1$d).</string>

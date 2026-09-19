@@ -27,7 +27,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - Authentik-Enrollment per verifiziertem HTTPS-App-Link mit einmaligem Token im URL-Fragment; eine vorhandene App öffnet direkt, andernfalls führt dieselbe Seite durch Installation und Einrichtung
 - integrierter QR-Scanner für Enrollment-Links; ein Scan startet die Authentik-Geräteregistrierung ohne Abtippen
 - eigener zustandsloser Geräte-Einrichtungscontainer für IT, Leitungen in der Zentrale, EL und PDL; Rollen und `ORG_*`-Bereiche werden serverseitig in Authentik geprüft, eine GF-Sonderrolle existiert nicht
-- persönliche Selbstregistrierung für aktive Mitarbeiter mit bereits vorhandenem TOTP: Anmeldung im geschützten App-Browser, direkte Bindung an das eigene Authentik-Konto und automatischer Rücksprung zur App; keine Mitarbeitersuche und keine TOTP-Einrichtung
+- persönliche Selbstregistrierung für aktive Mitarbeiter mit bereits vorhandenem TOTP oder Passkey: Anmeldung im geschützten App-Browser, direkte Bindung an das eigene Authentik-Konto und automatischer Rücksprung zur App; keine Mitarbeitersuche und keine Faktor-Einrichtung
 - neue Geräte wählen ihren persönlichen oder Shared-Modus ausschließlich aus dem zehn Minuten gültigen QR-Code; der Container entwertet den Authentik-Enrollment-Token nach dem ersten erfolgreichen Einlösen
 - verschlüsselte Speicherung des Authentik-Device-Tokens unter einem Android-Keystore-Schlüssel
 - native Antwort auf die Authentik Endpoint-Stage-Challenge im WebView; der Device Token wird nie an JavaScript ausgegeben

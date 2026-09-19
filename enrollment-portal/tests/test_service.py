@@ -266,6 +266,7 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
         assert home.status_code == 200
         assert "Mitarbeiter-Handy" in home.text
         assert "default-src 'none'" in home.headers["content-security-policy"]
+        assert home.headers["referrer-policy"] == "same-origin"
 
         response = client.post(
             "/personal/enrollments",

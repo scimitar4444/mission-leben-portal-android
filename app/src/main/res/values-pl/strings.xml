@@ -55,10 +55,10 @@
     <string name="sign_in_with_authentik">Zaloguj przez Authentik</string>
     <string name="device_identity">Tożsamość urządzenia</string>
     <string name="device_key_format">Klucz %1$s…</string>
-    <string name="enrollment_instruction">Zarejestruj urządzenie osobiste przez TOTP albo zeskanuj kod QR od kierownictwa lub działu IT.</string>
+    <string name="enrollment_instruction">Zarejestruj urządzenie osobiste przez TOTP lub klucz dostępu albo zeskanuj kod QR od kierownictwa lub działu IT.</string>
     <string name="scan_enrollment_qr">Zeskanuj kod QR</string>
-    <string name="self_enrollment_action">Zarejestruj się przez TOTP</string>
-    <string name="self_enrollment_hint">Dla urządzenia osobistego. Wymagany jest już skonfigurowany TOTP.</string>
+    <string name="self_enrollment_action">Zarejestruj przez TOTP lub klucz dostępu</string>
+    <string name="self_enrollment_hint">Dla urządzenia osobistego. Wymagany jest skonfigurowany TOTP lub klucz dostępu.</string>
     <string name="enrollment_qr_alternative">Alternatywnie: kod QR od kierownictwa lub działu IT</string>
     <string name="manual_enrollment_fallback">Alternatywa tylko dla pomocy technicznej:</string>
     <string name="device_api_not_configured">Interfejs API urządzeń nie jest jeszcze skonfigurowany w tej kompilacji. Zobacz docs/AUTHENTIK_SETUP.md.</string>
@@ -134,7 +134,7 @@
     <string name="browser_download_failed">Nie udało się rozpocząć pobierania.</string>
     <string name="browser_web_application">Aplikacja internetowa</string>
     <string name="browser_sign_in_title">Bezpieczne logowanie</string>
-    <string name="self_enrollment_browser_title">Zarejestruj urządzenie przez TOTP</string>
+    <string name="self_enrollment_browser_title">Bezpiecznie zarejestruj urządzenie</string>
     <string name="browser_sign_out_title">Kończenie sesji</string>
     <string name="device_service_not_configured">Mission Leben Device Service nie jest jeszcze skonfigurowany.</string>
     <string name="device_status_unavailable">Status urządzenia jest niedostępny (HTTP %1$d).</string>

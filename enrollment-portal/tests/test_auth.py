@@ -93,6 +93,12 @@ def test_csrf_is_actor_action_and_origin_bound(settings):
     # Use the same time bucket without patching wall clock by verifying a fresh token.
     fresh = csrf.issue(actor, "issue-personal")
     csrf.verify_request(valid_request, actor, "issue-personal", fresh)
+    csrf.verify_request(
+        request({"referer": settings.public_origin + "/personal"}),
+        actor,
+        "issue-personal",
+        fresh,
+    )
 
     with pytest.raises(HTTPException):
         csrf.verify_request(request({"origin": "https://evil.example"}), actor, "issue-personal", fresh)

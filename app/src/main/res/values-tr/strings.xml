@@ -55,10 +55,10 @@
     <string name="sign_in_with_authentik">Authentik ile oturum aç</string>
     <string name="device_identity">Cihaz kimliği</string>
     <string name="device_key_format">Anahtar %1$s…</string>
-    <string name="enrollment_instruction">Kişisel cihazını TOTP ile kaydet veya yönetimden ya da BT’den bir QR kodu tara.</string>
+    <string name="enrollment_instruction">Kişisel cihazını TOTP veya geçiş anahtarıyla kaydet ya da yönetimden veya BT’den bir QR kodu tara.</string>
     <string name="scan_enrollment_qr">QR kodunu tara</string>
-    <string name="self_enrollment_action">TOTP ile kendin kaydet</string>
-    <string name="self_enrollment_hint">Kişisel cihazın için. Önceden ayarlanmış bir TOTP gereklidir.</string>
+    <string name="self_enrollment_action">TOTP veya geçiş anahtarıyla kaydet</string>
+    <string name="self_enrollment_hint">Kişisel cihazın için. Önceden ayarlanmış bir TOTP veya geçiş anahtarı gereklidir.</string>
     <string name="enrollment_qr_alternative">Alternatif: yönetimden veya BT’den QR kodu</string>
     <string name="manual_enrollment_fallback">Yalnızca destek için alternatif:</string>
     <string name="device_api_not_configured">Cihaz API’si bu yapıda henüz yapılandırılmadı. Ayrıntılar: docs/AUTHENTIK_SETUP.md.</string>
@@ -134,7 +134,7 @@
     <string name="browser_download_failed">İndirme başlatılamadı.</string>
     <string name="browser_web_application">Web uygulaması</string>
     <string name="browser_sign_in_title">Güvenli oturum aç</string>
-    <string name="self_enrollment_browser_title">Cihazı TOTP ile kaydet</string>
+    <string name="self_enrollment_browser_title">Cihazı güvenli bir şekilde kaydet</string>
     <string name="browser_sign_out_title">Oturum sonlandırılıyor</string>
     <string name="device_service_not_configured">Mission Leben Cihaz Hizmeti henüz yapılandırılmadı.</string>
     <string name="device_status_unavailable">Cihaz durumu kullanılamıyor (HTTP %1$d).</string>
