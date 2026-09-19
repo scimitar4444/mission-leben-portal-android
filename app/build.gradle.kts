@@ -18,6 +18,8 @@ val deviceServiceBaseUrl = providers.gradleProperty("ML_DEVICE_SERVICE_BASE_URL"
     .orElse("https://id.mission-leben.de/device-bridge")
 val enrollmentServiceBaseUrl = providers.gradleProperty("ML_ENROLLMENT_SERVICE_BASE_URL")
     .orElse("https://geraete.mission-leben.de")
+val selfEnrollmentUrl = providers.gradleProperty("ML_SELF_ENROLLMENT_URL")
+    .orElse("${enrollmentServiceBaseUrl.get().trimEnd('/')}/self")
 val webAllowedHostSuffixes = providers.gradleProperty("ML_WEB_ALLOWED_HOST_SUFFIXES")
     .orElse("mission-leben.de,akademie-mission-leben.de")
 val authentikAuthenticationFlowSlugs = providers.gradleProperty("ML_AUTHENTIK_AUTHENTICATION_FLOW_SLUGS")
@@ -57,8 +59,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 28
-        versionName = "0.8.0"
+        versionCode = 29
+        versionName = "0.8.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
@@ -76,6 +78,7 @@ android {
             "ENROLLMENT_SERVICE_BASE_URL",
             enrollmentServiceBaseUrl.get().asBuildConfigString(),
         )
+        buildConfigField("String", "SELF_ENROLLMENT_URL", selfEnrollmentUrl.get().asBuildConfigString())
         buildConfigField("String", "WEB_ALLOWED_HOST_SUFFIXES", webAllowedHostSuffixes.get().asBuildConfigString())
         buildConfigField(
             "String",

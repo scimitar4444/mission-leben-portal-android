@@ -68,8 +68,11 @@
 
     <string name="device_identity">Geräteidentität</string>
     <string name="device_key_format">Schlüssel %1$s…</string>
-    <string name="enrollment_instruction">QR-Code aus der Mission-Leben-Geräteverwaltung scannen.</string>
+    <string name="enrollment_instruction">Registriere dein persönliches Gerät mit TOTP oder scanne einen QR-Code der Leitung bzw. IT.</string>
     <string name="scan_enrollment_qr">QR-Code scannen</string>
+    <string name="self_enrollment_action">Mit TOTP selbst registrieren</string>
+    <string name="self_enrollment_hint">Für dein persönliches Gerät. Du brauchst ein bereits eingerichtetes TOTP.</string>
+    <string name="enrollment_qr_alternative">Alternativ: QR-Code der Leitung oder IT</string>
     <string name="manual_enrollment_fallback">Alternativ nur für den Support:</string>
     <string name="device_api_not_configured">Die Geräte-API ist im Build noch nicht konfiguriert. Details stehen in docs/AUTHENTIK_SETUP.md.</string>
     <string name="enrollment_code">Enrollment-Code</string>
@@ -150,6 +153,7 @@
     <string name="browser_download_failed">Download konnte nicht gestartet werden.</string>
     <string name="browser_web_application">Web-Anwendung</string>
     <string name="browser_sign_in_title">Sicher anmelden</string>
+    <string name="self_enrollment_browser_title">Gerät mit TOTP registrieren</string>
     <string name="browser_sign_out_title">Sitzung wird beendet</string>
 
     <string name="device_service_not_configured">Der Mission-Leben Device Service ist noch nicht konfiguriert.</string>

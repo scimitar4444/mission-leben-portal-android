@@ -26,6 +26,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - Authentik-Enrollment per Deep Link `de.missionleben.portal://enroll?token=…&token_id=…&mode=…`; Authentik erzeugt Device, Connection, Device Token und Fakten-Snapshots
 - integrierter QR-Scanner für Enrollment-Links; ein Scan startet die Authentik-Geräteregistrierung ohne Abtippen
 - eigener zustandsloser Geräte-Einrichtungscontainer für IT, Leitungen in der Zentrale, EL und PDL; Rollen und `ORG_*`-Bereiche werden serverseitig in Authentik geprüft, eine GF-Sonderrolle existiert nicht
+- persönliche Selbstregistrierung für aktive Mitarbeiter mit bereits vorhandenem TOTP: Anmeldung im geschützten App-Browser, direkte Bindung an das eigene Authentik-Konto und automatischer Rücksprung zur App; keine Mitarbeitersuche und keine TOTP-Einrichtung
 - neue Geräte wählen ihren persönlichen oder Shared-Modus ausschließlich aus dem fünf Minuten gültigen QR-Code; der Container entwertet den Authentik-Enrollment-Token nach dem ersten erfolgreichen Einlösen
 - verschlüsselte Speicherung des Authentik-Device-Tokens unter einem Android-Keystore-Schlüssel
 - native Antwort auf die Authentik Endpoint-Stage-Challenge im WebView; der Device Token wird nie an JavaScript ausgegeben

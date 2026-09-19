@@ -69,6 +69,7 @@ fun MissionLebenApp(
     onOpenUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onScanEnrollmentQr: () -> Unit,
+    onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
@@ -85,7 +86,7 @@ fun MissionLebenApp(
         color = MaterialTheme.colorScheme.background,
     ) {
         if (state.mode == null) {
-            Onboarding(onScanEnrollmentQr, currentLanguageTag, onLanguageChange)
+            Onboarding(onScanEnrollmentQr, onSelfEnrollment, currentLanguageTag, onLanguageChange)
         } else {
             Home(
                 state = state,
@@ -138,6 +139,7 @@ fun MissionLebenApp(
 @Composable
 private fun Onboarding(
     onScanEnrollmentQr: () -> Unit,
+    onSelfEnrollment: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
@@ -155,6 +157,24 @@ private fun Onboarding(
                 stringResource(R.string.enrollment_instruction),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        item {
+            Button(onClick = onSelfEnrollment, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                Text(stringResource(R.string.self_enrollment_action))
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.self_enrollment_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        item {
+            Text(
+                stringResource(R.string.enrollment_qr_alternative),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         item {

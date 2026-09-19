@@ -24,12 +24,16 @@ class Actor:
     uid: str
     username: str
     display_name: str
-    role: Role
+    role: Role | None
     organization_names: frozenset[str]
 
     @property
     def has_global_scope(self) -> bool:
         return self.role is Role.IT
+
+    @property
+    def can_manage_devices(self) -> bool:
+        return self.role is Role.IT or (self.role is not None and bool(self.organization_names))
 
     @property
     def role_label(self) -> str:
@@ -38,10 +42,11 @@ class Actor:
             Role.CENTRAL: "Leitung Zentrale",
             Role.EL: "EL",
             Role.PDL: "PDL",
+            None: "Mitarbeiter",
         }[self.role]
 
 
-def actor_from_request(request: Request, settings: Settings) -> Actor:
+def authenticated_actor_from_request(request: Request, settings: Settings) -> Actor:
     if request.headers.get("x-authentik-meta-app", "") != settings.proxy_app_slug:
         raise HTTPException(401, "Authentik-Schutz fehlt oder ist falsch konfiguriert.")
     uid = request.headers.get("x-authentik-uid", "").strip()
@@ -67,14 +72,9 @@ def actor_from_request(request: Request, settings: Settings) -> Actor:
         ),
         None,
     )
-    if role is None:
-        raise HTTPException(403, "Sie dürfen keine Geräte initialisieren.")
-
     organizations = frozenset(
         name for name in groups if name.startswith(settings.organization_group_prefix)
     )
-    if role is not Role.IT and not organizations:
-        raise HTTPException(403, "Ihrem Konto ist keine Einrichtung zugeordnet.")
     return Actor(
         uid=uid,
         username=username,
@@ -82,6 +82,15 @@ def actor_from_request(request: Request, settings: Settings) -> Actor:
         role=role,
         organization_names=organizations,
     )
+
+
+def actor_from_request(request: Request, settings: Settings) -> Actor:
+    actor = authenticated_actor_from_request(request, settings)
+    if actor.role is None:
+        raise HTTPException(403, "Sie dürfen keine Geräte für andere Personen initialisieren.")
+    if not actor.can_manage_devices:
+        raise HTTPException(403, "Ihrem Konto ist keine Einrichtung zugeordnet.")
+    return actor
 
 
 class CsrfProtector:

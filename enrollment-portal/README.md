@@ -4,9 +4,14 @@ Der Container stellt die bewusst einfache Oberfläche **Gerät einrichten** bere
 
 ## Bedienung
 
-1. Gerätetyp wählen: Mitarbeiter-Handy oder gemeinsames Tablet.
-2. Mitarbeiter beziehungsweise Einrichtung auswählen.
-3. Den fünf Minuten gültigen QR-Code mit Mission Leben Zentral scannen.
+Für Mitarbeiter mit vorhandenem TOTP öffnet die App direkt `/self`. Nach Benutzername, Passwort und TOTP bestätigt die Person nur noch „Gerät jetzt registrieren“. Der Container bindet das Gerät an genau dieses angemeldete Konto und leitet automatisch zur App zurück.
+
+Für eine Einrichtung im Auftrag:
+
+1. Als IT, zentrale Leitung, EL oder PDL die Verwaltungsseite öffnen.
+2. Gerätetyp wählen: Mitarbeiter-Handy oder gemeinsames Tablet.
+3. Mitarbeiter beziehungsweise Einrichtung auswählen.
+4. Den fünf Minuten gültigen QR-Code mit Mission Leben Zentral scannen.
 
 Die Android-App übernimmt den Gerätemodus aus dem QR-Code. Der öffentliche Redeem-Endpunkt registriert das Gerät direkt bei Authentik und löscht den Enrollment-Token vor der Antwort. Der Container läuft absichtlich mit genau einem Worker; mehrere Replikate benötigen zuerst eine gemeinsam genutzte Sperre.
 
@@ -19,9 +24,9 @@ Die Android-App übernimmt den Gerätemodus aus dem QR-Code. Der öffentliche Re
 | `ML_DEVICE_INIT_EL` | eigene, über `ORG_*` zugewiesene Einrichtung |
 | `ML_DEVICE_INIT_PDL` | eigene, über `ORG_*` zugewiesene Einrichtung |
 
-Es gibt bewusst keine GF-Rolle. Ohne eine der vier Rollen verweigert der Container den Zugriff. Außer IT benötigt jede berechtigte Person mindestens eine gültige `ORG_*`-Mitgliedschaft mit `iam_group_type=organization_house` oder `organization_unit`.
+Es gibt bewusst keine GF-Rolle. Ohne eine der vier Rollen verweigert der Container die Mitarbeitersuche und Shared-Tablet-Einrichtung. Die persönliche Selbstregistrierung bleibt für aktive Mitarbeiter mit vorhandenem TOTP erreichbar. Außer IT benötigt jede berechtigte Leitung mindestens eine gültige `ORG_*`-Mitgliedschaft mit `iam_group_type=organization_house` oder `organization_unit`.
 
-Eine reine Benutzername-/Kennwort-Sitzung reicht auch für diese vier Rollen nicht aus. Der Bootstrap legt für die Anwendung einen eigenen Authorization Flow an, der bei jedem neuen Outpost-Zugang ein bereits eingerichtetes TOTP oder WebAuthn/Passkey verlangt und Personen ohne solchen Faktor abweist. Die Seite bietet keine MFA-Ersteinrichtung an.
+Eine reine Benutzername-/Kennwort-Sitzung reicht nicht aus. Der Bootstrap legt einen anwendungsbezogenen Authentication Flow für Benutzername, Kennwort und TOTP sowie einen eigenen Authorization Flow mit derselben TOTP-Stufe an. Ein zwei Minuten gültiger, stufen- und gerätegebundener Authentik-Cookie verhindert nur direkt nach der frischen Anmeldung eine doppelte Abfrage. Eine ältere Authentik-Sitzung überspringt die TOTP-Prüfung nicht. Personen ohne vorhandenes TOTP werden abgewiesen; die Seite bietet keine MFA-Ersteinrichtung an.
 
 ## Authentik vorbereiten
 
@@ -39,7 +44,8 @@ Das Skript ist idempotent und erstellt:
 - die vier Operatorgruppen,
 - die Anwendung `Gerät einrichten`,
 - einen Forward-Auth-Proxy-Provider,
-- einen anwendungsbezogenen Authorization Flow mit verpflichtendem TOTP oder WebAuthn,
+- einen eigenen Authentication Flow für Benutzername, Kennwort und vorhandenes TOTP,
+- einen anwendungsbezogenen Authorization Flow mit verpflichtendem, bereits vorhandenem TOTP,
 - die Bindung an den eingebetteten Proxy-Outpost,
 - ein Servicekonto mit ausschließlich den benötigten API-Rechten.
 

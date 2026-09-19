@@ -26,6 +26,9 @@ from authentik.stages.authenticator_validate.models import (
     AuthenticatorValidateStage,
     DeviceClasses,
 )
+from authentik.stages.identification.models import IdentificationStage, UserFields
+from authentik.stages.password.models import PasswordStage
+from authentik.stages.user_login.models import UserLoginStage
 
 
 PROVIDER_NAME = "Mission Leben Geräte-Einrichtung"
@@ -34,7 +37,11 @@ APPLICATION_SLUG = "mission-leben-device-init"
 SERVICE_USERNAME = "svc-mission-leben-device-enrollment"
 SERVICE_TOKEN_IDENTIFIER = "mission-leben-device-enrollment-api"
 DEFAULT_EXTERNAL_HOST = "https://geraete.mission-leben.de"
+AUTHENTICATION_FLOW_SLUG = "mission-leben-device-init-authentication"
 AUTHORIZATION_FLOW_SLUG = "mission-leben-device-init-authorization"
+IDENTIFICATION_STAGE_NAME = "Mission Leben Geräte-Einrichtung - Benutzer"
+LOGIN_STAGE_NAME = "Mission Leben Geräte-Einrichtung - Browsersitzung"
+PASSWORD_STAGE_NAME = "default-authentication-password"
 AUTHORIZATION_MFA_STAGE_NAME = "Mission Leben Geräte-Einrichtung - Starke Anmeldung"
 ROLE_GROUPS = {
     "ML_DEVICE_INIT_IT": "it",
@@ -60,13 +67,85 @@ PERMISSIONS = (
 
 
 external_host = os.environ.get("ML_ENROLL_PUBLIC_ORIGIN", DEFAULT_EXTERNAL_HOST).strip().rstrip("/")
-authentication_flow = Flow.objects.get(
-    slug=os.environ.get("ML_ENROLL_AUTHENTICATION_FLOW_SLUG", "mission-leben-browser-authentication")
+authentication_flow, _ = Flow.objects.update_or_create(
+    slug=AUTHENTICATION_FLOW_SLUG,
+    defaults={
+        "name": "Mission Leben Geräte-Einrichtung anmelden",
+        "title": "Geräte-Einrichtung anmelden",
+        "designation": FlowDesignation.AUTHENTICATION,
+        "authentication": FlowAuthenticationRequirement.NONE,
+        "policy_engine_mode": PolicyEngineMode.MODE_ANY,
+    },
 )
+identification_stage, _ = IdentificationStage.objects.update_or_create(
+    name=IDENTIFICATION_STAGE_NAME,
+    defaults={
+        "user_fields": [UserFields.USERNAME],
+        "case_insensitive_matching": True,
+        "show_matched_user": False,
+        "pretend_user_exists": True,
+        "enable_remember_me": False,
+        "password_stage": None,
+        "captcha_stage": None,
+        "webauthn_stage": None,
+    },
+)
+password_stage = PasswordStage.objects.get(name=PASSWORD_STAGE_NAME)
+login_stage, _ = UserLoginStage.objects.update_or_create(
+    name=LOGIN_STAGE_NAME,
+    defaults={
+        "session_duration": "minutes=10",
+        "remember_me_offset": "seconds=0",
+        "remember_device": "seconds=0",
+        "terminate_other_sessions": False,
+    },
+)
+authorization_mfa, _ = AuthenticatorValidateStage.objects.update_or_create(
+    name=AUTHORIZATION_MFA_STAGE_NAME,
+    defaults={
+        "not_configured_action": NotConfiguredAction.DENY,
+        "device_classes": [DeviceClasses.TOTP],
+        # The same stage is present in both flows. A fresh login validates TOTP
+        # in the authentication flow and the short-lived stage cookie prevents
+        # a duplicate prompt in authorization. An older authentik session has
+        # no such cookie and is therefore challenged by authorization.
+        "last_auth_threshold": "minutes=2",
+    },
+)
+authorization_mfa.configuration_stages.clear()
+authentication_bindings = []
+for order, stage in (
+    (10, identification_stage),
+    (20, password_stage),
+    (30, authorization_mfa),
+    (100, login_stage),
+):
+    binding, _ = FlowStageBinding.objects.update_or_create(
+        target=authentication_flow,
+        stage=stage,
+        defaults={
+            "order": order,
+            "evaluate_on_plan": False,
+            "re_evaluate_policies": True,
+        },
+    )
+    if binding.policies.exists():
+        raise RuntimeError(
+            "Device-initialization authentication bindings must not have policies"
+        )
+    authentication_bindings.append(binding)
+unexpected_authentication_bindings = FlowStageBinding.objects.filter(
+    target=authentication_flow
+).exclude(pk__in=[binding.pk for binding in authentication_bindings])
+if unexpected_authentication_bindings.exists():
+    raise RuntimeError(
+        "Device-initialization authentication flow has unexpected stage bindings; "
+        "review them manually"
+    )
 
 # A pre-existing authentik browser session may have been created with only a
 # password. This provider-specific authorization flow therefore always demands
-# an already configured TOTP or WebAuthn factor before the portal is entered.
+# an already configured TOTP factor before the portal is entered.
 authorization_flow, _ = Flow.objects.update_or_create(
     slug=AUTHORIZATION_FLOW_SLUG,
     defaults={
@@ -77,15 +156,6 @@ authorization_flow, _ = Flow.objects.update_or_create(
         "policy_engine_mode": PolicyEngineMode.MODE_ANY,
     },
 )
-authorization_mfa, _ = AuthenticatorValidateStage.objects.update_or_create(
-    name=AUTHORIZATION_MFA_STAGE_NAME,
-    defaults={
-        "not_configured_action": NotConfiguredAction.DENY,
-        "device_classes": [DeviceClasses.TOTP, DeviceClasses.WEBAUTHN],
-        "last_auth_threshold": "seconds=0",
-    },
-)
-authorization_mfa.configuration_stages.clear()
 authorization_binding, _ = FlowStageBinding.objects.update_or_create(
     target=authorization_flow,
     stage=authorization_mfa,
@@ -95,6 +165,10 @@ authorization_binding, _ = FlowStageBinding.objects.update_or_create(
         "re_evaluate_policies": True,
     },
 )
+if authorization_binding.policies.exists():
+    raise RuntimeError(
+        "Device-initialization authorization binding must run unconditionally"
+    )
 unexpected_authorization_bindings = FlowStageBinding.objects.filter(
     target=authorization_flow
 ).exclude(pk=authorization_binding.pk)
@@ -126,8 +200,8 @@ application, _ = Application.objects.update_or_create(
     defaults={
         "name": APPLICATION_NAME,
         "provider": provider,
-        "meta_launch_url": external_host + "/",
-        "meta_description": "Persönliche Geräte und Shared Tablets sicher initialisieren",
+        "meta_launch_url": external_host + "/self",
+        "meta_description": "Eigenes Gerät per TOTP oder Geräte im Auftrag initialisieren",
         "meta_publisher": "Mission Leben",
         "meta_hide": False,
         "policy_engine_mode": PolicyEngineMode.MODE_ANY,
@@ -145,14 +219,11 @@ for name, role in ROLE_GROUPS.items():
     }
     group.save(update_fields=["is_superuser", "attributes"])
     operator_groups.append(group)
-    PolicyBinding.objects.update_or_create(
-        target=application,
-        group=group,
-        defaults={"order": 0, "enabled": True, "negate": False},
-    )
 
-# This application is role-gated. Never silently delete an administrator's
-# additional policy; fail closed if the existing target has any other binding.
+# Every active user with an existing TOTP may enter the self-service page. The
+# portal itself still checks the four operator roles before exposing employee
+# search or shared-device initialization. Remove only bindings managed by the
+# previous role-gated version and fail closed on every unknown binding.
 unexpected_bindings = PolicyBinding.objects.filter(target=application).exclude(
     group__in=operator_groups
 )
@@ -160,6 +231,7 @@ if unexpected_bindings.exists():
     raise RuntimeError(
         "Gerät einrichten has unexpected policy/user/group bindings; review them manually"
     )
+PolicyBinding.objects.filter(target=application, group__in=operator_groups).delete()
 
 embedded_outpost = Outpost.objects.get(managed=MANAGED_OUTPOST)
 embedded_outpost.providers.add(provider)

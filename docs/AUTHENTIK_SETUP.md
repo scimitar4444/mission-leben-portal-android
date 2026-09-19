@@ -26,7 +26,7 @@ In Authentik eine neue Anwendung mit Provider anlegen:
 | Client-Typ | Public |
 | Client-ID | `mission-leben-android` |
 | Authentication Flow | `mission-leben-android-authentication` |
-| Authorization Flow | `default-provider-authorization-implicit-consent` |
+| Authorization Flow | `mission-leben-android-authorization` |
 | Redirect URI | exakt `de.missionleben.portal:/oauth2redirect` |
 | Redirect-Matching | strict, keine Wildcards |
 | Grant | Authorization Code |
@@ -45,7 +45,9 @@ Scopes:
 
 `offline_access` wird von der App nur im persönlichen Gerätemodus angefordert. Shared Tablets fordern diesen Scope nicht an. `goauthentik.io/api` wird benötigt, um die für die angemeldete Person sichtbaren Anwendungen über die Authentik-API abzurufen.
 
-Im Pilot bleibt die OIDC-Anwendung an `authentik Admins` gebunden. Gerätezugriff wird davon getrennt ausgewertet: Ein persönliches Device besitzt eine direkte `DeviceUserBinding` zu genau einem Benutzer; ein Shared Tablet liegt in einer eigenen Device Access Group, die an genau die vorhandene `ORG_*`-Einrichtungsgruppe gebunden ist. Zusätzliche App-Zugriffe bleiben weiterhin über die bestehenden `APP_*`-Policies geregelt.
+Die OIDC-Anwendung besitzt keine Administrator- oder Mitarbeitergruppenbindung mehr. Stattdessen verweigert der Android-Anmeldeflow jeden unbekannten, abgelaufenen oder falsch gebundenen Endpoint. Ein persönliches Device besitzt eine direkte `DeviceUserBinding` zu genau einem Benutzer; ein Shared Tablet liegt in einer eigenen Device Access Group, die an genau die vorhandene `ORG_*`-Einrichtungsgruppe gebunden ist. Die in der App angezeigten Fachanwendungen bleiben weiterhin durch ihre bestehenden `APP_*`-Policies eingeschränkt.
+
+Der Public Client verwendet zusätzlich einen eigenen Authorization Flow. Dieser fordert auch bei einer bereits vorhandenen Authentik-Browsersitzung erneut die signierte Endpoint-Challenge an und prüft Geräteablauf, Modus sowie Benutzer- beziehungsweise Einrichtungsbindung. Ein bekanntes `client_id` und eine bestehende Authentik-Sitzung reichen deshalb nicht aus, um ein OIDC-Token für die Android-App zu erhalten.
 
 ### Vorhandenes TOTP und Passkeys
 
@@ -102,18 +104,21 @@ Das idempotente Skript `authentik/bootstrap_endpoint_devices.py` legt an. Für d
 2. die bindungsfreie Device Access Group `Mission Leben Android - Personal` für persönliche Geräte sowie standortbezogene Gruppen `Mission Leben Android - Shared - ORG_*`,
 3. den Public-OIDC-Client `mission-leben-android`,
 4. eine erforderliche Endpoint Stage nach der Identifikation und vor dem Passwort,
-5. eine unmittelbar nachgelagerte, fehlertoleranzfreie Prüfung von gemeldetem Gerätemodus und Authentik-Benutzer-/Einrichtungsbindung,
-6. bedingte Policies, sodass diese beiden Stufen ausschließlich für den User-Agent `MissionLebenPortal/*` laufen,
-7. eine TOTP-Stufe mit `last_auth_threshold=seconds=0`, die ausschließlich bei der 90-Tage-Wiederanmeldung eines korrekt gebundenen persönlichen Benutzers mit bereits bestätigtem TOTP läuft und niemals eine TOTP-Einrichtung anbietet,
-8. eine auf 90 Tage begrenzte Browser-SSO-Stufe ausschließlich für `MissionLebenMode/personal`; der normale Login bleibt für Shared-Geräte und andere Browser flüchtig,
-9. einen 90 Tage gültigen Refresh Token mit praktisch deaktivierter Rotation (`refresh_token_threshold=seconds=1`) sowie die zusätzliche absolute 90-Tage-Prüfung im Android-Client,
-10. eine eng begrenzte Wiederanmeldung, bei der `login_hint` den bekannten Benutzer übernimmt und Authentik vorhandenes TOTP verwendet, andernfalls das Passwort.
+5. einen eigenen Authorization Flow, der die Endpoint-Challenge selbst bei vorhandener Authentik-Sitzung erneut ausführt,
+6. eine unmittelbar nachgelagerte, fehlertoleranzfreie Prüfung von gemeldetem Gerätemodus und Authentik-Benutzer-/Einrichtungsbindung,
+7. bedingte Policies, sodass diese beiden Stufen im Authentication Flow ausschließlich für den User-Agent `MissionLebenPortal/*` laufen; im eigenen Authorization Flow ist die Geräteprüfung dagegen zwingend,
+8. eine TOTP-Stufe mit `last_auth_threshold=seconds=0`, die ausschließlich bei der 90-Tage-Wiederanmeldung eines korrekt gebundenen persönlichen Benutzers mit bereits bestätigtem TOTP läuft und niemals eine TOTP-Einrichtung anbietet,
+9. eine auf 90 Tage begrenzte Browser-SSO-Stufe ausschließlich für `MissionLebenMode/personal`; der normale Login bleibt für Shared-Geräte und andere Browser flüchtig,
+10. einen 90 Tage gültigen Refresh Token mit praktisch deaktivierter Rotation (`refresh_token_threshold=seconds=1`) sowie die zusätzliche absolute 90-Tage-Prüfung im Android-Client,
+11. eine eng begrenzte Wiederanmeldung, bei der `login_hint` den bekannten Benutzer übernimmt und Authentik vorhandenes TOTP verwendet, andernfalls das Passwort.
 
 Die App löst neue, vom Geräte-Einrichtungsportal erzeugte QR-Codes einmalig über dessen Redeem-Endpunkt ein. Der zustandslose Container prüft den kurzlebigen Authentik-Enrollment-Token und ruft anschließend `/api/v3/endpoints/agents/connectors/enroll/` auf. Die App liest ihre Authentik-Geräte-ID aus `agent_config`, meldet Android-Fakten über `check_in` und beantwortet die Endpoint-Stage-Challenge mit dem im Android Keystore verschlüsselten Device Token. Authentik speichert Device, Connection, Token, Fakten, Ablauf, Device Access Group und Benutzer- beziehungsweise Einrichtungsbindung. Der separate Container besitzt dafür keine eigene Datenbank.
 
 Vor jeder Anmeldung auf einem Shared Tablet löscht der Webcontainer Cookies, Webspeicher, Cache, Formulardaten und Downloads. Deshalb setzt die OIDC-Anfrage dort bewusst kein `prompt=login`: Nach dem gerade abgeschlossenen Authentik-Flow würde dieser Parameter erneut in denselben Identifikationsschritt führen. Die lokale Bereinigung verhindert trotzdem, dass die Sitzung des vorherigen Mitarbeiters übernommen wird.
 
-Der reguläre Einrichtungsweg ist der separate Container in `enrollment-portal/`. IT, Leitungen in der Zentrale, EL und PDL melden sich dort über die Authentik-Anwendung `Gerät einrichten` an. Normale Mitarbeitende erhalten keinen Zugriff auf diese Anwendung. Der Container grenzt EL, PDL und zentrale Leitungen zusätzlich auf ihre vorhandenen `ORG_*`-Gruppen ein; nur IT besitzt globalen Suchzugriff. Für persönliche Geräte wird die direkte Benutzerbindung vor Ausgabe des QR-Codes angelegt, für Shared Tablets die Bindung an genau eine Einrichtung.
+Der reguläre Einrichtungsweg ist der separate Container in `enrollment-portal/`. Aktive Mitarbeiter mit vorhandenem TOTP dürfen dort ausschließlich ihr eigenes persönliches Gerät registrieren. IT, Leitungen in der Zentrale, EL und PDL erhalten zusätzlich die Verwaltungsansicht. Der Container grenzt EL, PDL und zentrale Leitungen auf ihre vorhandenen `ORG_*`-Gruppen ein; nur IT besitzt globalen Suchzugriff. Für persönliche Geräte wird die direkte Benutzerbindung vor Ausgabe des Einmal-Links oder QR-Codes angelegt, für Shared Tablets die Bindung an genau eine Einrichtung.
+
+Die App-Version 0.8.1 öffnet für die Selbstregistrierung `/self` im geschützten WebView und löscht vorher alle alten Webdaten. Der anwendungsbezogene Authorization Flow des Proxy-Providers akzeptiert ausschließlich ein bereits eingerichtetes TOTP (`not_configured_action=deny`). Nach der Bestätigung leitet der Container einen persönlichen Fünf-Minuten-Link zurück zur App; diese registriert den Endpoint und startet anschließend den normalen OIDC-Flow in derselben Authentik-Sitzung.
 
 Der angezeigte QR-Code ist fünf Minuten gültig und enthält Token, Token-UUID und den festgelegten Modus. Nach erfolgreichem Enrollment löscht der Container den Authentik-Enrollment-Token, bevor er den Device Token an die App zurückgibt. Der QR-Code darf trotzdem weder fotografiert noch in Tickets oder Dateifreigaben abgelegt werden.
 

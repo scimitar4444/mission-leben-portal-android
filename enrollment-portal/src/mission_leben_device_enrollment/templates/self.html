@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Eigenes Gerät registrieren{% endblock %}
+{% block content %}
+<section class="intro centered">
+  <span class="step">Persönliches Mitarbeitergerät</span>
+  <h1>Dieses Gerät registrieren</h1>
+  <p>Sie sind als <strong>{{ actor.display_name }}</strong> angemeldet. Das Gerät wird ausschließlich Ihrem eigenen Konto zugeordnet.</p>
+</section>
+<form class="card-form self-card" method="post" action="/self/enrollments">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <p>Nach dem Tippen kehren Sie automatisch zu <strong>Mission Leben Zentral</strong> zurück.</p>
+  <button class="primary" type="submit">Gerät jetzt registrieren</button>
+  <p class="hint">Der einmalige Registrierungscode ist nur fünf Minuten gültig.</p>
+</form>
+{% if actor.can_manage_devices %}
+<div class="actions"><a class="button secondary" href="/">Gerät für Mitarbeiter oder Einrichtung verwalten</a></div>
+{% endif %}
+{% endblock %}
