@@ -465,6 +465,18 @@ class Store:
             ).fetchall()
         return [value for row in rows if (value := self._decode_registration(row)) is not None]
 
+    def registrations_for_offboarding(self, subject: str) -> list[dict[str, Any]]:
+        """Return push targets even when the local user was already marked inactive."""
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT r.* FROM push_registrations r
+                WHERE r.subject = ? AND r.push_enabled = 1
+                """,
+                (subject,),
+            ).fetchall()
+        return [value for row in rows if (value := self._decode_registration(row)) is not None]
+
     def auth_registrations_for_subject(self, subject: str) -> list[dict[str, Any]]:
         with self._connect() as connection:
             rows = connection.execute(

@@ -208,7 +208,7 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                 raw, payload = self._body_json()
                 self._verify_internal(raw)
                 subject = match.group(1)
-                if not self.server.service.store.set_user_active(subject, bool(payload.get("active", False))):
+                if not self.server.service.set_user_active(subject, bool(payload.get("active", False))):
                     raise ApiError(404, "user was not found")
                 self._empty(204)
                 return

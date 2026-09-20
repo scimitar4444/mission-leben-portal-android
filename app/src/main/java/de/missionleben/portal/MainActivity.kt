@@ -56,6 +56,11 @@ class MainActivity : FragmentActivity() {
                 PortalFirebaseMessagingService.ACTION_LOGIN_APPROVAL_CHANGED -> {
                     handleLoginApprovalWake(intent)
                 }
+                PortalFirebaseMessagingService.ACTION_SECURITY_STATE_CHANGED -> {
+                    viewModel.acceptBackgroundDeviceStatus(
+                        intent.getStringExtra(PortalFirebaseMessagingService.EXTRA_ENROLLMENT_STATE),
+                    )
+                }
             }
         }
     }
@@ -95,8 +100,13 @@ class MainActivity : FragmentActivity() {
     private val appBrowserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
-        if (result.resultCode == RESULT_OK && PortalBrowserActivity.sessionExpired(result.data)) {
-            viewModel.sessionExpired()
+        if (result.resultCode == RESULT_OK) {
+            when {
+                PortalBrowserActivity.deviceBlocked(result.data) -> {
+                    viewModel.acceptBackgroundDeviceStatus(de.missionleben.portal.model.EnrollmentState.BLOCKED.name)
+                }
+                PortalBrowserActivity.sessionExpired(result.data) -> viewModel.sessionExpired()
+            }
         }
     }
 
@@ -210,6 +220,7 @@ class MainActivity : FragmentActivity() {
             IntentFilter().apply {
                 addAction(PortalFirebaseMessagingService.ACTION_REGISTRATION_CHANGED)
                 addAction(PortalFirebaseMessagingService.ACTION_LOGIN_APPROVAL_CHANGED)
+                addAction(PortalFirebaseMessagingService.ACTION_SECURITY_STATE_CHANGED)
             },
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )

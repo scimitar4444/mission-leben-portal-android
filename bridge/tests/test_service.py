@@ -217,14 +217,16 @@ class ServiceTest(unittest.TestCase):
             "y": base64url_encode(numbers.y.to_bytes(32, "big")),
         }
         jwk["kid"] = device_key_id(jwk)
-        self.store.register_auth_channel(
+        self.store.register_push(
             device_id=device_id,
             subject=subject,
+            installation_id="offboarding-installation",
             agent_token="valid-agent-token",
             key_id=jwk["kid"],
             public_jwk=jwk,
             mode="personal",
-            app_version="0.10.5",
+            privacy="minimal",
+            app_version="0.10.6",
         )
         event, _ = self.store.put_event(
             {
@@ -253,18 +255,25 @@ class ServiceTest(unittest.TestCase):
             ttl=60,
         )
 
-        preview = self.store.offboard_subject(subject, dry_run=True)
+        preview = self.service.offboard_subject(subject, dry_run=True)
         self.assertFalse(preview["applied"])
         self.assertEqual(1, preview["registrations"])
         self.assertEqual(1, preview["events"])
         self.assertEqual(1, preview["auth_requests"])
+        self.assertEqual(1, preview["security_signal_targets"])
+        self.assertEqual([], self.fcm.messages)
         self.assertIsNotNone(self.store.get_registration(device_id))
 
-        result = self.store.offboard_subject(subject)
+        result = self.service.offboard_subject(subject)
         self.assertTrue(result["applied"])
         self.assertEqual(1, result["nonces"])
         self.assertEqual(1, result["deliveries"])
         self.assertEqual(1, result["handoffs"])
+        self.assertEqual(1, result["security_signals_sent"])
+        self.assertEqual(
+            ("offboarding-installation", {"action": "refresh_security_state"}),
+            self.fcm.messages[0],
+        )
         self.assertIsNone(self.store.get_registration(device_id))
         self.assertFalse(self.store.user_active_state(subject))
 
@@ -293,7 +302,7 @@ class ServiceTest(unittest.TestCase):
                 },
             )
 
-        repeated = self.store.offboard_subject(subject)
+        repeated = self.service.offboard_subject(subject)
         self.assertTrue(repeated["applied"])
         self.assertEqual(0, repeated["registrations"])
         self.assertEqual(0, repeated["events"])

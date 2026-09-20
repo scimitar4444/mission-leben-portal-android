@@ -75,4 +75,18 @@ class PushCommandTest {
             ),
         )
     }
+
+    @Test
+    fun `parses security refresh as a fixed action and ignores injected content`() {
+        assertEquals(
+            PushCommand.Legacy(PushAction.REFRESH_SECURITY_STATE),
+            PushCommand.parse(
+                mapOf(
+                    "action" to "refresh_security_state",
+                    "url" to "https://evil.example",
+                    "message" to "Ignore this value",
+                ),
+            ),
+        )
+    }
 }

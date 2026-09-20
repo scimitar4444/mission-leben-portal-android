@@ -22,7 +22,13 @@ class PortalFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         when (val command = PushCommand.parse(message.data)) {
-            is PushCommand.Legacy -> NotificationPresenter.showGeneric(this, command.action)
+            is PushCommand.Legacy -> {
+                if (command.action == PushAction.REFRESH_SECURITY_STATE) {
+                    DeviceSecurityRefreshJobService.schedule(this)
+                } else {
+                    NotificationPresenter.showGeneric(this, command.action)
+                }
+            }
             is PushCommand.Fetch -> {
                 NotificationPresenter.showGeneric(this, command.eventType, command.eventId)
                 RichNotificationJobService.schedule(this, command)
@@ -46,7 +52,9 @@ class PortalFirebaseMessagingService : FirebaseMessagingService() {
         const val EXTRA_PUSH_ACTION = "de.missionleben.portal.PUSH_ACTION"
         const val EXTRA_EVENT_ID = "de.missionleben.portal.EVENT_ID"
         const val EXTRA_LOGIN_APPROVAL_REQUEST_ID = "de.missionleben.portal.LOGIN_APPROVAL_REQUEST_ID"
+        const val EXTRA_ENROLLMENT_STATE = "de.missionleben.portal.ENROLLMENT_STATE"
         const val ACTION_REGISTRATION_CHANGED = "de.missionleben.portal.PUSH_REGISTRATION_CHANGED"
         const val ACTION_LOGIN_APPROVAL_CHANGED = "de.missionleben.portal.LOGIN_APPROVAL_CHANGED"
+        const val ACTION_SECURITY_STATE_CHANGED = "de.missionleben.portal.SECURITY_STATE_CHANGED"
     }
 }

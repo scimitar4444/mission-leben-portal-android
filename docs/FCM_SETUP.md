@@ -65,6 +65,8 @@ Eine Authentik-Anmeldeanfrage verwendet ebenfalls nur einen Weckimpuls:
 
 Ist das Portal sichtbar, lädt es die Anfrage sofort signiert nach. Im Hintergrund erscheint nur der lokale Hinweis „Anmeldeanfrage“. Die Benachrichtigung enthält bewusst keine Schaltfläche zum Bestätigen oder Ablehnen; diese Entscheidung ist ausschließlich in der entsperrten App möglich. Ohne FCM findet die geöffnete App neue Anfragen weiterhin durch das Zwei-Sekunden-Polling.
 
+Beim Mitarbeiter-Offboarding sendet die Bridge unmittelbar vor dem Löschen der Gerätezuordnung eine inhaltslose Data Message mit `action=refresh_security_state`. Sie startet genau eine Authentik-Statusprüfung; es gibt kein regelmäßiges Hintergrund-Polling. Die App sperrt sich nicht aufgrund des Pushs allein. Erst die negative Authentik-Prüfung löscht die geschützte Sitzung, Cookies, Webspeicher und Downloads und schließt einen gerade offenen internen Browser. Beim Öffnen einer Web-App und bei Rückkehr ins Portal wird derselbe Status zusätzlich live geprüft.
+
 ## 4. Funktionstest
 
 1. signierte App mit den vier Clientwerten bauen und installieren,
@@ -77,5 +79,6 @@ Ist das Portal sichtbar, lädt es die Anfrage sofort signiert nach. Im Hintergru
 8. antippen und prüfen, dass nur die passende freigegebene Authentik-App geöffnet wird,
 9. abmelden und prüfen, dass `DELETE /v1/push/registrations/{device_id}` die Zuordnung entfernt.
 10. eine Authentik-Anmeldeanfrage auslösen und prüfen, dass FCM nur `action` und `request_id` enthält, die Benachrichtigung die App öffnet und die Entscheidung erst dort möglich ist.
+11. einen Testbenutzer in Authentik deaktivieren und prüfen, dass der Offboarding-Lauf nur `refresh_security_state` sendet, der offene WebView geschlossen wird und die App anschließend den gesperrten Zustand ohne lokale Sitzung anzeigt.
 
 Offizielle Grundlagen: [Firebase in Android einrichten](https://firebase.google.com/docs/android/setup), [FCM für Android](https://firebase.google.com/docs/cloud-messaging/android/get-started), [vertrauenswürdige Serverumgebung](https://firebase.google.com/docs/cloud-messaging/server-environment).

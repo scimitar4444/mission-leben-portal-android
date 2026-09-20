@@ -7,6 +7,7 @@ from typing import Any
 
 from .authentik import AuthenticationError, AuthentikClient, UserInfo
 from .fcm import FcmSendError, FcmSender, NullFcmSender
+from .offboard import offboard_subject
 from .security import canonical_device_request, device_key_id, verify_device_signature
 from .store import Store
 
@@ -65,6 +66,15 @@ class BridgeService:
         user = self.authentik.user_info(bearer)
         self.store.upsert_user(user.subject, user.email, user.display_name, active=True)
         return user
+
+    def set_user_active(self, subject: str, active: bool) -> bool:
+        if active:
+            return self.store.set_user_active(subject, True)
+        offboard_subject(self.store, self.fcm, subject)
+        return True
+
+    def offboard_subject(self, subject: str, *, dry_run: bool = False) -> dict[str, object]:
+        return offboard_subject(self.store, self.fcm, subject, dry_run=dry_run)
 
     def capabilities(self, bearer: str) -> list[str]:
         user = self.authenticate(bearer)

@@ -30,6 +30,7 @@ import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.push.NotificationPresenter
 import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.security.DeviceIdentity
+import de.missionleben.portal.security.DeviceSecurityLock
 import de.missionleben.portal.security.SecureSessionVault
 import de.missionleben.portal.update.UpdateRepository
 import de.missionleben.portal.update.UpdateStatus
@@ -355,16 +356,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         _uiState.update { it.copy(busy = true, message = null) }
-        authRepository.withFreshAccessToken(
-            serializedState = state,
-            onSuccess = { _, updatedState ->
-                updateSerializedState(updatedState)
-                _uiState.update { it.copy(busy = false, requestedUrl = url) }
-            },
-            onError = { failure ->
-                handleAccessTokenFailure(failure) { it.copy(busy = false) }
-            },
-        )
+        viewModelScope.launch {
+            if (!verifyDeviceBeforeProtectedAction()) return@launch
+            authRepository.withFreshAccessToken(
+                serializedState = state,
+                onSuccess = { _, updatedState ->
+                    updateSerializedState(updatedState)
+                    _uiState.update { it.copy(busy = false, requestedUrl = url) }
+                },
+                onError = { failure ->
+                    handleAccessTokenFailure(failure) { it.copy(busy = false) }
+                },
+            )
+        }
     }
 
     private fun enrollDevice(enrollment: EnrollmentQrPayload, onSuccess: (() -> Unit)? = null) {
@@ -428,20 +432,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
         _uiState.update { it.copy(busy = true, message = null) }
-        authRepository.withFreshAccessToken(
-            serializedState = state,
-            onSuccess = { token, updatedState ->
-                updateSerializedState(updatedState)
-                viewModelScope.launch {
-                    runCatching { deviceService.openTalk(token, targetId, talkUrl) }
-                        .onSuccess { _uiState.update { it.copy(busy = false, message = string(R.string.message_talk_opened)) } }
-                        .onFailure { error -> _uiState.update { it.copy(busy = false, message = error.message) } }
-                }
-            },
-            onError = { failure ->
-                handleAccessTokenFailure(failure) { it.copy(busy = false) }
-            },
-        )
+        viewModelScope.launch {
+            if (!verifyDeviceBeforeProtectedAction()) return@launch
+            authRepository.withFreshAccessToken(
+                serializedState = state,
+                onSuccess = { token, updatedState ->
+                    updateSerializedState(updatedState)
+                    viewModelScope.launch {
+                        runCatching { deviceService.openTalk(token, targetId, talkUrl) }
+                            .onSuccess { _uiState.update { it.copy(busy = false, message = string(R.string.message_talk_opened)) } }
+                            .onFailure { error -> _uiState.update { it.copy(busy = false, message = error.message) } }
+                    }
+                },
+                onError = { failure ->
+                    handleAccessTokenFailure(failure) { it.copy(busy = false) }
+                },
+            )
+        }
     }
 
     fun sessionExpired() {
@@ -633,7 +640,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun refreshDeviceStatus() {
-        syncDeviceStatus(blockLogin = false)
+        viewModelScope.launch { refreshDeviceStatusInternal(reportFailure = false) }
+    }
+
+    fun acceptBackgroundDeviceStatus(value: String?) {
+        val status = value?.let { runCatching { EnrollmentState.valueOf(it) }.getOrNull() } ?: return
+        applyDeviceStatus(status, keepBusy = false)
     }
 
     fun startLoginApprovalPolling() {
@@ -750,54 +762,96 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun syncDeviceStatus(blockLogin: Boolean) {
-        if (!deviceService.endpointDevicesConfigured) return
-        val deviceId = preferences.deviceId ?: return
-        val mode = preferences.deviceMode ?: return
-        viewModelScope.launch {
-            runCatching { deviceService.deviceStatus(deviceId, mode, identity) }
-                .onSuccess { status ->
-                    val oldStatus = preferences.enrollmentState
-                    preferences.enrollmentState = status
-                    if (status == EnrollmentState.BLOCKED) {
-                        val oldState = serializedAuthState
-                        if (oldState != null) disconnectPushAndRevoke(oldState)
-                        serializedAuthState = null
-                        pendingVaultState = null
-                        dataEncryptionKey?.fill(0)
-                        dataEncryptionKey = null
-                        vault.clear()
-                        preferences.clearReauthentication()
-                        clearNotifications()
+    private suspend fun refreshDeviceStatusInternal(reportFailure: Boolean): EnrollmentState? {
+        if (!deviceService.endpointDevicesConfigured) return null
+        val deviceId = preferences.deviceId ?: return null
+        val mode = preferences.deviceMode ?: return null
+        return runCatching { deviceService.deviceStatus(deviceId, mode, identity) }
+            .fold(
+                onSuccess = { status ->
+                    applyDeviceStatus(status, keepBusy = false)
+                    status
+                },
+                onFailure = { error ->
+                    if (reportFailure) {
                         _uiState.update {
-                            it.copy(
-                                enrollmentState = status,
-                                signedIn = false,
-                                user = null,
-                                reauthenticationRequired = false,
-                                applications = emptyList(),
-                                linkTargets = emptyList(),
-                                capabilities = emptySet(),
-                                quickUnlockEnabled = false,
-                                busy = false,
-                                clearWebDataRequested = true,
-                                message = string(R.string.message_device_blocked_clearing),
-                                loginApprovalRequest = null,
-                                loginApprovalSubmitting = false,
-                            )
+                            it.copy(busy = false, message = error.message ?: string(R.string.device_status_unknown))
                         }
+                    }
+                    null
+                },
+            )
+    }
+
+    private suspend fun verifyDeviceBeforeProtectedAction(): Boolean {
+        if (!deviceService.endpointDevicesConfigured) {
+            _uiState.update { it.copy(busy = false, message = string(R.string.device_status_unknown)) }
+            return false
+        }
+        val deviceId = preferences.deviceId
+        val mode = preferences.deviceMode
+        if (deviceId == null || mode == null) {
+            _uiState.update { it.copy(busy = false, message = string(R.string.device_status_unknown)) }
+            return false
+        }
+        val status = runCatching { deviceService.deviceStatus(deviceId, mode, identity) }
+            .getOrElse { error ->
+                _uiState.update {
+                    it.copy(busy = false, message = error.message ?: string(R.string.device_status_unknown))
+                }
+                return false
+            }
+        applyDeviceStatus(status, keepBusy = status == EnrollmentState.TRUSTED)
+        if (status == EnrollmentState.TRUSTED) return true
+        if (status != EnrollmentState.BLOCKED) {
+            _uiState.update {
+                it.copy(
+                    busy = false,
+                    message = if (status == EnrollmentState.PENDING) {
+                        string(R.string.message_device_waiting)
                     } else {
-                        _uiState.update { it.copy(enrollmentState = status, busy = false) }
-                        if (status == EnrollmentState.TRUSTED && oldStatus != EnrollmentState.TRUSTED) {
-                            syncPushRegistration()
-                        }
-                    }
-                }
-                .onFailure { error ->
-                    if (blockLogin) {
-                        _uiState.update { it.copy(busy = false, message = error.message) }
-                    }
-                }
+                        string(R.string.device_status_unknown)
+                    },
+                )
+            }
+        }
+        return false
+    }
+
+    private fun applyDeviceStatus(status: EnrollmentState, keepBusy: Boolean) {
+        val oldStatus = preferences.enrollmentState
+        preferences.enrollmentState = status
+        if (status == EnrollmentState.BLOCKED) {
+            val oldState = serializedAuthState
+            if (oldState != null) disconnectPushAndRevoke(oldState)
+            serializedAuthState = null
+            pendingVaultState = null
+            dataEncryptionKey?.fill(0)
+            dataEncryptionKey = null
+            DeviceSecurityLock.clearPersistentSession(getApplication())
+            clearNotifications()
+            _uiState.update {
+                it.copy(
+                    enrollmentState = status,
+                    signedIn = false,
+                    user = null,
+                    reauthenticationRequired = false,
+                    applications = emptyList(),
+                    linkTargets = emptyList(),
+                    capabilities = emptySet(),
+                    quickUnlockEnabled = false,
+                    busy = false,
+                    clearWebDataRequested = true,
+                    message = string(R.string.message_device_blocked_clearing),
+                    loginApprovalRequest = null,
+                    loginApprovalSubmitting = false,
+                )
+            }
+        } else {
+            _uiState.update { it.copy(enrollmentState = status, busy = if (keepBusy) it.busy else false) }
+            if (status == EnrollmentState.TRUSTED && oldStatus != EnrollmentState.TRUSTED) {
+                syncPushRegistration()
+            }
         }
     }
 

@@ -157,6 +157,16 @@ Fuer eine Authentik-Anmeldebestaetigung enthaelt FCM ausschliesslich:
 }
 ```
 
+Beim Offboarding sendet die Bridge vor dem Loeschen der Kommunikationszuordnung nur diesen Weckimpuls:
+
+```json
+{
+  "action": "refresh_security_state"
+}
+```
+
+Die App leitet daraus keine Sperre ab, sondern prueft den gebundenen Endpoint live bei Authentik. Nur ein dort nicht mehr gueltiges oder gesperrtes Geraet loescht die lokale Sitzung und die Webdaten.
+
 Die App ruft den Inhalt anschliessend signiert ab. Eine Zustimmung oder Ablehnung wird nie als FCM-Aktion angeboten.
 
 ## Signierter Detailabruf

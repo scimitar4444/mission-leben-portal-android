@@ -2,7 +2,9 @@ package de.missionleben.portal.web
 
 import android.app.DownloadManager
 import android.content.Context
+import android.content.BroadcastReceiver
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -45,6 +47,8 @@ import de.missionleben.portal.R
 import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
+import de.missionleben.portal.model.EnrollmentState
+import de.missionleben.portal.push.PortalFirebaseMessagingService
 import org.json.JSONObject
 import java.io.File
 
@@ -73,6 +77,17 @@ class PortalBrowserActivity : FragmentActivity() {
     private val deviceMode by lazy {
         intent.getStringExtra(EXTRA_DEVICE_MODE)?.let { value ->
             runCatching { DeviceMode.valueOf(value) }.getOrNull()
+        }
+    }
+    private val securityStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (
+                intent?.action == PortalFirebaseMessagingService.ACTION_SECURITY_STATE_CHANGED &&
+                intent.getStringExtra(PortalFirebaseMessagingService.EXTRA_ENROLLMENT_STATE) == EnrollmentState.BLOCKED.name
+            ) {
+                setResult(RESULT_OK, Intent().putExtra(EXTRA_DEVICE_BLOCKED, true))
+                finish()
+            }
         }
     }
 
@@ -121,6 +136,21 @@ class PortalBrowserActivity : FragmentActivity() {
         } else {
             webView.loadUrl(startUrl)
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        ContextCompat.registerReceiver(
+            this,
+            securityStateReceiver,
+            IntentFilter(PortalFirebaseMessagingService.ACTION_SECURITY_STATE_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+    }
+
+    override fun onStop() {
+        unregisterReceiver(securityStateReceiver)
+        super.onStop()
     }
 
     private fun buildLayout(initialTitle: String) {
@@ -491,6 +521,7 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_REDIRECT_URI = "redirect_uri"
         private const val EXTRA_AUTHORIZATION_RESPONSE = "authorization_response"
         private const val EXTRA_SESSION_EXPIRED = "session_expired"
+        private const val EXTRA_DEVICE_BLOCKED = "device_blocked"
         private const val EXTRA_DEVICE_MODE = "device_mode"
         private const val EXTRA_CLEAR_BEFORE_LOAD = "clear_before_load"
         private const val EXTRA_LOGOUT = "logout"
@@ -555,6 +586,9 @@ class PortalBrowserActivity : FragmentActivity() {
 
         fun sessionExpired(intent: Intent?): Boolean =
             intent?.getBooleanExtra(EXTRA_SESSION_EXPIRED, false) == true
+
+        fun deviceBlocked(intent: Intent?): Boolean =
+            intent?.getBooleanExtra(EXTRA_DEVICE_BLOCKED, false) == true
 
         fun logoutIntent(context: Context, url: String, mode: DeviceMode): Intent =
             Intent(context, PortalBrowserActivity::class.java)
