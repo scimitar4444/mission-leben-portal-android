@@ -6,6 +6,7 @@ import android.app.job.JobScheduler
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -99,7 +100,14 @@ object NotificationPresenter {
         val title = if (rich) detail.title.ifBlank { genericTitle } else genericTitle
         val summary = if (rich) detail.summary.ifBlank { genericBody } else genericBody
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            setAction(Intent.ACTION_VIEW)
+            data = Uri.Builder()
+                .scheme(context.packageName)
+                .authority("notification")
+                .appendPath(action.wireName)
+                .appendPath(eventId ?: "latest")
+                .build()
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra(PushEventDispatcher.EXTRA_PUSH_ACTION, action.wireName)
             if (eventId != null) putExtra(PushEventDispatcher.EXTRA_EVENT_ID, eventId)
         }
@@ -121,6 +129,7 @@ object NotificationPresenter {
             .setContentText(summary)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
             .setCategory(category(action))
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setPublicVersion(publicVersion)

@@ -87,7 +87,13 @@ class ZimbraSoapClient:
             },
         )
         response = self._post(self.admin_soap_url, request, timeout=timeout_seconds + 20)
-        account_ids = [node.attrib["id"] for node in response if _local_name(node.tag) == "n" and "id" in node.attrib]
+        # Zimbra 10.1 returns changed selected accounts as <a>, while older
+        # server documentation and releases use <n>. Accept both wire forms.
+        account_ids = [
+            node.attrib["id"]
+            for node in response
+            if _local_name(node.tag) in {"a", "n"} and "id" in node.attrib
+        ]
         return response.attrib.get("seq", sequence), account_ids
 
     def destroy_waitset(self, waitset_id: str) -> None:
@@ -131,14 +137,17 @@ class ZimbraSoapClient:
         for node in response.iter():
             if _local_name(node.tag) != "appt" or "id" not in node.attrib:
                 continue
+            subject = node.attrib.get("name") or _child_text(node, "su")
+            location = node.attrib.get("loc") or _child_text(node, "loc")
+            appointment_duration = int(node.attrib.get("dur", "0"))
             for instance in (item for item in node if _local_name(item.tag) == "inst" and "s" in item.attrib):
                 appointments.append(
                     ZimbraAppointment(
                         appointment_id=node.attrib["id"],
                         start_millis=int(instance.attrib["s"]),
-                        duration_millis=int(instance.attrib.get("dur", "0")),
-                        subject=_child_text(node, "su"),
-                        location=_child_text(node, "loc"),
+                        duration_millis=int(instance.attrib.get("dur", str(appointment_duration))),
+                        subject=subject,
+                        location=location,
                     )
                 )
         return appointments

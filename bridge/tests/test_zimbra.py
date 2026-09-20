@@ -55,7 +55,7 @@ class ZimbraSoapClientTest(unittest.TestCase):
             ET.fromstring(f'<AdminCreateWaitSetResponse xmlns="{ADMIN}" waitSet="wait-1" seq="7"/>'),
             ET.fromstring(
                 f'<AdminWaitSetResponse xmlns="{ADMIN}" waitSet="wait-1" seq="8">'
-                '<n id="account-a"/><n id="account-b"/>'
+                '<a id="account-a" changeid="41"/><n id="account-b"/>'
                 '</AdminWaitSetResponse>'
             ),
             ET.fromstring(f'<AdminDestroyWaitSetResponse xmlns="{ADMIN}" waitSet="wait-1"/>'),
@@ -82,8 +82,8 @@ class ZimbraSoapClientTest(unittest.TestCase):
                 '</m></SearchResponse>'
             ),
             ET.fromstring(
-                f'<SearchResponse xmlns="{MAIL}"><appt id="73"><su>Termin</su><loc>Raum 1</loc>'
-                '<inst s="1800000000000" dur="3600000"/></appt></SearchResponse>'
+                f'<SearchResponse xmlns="{MAIL}"><appt id="73" name="Termin" loc="Raum 1" dur="3600000">'
+                '<fr>Beschreibung</fr><inst s="1800000000000"/></appt></SearchResponse>'
             ),
         ]
 
@@ -159,7 +159,6 @@ class ZimbraWorkerTest(unittest.TestCase):
     def test_appointment_summary_uses_configured_timezone(self) -> None:
         winter = int(datetime(2026, 1, 15, 10, 0, tzinfo=timezone.utc).timestamp() * 1000)
         self.assertEqual("15.01.2026, 11:00 Uhr · Darmstadt", format_appointment_summary(winter, "Darmstadt", "Europe/Berlin"))
-
 
 if __name__ == "__main__":
     unittest.main()
