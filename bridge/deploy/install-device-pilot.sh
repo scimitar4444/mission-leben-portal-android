@@ -16,6 +16,13 @@ command -v python3 >/dev/null
 install -d -m 0750 "$deploy_dir/data" "$deploy_dir/backups" "$deploy_dir/secrets" "$deploy_dir/ntfy-data"
 chown 10001:10001 "$deploy_dir/data" "$deploy_dir/ntfy-data"
 
+if [[ ! -f "$deploy_dir/secrets/nextcloud-talk-bot-secret" ]]; then
+    umask 077
+    python3 -c 'import secrets; print(secrets.token_urlsafe(48))' > "$deploy_dir/secrets/nextcloud-talk-bot-secret"
+fi
+chmod 0440 "$deploy_dir/secrets/nextcloud-talk-bot-secret"
+chown 10001:10001 "$deploy_dir/secrets/nextcloud-talk-bot-secret"
+
 if [[ ! -f "$env_file" ]]; then
     umask 077
     internal_hmac_secret="$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')"
@@ -40,6 +47,7 @@ if [[ ! -f "$env_file" ]]; then
         'BRIDGE_NTFY_BINARY=/usr/local/bin/ntfy' \
         'BRIDGE_TALK_TARGETS_JSON=[]' \
         'BRIDGE_NEXTCLOUD_BACKEND_URL=' \
+        'BRIDGE_NEXTCLOUD_TALK_SECRET_FILE=' \
         'BRIDGE_TALK_RECIPIENTS_JSON={}' \
         'BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON={}' \
         'BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL=' \
@@ -62,6 +70,7 @@ ensure_env_value BRIDGE_NTFY_PUBLIC_BASE_URL https://push.mission-leben.de
 ensure_env_value BRIDGE_NTFY_INTERNAL_BASE_URL http://ntfy:2586
 ensure_env_value BRIDGE_NTFY_AUTH_FILE /ntfy/user.db
 ensure_env_value BRIDGE_NTFY_BINARY /usr/local/bin/ntfy
+ensure_env_value BRIDGE_NEXTCLOUD_TALK_SECRET_FILE ''
 chmod 0600 "$env_file"
 
 docker compose --project-name mission-leben-device -f "$compose_file" up -d --build ntfy bridge

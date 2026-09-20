@@ -49,10 +49,17 @@ Der Container ist eine überprüfbare Pilotimplementierung. Vor einem Live-Rollo
 
 ## Start als Pilot
 
-Für den Kommunikations-Pilot steht eine reduzierte Compose-Datei mit Bridge und ntfy bereit. Sie erzeugt beim ersten Start die Secrets lokal, bindet beide Dienste ausschließlich an Loopback und legt ihre SQLite-Datenbanken persistent ab:
+Für den Kommunikations-Pilot steht eine reduzierte Compose-Datei mit Bridge, ntfy und einem optionalen Zimbra-Worker bereit. Sie erzeugt beim ersten Start die lokalen Basissecrets, bindet Bridge und ntfy ausschließlich an Loopback und legt ihre SQLite-Datenbanken persistent ab. Der Zimbra-Worker startet erst nach vollständiger Konfiguration ausdrücklich durch den Administrator:
 
 ```bash
 sudo ./deploy/install-device-pilot.sh
+```
+
+Nach erfolgreich bestandener Vorprüfung werden die zusätzlichen Quellen gezielt gestartet:
+
+```bash
+docker compose --project-name mission-leben-device -f compose.device-pilot.yml --profile tools run --rm preflight
+docker compose --project-name mission-leben-device -f compose.device-pilot.yml up -d --build bridge zimbra-worker
 ```
 
 Die Nginx-Locations aus `deploy/nginx-device-bridge-location.conf` veröffentlichen `/device-bridge/healthz`, `/device-bridge/v1/` sowie exakt die drei von Authentik signierten Routen `/auth/v2/ping`, `/auth/v2/check` und `/auth/v2/auth`. Admin-, interne und Quellendpunkte bleiben von außen gesperrt. Der tägliche konsistente SQLite-Backupjob wird mit den beiden mitgelieferten systemd-Units aktiviert.

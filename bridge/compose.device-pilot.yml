@@ -59,6 +59,7 @@ services:
     volumes:
       - ./data:/data
       - ./ntfy-data:/ntfy
+      - ./secrets/nextcloud-talk-bot-secret:/run/secrets/nextcloud-talk-bot-secret:ro
       - ./secrets/nextcloud-announcements-secret:/run/secrets/nextcloud-announcements-secret:ro
     read_only: true
     tmpfs:
@@ -76,3 +77,52 @@ services:
       options:
         max-size: 10m
         max-file: "3"
+
+  zimbra-worker:
+    build: .
+    container_name: mission-leben-zimbra-worker
+    restart: unless-stopped
+    init: true
+    command: ["python", "-m", "mission_leben_bridge.zimbra_worker"]
+    env_file: .env
+    depends_on:
+      bridge:
+        condition: service_healthy
+    volumes:
+      - ./secrets/zimbra-admin-password:/run/secrets/zimbra-admin-password:ro
+      - ./secrets/zimbra-account-map.json:/run/secrets/zimbra-account-map.json:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: 0.5
+    stop_grace_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  preflight:
+    profiles: ["tools"]
+    build: .
+    command: ["mission-leben-bridge-preflight", "--require", "login_approval,ntfy,zimbra,talk,announcements"]
+    env_file: .env
+    volumes:
+      - ./ntfy-data:/ntfy
+      - ./secrets/nextcloud-talk-bot-secret:/run/secrets/nextcloud-talk-bot-secret:ro
+      - ./secrets/nextcloud-announcements-secret:/run/secrets/nextcloud-announcements-secret:ro
+      - ./secrets/zimbra-admin-password:/run/secrets/zimbra-admin-password:ro
+      - ./secrets/zimbra-account-map.json:/run/secrets/zimbra-account-map.json:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
