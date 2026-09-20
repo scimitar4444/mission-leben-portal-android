@@ -52,6 +52,16 @@
     <string name="session_valid_days">Авторизація дійсна ще %1$d днів</string>
     <string name="session_valid_one_day">Авторизація дійсна ще 1 день</string>
     <string name="session_valid_today">Поновіть авторизацію сьогодні</string>
+    <string name="session_valid_days_short">%1$d днів</string>
+    <string name="session_valid_one_day_short">1 день</string>
+    <string name="session_valid_today_short">Сьогодні</string>
+    <string name="news_title">Актуальне</string>
+    <string name="news_all">Усі новини</string>
+    <string name="birthday_greeting">З днем народження, %1$s!</string>
+    <string name="motivation_welcome">Раді, що ви тут.</string>
+    <string name="motivation_together">Разом ми змінюємо світ на краще.</string>
+    <string name="motivation_thanks">Дякуємо за вашу відданість.</string>
+    <string name="motivation_today">Нехай сьогодні буде гарний день.</string>
     <string name="shared_login_description">Кожна людина входить окремо. На планшеті не залишається особистого токена.</string>
     <string name="end_session_securely">Безпечно завершити сеанс</string>
     <string name="sign_out">Вийти</string>
@@ -113,6 +123,7 @@
     <string name="secure_key_not_released">Безпечний ключ не надано.</string>
     <string name="quick_access_failed">Не вдалося відкрити швидкий доступ: %1$s</string>
     <string name="quick_access_enable_title">Увімкнути швидкий доступ</string>
+    <string name="quick_access_open">Відкрити біометрією</string>
     <string name="portal_open_title">Відкрити Mission Leben Zentral</string>
     <string name="biometric_subtitle">Використайте відбиток пальця, обличчя або код пристрою</string>
     <string name="auth_oidc_config_failed">Не вдалося завантажити конфігурацію OIDC.</string>

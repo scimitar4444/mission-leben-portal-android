@@ -71,6 +71,7 @@ class DeviceServiceRepository(context: Context? = null) {
                 .put("device_name", body.getString("device_name"))
             performEnrollmentPortalRequest(
                 path = "/api/v1/enrollments/${enrollment.tokenUuid}/redeem",
+                method = "POST",
                 body = portalBody.toString(),
                 authorization = "Bearer $enrollmentToken",
             )
@@ -207,9 +208,20 @@ class DeviceServiceRepository(context: Context? = null) {
         if (credential.deviceId != deviceId || credential.identifier != "ml-android-${identity.keyId()}") {
             return@withContext EnrollmentState.BLOCKED
         }
-        val response = agentRequest(AGENT_CONFIG_PATH, "GET", null, credential.token)
+        val response = performEnrollmentPortalRequest(
+            path = DEVICE_STATUS_PATH,
+            method = "GET",
+            body = null,
+            authorization = "Bearer+Agent ${credential.token}",
+        )
         when (response.status) {
             in 200..299 -> {
+                val verifiedDeviceId = runCatching {
+                    JSONObject(response.body).getString("device_id")
+                }.getOrElse { return@withContext EnrollmentState.BLOCKED }
+                if (verifiedDeviceId != credential.deviceId) {
+                    return@withContext EnrollmentState.BLOCKED
+                }
                 runCatching { checkIn(credential.token, credential.identifier, mode, identity) }
                 EnrollmentState.TRUSTED
             }
@@ -446,22 +458,25 @@ class DeviceServiceRepository(context: Context? = null) {
 
     private fun performEnrollmentPortalRequest(
         path: String,
-        body: String,
+        method: String,
+        body: String?,
         authorization: String,
     ): HttpResponse {
         val connection = URL(BuildConfig.ENROLLMENT_SERVICE_BASE_URL.trimEnd('/') + path)
             .openConnection() as HttpURLConnection
         try {
             connection.instanceFollowRedirects = false
-            connection.requestMethod = "POST"
+            connection.requestMethod = method
             connection.connectTimeout = 10_000
             connection.readTimeout = 20_000
             connection.setRequestProperty("Accept", "application/json")
             connection.setRequestProperty("Authorization", authorization)
             connection.setRequestProperty("User-Agent", "MissionLebenPortal/${BuildConfig.VERSION_NAME}")
-            connection.doOutput = true
-            connection.setRequestProperty("Content-Type", "application/json")
-            connection.outputStream.bufferedWriter().use { it.write(body) }
+            if (body != null) {
+                connection.doOutput = true
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.outputStream.bufferedWriter().use { it.write(body) }
+            }
             val responseCode = connection.responseCode
             val response = (if (responseCode in 200..299) connection.inputStream else connection.errorStream)
                 ?.bufferedReader()?.use { it.readText() }.orEmpty()
@@ -510,5 +525,6 @@ class DeviceServiceRepository(context: Context? = null) {
         const val AGENT_ENROLL_PATH = "/api/v3/endpoints/agents/connectors/enroll/"
         const val AGENT_CONFIG_PATH = "/api/v3/endpoints/agents/connectors/agent_config/"
         const val AGENT_CHECK_IN_PATH = "/api/v3/endpoints/agents/connectors/check_in/"
+        const val DEVICE_STATUS_PATH = "/api/v1/devices/status"
     }
 }

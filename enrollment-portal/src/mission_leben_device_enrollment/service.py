@@ -64,6 +64,13 @@ class EnrollmentService:
         self.authentik = authentik
         self._redemption_lock = asyncio.Lock()
 
+    async def device_status(self, agent_token: str) -> dict[str, Any]:
+        device_uuid = await self.authentik.agent_device_id(agent_token)
+        device = await self.authentik.device(device_uuid)
+        if self._is_inactive(device):
+            raise AuthentikError(403, "Das Gerät ist deaktiviert oder abgelaufen.")
+        return {"device_id": device_uuid, "trusted": True}
+
     async def organizations_for(self, actor: Actor) -> list[dict[str, Any]]:
         groups = await self.authentik.organization_groups(
             None if actor.has_global_scope else actor.organization_names
@@ -353,24 +360,26 @@ class EnrollmentService:
         new_device_uuid = await self.authentik.agent_device_id(agent_token)
         new_device = await self.authentik.device(new_device_uuid)
         if str(new_device.get("access_group") or "") != access_group_uuid:
-            await self._expire_new_device_after_failed_replacement(new_device_uuid)
+            await self._disable_new_device_after_failed_replacement(new_device_uuid)
             raise AuthentikError(
                 502,
                 "Das neue Gerät wurde nicht der erwarteten Gerätegruppe zugeordnet.",
             )
 
-        to_expire = [
+        to_disable = [
             device for device in previous_devices if device.device_uuid != new_device_uuid
         ]
-        if not to_expire:
+        if not to_disable:
             return new_device_uuid
 
-        expired_at = datetime.now(UTC)
+        disabled_at = datetime.now(UTC)
         try:
-            for device in to_expire:
-                await self.authentik.expire_device(device.device_uuid, expired_at)
+            for device in to_disable:
+                await self.authentik.disable_device(
+                    device.device_uuid, disabled_at, "replaced"
+                )
         except Exception as error:
-            await self._expire_new_device_after_failed_replacement(new_device_uuid)
+            await self._disable_new_device_after_failed_replacement(new_device_uuid)
             raise AuthentikError(
                 502,
                 "Der sichere Geräteaustausch konnte nicht abgeschlossen werden. "
@@ -378,12 +387,14 @@ class EnrollmentService:
             ) from error
         return new_device_uuid
 
-    async def _expire_new_device_after_failed_replacement(self, device_uuid: str) -> None:
+    async def _disable_new_device_after_failed_replacement(self, device_uuid: str) -> None:
         try:
-            await self.authentik.expire_device(device_uuid, datetime.now(UTC))
+            await self.authentik.disable_device(
+                device_uuid, datetime.now(UTC), "replacement-failed"
+            )
         except Exception:
             LOGGER.critical(
-                "failed to expire newly enrolled device %s after replacement failure",
+                "failed to disable newly enrolled device %s after replacement failure",
                 device_uuid,
                 exc_info=True,
             )
@@ -393,7 +404,7 @@ class EnrollmentService:
     ) -> dict[str, tuple[RegisteredDevice, ...]]:
         devices_by_user: dict[str, list[RegisteredDevice]] = {}
         for device in await self.authentik.devices():
-            if self._is_expired(device):
+            if self._is_inactive(device):
                 continue
             attributes = (device.get("access_group_obj") or {}).get("attributes", {})
             if attributes.get("mission-leben.de/mode") != "personal":
@@ -413,7 +424,7 @@ class EnrollmentService:
         return tuple(
             self._registered_device(device)
             for device in await self.authentik.devices(access_group_uuid)
-            if not self._is_expired(device)
+            if not self._is_inactive(device)
         )
 
     @staticmethod
@@ -431,6 +442,16 @@ class EnrollmentService:
             name=str(device.get("name") or "Unbenanntes Gerät"),
             last_seen=last_seen,
         )
+
+    @staticmethod
+    def _is_disabled(device: dict[str, Any]) -> bool:
+        return (
+            device.get("attributes") or {}
+        ).get("mission-leben.de/status") == "disabled"
+
+    @classmethod
+    def _is_inactive(cls, device: dict[str, Any]) -> bool:
+        return cls._is_disabled(device) or cls._is_expired(device)
 
     @staticmethod
     def _is_expired(device: dict[str, Any]) -> bool:

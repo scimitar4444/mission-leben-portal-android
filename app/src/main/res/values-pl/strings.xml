@@ -52,6 +52,16 @@
     <string name="session_valid_days">Logowanie ważne jeszcze przez %1$d dni</string>
     <string name="session_valid_one_day">Logowanie ważne jeszcze przez 1 dzień</string>
     <string name="session_valid_today">Odnów logowanie dzisiaj</string>
+    <string name="session_valid_days_short">%1$d dni</string>
+    <string name="session_valid_one_day_short">1 dzień</string>
+    <string name="session_valid_today_short">Dzisiaj</string>
+    <string name="news_title">Aktualności</string>
+    <string name="news_all">Wszystkie wiadomości</string>
+    <string name="birthday_greeting">Wszystkiego najlepszego z okazji urodzin, %1$s!</string>
+    <string name="motivation_welcome">Dobrze, że jesteś.</string>
+    <string name="motivation_together">Razem możemy wiele zmienić.</string>
+    <string name="motivation_thanks">Dziękujemy za Twoje zaangażowanie.</string>
+    <string name="motivation_today">Zróbmy z dzisiejszego dnia dobry dzień.</string>
     <string name="shared_login_description">Każda osoba loguje się oddzielnie. Na tablecie nie pozostaje osobisty token.</string>
     <string name="end_session_securely">Bezpiecznie zakończ sesję</string>
     <string name="sign_out">Wyloguj się</string>
@@ -113,6 +123,7 @@
     <string name="secure_key_not_released">Bezpieczny klucz nie został udostępniony.</string>
     <string name="quick_access_failed">Nie udało się otworzyć szybkiego dostępu: %1$s</string>
     <string name="quick_access_enable_title">Włącz szybki dostęp</string>
+    <string name="quick_access_open">Otwórz biometrią</string>
     <string name="portal_open_title">Otwórz Mission Leben Zentral</string>
     <string name="biometric_subtitle">Użyj odcisku palca, twarzy lub kodu urządzenia</string>
     <string name="auth_oidc_config_failed">Nie udało się załadować konfiguracji OIDC.</string>

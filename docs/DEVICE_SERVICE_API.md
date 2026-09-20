@@ -23,7 +23,7 @@ Authorization: Bearer <Authentik-EnrollmentToken>
 ```
 
 ```http
-GET /api/v3/endpoints/agents/connectors/agent_config/
+GET https://geraete.mission-leben.de/api/v1/devices/status
 Authorization: Bearer+Agent <Authentik-DeviceToken>
 ```
 
@@ -68,7 +68,7 @@ Content-Type: application/json
 }
 ```
 
-Vor dem Speichern prueft die Bridge das Benutzer-Access-Token ueber Authentik UserInfo und das Device Token live ueber Authentik `agent_config`. Die von Authentik gelieferte Device-UUID muss mit der URL uebereinstimmen.
+Vor dem Speichern prueft die Bridge das Benutzer-Access-Token ueber Authentik UserInfo und das Device Token live ueber den Statusendpunkt des Geräteportals. Dieser liest den Datensatz einschließlich Ablauf- und Deaktivierungsstatus direkt aus Authentik. Die von Authentik gelieferte Device-UUID muss mit der URL uebereinstimmen.
 
 Die FCM-Installations-ID und das Authentik-Device-Token werden getrennt mit AES-256-GCM verschluesselt gespeichert. Der P-256-Schluessel dient nur der Kommunikationssignatur; sein privater Teil verlaesst den Android Keystore nie. `standard` liefert Titel und Zusammenfassung, `detailed` zusaetzlich eine kurze Vorschau, `minimal` nur einen neutralen lokalen Hinweis. Shared Tablets werden server- und clientseitig immer auf `minimal` reduziert.
 

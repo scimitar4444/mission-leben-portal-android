@@ -57,26 +57,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.missionleben.portal.BuildConfig
 import de.missionleben.portal.R
+import de.missionleben.portal.auth.IdentityBirthday
 import de.missionleben.portal.auth.ReauthenticationPolicy
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
+import de.missionleben.portal.model.NewsItem
 import de.missionleben.portal.model.PortalCapability
 import de.missionleben.portal.model.PortalApplication
 import de.missionleben.portal.model.UiState
 import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.update.UpdateStatus
 import kotlinx.coroutines.delay
+import java.text.DateFormat
+import java.time.LocalDate
+import java.util.Date
 
 @Composable
 fun MissionLebenApp(
     state: UiState,
     onStartLogin: () -> Unit,
+    onRetryQuickUnlock: () -> Unit,
     onOpenUrl: (String) -> Unit,
+    onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onScanEnrollmentQr: () -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
+    onEnableQuickUnlock: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onLogout: () -> Unit,
@@ -109,10 +117,14 @@ fun MissionLebenApp(
             Home(
                 state = state,
                 onStartLogin = onStartLogin,
+                onRetryQuickUnlock = onRetryQuickUnlock,
                 onOpenUrl = onOpenUrl,
+                onOpenPublicUrl = onOpenPublicUrl,
                 onReloadApplications = onReloadApplications,
                 onScanEnrollmentQr = onScanEnrollmentQr,
+                onSelfEnrollment = onSelfEnrollment,
                 onRefreshDeviceStatus = onRefreshDeviceStatus,
+                onEnableQuickUnlock = onEnableQuickUnlock,
                 onOpenTalk = onOpenTalk,
                 onNotificationPrivacyChange = onNotificationPrivacyChange,
                 onLogout = onLogout,
@@ -289,10 +301,14 @@ private fun Onboarding(
 private fun Home(
     state: UiState,
     onStartLogin: () -> Unit,
+    onRetryQuickUnlock: () -> Unit,
     onOpenUrl: (String) -> Unit,
+    onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onScanEnrollmentQr: () -> Unit,
+    onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
+    onEnableQuickUnlock: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onLogout: () -> Unit,
@@ -310,6 +326,7 @@ private fun Home(
             state = state,
             onBack = { settingsOpen = false },
             onScanEnrollmentQr = onScanEnrollmentQr,
+            onSelfEnrollment = onSelfEnrollment,
             onRefreshDeviceStatus = onRefreshDeviceStatus,
             onNotificationPrivacyChange = onNotificationPrivacyChange,
             onLogout = onLogout,
@@ -340,14 +357,29 @@ private fun Home(
             }
         }
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
-        item { AccountSummary(state, onStartLogin) }
-        item { DeviceStatusSummary(state, onScanEnrollmentQr, onRefreshDeviceStatus) }
+        if (state.signedIn) {
+            item { Greeting(state) }
+            if (state.newsLoading || state.news.isNotEmpty()) {
+                item { NewsPanel(state.news, state.newsLoading, onOpenPublicUrl) }
+            }
+        } else {
+            item { SignInSummary(state, onStartLogin, onRetryQuickUnlock) }
+        }
+        if (state.enrollmentState != EnrollmentState.TRUSTED) {
+            item {
+                DeviceStatusSummary(
+                    state,
+                    onScanEnrollmentQr,
+                    onSelfEnrollment,
+                    onRefreshDeviceStatus,
+                )
+            }
+        }
 
         if (state.signedIn) {
             item {
                 SectionTitle(
                     title = stringResource(R.string.web_apps_title),
-                    subtitle = stringResource(R.string.web_apps_subtitle),
                     action = stringResource(R.string.refresh),
                     onAction = onReloadApplications,
                 )
@@ -373,6 +405,7 @@ private fun Home(
             if (PortalCapability.OPEN_TALK in state.capabilities) {
                 item { TalkToolCard { talkDialogOpen = true } }
             }
+            item { AccountDeviceSummary(state, onEnableQuickUnlock) }
         }
     }
 
@@ -393,6 +426,7 @@ private fun SettingsScreen(
     state: UiState,
     onBack: () -> Unit,
     onScanEnrollmentQr: () -> Unit,
+    onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onLogout: () -> Unit,
@@ -422,7 +456,7 @@ private fun SettingsScreen(
             }
         }
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
-        item { DevicePanel(state, onScanEnrollmentQr, onRefreshDeviceStatus) }
+        item { DevicePanel(state, onScanEnrollmentQr, onSelfEnrollment, onRefreshDeviceStatus) }
         if (state.signedIn) {
             item { NotificationPrivacyPanel(state, onNotificationPrivacyChange) }
         }
@@ -515,33 +549,154 @@ private fun BrandHeader() {
 }
 
 @Composable
-private fun AccountSummary(state: UiState, onStartLogin: () -> Unit) {
+private fun Greeting(state: UiState) {
+    val displayName = state.user?.displayName.orEmpty()
+    val motivationTexts = listOf(
+        stringResource(R.string.motivation_welcome),
+        stringResource(R.string.motivation_together),
+        stringResource(R.string.motivation_thanks),
+        stringResource(R.string.motivation_today),
+    )
+    val motivationIndex = Math.floorMod(
+        "${state.user?.subject.orEmpty()}:${LocalDate.now().toEpochDay()}".hashCode(),
+        motivationTexts.size,
+    )
+    Column(Modifier.fillMaxWidth().padding(horizontal = 2.dp, vertical = 2.dp)) {
+        Text(
+            stringResource(R.string.hello_name, displayName),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (IdentityBirthday.isToday(state.user?.birthdayMonthDay)) {
+            Spacer(Modifier.height(7.dp))
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(12.dp),
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("🎂", fontSize = 18.sp)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        stringResource(R.string.birthday_greeting, displayName),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
+        } else {
+            Spacer(Modifier.height(2.dp))
+            Text(
+                motivationTexts[motivationIndex],
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SignInSummary(
+    state: UiState,
+    onStartLogin: () -> Unit,
+    onRetryQuickUnlock: () -> Unit,
+) {
     val deviceAllowsLogin = !state.deviceServiceConfigured || state.enrollmentState == EnrollmentState.TRUSTED
+    val quickUnlockAvailable =
+        state.mode == DeviceMode.PERSONAL &&
+            state.quickUnlockEnabled &&
+            !state.reauthenticationRequired
     Card(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        if (state.signedIn) {
+        Column(Modifier.padding(18.dp)) {
+            Text(
+                if (state.reauthenticationRequired) {
+                    stringResource(R.string.reauthenticate_title)
+                } else {
+                    stringResource(R.string.secure_sign_in)
+                },
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(5.dp))
+            Text(
+                when {
+                    state.enrollmentState == EnrollmentState.BLOCKED -> stringResource(R.string.device_blocked_description)
+                    state.deviceServiceConfigured && state.enrollmentState != EnrollmentState.TRUSTED -> stringResource(R.string.device_pending_description)
+                    state.reauthenticationRequired -> stringResource(R.string.reauthenticate_description)
+                    state.mode == DeviceMode.PERSONAL -> stringResource(R.string.first_login_description)
+                    else -> stringResource(R.string.shared_login_description)
+                },
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(12.dp))
+            Button(
+                onClick = if (quickUnlockAvailable) onRetryQuickUnlock else onStartLogin,
+                enabled = !state.busy && deviceAllowsLogin,
+            ) {
+                if (state.busy) {
+                    CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                } else {
+                    Text(
+                        stringResource(
+                            when {
+                                state.reauthenticationRequired -> R.string.reauthenticate_action
+                                quickUnlockAvailable -> R.string.quick_access_open
+                                else -> R.string.sign_in_with_authentik
+                            },
+                        ),
+                    )
+                }
+            }
+            if (quickUnlockAvailable) {
+                TextButton(
+                    onClick = onStartLogin,
+                    enabled = !state.busy && deviceAllowsLogin,
+                ) {
+                    Text(stringResource(R.string.sign_in_with_authentik))
+                }
+            }
+            if (state.enrollmentState == EnrollmentState.TRUSTED) {
+                Spacer(Modifier.height(12.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(Modifier.height(10.dp))
+                TrustedDeviceStatusRow(state)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountDeviceSummary(state: UiState, onEnableQuickUnlock: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(14.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(14.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        stringResource(R.string.hello_name, state.user?.displayName.orEmpty()),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        state.mode?.let { stringResource(it.labelRes) }.orEmpty(),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp,
-                    )
-                }
+                Text(
+                    state.mode?.let { stringResource(it.labelRes) }.orEmpty(),
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 if (state.mode == DeviceMode.PERSONAL) {
                     val remainingDays = state.user?.let {
                         ReauthenticationPolicy.remainingDays(it.authenticatedAtEpochSeconds)
@@ -550,42 +705,20 @@ private fun AccountSummary(state: UiState, onStartLogin: () -> Unit) {
                     SessionValidityPill(remainingDays)
                 }
             }
-        } else {
-            Column(Modifier.padding(18.dp)) {
-                Text(
-                    if (state.reauthenticationRequired) {
-                        stringResource(R.string.reauthenticate_title)
-                    } else {
-                        stringResource(R.string.secure_sign_in)
-                    },
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(Modifier.height(5.dp))
-                Text(
-                    when {
-                        state.enrollmentState == EnrollmentState.BLOCKED -> stringResource(R.string.device_blocked_description)
-                        state.deviceServiceConfigured && state.enrollmentState != EnrollmentState.TRUSTED -> stringResource(R.string.device_pending_description)
-                        state.reauthenticationRequired -> stringResource(R.string.reauthenticate_description)
-                        state.mode == DeviceMode.PERSONAL -> stringResource(R.string.first_login_description)
-                        else -> stringResource(R.string.shared_login_description)
-                    },
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
-                )
+            if (state.mode == DeviceMode.PERSONAL && !state.quickUnlockEnabled) {
                 Spacer(Modifier.height(12.dp))
-                Button(onClick = onStartLogin, enabled = !state.busy && deviceAllowsLogin) {
-                    if (state.busy) {
-                        CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
-                    } else {
-                        Text(
-                            stringResource(
-                                if (state.reauthenticationRequired) R.string.reauthenticate_action
-                                else R.string.sign_in_with_authentik,
-                            ),
-                        )
-                    }
+                OutlinedButton(
+                    onClick = onEnableQuickUnlock,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.quick_access_enable_title))
                 }
+            }
+            if (state.enrollmentState == EnrollmentState.TRUSTED) {
+                Spacer(Modifier.height(10.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(Modifier.height(10.dp))
+                TrustedDeviceStatusRow(state)
             }
         }
     }
@@ -594,9 +727,9 @@ private fun AccountSummary(state: UiState, onStartLogin: () -> Unit) {
 @Composable
 private fun SessionValidityPill(remainingDays: Long) {
     val label = when (remainingDays) {
-        0L -> stringResource(R.string.session_valid_today)
-        1L -> stringResource(R.string.session_valid_one_day)
-        else -> stringResource(R.string.session_valid_days, remainingDays)
+        0L -> stringResource(R.string.session_valid_today_short)
+        1L -> stringResource(R.string.session_valid_one_day_short)
+        else -> stringResource(R.string.session_valid_days_short, remainingDays)
     }
     Surface(
         color = MaterialTheme.colorScheme.primaryContainer,
@@ -616,10 +749,11 @@ private fun SessionValidityPill(remainingDays: Long) {
 private fun DeviceStatusSummary(
     state: UiState,
     onScanEnrollmentQr: () -> Unit,
+    onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
 ) {
     if (state.enrollmentState != EnrollmentState.TRUSTED) {
-        DevicePanel(state, onScanEnrollmentQr, onRefreshDeviceStatus)
+        DevicePanel(state, onScanEnrollmentQr, onSelfEnrollment, onRefreshDeviceStatus)
         return
     }
     Surface(
@@ -627,18 +761,27 @@ private fun DeviceStatusSummary(
         shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                stringResource(R.string.device_identity),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            StatusPill(state.enrollmentState)
-        }
+        TrustedDeviceStatusRow(
+            state = state,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+        )
+    }
+}
+
+@Composable
+private fun TrustedDeviceStatusRow(state: UiState, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.device_identity),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+        StatusPill(state.enrollmentState)
     }
 }
 
@@ -646,6 +789,7 @@ private fun DeviceStatusSummary(
 private fun DevicePanel(
     state: UiState,
     onScanEnrollmentQr: () -> Unit,
+    onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
 ) {
     Card(
@@ -671,12 +815,36 @@ private fun DevicePanel(
                 )
                 if (state.deviceServiceConfigured) {
                     Spacer(Modifier.height(10.dp))
-                    Button(
-                        onClick = onScanEnrollmentQr,
-                        enabled = !state.busy,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.scan_enrollment_qr))
+                    if (state.mode == DeviceMode.PERSONAL) {
+                        Button(
+                            onClick = onSelfEnrollment,
+                            enabled = !state.busy,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.self_enrollment_action))
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            stringResource(R.string.enrollment_qr_alternative),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = onScanEnrollmentQr,
+                            enabled = !state.busy,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.scan_enrollment_qr))
+                        }
+                    } else {
+                        Button(
+                            onClick = onScanEnrollmentQr,
+                            enabled = !state.busy,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.scan_enrollment_qr))
+                        }
                     }
                 }
             } else if (state.deviceId != null) {
@@ -710,12 +878,69 @@ private fun StatusPill(state: EnrollmentState) {
 }
 
 @Composable
-private fun SectionTitle(title: String, subtitle: String, action: String, onAction: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+private fun NewsPanel(news: List<NewsItem>, loading: Boolean, onOpenUrl: (String) -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(R.string.news_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                TextButton(onClick = { onOpenUrl(BuildConfig.NEWS_PAGE_URL) }) {
+                    Text(stringResource(R.string.news_all))
+                }
+            }
+            if (loading && news.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+                }
+            } else {
+                news.firstOrNull()?.let { item ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenUrl(item.link) }
+                            .padding(vertical = 9.dp),
+                    ) {
+                        if (item.publishedAtEpochSeconds > 0L) {
+                            Text(
+                                DateFormat.getDateInstance(DateFormat.MEDIUM)
+                                    .format(Date(item.publishedAtEpochSeconds * 1_000L)),
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.labelMedium,
+                            )
+                            Spacer(Modifier.height(2.dp))
+                        }
+                        Text(
+                            item.title,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun SectionTitle(title: String, action: String, onAction: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.width(8.dp))
         TextButton(onClick = onAction) { Text(action, maxLines = 1) }
     }

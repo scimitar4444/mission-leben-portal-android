@@ -189,6 +189,7 @@ class AuthRepository(context: Context) {
             email = email,
             loginHint = preferredUsername.ifBlank { email },
             authenticatedAtEpochSeconds = authenticatedAt,
+            birthdayMonthDay = IdentityBirthday.normalizedMonthDay(claims.optString("birthdate")),
         )
     }
 

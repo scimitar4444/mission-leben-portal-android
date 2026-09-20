@@ -27,7 +27,7 @@ if [[ ! -f "$env_file" ]]; then
         'BRIDGE_LISTEN_PORT=8080' \
         'BRIDGE_DATABASE_PATH=/data/bridge.sqlite3' \
         'BRIDGE_AUTHENTIK_USERINFO_URL=https://id.mission-leben.de/application/o/userinfo/' \
-        'BRIDGE_AUTHENTIK_AGENT_CONFIG_URL=https://id.mission-leben.de/api/v3/endpoints/agents/connectors/agent_config/' \
+        'BRIDGE_AUTHENTIK_DEVICE_STATUS_URL=https://geraete.mission-leben.de/api/v1/devices/status' \
         "BRIDGE_INTERNAL_HMAC_SECRET=$internal_hmac_secret" \
         "BRIDGE_DATA_KEY=$data_key" \
         "BRIDGE_DUO_INTEGRATION_KEY=$duo_integration_key" \

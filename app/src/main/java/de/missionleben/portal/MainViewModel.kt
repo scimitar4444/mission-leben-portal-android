@@ -13,6 +13,7 @@ import de.missionleben.portal.auth.AccessTokenFailure
 import de.missionleben.portal.auth.AuthRepository
 import de.missionleben.portal.auth.ReauthenticationPolicy
 import de.missionleben.portal.data.AppPreferences
+import de.missionleben.portal.data.NewsRepository
 import de.missionleben.portal.data.PortalAuthenticationException
 import de.missionleben.portal.data.PortalRepository
 import de.missionleben.portal.device.DeviceServiceRepository
@@ -49,6 +50,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val identity = DeviceIdentity()
     private val authRepository = AuthRepository(application)
     private val portalRepository = PortalRepository()
+    private val newsRepository = NewsRepository(application)
     private val deviceService = DeviceServiceRepository(application)
     private val pushStore = PushRegistrationStore(application)
     private val updateRepository = UpdateRepository(application)
@@ -73,6 +75,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             notificationPrivacy = effectiveNotificationPrivacy(preferences.deviceMode),
             quickUnlockEnabled = vault.hasSession(),
             reauthenticationRequired = preferences.reauthenticationRequired,
+            news = newsRepository.cached(),
         ),
     )
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -96,6 +99,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (preferences.deviceMode == DeviceMode.PERSONAL && vault.hasSession()) {
             _uiState.update { it.copy(vaultRequest = VaultRequest.UNLOCK) }
         }
+        refreshNews()
     }
 
     private fun selectMode(mode: DeviceMode) {
@@ -144,7 +148,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             communicationServiceConfigured = deviceService.communicationConfigured,
             pushConfigured = PushManager.configured,
             notificationPrivacy = NotificationPrivacy.MINIMAL,
+            news = newsRepository.cached(),
         )
+    }
+
+    private fun refreshNews() {
+        if (_uiState.value.newsLoading) return
+        _uiState.update { it.copy(newsLoading = true) }
+        viewModelScope.launch {
+            runCatching { newsRepository.refresh() }
+                .onSuccess { news -> _uiState.update { it.copy(news = news, newsLoading = false) } }
+                .onFailure { _uiState.update { it.copy(newsLoading = false) } }
+        }
     }
 
     fun createLoginUrl(onSuccess: (String) -> Unit) {
@@ -257,6 +272,39 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun retryQuickUnlockSetup() {
+        val state = _uiState.value
+        if (
+            state.mode != DeviceMode.PERSONAL ||
+            !state.signedIn ||
+            pendingVaultState == null ||
+            state.quickUnlockEnabled
+        ) {
+            return
+        }
+        _uiState.update { it.copy(vaultRequest = VaultRequest.SEAL, message = null) }
+    }
+
+    fun retryQuickUnlock() {
+        val state = _uiState.value
+        if (
+            state.mode != DeviceMode.PERSONAL ||
+            state.signedIn ||
+            state.reauthenticationRequired ||
+            state.enrollmentState != EnrollmentState.TRUSTED ||
+            !vault.hasSession()
+        ) {
+            return
+        }
+        _uiState.update {
+            it.copy(
+                quickUnlockEnabled = true,
+                vaultRequest = VaultRequest.UNLOCK,
+                message = null,
+            )
+        }
+    }
+
     fun vaultFailed(message: String) {
         _uiState.update {
             it.copy(
@@ -326,6 +374,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         if (_uiState.value.mode != requestedMode) selectMode(requestedMode)
+        val previousEnrollmentState = preferences.enrollmentState
         _uiState.update { it.copy(busy = true, message = null, enrollmentState = EnrollmentState.PENDING) }
         viewModelScope.launch {
             runCatching { deviceService.enroll(enrollment, requestedMode, identity) }
@@ -348,9 +397,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     onSuccess?.invoke()
                 }
                 .onFailure { error ->
-                    preferences.enrollmentState = EnrollmentState.NOT_ENROLLED
+                    preferences.enrollmentState = previousEnrollmentState
                     _uiState.update {
-                        it.copy(busy = false, enrollmentState = EnrollmentState.NOT_ENROLLED, message = error.message)
+                        it.copy(
+                            busy = false,
+                            enrollmentState = previousEnrollmentState,
+                            message = error.message,
+                        )
                     }
                 }
         }

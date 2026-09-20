@@ -20,7 +20,7 @@ Ein WaitSet arbeitet serverbezogen. Bei mehreren Zimbra-Mailbox-Servern wird des
 
 Authentik Endpoint Devices ist trotz Early Preview die einzige Gerätedatenbank. Enrollment, Device, Connection, Device Token, Fakten, Ablauf und Device Access Group liegen in Authentik. Die Bridge besitzt keine Gerätefreigabe und keine Enrollment-Codes.
 
-Sie speichert nur die für Kommunikation notwendige Zuordnung eines von Authentik live bestätigten Geräts: Authentik-Subject, verschlüsselte Firebase-Installations-ID, verschlüsseltes Authentik-Device-Token, öffentlichen P-256-Kommunikationsschlüssel und Datenschutzmodus. Das Device Token wird vor Registrierung, Zustellung und Detailabruf live über Authentik `agent_config` geprüft.
+Sie speichert nur die für Kommunikation notwendige Zuordnung eines von Authentik live bestätigten Geräts: Authentik-Subject, verschlüsselte Firebase-Installations-ID, verschlüsseltes Authentik-Device-Token, öffentlichen P-256-Kommunikationsschlüssel und Datenschutzmodus. Das Device Token wird vor Registrierung, Zustellung und Detailabruf live über den zustandslosen Statusendpunkt des Geräteportals geprüft. Dieser validiert Token, Ablauf und Deaktivierungsstatus unmittelbar gegen Authentik; das Portal führt keine zweite Gerätedatenbank.
 
 ## Enthaltene Funktionen
 

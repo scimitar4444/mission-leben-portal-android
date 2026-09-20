@@ -75,7 +75,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="de.missionleben.portal" android:host="enroll" />
+                <data android:scheme="${enrollmentScheme}" android:host="enroll" />
             </intent-filter>
 
             <intent-filter android:autoVerify="true">

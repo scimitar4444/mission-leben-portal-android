@@ -33,6 +33,12 @@ data class PortalApplication(
     val iconUrl: String = "",
 )
 
+data class NewsItem(
+    val title: String,
+    val link: String,
+    val publishedAtEpochSeconds: Long,
+)
+
 data class LinkTarget(
     val id: String,
     val name: String,
@@ -71,6 +77,7 @@ data class UserIdentity(
     val email: String,
     val loginHint: String,
     val authenticatedAtEpochSeconds: Long,
+    val birthdayMonthDay: String? = null,
 )
 
 data class UiState(
@@ -84,6 +91,8 @@ data class UiState(
     val vaultRequest: VaultRequest = VaultRequest.NONE,
     val applications: List<PortalApplication> = emptyList(),
     val applicationsLoading: Boolean = false,
+    val news: List<NewsItem> = emptyList(),
+    val newsLoading: Boolean = false,
     val enrollmentState: EnrollmentState = EnrollmentState.NOT_ENROLLED,
     val deviceId: String? = null,
     val deviceKeyId: String = "",

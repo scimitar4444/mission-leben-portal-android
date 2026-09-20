@@ -5,6 +5,8 @@ services:
     env_file: .env
     ports:
       - "127.0.0.1:8080:8080"
+    extra_hosts:
+      - "geraete.mission-leben.de:host-gateway"
     volumes:
       - ./data:/data
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro

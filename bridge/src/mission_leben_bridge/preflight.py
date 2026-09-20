@@ -22,9 +22,7 @@ API_HOSTNAME = re.compile(
 )
 DEFAULT_DATABASE_PATH = "/data/bridge.sqlite3"
 DEFAULT_AUTHENTIK_USERINFO_URL = "https://id.mission-leben.de/application/o/userinfo/"
-DEFAULT_AUTHENTIK_AGENT_CONFIG_URL = (
-    "https://id.mission-leben.de/api/v3/endpoints/agents/connectors/agent_config/"
-)
+DEFAULT_AUTHENTIK_DEVICE_STATUS_URL = "https://geraete.mission-leben.de/api/v1/devices/status"
 
 
 def _value(environment: Mapping[str, str], name: str) -> str:
@@ -82,7 +80,7 @@ def check_bridge(environment: Mapping[str, str]) -> dict[str, Any]:
 
     url_defaults = {
         "BRIDGE_AUTHENTIK_USERINFO_URL": DEFAULT_AUTHENTIK_USERINFO_URL,
-        "BRIDGE_AUTHENTIK_AGENT_CONFIG_URL": DEFAULT_AUTHENTIK_AGENT_CONFIG_URL,
+        "BRIDGE_AUTHENTIK_DEVICE_STATUS_URL": DEFAULT_AUTHENTIK_DEVICE_STATUS_URL,
     }
     for name, default in url_defaults.items():
         if not _valid_url(_value(environment, name) or default, https_only=True):

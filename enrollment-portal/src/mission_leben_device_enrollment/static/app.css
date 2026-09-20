@@ -94,6 +94,16 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .actions { display: flex; justify-content: center; margin-top: 22px; }
 .error-card { max-width: 620px; margin: 40px auto; text-align: center; }
 .error-symbol { display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; background: #fde8e8; color: #a11e2b; font-size: 2rem; font-weight: 900; }
+.ready-card { max-width: 620px; }
+.ready-symbol {
+  display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto 4px;
+  border-radius: 50%; background: #e4f5ef; color: var(--success); font-size: 2rem; font-weight: 900;
+}
+.ready-card .expiry { margin: 18px 0; }
+.ready-card .replacement-warning { margin-top: 18px; }
+.ready-help { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); text-align: left; }
+.ready-help summary { color: var(--berry); font-weight: 800; cursor: pointer; }
+.ready-help .button { width: 100%; }
 
 .install-intro { max-width: 680px; margin-inline: auto; }
 .install-card {

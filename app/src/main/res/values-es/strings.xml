@@ -52,6 +52,16 @@
     <string name="session_valid_days">Acceso válido durante %1$d días más</string>
     <string name="session_valid_one_day">Acceso válido durante 1 día más</string>
     <string name="session_valid_today">Renueva el acceso hoy</string>
+    <string name="session_valid_days_short">%1$d días</string>
+    <string name="session_valid_one_day_short">1 día</string>
+    <string name="session_valid_today_short">Hoy</string>
+    <string name="news_title">Actualidad</string>
+    <string name="news_all">Todas las noticias</string>
+    <string name="birthday_greeting">¡Feliz cumpleaños, %1$s!</string>
+    <string name="motivation_welcome">Qué bien tenerte aquí.</string>
+    <string name="motivation_together">Juntos marcamos la diferencia.</string>
+    <string name="motivation_thanks">Gracias por tu compromiso.</string>
+    <string name="motivation_today">Hagamos que hoy sea un buen día.</string>
     <string name="shared_login_description">Cada persona inicia sesión por separado. No queda ningún token personal en esta tableta.</string>
     <string name="end_session_securely">Finalizar sesión de forma segura</string>
     <string name="sign_out">Cerrar sesión</string>
@@ -113,6 +123,7 @@
     <string name="secure_key_not_released">No se liberó la clave segura.</string>
     <string name="quick_access_failed">No se pudo abrir el acceso rápido: %1$s</string>
     <string name="quick_access_enable_title">Activar acceso rápido</string>
+    <string name="quick_access_open">Abrir con biometría</string>
     <string name="portal_open_title">Abrir Mission Leben Zentral</string>
     <string name="biometric_subtitle">Usa la huella, el rostro o el código del dispositivo</string>
     <string name="auth_oidc_config_failed">No se pudo cargar la configuración OIDC.</string>

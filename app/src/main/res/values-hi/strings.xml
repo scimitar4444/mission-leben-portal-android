@@ -52,6 +52,16 @@
     <string name="session_valid_days">साइन इन %1$d दिन और मान्य है</string>
     <string name="session_valid_one_day">साइन इन 1 दिन और मान्य है</string>
     <string name="session_valid_today">आज साइन इन नवीनीकृत करें</string>
+    <string name="session_valid_days_short">%1$d दिन</string>
+    <string name="session_valid_one_day_short">1 दिन</string>
+    <string name="session_valid_today_short">आज</string>
+    <string name="news_title">ताज़ा समाचार</string>
+    <string name="news_all">सभी समाचार</string>
+    <string name="birthday_greeting">जन्मदिन मुबारक हो, %1$s!</string>
+    <string name="motivation_welcome">अच्छा लगा कि आप यहाँ हैं।</string>
+    <string name="motivation_together">मिलकर हम बदलाव लाते हैं।</string>
+    <string name="motivation_thanks">आपके समर्पण के लिए धन्यवाद।</string>
+    <string name="motivation_today">आज के दिन को अच्छा बनाएं।</string>
     <string name="shared_login_description">हर व्यक्ति अलग से साइन इन करता है। इस टैबलेट पर कोई निजी टोकन नहीं रहता।</string>
     <string name="end_session_securely">सत्र सुरक्षित रूप से समाप्त करें</string>
     <string name="sign_out">साइन आउट</string>
@@ -113,6 +123,7 @@
     <string name="secure_key_not_released">सुरक्षित कुंजी जारी नहीं हुई।</string>
     <string name="quick_access_failed">त्वरित पहुँच नहीं खुली: %1$s</string>
     <string name="quick_access_enable_title">त्वरित पहुँच चालू करें</string>
+    <string name="quick_access_open">बायोमेट्रिक से खोलें</string>
     <string name="portal_open_title">Mission Leben Zentral खोलें</string>
     <string name="biometric_subtitle">फ़िंगरप्रिंट, चेहरा या डिवाइस पिन इस्तेमाल करें</string>
     <string name="auth_oidc_config_failed">OIDC कॉन्फ़िगरेशन लोड नहीं हो सका।</string>

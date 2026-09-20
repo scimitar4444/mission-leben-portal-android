@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 import segno
 from fastapi import FastAPI, Form, Header, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 from pydantic import BaseModel, Field
@@ -157,7 +157,7 @@ def create_app(
             **page_context(current, "issue-self-personal"),
         )
 
-    @app.post("/self/enrollments")
+    @app.post("/self/enrollments", response_class=HTMLResponse)
     async def issue_self_enrollment(
         request: Request,
         csrf_token: str = Form(...),
@@ -165,7 +165,19 @@ def create_app(
         current = authenticated_actor(request)
         csrf.verify_request(request, current, "issue-self-personal", csrf_token)
         enrollment = await service.issue_self_personal(current)
-        return RedirectResponse(enrollment.deep_link(), status_code=303)
+        # A browser may silently reject an automatic custom-scheme redirect
+        # after a form POST. Render a confirmation page instead so opening the
+        # app is an explicit user gesture and works in Chrome and our WebView.
+        return html(
+            "self_ready.html",
+            enrollment=enrollment,
+            app_link=enrollment.deep_link(),
+            fallback_link=enrollment.install_link(settings.public_origin),
+            expires_local=enrollment.expires.astimezone(
+                ZoneInfo(settings.display_timezone)
+            ).strftime("%H:%M Uhr"),
+            **page_context(current),
+        )
 
     @app.get("/personal", response_class=HTMLResponse)
     async def personal(request: Request, q: str = ""):
@@ -242,6 +254,15 @@ def create_app(
             payload.device_name,
         )
         return JSONResponse(result)
+
+    @app.get("/api/v1/devices/status")
+    async def device_status(authorization: str = Header(default="")):
+        if not authorization.startswith("Bearer+Agent "):
+            raise HTTPException(401, "Geräteschlüssel fehlt.")
+        token = authorization.removeprefix("Bearer+Agent ").strip()
+        if not 20 <= len(token) <= 2048 or any(character.isspace() for character in token):
+            raise HTTPException(401, "Geräteschlüssel ist ungültig.")
+        return JSONResponse(await service.device_status(token))
 
     return app
 

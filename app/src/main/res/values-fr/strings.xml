@@ -52,6 +52,16 @@
     <string name="session_valid_days">Connexion valable encore %1$d jours</string>
     <string name="session_valid_one_day">Connexion valable encore 1 jour</string>
     <string name="session_valid_today">Renouveler la connexion aujourd’hui</string>
+    <string name="session_valid_days_short">%1$d jours</string>
+    <string name="session_valid_one_day_short">1 jour</string>
+    <string name="session_valid_today_short">Aujourd’hui</string>
+    <string name="news_title">Actualités</string>
+    <string name="news_all">Toutes les actualités</string>
+    <string name="birthday_greeting">Joyeux anniversaire, %1$s !</string>
+    <string name="motivation_welcome">C’est un plaisir de te voir ici.</string>
+    <string name="motivation_together">Ensemble, nous faisons la différence.</string>
+    <string name="motivation_thanks">Merci pour ton engagement.</string>
+    <string name="motivation_today">Faisons de cette journée une belle journée.</string>
     <string name="shared_login_description">Chaque personne se connecte séparément. Aucun jeton personnel ne reste sur cette tablette.</string>
     <string name="end_session_securely">Terminer la session en sécurité</string>
     <string name="sign_out">Se déconnecter</string>
@@ -113,6 +123,7 @@
     <string name="secure_key_not_released">La clé sécurisée n’a pas été libérée.</string>
     <string name="quick_access_failed">Impossible d’ouvrir l’accès rapide : %1$s</string>
     <string name="quick_access_enable_title">Activer l’accès rapide</string>
+    <string name="quick_access_open">Ouvrir avec la biométrie</string>
     <string name="portal_open_title">Ouvrir Mission Leben Zentral</string>
     <string name="biometric_subtitle">Utilisez empreinte, visage ou code de l’appareil</string>
     <string name="auth_oidc_config_failed">Impossible de charger la configuration OIDC.</string>

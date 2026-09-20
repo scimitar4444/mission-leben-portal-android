@@ -20,6 +20,10 @@ val enrollmentServiceBaseUrl = providers.gradleProperty("ML_ENROLLMENT_SERVICE_B
     .orElse("https://geraete.mission-leben.de")
 val selfEnrollmentUrl = providers.gradleProperty("ML_SELF_ENROLLMENT_URL")
     .orElse("${enrollmentServiceBaseUrl.get().trimEnd('/')}/self")
+val newsFeedUrl = providers.gradleProperty("ML_NEWS_FEED_URL")
+    .orElse("https://www.mission-leben.de/rss.xml")
+val newsPageUrl = providers.gradleProperty("ML_NEWS_PAGE_URL")
+    .orElse("https://www.mission-leben.de/mission-leben-darmstadt/aktuelles-archiv-nachrichten")
 val webAllowedHostSuffixes = providers.gradleProperty("ML_WEB_ALLOWED_HOST_SUFFIXES")
     .orElse("mission-leben.de,akademie-mission-leben.de")
 val authentikAuthenticationFlowSlugs = providers.gradleProperty("ML_AUTHENTIK_AUTHENTICATION_FLOW_SLUGS")
@@ -59,13 +63,14 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 35
-        versionName = "0.10.1"
+        versionCode = 37
+        versionName = "0.10.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
         // cannot compete with the app's enrollment deep links.
         manifestPlaceholders["appAuthRedirectScheme"] = "de.missionleben.portal.appauth"
+        manifestPlaceholders["enrollmentScheme"] = "de.missionleben.portal"
 
         buildConfigField("String", "AUTHENTIK_BASE_URL", authentikBaseUrl.get().asBuildConfigString())
         buildConfigField("String", "OIDC_ISSUER", oidcIssuer.get().asBuildConfigString())
@@ -79,6 +84,8 @@ android {
             enrollmentServiceBaseUrl.get().asBuildConfigString(),
         )
         buildConfigField("String", "SELF_ENROLLMENT_URL", selfEnrollmentUrl.get().asBuildConfigString())
+        buildConfigField("String", "NEWS_FEED_URL", newsFeedUrl.get().asBuildConfigString())
+        buildConfigField("String", "NEWS_PAGE_URL", newsPageUrl.get().asBuildConfigString())
         buildConfigField("String", "WEB_ALLOWED_HOST_SUFFIXES", webAllowedHostSuffixes.get().asBuildConfigString())
         buildConfigField(
             "String",
@@ -104,6 +111,17 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            manifestPlaceholders["appAuthRedirectScheme"] = "de.missionleben.portal.debug.appauth"
+            manifestPlaceholders["enrollmentScheme"] = "de.missionleben.portal.debug"
+            buildConfigField(
+                "String",
+                "OIDC_REDIRECT_URI",
+                "de.missionleben.portal.debug:/oauth2redirect".asBuildConfigString(),
+            )
+        }
         getByName("release") {
             signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = false

@@ -52,6 +52,16 @@
     <string name="session_valid_days">Sign-in valid for %1$d more days</string>
     <string name="session_valid_one_day">Sign-in valid for 1 more day</string>
     <string name="session_valid_today">Renew sign-in today</string>
+    <string name="session_valid_days_short">%1$d days</string>
+    <string name="session_valid_one_day_short">1 day</string>
+    <string name="session_valid_today_short">Today</string>
+    <string name="news_title">Latest news</string>
+    <string name="news_all">All news</string>
+    <string name="birthday_greeting">Happy birthday, %1$s!</string>
+    <string name="motivation_welcome">Great to have you here.</string>
+    <string name="motivation_together">Together, we make a difference.</string>
+    <string name="motivation_thanks">Thank you for all you do.</string>
+    <string name="motivation_today">Let’s make today a good day.</string>
     <string name="shared_login_description">Each person signs in separately. No personal token remains on this tablet.</string>
     <string name="end_session_securely">End session securely</string>
     <string name="sign_out">Sign out</string>
@@ -113,6 +123,7 @@
     <string name="secure_key_not_released">The secure key was not released.</string>
     <string name="quick_access_failed">Quick access was not opened: %1$s</string>
     <string name="quick_access_enable_title">Enable quick access</string>
+    <string name="quick_access_open">Open with biometrics</string>
     <string name="portal_open_title">Open Mission Leben Zentral</string>
     <string name="biometric_subtitle">Use fingerprint, face or device PIN</string>
     <string name="auth_oidc_config_failed">The OIDC configuration could not be loaded.</string>

@@ -32,7 +32,7 @@ class Settings:
     listen_port: int
     database_path: Path
     authentik_userinfo_url: str
-    authentik_agent_config_url: str
+    authentik_device_status_url: str
     internal_hmac_secret: bytes
     data_key: bytes
     firebase_project_id: str
@@ -121,9 +121,9 @@ class Settings:
                 "BRIDGE_AUTHENTIK_USERINFO_URL",
                 "https://id.mission-leben.de/application/o/userinfo/",
             ),
-            authentik_agent_config_url=os.getenv(
-                "BRIDGE_AUTHENTIK_AGENT_CONFIG_URL",
-                "https://id.mission-leben.de/api/v3/endpoints/agents/connectors/agent_config/",
+            authentik_device_status_url=os.getenv(
+                "BRIDGE_AUTHENTIK_DEVICE_STATUS_URL",
+                "https://geraete.mission-leben.de/api/v1/devices/status",
             ),
             internal_hmac_secret=hmac_value.encode(),
             data_key=data_key,

@@ -67,6 +67,16 @@
     <string name="session_valid_days">Anmeldung noch %1$d Tage gültig</string>
     <string name="session_valid_one_day">Anmeldung noch 1 Tag gültig</string>
     <string name="session_valid_today">Anmeldung heute erneuern</string>
+    <string name="session_valid_days_short">%1$d Tage</string>
+    <string name="session_valid_one_day_short">1 Tag</string>
+    <string name="session_valid_today_short">Heute</string>
+    <string name="news_title">Aktuelles</string>
+    <string name="news_all">Alle Meldungen</string>
+    <string name="birthday_greeting">Herzlichen Glückwunsch zum Geburtstag, %1$s!</string>
+    <string name="motivation_welcome">Schön, dass du da bist.</string>
+    <string name="motivation_together">Gemeinsam machen wir den Unterschied.</string>
+    <string name="motivation_thanks">Danke für deinen Einsatz.</string>
+    <string name="motivation_today">Machen wir heute zu einem guten Tag.</string>
     <string name="shared_login_description">Jede Person meldet sich separat an. Auf diesem Tablet bleibt kein persönlicher Token zurück.</string>
     <string name="end_session_securely">Sitzung sicher beenden</string>
     <string name="sign_out">Abmelden</string>
@@ -133,6 +143,7 @@
     <string name="secure_key_not_released">Der sichere Schlüssel wurde nicht freigegeben.</string>
     <string name="quick_access_failed">Schnellzugang nicht geöffnet: %1$s</string>
     <string name="quick_access_enable_title">Schnellzugang aktivieren</string>
+    <string name="quick_access_open">Mit Biometrie öffnen</string>
     <string name="portal_open_title">Mission Leben Zentral öffnen</string>
     <string name="biometric_subtitle">Fingerabdruck, Gesicht oder Gerätecode verwenden</string>
 

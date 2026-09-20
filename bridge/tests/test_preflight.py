@@ -21,7 +21,7 @@ class PreflightTest(unittest.TestCase):
             "BRIDGE_DATA_KEY": base64.urlsafe_b64encode(b"d" * 32).rstrip(b"=").decode(),
             "BRIDGE_DATABASE_PATH": "/data/bridge.sqlite3",
             "BRIDGE_AUTHENTIK_USERINFO_URL": "https://id.example.invalid/application/o/userinfo/",
-            "BRIDGE_AUTHENTIK_AGENT_CONFIG_URL": "https://id.example.invalid/api/v3/endpoints/agents/connectors/agent_config/",
+            "BRIDGE_AUTHENTIK_DEVICE_STATUS_URL": "https://geraete.example.invalid/api/v1/devices/status",
         }
 
     def tearDown(self) -> None:
@@ -44,7 +44,7 @@ class PreflightTest(unittest.TestCase):
             if key not in {
                 "BRIDGE_DATABASE_PATH",
                 "BRIDGE_AUTHENTIK_USERINFO_URL",
-                "BRIDGE_AUTHENTIK_AGENT_CONFIG_URL",
+                "BRIDGE_AUTHENTIK_DEVICE_STATUS_URL",
             }
         }
 

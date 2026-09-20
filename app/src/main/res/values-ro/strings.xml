@@ -52,6 +52,16 @@
     <string name="session_valid_days">Autentificarea mai este valabilă %1$d zile</string>
     <string name="session_valid_one_day">Autentificarea mai este valabilă 1 zi</string>
     <string name="session_valid_today">Reînnoiește autentificarea astăzi</string>
+    <string name="session_valid_days_short">%1$d zile</string>
+    <string name="session_valid_one_day_short">1 zi</string>
+    <string name="session_valid_today_short">Astăzi</string>
+    <string name="news_title">Noutăți</string>
+    <string name="news_all">Toate știrile</string>
+    <string name="birthday_greeting">La mulți ani, %1$s!</string>
+    <string name="motivation_welcome">Ne bucurăm că ești aici.</string>
+    <string name="motivation_together">Împreună facem diferența.</string>
+    <string name="motivation_thanks">Îți mulțumim pentru implicare.</string>
+    <string name="motivation_today">Să facem din ziua de azi una frumoasă.</string>
     <string name="shared_login_description">Fiecare persoană se autentifică separat. Niciun token personal nu rămâne pe tabletă.</string>
     <string name="end_session_securely">Încheie sesiunea în siguranță</string>
     <string name="sign_out">Deconectare</string>
@@ -113,6 +123,7 @@
     <string name="secure_key_not_released">Cheia sigură nu a fost eliberată.</string>
     <string name="quick_access_failed">Accesul rapid nu a putut fi deschis: %1$s</string>
     <string name="quick_access_enable_title">Activează accesul rapid</string>
+    <string name="quick_access_open">Deschide cu biometrie</string>
     <string name="portal_open_title">Deschide Mission Leben Zentral</string>
     <string name="biometric_subtitle">Folosește amprenta, fața sau codul dispozitivului</string>
     <string name="auth_oidc_config_failed">Configurația OIDC nu a putut fi încărcată.</string>

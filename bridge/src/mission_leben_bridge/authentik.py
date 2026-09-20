@@ -27,9 +27,9 @@ class UserInfo:
 
 
 class AuthentikClient:
-    def __init__(self, userinfo_url: str, agent_config_url: str, timeout: float = 8.0):
+    def __init__(self, userinfo_url: str, device_status_url: str, timeout: float = 8.0):
         self.userinfo_url = userinfo_url
-        self.agent_config_url = agent_config_url
+        self.device_status_url = device_status_url
         self.timeout = timeout
 
     def user_info(self, access_token: str) -> UserInfo:
@@ -80,7 +80,7 @@ class AuthentikClient:
         if not agent_token:
             raise AuthenticationError("missing Authentik device token")
         request = urllib.request.Request(
-            self.agent_config_url,
+            self.device_status_url,
             headers={
                 "Authorization": f"Bearer+Agent {agent_token}",
                 "Accept": "application/json",
@@ -99,5 +99,5 @@ class AuthentikClient:
             raise AuthenticationError("Authentik device status is unavailable") from error
         device_id = str(payload.get("device_id", "")).strip()
         if not device_id:
-            raise AuthenticationError("Authentik agent configuration contains no device id")
+            raise AuthenticationError("Authentik device status contains no device id")
         return device_id

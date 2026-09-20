@@ -52,6 +52,16 @@
     <string name="session_valid_days">Oturum %1$d gün daha geçerli</string>
     <string name="session_valid_one_day">Oturum 1 gün daha geçerli</string>
     <string name="session_valid_today">Oturumu bugün yenile</string>
+    <string name="session_valid_days_short">%1$d gün</string>
+    <string name="session_valid_one_day_short">1 gün</string>
+    <string name="session_valid_today_short">Bugün</string>
+    <string name="news_title">Güncel</string>
+    <string name="news_all">Tüm haberler</string>
+    <string name="birthday_greeting">Doğum günün kutlu olsun, %1$s!</string>
+    <string name="motivation_welcome">Burada olman çok güzel.</string>
+    <string name="motivation_together">Birlikte fark yaratıyoruz.</string>
+    <string name="motivation_thanks">Emeğin için teşekkürler.</string>
+    <string name="motivation_today">Bugünü güzel bir gün yapalım.</string>
     <string name="shared_login_description">Herkes ayrı oturum açar. Bu tablette kişisel belirteç kalmaz.</string>
     <string name="end_session_securely">Oturumu güvenle bitir</string>
     <string name="sign_out">Çıkış yap</string>
@@ -113,6 +123,7 @@
     <string name="secure_key_not_released">Güvenli anahtar serbest bırakılmadı.</string>
     <string name="quick_access_failed">Hızlı erişim açılamadı: %1$s</string>
     <string name="quick_access_enable_title">Hızlı erişimi etkinleştir</string>
+    <string name="quick_access_open">Biyometri ile aç</string>
     <string name="portal_open_title">Mission Leben Zentral’ı aç</string>
     <string name="biometric_subtitle">Parmak izi, yüz veya cihaz kodunu kullanın</string>
     <string name="auth_oidc_config_failed">OIDC yapılandırması yüklenemedi.</string>

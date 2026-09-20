@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Gerätecode erstellt{% endblock %}
+{% block content %}
+<section class="intro centered">
+  <span class="step">Letzter Schritt</span>
+  <h1>Gerätecode erstellt</h1>
+  <p>Öffnen Sie den Code jetzt in <strong>Mission Leben Zentral</strong>, um dieses Handy zu registrieren.</p>
+</section>
+
+<section class="card-form self-card ready-card">
+  <div class="ready-symbol" aria-hidden="true">✓</div>
+  <a class="button primary" href="{{ app_link }}">Mission Leben Zentral öffnen</a>
+  <p class="expiry">Der Code gilt bis {{ expires_local }} und wird nach der ersten erfolgreichen Einrichtung entwertet.</p>
+  {% if enrollment.replaced_devices %}
+  <div class="replacement-warning">
+    <strong>Das bisherige Handy bleibt bis zur erfolgreichen Einrichtung aktiv.</strong>
+    <p>Erst danach wird es aus Sicherheitsgründen deaktiviert und zur Nachverfolgbarkeit aufbewahrt.</p>
+  </div>
+  {% endif %}
+  <details class="ready-help">
+    <summary>Die App öffnet sich nicht?</summary>
+    <p>Verwenden Sie den alternativen Einrichtungslink. Die App muss bereits installiert sein.</p>
+    <a class="button secondary" href="{{ fallback_link }}">Alternativen Link öffnen</a>
+  </details>
+</section>
+{% endblock %}

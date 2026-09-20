@@ -35,9 +35,9 @@ Der Container verifiziert UUID, Tokenwert, Connector, Ablaufzeit, Gerätemodus u
 - Derselbe verifizierte HTTPS-App-Link öffnet eine vorhandene App direkt oder führt auf einem neuen Gerät durch Installation und anschließende Einrichtung. Der Einmal-Token bleibt im URL-Fragment und erreicht den Webserver nicht.
 - Die Android-App fordert nach erfolgreichem Enrollment die normale App-Anmeldung an; Benutzername und Kennwort allein funktionieren auf einem fremden, nicht registrierten Gerät nicht.
 - Pro Mitarbeiter bleibt genau ein persönliches Handy aktiv. Vorhandene aktive Geräte werden in der Auswahl mit Name und letzter Meldung angezeigt.
-- Ein vorhandenes Gerät bleibt während der QR-Ausgabe aktiv. Erst nachdem Authentik den neuen Endpoint erfolgreich registriert und dessen Geräteschlüssel bestätigt hat, setzt der Container alle vorherigen persönlichen Geräte dieser Benutzerbindung auf abgelaufen.
-- Der alte Endpoint wird nicht gelöscht. Er bleibt für Audit und eine kontrollierte Wiederherstellung in Authentik sichtbar, kann aber die Endpoint-Prüfung und damit auch die App-Bestätigung nicht mehr bestehen.
-- Schlägt das Sperren des alten Geräts fehl, wird das neue Gerät vorsorglich ebenfalls auf abgelaufen gesetzt und der Vorgang mit einem Fehler beendet. Ein Shared Tablet wird niemals durch diese Regel ersetzt.
+- Ein vorhandenes Gerät bleibt während der QR-Ausgabe aktiv. Erst nachdem Authentik den neuen Endpoint erfolgreich registriert und dessen Geräteschlüssel bestätigt hat, markiert der Container alle vorherigen persönlichen Geräte dieser Benutzerbindung als deaktiviert.
+- Der alte Endpoint wird weder gelöscht noch mit einem sofortigen Ablaufdatum versehen. Die Attribute `mission-leben.de/status=disabled`, Deaktivierungszeitpunkt und Grund bleiben für Audit und eine kontrollierte Wiederherstellung in Authentik sichtbar; die Authentik-Policies verweigern ihm jede Endpoint-Prüfung und App-Bestätigung.
+- Schlägt das Sperren des alten Geräts fehl, wird das neue Gerät vorsorglich ebenfalls dauerhaft als deaktiviert markiert und der Vorgang mit einem Fehler beendet. Ein Shared Tablet wird niemals durch diese Regel ersetzt.
 
 ## Shared Tablet
 
@@ -61,4 +61,4 @@ Der Container verifiziert UUID, Tokenwert, Connector, Ablaufzeit, Gerätemodus u
 - API- und CSRF-Schlüssel ausschließlich als Read-only-Container-Secrets mit Modus `0600`.
 - Authentik-Audit muss bereits beim Erzeugen des QR-Codes funktionieren; sonst wird der Token gelöscht und kein QR angezeigt.
 - App-Version 0.10.0 oder neuer ist für den verifizierten HTTPS-App-Link erforderlich. Die Selbstregistrierung funktioniert ab 0.8.1; Passkeys sind im Portal-Flow ab der hier dokumentierten Konfiguration zugelassen.
-- Das Portal-Servicekonto benötigt `view_device` und `change_device`, aber ausdrücklich kein `delete_device`, damit es vorhandene persönliche Endpoints anzeigen und nach einem erfolgreichen Austausch ablaufen lassen kann.
+- Das Portal-Servicekonto benötigt `view_device` und `change_device`, aber ausdrücklich kein `delete_device`, damit es vorhandene persönliche Endpoints anzeigen und nach einem erfolgreichen Austausch nachvollziehbar deaktivieren kann.

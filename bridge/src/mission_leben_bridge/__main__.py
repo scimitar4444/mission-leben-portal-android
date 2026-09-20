@@ -19,7 +19,7 @@ def main() -> None:
     store = Store(settings.database_path, settings.internal_hmac_secret, SecretBox(settings.data_key))
     authentik = AuthentikClient(
         settings.authentik_userinfo_url,
-        settings.authentik_agent_config_url,
+        settings.authentik_device_status_url,
     )
     fcm = (
         FcmSender(settings.firebase_project_id, settings.google_credentials_path)

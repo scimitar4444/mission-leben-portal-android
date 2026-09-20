@@ -62,7 +62,10 @@ PROVIDER_NAME = "Provider for Mission Leben Zentral Android"
 APPLICATION_NAME = "Mission Leben Zentral Android"
 APPLICATION_SLUG = "mission-leben-portal"
 CLIENT_ID = "mission-leben-android"
-REDIRECT_URI = "de.missionleben.portal:/oauth2redirect"
+REDIRECT_URIS = (
+    "de.missionleben.portal:/oauth2redirect",
+    "de.missionleben.portal.debug:/oauth2redirect",
+)
 PASSWORD_STAGE_NAME = "default-authentication-password"
 ANDROID_IDENTIFICATION_STAGE_NAME = "Mission Leben Zentral Android - Benutzer"
 ANDROID_TOTP_STAGE_NAME = "Mission Leben Zentral Android - Vorhandenes TOTP bei Wiederanmeldung"
@@ -86,6 +89,10 @@ MOBILE_APPLICATION_SLUGS = (
     "zimbra-mail",
     "exchange-owa",
     "talk",
+)
+TALK_DIRECT_LAUNCH_URL = (
+    "https://nextcloud.mission-leben.de/apps/user_oidc/login/4"
+    "?redirectUrl=https%3A%2F%2Fnextcloud.mission-leben.de%2Fapps%2Fspreed%2F"
 )
 TALK_HANDOFF_GROUP_NAME = "ENT_TALK_RAUMUEBERGABE"
 DEVICE_PROFILE_SWITCH_GROUP_NAME = "ENT_DEVICE_PROFILE_SWITCH"
@@ -126,7 +133,12 @@ device = request.context.get("device")
 if device is None and flow_plan:
     device = flow_plan.context.get("device")
 pending_user = flow_plan.context.get("pending_user") if flow_plan else None
-if device is None or pending_user is None or device.is_expired:
+if (
+    device is None
+    or pending_user is None
+    or device.is_expired
+    or device.attributes.get("mission-leben.de/status") == "disabled"
+):
     return True
 
 access_group = device.access_group
@@ -168,6 +180,7 @@ if (
     or pending_user is None
     or getattr(pending_user, "is_anonymous", True)
     or device.is_expired
+    or device.attributes.get("mission-leben.de/status") == "disabled"
 ):
     return True
 
@@ -212,7 +225,12 @@ if "login" not in prompts or not flow_plan.context.get("pending_user_identifier"
 
 device = request.context.get("device") or flow_plan.context.get("device")
 pending_user = flow_plan.context.get("pending_user")
-if device is None or pending_user is None or device.is_expired:
+if (
+    device is None
+    or pending_user is None
+    or device.is_expired
+    or device.attributes.get("mission-leben.de/status") == "disabled"
+):
     return False
 
 access_group = device.access_group
@@ -334,10 +352,11 @@ provider, _ = OAuth2Provider.objects.update_or_create(
         "grant_types": [GrantType.AUTHORIZATION_CODE, GrantType.REFRESH_TOKEN],
         "_redirect_uris": [
             {
-                "url": REDIRECT_URI,
+                "url": redirect_uri,
                 "matching_mode": RedirectURIMatchingMode.STRICT,
                 "redirect_uri_type": RedirectURIType.AUTHORIZATION,
             }
+            for redirect_uri in REDIRECT_URIS
         ],
         "access_code_validity": "minutes=1",
         "access_token_validity": "minutes=5",
@@ -409,6 +428,11 @@ if missing_mobile_slugs:
         + ", ".join(sorted(missing_mobile_slugs))
     )
 mobile_applications.update(group=MOBILE_APPLICATION_GROUP)
+# Enter Nextcloud through its existing central user_oidc provider. Opening the
+# Talk root directly would first show Nextcloud's provider chooser and require
+# an otherwise redundant tap on "Mission Leben". The redirect target remains
+# the Talk root so the Android WebView can restore its locally remembered room.
+Application.objects.filter(slug="talk").update(meta_launch_url=TALK_DIRECT_LAUNCH_URL)
 
 # The Android client is no longer an administrator-only pilot. Authentication
 # still fails closed for every unregistered or wrongly bound endpoint, and the

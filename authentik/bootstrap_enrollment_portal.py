@@ -22,6 +22,7 @@ from authentik.outposts.apps import MANAGED_OUTPOST
 from authentik.outposts.models import Outpost
 from authentik.policies.models import PolicyBinding, PolicyEngineMode
 from authentik.providers.proxy.models import ProxyMode, ProxyProvider
+from authentik.stages.authenticator_duo.models import AuthenticatorDuoStage
 from authentik.stages.authenticator_validate.models import (
     AuthenticatorValidateStage,
     DeviceClasses,
@@ -44,6 +45,7 @@ IDENTIFICATION_STAGE_NAME = "Mission Leben Geräte-Einrichtung - Benutzer"
 LOGIN_STAGE_NAME = "Mission Leben Geräte-Einrichtung - Browsersitzung"
 PASSWORD_STAGE_NAME = "default-authentication-password"
 AUTHORIZATION_MFA_STAGE_NAME = "Mission Leben Geräte-Einrichtung - Starke Anmeldung"
+APP_APPROVAL_STAGE_NAME = "Mission Leben Zentral - App-Bestätigung"
 ROLE_GROUPS = {
     "ML_DEVICE_INIT_IT": "it",
     "ML_DEVICE_INIT_ZENTRALE": "central",
@@ -295,6 +297,15 @@ for permission_name in PERMISSIONS:
     )
 service_user.remove_all_perms_from_managed_role()
 service_user.assign_perms_to_managed_role(resolved_permissions)
+
+# Authentik 2026.8.3 additionally applies the generic POST object check when
+# import_device_manual resolves its Duo stage. Keep that otherwise broad
+# add-stage permission object-scoped to the one existing app-approval stage.
+app_approval_stage = AuthenticatorDuoStage.objects.get(name=APP_APPROVAL_STAGE_NAME)
+service_user.assign_perms_to_managed_role(
+    "authentik_stages_authenticator_duo.add_authenticatorduostage",
+    app_approval_stage,
+)
 
 api_token, _ = Token.objects.update_or_create(
     identifier=SERVICE_TOKEN_IDENTIFIER,

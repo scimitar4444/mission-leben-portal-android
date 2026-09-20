@@ -26,7 +26,7 @@ Android-App:
 
 Kommunikations-Bridge:
 
-- Live-Prüfung von Authentik-Benutzer und Authentik-Device-Token; keine eigene Gerätefreigabe
+- Live-Prüfung von Authentik-Benutzer und Authentik-Device-Token einschließlich Deaktivierungsstatus; keine eigene Gerätefreigabe
 - verschlüsselte FCM-Installations-IDs
 - FCM HTTP v1 mit Ereignis-ID statt Inhalt
 - Detailfreigabe nur an eine registrierte Kommunikationsidentität, deren Authentik-Device-Token weiterhin gültig ist
@@ -62,6 +62,6 @@ Nextcloud liefert Talk-Ereignisse nicht über den Zimbra-Worker. Die Bridge stel
 
 ## Offboarding
 
-Bei Kontosperre wird die Push-Zuordnung serverseitig deaktiviert. Wenn ein Authentik-Gerät abläuft, gelöscht wird oder sein Connector deaktiviert ist, schlägt die Live-Prüfung fehl und die Bridge entfernt dessen Push-Zuordnung. Die App leert bei erkanntem Sperrstatus oder sicherer Abmeldung WebView-Cookies, Webspeicher, HTTP-Zugangsdaten, Cache, Downloads und lokale Hinweise.
+Bei Kontosperre wird die Push-Zuordnung serverseitig deaktiviert. Wenn ein Authentik-Gerät deaktiviert wird, abläuft, gelöscht wird oder sein Connector deaktiviert ist, schlägt die Live-Prüfung fehl und die Bridge entfernt dessen Push-Zuordnung. Die App leert bei erkanntem Sperrstatus oder sicherer Abmeldung WebView-Cookies, Webspeicher, HTTP-Zugangsdaten, Cache, Downloads und lokale Hinweise.
 
 Ein garantiertes Fernlöschen auf einem dauerhaft ausgeschalteten Gerät ist technisch nicht durch Push erreichbar. Dafür bleibt MDM beziehungsweise Android Work Profile erforderlich.

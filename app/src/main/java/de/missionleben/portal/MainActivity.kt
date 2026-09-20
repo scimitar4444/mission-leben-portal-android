@@ -157,7 +157,9 @@ class MainActivity : FragmentActivity() {
                             }
                         }
                     },
+                    onRetryQuickUnlock = viewModel::retryQuickUnlock,
                     onOpenUrl = viewModel::openApplication,
+                    onOpenPublicUrl = ::openUrl,
                     onReloadApplications = viewModel::loadApplications,
                     onScanEnrollmentQr = ::scanEnrollmentQr,
                     onSelfEnrollment = {
@@ -166,6 +168,7 @@ class MainActivity : FragmentActivity() {
                         )
                     },
                     onRefreshDeviceStatus = viewModel::refreshDeviceStatus,
+                    onEnableQuickUnlock = viewModel::retryQuickUnlockSetup,
                     onOpenTalk = viewModel::openTalkOn,
                     onNotificationPrivacyChange = viewModel::setNotificationPrivacy,
                     onLogout = { viewModel.logout(::openLogout) },

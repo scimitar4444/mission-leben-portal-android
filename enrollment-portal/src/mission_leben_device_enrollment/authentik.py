@@ -248,14 +248,26 @@ class AuthentikClient:
         UUID(device_uuid)
         return await self._request("GET", f"/endpoints/devices/{device_uuid}/")
 
-    async def expire_device(self, device_uuid: str, expires: datetime) -> dict[str, Any]:
+    async def disable_device(
+        self, device_uuid: str, disabled_at: datetime, reason: str
+    ) -> dict[str, Any]:
         UUID(device_uuid)
+        device = await self.device(device_uuid)
+        attributes = {
+            **(device.get("attributes") or {}),
+            "mission-leben.de/status": "disabled",
+            "mission-leben.de/disabled-at": disabled_at.astimezone(UTC)
+            .isoformat()
+            .replace("+00:00", "Z"),
+            "mission-leben.de/disabled-reason": reason,
+        }
         return await self._request(
             "PATCH",
             f"/endpoints/devices/{device_uuid}/",
             json={
-                "expiring": True,
-                "expires": expires.astimezone(UTC).isoformat().replace("+00:00", "Z"),
+                "attributes": attributes,
+                "expiring": False,
+                "expires": None,
             },
         )
 
@@ -316,7 +328,7 @@ class AuthentikClient:
         payload = await self._request(
             "GET",
             "/endpoints/agents/connectors/agent_config/",
-            authorization=f"Bearer {agent_token}",
+            authorization=f"Bearer+Agent {agent_token}",
         )
         device_uuid = str(payload.get("device_id", ""))
         UUID(device_uuid)

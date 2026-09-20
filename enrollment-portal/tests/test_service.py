@@ -21,14 +21,14 @@ class FakeAuthentik:
         self.audit_events = []
         self.deleted_tokens = []
         self.enrolled = []
-        self.expired_devices = []
+        self.disabled_devices = []
         self.login_approval_devices = []
         self._bindings = []
         self.existing_group = None
         self.device_uuid = "eeeeeeee-bbbb-cccc-dddd-eeeeeeeeeeee"
         self.device_records = []
         self.fail_enrollment = False
-        self.fail_expire_for = None
+        self.fail_disable_for = None
         self.user = {
             "pk": 42,
             "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
@@ -118,13 +118,19 @@ class FakeAuthentik:
             device for device in self.device_records if device["device_uuid"] == device_uuid
         )
 
-    async def expire_device(self, device_uuid, expires):
-        if device_uuid == self.fail_expire_for:
-            raise AuthentikError(500, "forced expiry failure")
+    async def disable_device(self, device_uuid, disabled_at, reason):
+        if device_uuid == self.fail_disable_for:
+            raise AuthentikError(500, "forced disable failure")
         device = await self.device(device_uuid)
-        device["expiring"] = True
-        device["expires"] = expires.isoformat()
-        self.expired_devices.append(device_uuid)
+        device["expiring"] = False
+        device["expires"] = None
+        device["attributes"] = {
+            **device.get("attributes", {}),
+            "mission-leben.de/status": "disabled",
+            "mission-leben.de/disabled-at": disabled_at.isoformat(),
+            "mission-leben.de/disabled-reason": reason,
+        }
+        self.disabled_devices.append(device_uuid)
         return device
 
     async def ensure_login_approval_device(self, username, subject):
@@ -285,7 +291,7 @@ async def test_redeem_enrolls_in_authentik_and_deletes_token(settings):
 
 
 @pytest.mark.asyncio
-async def test_personal_redeem_expires_previous_device_only_after_new_enrollment(settings):
+async def test_personal_redeem_disables_previous_device_only_after_new_enrollment(settings):
     authentik = FakeAuthentik(settings)
     old_device_uuid = "ffffffff-bbbb-cccc-dddd-eeeeeeeeeeee"
     authentik.device_records.append(
@@ -311,14 +317,18 @@ async def test_personal_redeem_expires_previous_device_only_after_new_enrollment
     )
 
     assert authentik.enrolled
-    assert authentik.expired_devices == [old_device_uuid]
+    assert authentik.disabled_devices == [old_device_uuid]
+    assert authentik.device_records[0]["expiring"] is False
+    assert authentik.device_records[0]["expires"] is None
+    assert authentik.device_records[0]["attributes"]["mission-leben.de/status"] == "disabled"
+    assert authentik.device_records[0]["attributes"]["mission-leben.de/disabled-reason"] == "replaced"
     assert authentik.device_records[-1]["device_uuid"] == authentik.device_uuid
     assert authentik.device_records[-1]["expiring"] is False
     assert authentik.audit_events[-1][2]["replaced_device_uuids"] == [old_device_uuid]
 
 
 @pytest.mark.asyncio
-async def test_reenrolling_same_device_does_not_expire_it(settings):
+async def test_reenrolling_same_device_does_not_disable_it(settings):
     authentik = FakeAuthentik(settings)
     authentik.device_records.append(
         {
@@ -342,7 +352,7 @@ async def test_reenrolling_same_device_does_not_expire_it(settings):
         "Vorhandenes Handy",
     )
 
-    assert authentik.expired_devices == []
+    assert authentik.disabled_devices == []
 
 
 @pytest.mark.asyncio
@@ -373,12 +383,12 @@ async def test_failed_enrollment_keeps_previous_device_active(settings):
             "Neues Handy",
         )
 
-    assert authentik.expired_devices == []
+    assert authentik.disabled_devices == []
     assert authentik.device_records[0]["expiring"] is False
 
 
 @pytest.mark.asyncio
-async def test_failed_old_device_expiry_locks_new_device(settings):
+async def test_failed_old_device_disable_locks_new_device(settings):
     authentik = FakeAuthentik(settings)
     old_device_uuid = "ffffffff-bbbb-cccc-dddd-eeeeeeeeeeee"
     authentik.device_records.append(
@@ -393,7 +403,7 @@ async def test_failed_old_device_expiry_locks_new_device(settings):
             "attributes": {"serial": "ml-android-fedcba0987654321"},
         }
     )
-    authentik.fail_expire_for = old_device_uuid
+    authentik.fail_disable_for = old_device_uuid
     service = EnrollmentService(settings, authentik)
 
     with pytest.raises(AuthentikError) as error:
@@ -406,7 +416,8 @@ async def test_failed_old_device_expiry_locks_new_device(settings):
         )
 
     assert error.value.status == 502
-    assert authentik.expired_devices == [authentik.device_uuid]
+    assert authentik.disabled_devices == [authentik.device_uuid]
+    assert authentik.device_records[-1]["attributes"]["mission-leben.de/disabled-reason"] == "replacement-failed"
     assert authentik.device_records[0]["expiring"] is False
 
 
@@ -488,6 +499,51 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
         assert invalid_redeem.json() == {"error": "Registrierungscode ist ungültig."}
 
 
+def test_device_status_reads_live_authentik_device_state(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.device_records.append(
+        {
+            "device_uuid": authentik.device_uuid,
+            "name": "Testgerät",
+            "access_group": "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee",
+            "expiring": False,
+            "expires": None,
+            "attributes": {"mission-leben.de/status": "active"},
+        }
+    )
+    app = create_app(settings, authentik)
+
+    with TestClient(app) as client:
+        active = client.get(
+            "/api/v1/devices/status",
+            headers={"authorization": "Bearer+Agent abcdefghijklmnopqrstuvwxyz0123456789_-"},
+        )
+        assert active.status_code == 200
+        assert active.json() == {"device_id": authentik.device_uuid, "trusted": True}
+
+        authentik.device_records[0]["attributes"]["mission-leben.de/status"] = "disabled"
+        disabled = client.get(
+            "/api/v1/devices/status",
+            headers={"authorization": "Bearer+Agent abcdefghijklmnopqrstuvwxyz0123456789_-"},
+        )
+        assert disabled.status_code == 403
+        assert disabled.json() == {"error": "Das Gerät ist deaktiviert oder abgelaufen."}
+
+
+def test_device_status_rejects_missing_or_malformed_agent_token(settings):
+    app = create_app(settings, FakeAuthentik(settings))
+
+    with TestClient(app) as client:
+        missing = client.get("/api/v1/devices/status")
+        malformed = client.get(
+            "/api/v1/devices/status",
+            headers={"authorization": "Bearer+Agent contains spaces and is long enough"},
+        )
+
+    assert missing.status_code == 401
+    assert malformed.status_code == 401
+
+
 def test_asset_links_publishes_only_configured_production_certificate(settings):
     fingerprint = ":".join(["AB"] * 32)
     configured = replace(
@@ -547,9 +603,14 @@ def test_normal_employee_can_only_create_own_enrollment(settings):
             data={"csrf_token": csrf_token},
             follow_redirects=False,
         )
-        assert response.status_code == 303
-        assert response.headers["location"].startswith("de.missionleben.portal://enroll?")
-        assert "mode=personal" in response.headers["location"]
+        assert response.status_code == 200
+        assert "Gerätecode erstellt" in response.text
+        assert "Mission Leben Zentral öffnen" in response.text
+        assert "de.missionleben.portal://enroll?" in response.text
+        assert "mode=personal" in response.text
+        assert settings.public_origin + "/install#" in response.text
+        assert "Der Code gilt bis" in response.text
+        assert "location" not in response.headers
         assert authentik.created_bindings == [
             ("user", "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee", authentik.user["pk"])
         ]
