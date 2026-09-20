@@ -1,16 +1,64 @@
 services:
+  ntfy:
+    image: docker.io/binwiederhier/ntfy:v2.28.0@sha256:f8060a494b69d53866ef505c36a205efcce3204618d6e183a87128cca6e7cac9
+    container_name: mission-leben-ntfy
+    command: ["serve"]
+    restart: unless-stopped
+    init: true
+    user: "10001:10001"
+    environment:
+      NTFY_BASE_URL: https://push.mission-leben.de
+      NTFY_LISTEN_HTTP: :2586
+      NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
+      NTFY_CACHE_DURATION: 1h
+      NTFY_AUTH_FILE: /var/lib/ntfy/user.db
+      NTFY_AUTH_DEFAULT_ACCESS: deny-all
+      NTFY_ENABLE_LOGIN: "false"
+      NTFY_ENABLE_SIGNUP: "false"
+      NTFY_BEHIND_PROXY: "true"
+      NTFY_KEEPALIVE_INTERVAL: 45s
+    ports:
+      - "127.0.0.1:2586:2586"
+    volumes:
+      - ./ntfy-data:/var/lib/ntfy
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: 0.5
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:2586/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
   bridge:
     build: .
     container_name: mission-leben-device-bridge
     restart: unless-stopped
     init: true
     env_file: .env
+    depends_on:
+      ntfy:
+        condition: service_healthy
     ports:
       - "127.0.0.1:8080:8080"
     extra_hosts:
       - "geraete.mission-leben.de:host-gateway"
     volumes:
       - ./data:/data
+      - ./ntfy-data:/ntfy
       - ./secrets/nextcloud-announcements-secret:/run/secrets/nextcloud-announcements-secret:ro
     read_only: true
     tmpfs:

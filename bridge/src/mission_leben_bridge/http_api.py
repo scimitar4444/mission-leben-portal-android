@@ -91,7 +91,7 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                     200,
                     {
                         "status": "ok",
-                        "fcm_configured": self.server.service.fcm.configured,
+                        "ntfy_configured": self.server.service.ntfy.configured,
                         "login_approval_configured": self.server.duo_api is not None,
                         "announcements_configured": bool(
                             self.server.service.announcement_client
@@ -104,8 +104,10 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
             match = re.fullmatch(rf"/v1/push/registrations/{DEVICE_ID}", path)
             if match and method == "PUT":
                 _, payload = self._body_json()
-                self.server.service.register_push(match.group(1), self._bearer(), payload)
-                self._empty(204)
+                self._json(
+                    200,
+                    self.server.service.register_push(match.group(1), self._bearer(), payload),
+                )
                 return
             if match and method == "DELETE":
                 self.server.service.unregister_push(match.group(1), self._bearer())

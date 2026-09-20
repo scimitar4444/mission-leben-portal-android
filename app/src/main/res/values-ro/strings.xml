@@ -187,6 +187,11 @@
     <string name="channel_talk_description">Notificări despre activitatea Talk</string>
     <string name="channel_security_name">Securitatea dispozitivului</string>
     <string name="channel_security_description">Notificări importante privind securitatea dispozitivului</string>
+    <string name="channel_connection_name">Conexiune în fundal</string>
+    <string name="channel_connection_description">Conexiune securizată pentru notificări și blocarea dispozitivului</string>
+    <string name="push_connection_title">Mission Leben – conexiune securizată</string>
+    <string name="push_connection_body">Notificările și securitatea dispozitivului sunt active.</string>
+    <string name="push_registration_invalid">Înregistrarea push securizată nu este validă.</string>
     <string name="login_approval_title">Solicitare de autentificare</string>
     <string name="login_approval_body">Există o solicitare de autentificare.</string>
     <string name="login_approval_application">Aplicație: %1$s</string>

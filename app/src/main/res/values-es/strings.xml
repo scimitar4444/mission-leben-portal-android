@@ -187,6 +187,11 @@
     <string name="channel_talk_description">Notificaciones de actividad en Talk</string>
     <string name="channel_security_name">Seguridad del dispositivo</string>
     <string name="channel_security_description">Notificaciones importantes sobre la seguridad del dispositivo</string>
+    <string name="channel_connection_name">Conexión en segundo plano</string>
+    <string name="channel_connection_description">Conexión segura para avisos y bloqueos del dispositivo</string>
+    <string name="push_connection_title">Mission Leben – conexión segura</string>
+    <string name="push_connection_body">Los avisos y la seguridad del dispositivo están activos.</string>
+    <string name="push_registration_invalid">El registro push seguro no es válido.</string>
     <string name="login_approval_title">Solicitud de inicio de sesión</string>
     <string name="login_approval_body">Hay una solicitud de inicio de sesión.</string>
     <string name="login_approval_application">Aplicación: %1$s</string>

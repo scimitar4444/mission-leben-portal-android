@@ -2,6 +2,7 @@ package de.missionleben.portal
 
 import android.Manifest
 import android.app.Application
+import android.app.NotificationManager
 import android.app.job.JobScheduler
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -26,6 +27,7 @@ import de.missionleben.portal.model.UiState
 import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.PushAction
 import de.missionleben.portal.push.PushManager
+import de.missionleben.portal.push.NtfyCredentialVault
 import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.push.NotificationPresenter
 import de.missionleben.portal.push.PushRegistrationStore
@@ -54,6 +56,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val newsRepository = NewsRepository(application)
     private val deviceService = DeviceServiceRepository(application)
     private val pushStore = PushRegistrationStore(application)
+    private val ntfyVault = NtfyCredentialVault(application)
     private val updateRepository = UpdateRepository(application)
 
     private var serializedAuthState: String? = null
@@ -88,6 +91,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             preferences.enrollmentState = EnrollmentState.NOT_ENROLLED
             vault.clear()
             clearNotifications()
+            PushManager.stop(getApplication())
             _uiState.update {
                 it.copy(
                     deviceId = null,
@@ -111,6 +115,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             preferences.clearReauthentication()
             preferences.clearAnnouncementReadState()
             clearNotifications()
+            PushManager.stop(getApplication())
         }
         preferences.deviceMode = mode
         _uiState.update {
@@ -146,6 +151,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         preferences.clearReauthentication()
         preferences.clearAnnouncementReadState()
         clearNotifications()
+        PushManager.stop(getApplication())
         preferences.deviceMode = null
         _uiState.value = UiState(
             enrollmentState = preferences.enrollmentState,
@@ -523,8 +529,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         dataEncryptionKey?.fill(0)
         dataEncryptionKey = null
         vault.clear()
-        clearNotifications()
-        PushManager.unregister()
+        clearNotifications(preservePushConnection = true)
         _uiState.update {
             it.copy(
                 busy = true,
@@ -563,6 +568,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         vault.clear()
         preferences.clearReauthentication()
         clearNotifications()
+        PushManager.stop(getApplication())
         _uiState.update {
             it.copy(
                 signedIn = false,
@@ -891,6 +897,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             dataEncryptionKey = null
             DeviceSecurityLock.clearPersistentSession(getApplication())
             clearNotifications()
+            PushManager.stop(getApplication())
             _uiState.update {
                 it.copy(
                     enrollmentState = status,
@@ -971,19 +978,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (ContextCompat.checkSelfPermission(
                 getApplication(),
                 Manifest.permission.POST_NOTIFICATIONS,
-            ) != PackageManager.PERMISSION_GRANTED
+        ) != PackageManager.PERMISSION_GRANTED
         ) {
             viewModelScope.launch { runCatching { deviceService.unregisterPush(accessToken, deviceId) } }
-            return
-        }
-        val installationId = PushManager.installationId(getApplication())
-        if (installationId == null) {
-            viewModelScope.launch { runCatching { deviceService.unregisterPush(accessToken, deviceId) } }
+            PushManager.stop(getApplication())
             return
         }
         val privacy = effectiveNotificationPrivacy(mode)
         viewModelScope.launch {
-            runCatching { deviceService.registerPush(accessToken, deviceId, installationId, mode, privacy) }
+            runCatching { deviceService.registerPush(accessToken, deviceId, mode, privacy) }
+                .onSuccess { subscription ->
+                    val previousMessageId = ntfyVault.load()
+                        ?.takeIf {
+                            it.baseUrl == subscription.baseUrl &&
+                                it.topic == subscription.topic &&
+                                it.token == subscription.token
+                        }
+                        ?.lastMessageId
+                        .orEmpty()
+                    ntfyVault.save(subscription.copy(lastMessageId = previousMessageId))
+                    PushManager.start(getApplication())
+                }
         }
     }
 
@@ -1073,9 +1088,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun effectiveNotificationPrivacy(mode: DeviceMode?): NotificationPrivacy =
         NotificationPrivacy.effective(mode, pushStore.personalPrivacy)
 
-    private fun clearNotifications() {
-        NotificationManagerCompat.from(getApplication<Application>()).cancelAll()
-        getApplication<Application>().getSystemService(JobScheduler::class.java).cancelAll()
+    private fun clearNotifications(preservePushConnection: Boolean = false) {
+        val application = getApplication<Application>()
+        if (preservePushConnection) {
+            application.getSystemService(NotificationManager::class.java)
+                .activeNotifications
+                .filter { it.id != PushManager.CONNECTION_NOTIFICATION_ID }
+                .forEach { application.getSystemService(NotificationManager::class.java).cancel(it.id) }
+        } else {
+            NotificationManagerCompat.from(application).cancelAll()
+        }
+        application.getSystemService(JobScheduler::class.java).cancelAll()
     }
 
     private fun string(resourceId: Int, vararg formatArgs: Any): String =

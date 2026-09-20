@@ -211,6 +211,11 @@
     <string name="channel_talk_description">Hinweise auf Talk-Aktivitäten</string>
     <string name="channel_security_name">Gerätesicherheit</string>
     <string name="channel_security_description">Wichtige Hinweise zum Sicherheitsstatus des Geräts</string>
+    <string name="channel_connection_name">Hintergrundverbindung</string>
+    <string name="channel_connection_description">Sichere Verbindung für Hinweise und Gerätesperren</string>
+    <string name="push_connection_title">Mission Leben – sicher verbunden</string>
+    <string name="push_connection_body">Hinweise und Gerätesicherheit sind aktiv.</string>
+    <string name="push_registration_invalid">Die sichere Push-Registrierung ist ungültig.</string>
     <string name="login_approval_title">Anmeldeanfrage</string>
     <string name="login_approval_body">Es liegt eine Anmeldeanfrage vor.</string>
     <string name="login_approval_application">Anwendung: %1$s</string>

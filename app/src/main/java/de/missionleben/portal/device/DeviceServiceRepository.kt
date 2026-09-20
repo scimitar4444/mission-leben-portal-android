@@ -12,6 +12,8 @@ import de.missionleben.portal.model.LoginApprovalRequest
 import de.missionleben.portal.model.PortalCapability
 import de.missionleben.portal.push.NotificationDetail
 import de.missionleben.portal.push.NotificationPrivacy
+import de.missionleben.portal.push.NtfySubscription
+import de.missionleben.portal.push.NtfySubscriptionPolicy
 import de.missionleben.portal.push.PushAction
 import de.missionleben.portal.security.DeviceIdentity
 import kotlinx.coroutines.Dispatchers
@@ -173,24 +175,29 @@ class DeviceServiceRepository(context: Context? = null) {
     suspend fun registerPush(
         accessToken: String,
         deviceId: String,
-        installationId: String,
         mode: DeviceMode,
         privacy: NotificationPrivacy,
-    ) = withContext(Dispatchers.IO) {
+    ): NtfySubscription = withContext(Dispatchers.IO) {
         require(communicationConfigured) { text(R.string.device_service_not_configured) }
         val credential = credentialVault?.load()
             ?: error(text(R.string.device_status_unknown))
         require(credential.deviceId == deviceId) { text(R.string.device_status_unknown) }
         val body = JSONObject()
-            .put("provider", "fcm")
-            .put("installation_id", installationId)
+            .put("provider", "ntfy")
             .put("mode", mode.name.lowercase())
             .put("notification_privacy", privacy.wireName)
             .put("app_version", BuildConfig.VERSION_NAME)
             .put("authentik_device_token", credential.token)
             .put("key_id", DeviceIdentity().keyId())
             .put("public_key_jwk", DeviceIdentity().publicJwk())
-        request("/v1/push/registrations/${encodePathSegment(deviceId)}", "PUT", body.toString(), accessToken)
+        parseNtfySubscription(
+            request(
+                "/v1/push/registrations/${encodePathSegment(deviceId)}",
+                "PUT",
+                body.toString(),
+                accessToken,
+            ),
+        )
     }
 
     suspend fun registerLoginApproval(
@@ -549,6 +556,25 @@ class DeviceServiceRepository(context: Context? = null) {
 
     private fun text(resourceId: Int, vararg formatArgs: Any): String =
         context?.getString(resourceId, *formatArgs) ?: "Invalid input."
+
+    internal fun parseNtfySubscription(value: String): NtfySubscription {
+        val root = JSONObject(value)
+        require(root.optString("provider") == "ntfy") { text(R.string.push_registration_invalid) }
+        val baseUrl = root.optString("base_url").trimEnd('/')
+        val topic = root.optString("topic")
+        val token = root.optString("token")
+        require(
+            NtfySubscriptionPolicy.accepts(
+                baseUrl,
+                topic,
+                token,
+                BuildConfig.NTFY_PUBLIC_BASE_URL,
+            ),
+        ) {
+            text(R.string.push_registration_invalid)
+        }
+        return NtfySubscription(baseUrl, topic, token)
+    }
 
     private companion object {
         const val AGENT_ENROLL_PATH = "/api/v3/endpoints/agents/connectors/enroll/"

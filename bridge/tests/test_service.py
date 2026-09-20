@@ -22,6 +22,7 @@ from mission_leben_bridge.security import (
 )
 from mission_leben_bridge.nextcloud_talk import NextcloudTalkWebhook
 from mission_leben_bridge.nextcloud_announcements import AnnouncementFetchError
+from mission_leben_bridge.ntfy import NtfyCredentials
 from mission_leben_bridge.service import BridgeService
 from mission_leben_bridge.store import Store
 
@@ -43,14 +44,29 @@ class FakeAuthentik:
         return "11111111-1111-1111-1111-111111111111"
 
 
-class FakeFcm:
+class FakeNtfy:
     configured = True
+    public_base_url = "https://push.example.invalid"
 
     def __init__(self) -> None:
-        self.messages: list[tuple[str, dict[str, str]]] = []
+        self.messages: list[tuple[str, str, dict[str, str]]] = []
+        self.revoked: list[tuple[str, str]] = []
 
-    def send(self, installation_id: str, data: dict[str, str]) -> None:
-        self.messages.append((installation_id, data))
+    def provision(self, device_id: str) -> NtfyCredentials:
+        return NtfyCredentials(
+            public_base_url=self.public_base_url,
+            topic="ml-device-topic-0123456789",
+            subscribe_token="tk_" + "s" * 29,
+            publish_token="tk_" + "p" * 29,
+            reader_username="mlr_device012345678901234567",
+            writer_username="mlw_device012345678901234567",
+        )
+
+    def send(self, topic: str, publish_token: str, data: dict[str, str]) -> None:
+        self.messages.append((topic, publish_token, data))
+
+    def revoke(self, reader_username: str, writer_username: str) -> None:
+        self.revoked.append((reader_username, writer_username))
 
 
 class FakeAnnouncements:
@@ -84,13 +100,13 @@ class ServiceTest(unittest.TestCase):
             b"h" * 32,
             SecretBox(b"d" * 32),
         )
-        self.fcm = FakeFcm()
-        self.service = BridgeService(self.store, FakeAuthentik(), self.fcm, ())
+        self.ntfy = FakeNtfy()
+        self.service = BridgeService(self.store, FakeAuthentik(), self.ntfy, ())
 
     def tearDown(self) -> None:
         self.directory.cleanup()
 
-    def test_authentik_device_registration_and_minimal_fcm_payload(self) -> None:
+    def test_authentik_device_registration_and_minimal_ntfy_payload(self) -> None:
         private_key = ec.generate_private_key(ec.SECP256R1())
         numbers = private_key.public_key().public_numbers()
         jwk = {
@@ -101,12 +117,11 @@ class ServiceTest(unittest.TestCase):
         }
         jwk["kid"] = device_key_id(jwk)
         device_id = "11111111-1111-1111-1111-111111111111"
-        self.service.register_push(
+        subscription = self.service.register_push(
             device_id,
             "valid-token",
             {
-                "provider": "fcm",
-                "installation_id": "installation-secret",
+                "provider": "ntfy",
                 "authentik_device_token": "valid-agent-token",
                 "mode": "personal",
                 "notification_privacy": "standard",
@@ -115,6 +130,9 @@ class ServiceTest(unittest.TestCase):
                 "public_key_jwk": jwk,
             },
         )
+        self.assertEqual("https://push.example.invalid", subscription["base_url"])
+        self.assertEqual("ml-device-topic-0123456789", subscription["topic"])
+        self.assertNotIn("publish_token", subscription)
         result = self.service.ingest_event(
             "zimbra",
             {
@@ -129,12 +147,12 @@ class ServiceTest(unittest.TestCase):
 
         self.assertTrue(result["created"])
         self.assertEqual(1, result["dispatched"])
-        self.assertEqual("installation-secret", self.fcm.messages[0][0])
+        self.assertEqual("ml-device-topic-0123456789", self.ntfy.messages[0][0])
         self.assertEqual(
             {"action", "event_id", "event_type", "revision"},
-            set(self.fcm.messages[0][1]),
+            set(self.ntfy.messages[0][2]),
         )
-        self.assertNotIn("Confidential", str(self.fcm.messages[0][1]))
+        self.assertNotIn("Confidential", str(self.ntfy.messages[0][2]))
 
         timestamp = str(int(time.time()))
         detail_path = f"/v1/notifications/{result['event_id']}"
@@ -162,7 +180,7 @@ class ServiceTest(unittest.TestCase):
         service = BridgeService(
             self.store,
             FakeAuthentik(),
-            self.fcm,
+            self.ntfy,
             ({"id": "room-display", "name": "Raumdisplay", "location": "Zentrale", "online": True},),
         )
         self.assertEqual(
@@ -194,7 +212,7 @@ class ServiceTest(unittest.TestCase):
         service = BridgeService(
             self.store,
             UnprivilegedAuthentik(),
-            self.fcm,
+            self.ntfy,
             ({"id": "room-display", "name": "Raumdisplay", "location": "Zentrale", "online": True},),
         )
         self.assertEqual([], service.capabilities("valid-token"))
@@ -225,7 +243,7 @@ class ServiceTest(unittest.TestCase):
             },
         )
         self.assertEqual(0, result["dispatched"])
-        self.assertEqual([], self.fcm.messages)
+        self.assertEqual([], self.ntfy.messages)
         self.assertEqual(0, self.service.dispatch_due_events())
 
     def test_announcements_are_cached_per_authenticated_subject(self) -> None:
@@ -233,7 +251,7 @@ class ServiceTest(unittest.TestCase):
         service = BridgeService(
             self.store,
             FakeAuthentik(),
-            self.fcm,
+            self.ntfy,
             (),
             client,  # type: ignore[arg-type]
             announcement_cache_ttl_seconds=-1,
@@ -268,7 +286,11 @@ class ServiceTest(unittest.TestCase):
         self.store.register_push(
             device_id=device_id,
             subject=subject,
-            installation_id="offboarding-installation",
+            subscribe_token="tk_" + "s" * 29,
+            publish_token="tk_" + "p" * 29,
+            topic="ml-offboarding-topic-012345",
+            reader_username="mlr_offboardingdevice0000000",
+            writer_username="mlw_offboardingdevice0000000",
             agent_token="valid-agent-token",
             key_id=jwk["kid"],
             public_jwk=jwk,
@@ -315,7 +337,7 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual(1, preview["auth_requests"])
         self.assertEqual(1, preview["announcement_cache"])
         self.assertEqual(1, preview["security_signal_targets"])
-        self.assertEqual([], self.fcm.messages)
+        self.assertEqual([], self.ntfy.messages)
         self.assertIsNotNone(self.store.get_registration(device_id))
 
         result = self.service.offboard_subject(subject)
@@ -325,8 +347,16 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual(1, result["handoffs"])
         self.assertEqual(1, result["security_signals_sent"])
         self.assertEqual(
-            ("offboarding-installation", {"action": "refresh_security_state"}),
-            self.fcm.messages[0],
+            (
+                "ml-offboarding-topic-012345",
+                "tk_" + "p" * 29,
+                {"action": "refresh_security_state"},
+            ),
+            self.ntfy.messages[0],
+        )
+        self.assertEqual(
+            [("mlr_offboardingdevice0000000", "mlw_offboardingdevice0000000")],
+            self.ntfy.revoked,
         )
         self.assertIsNone(self.store.get_registration(device_id))
         self.assertFalse(self.store.user_active_state(subject))

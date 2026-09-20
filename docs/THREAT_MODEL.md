@@ -8,7 +8,7 @@
 - Trust-Status gemeinsamer Tablets
 - Liste der für einen Benutzer freigegebenen Anwendungen und Geräte
 - Talk-Raumtoken während einer Übergabe
-- Firebase-Installations-ID und ihre Benutzer-/Gerätezuordnung
+- ntfy-Topic und seine Benutzer-/Gerätezuordnung
 - Absender, Betreff, Terminzeit/-ort und Talk-Vorschau in der Bridge
 
 ## Wesentliche Gegenmaßnahmen
@@ -26,7 +26,7 @@
 | vorheriger Benutzer bleibt auf Shared Tablet angemeldet | kein `offline_access`, kein persistenter AuthState, prominente End-Session-Abmeldung |
 | unbekannte App wird sichtbar | Liste kommt aus policy-geprüfter Authentik-API |
 | kompromittiertes Handy schickt Schad-URL an PC | nur `open_talk(room_token)`, Ziel-URL entsteht im Companion |
-| ausgeschiedener Mitarbeiter nutzt App weiter | Authentik-User und Anwendungssitzungen zentral sperren, Refresh Token widerrufen und Gerätebindung sperren. Die Bridge sendet vor ihrer Datenbereinigung einen inhaltslosen FCM-Weckimpuls; die App prüft Authentik selbst, löscht bei negativer Prüfung Sitzung und Webdaten und schließt einen offenen internen Browser. Zusätzlich erfolgt die Prüfung vor jeder geschützten Web-App und bei Rückkehr ins Portal |
+| ausgeschiedener Mitarbeiter nutzt App weiter | Authentik-User und Anwendungssitzungen zentral sperren, Refresh Token widerrufen und Gerätebindung sperren. Die Bridge sendet vor ihrer Datenbereinigung einen inhaltslosen ntfy-Weckimpuls, widerruft Reader und Writer und löscht die Kommunikationszuordnung; die App prüft Authentik selbst und löscht bei negativer Prüfung Sitzung und Webdaten |
 | Benutzer sieht eine Ankündigung für eine fremde Gruppe | Nextcloud löst serverseitig genau ein aktives Konto auf und filtert gegen dessen aktuelle Gruppen; die Bridge speichert nur dieses bereits gefilterte Ergebnis getrennt nach Authentik-Subject und gibt keine Gruppenbezeichnungen aus |
 | entfernter Benutzer sieht eine alte zwischengespeicherte Ankündigung | jeder Abruf prüft zuerst das Access-Token live bei Authentik; Offboarding löscht den Subject-Cache. Änderungen nur an einer Nextcloud-Gruppenmitgliedschaft können innerhalb der fünfminütigen Frischzeit und bei Nextcloud-Ausfall bis zur markierten Ausfallgrenze nachwirken |
 | fremder Dienst liest Ankündigungen aus Nextcloud | eigener HTTPS-Endpunkt ohne Schreiboperationen; HMAC über Methode, festen Pfad, Zeitstempel, Nonce und Body-Hash mit maximal 60 Sekunden Zeitabweichung; eigenes Secret nur in Nextcloud und Bridge |
@@ -35,7 +35,7 @@
 | Webseite greift unbemerkt auf Kamera/Mikrofon zu | der WebView verweigert jede Medienfreigabe unabhängig von Domain und Android-Berechtigung; `RECORD_AUDIO` ist nicht im Manifest, `CAMERA` ist ausschließlich für den nativen QR-Scanner vorhanden |
 | vorheriger Benutzer hinterlässt Browserdaten | Cookie-Speicher, DOM-/Webspeicher, HTTP-Zugangsdaten, Cache, Formulardaten und App-Downloads werden bei Abmeldung/Profilwechsel gelöscht |
 | veraltete Browserengine | Android System WebView wird separat aktualisiert; MDM muss Updates erzwingen und veraltete Geräte sperren |
-| FCM oder ein fremder Push schleust Text, Schad-URL oder falschen Sperrbefehl ein | FCM enthält nur feste Aktionen sowie gegebenenfalls Ereignis-ID, Typ und Revision; App ignoriert freie Texte/URLs, öffnet ausschließlich eine passende Authentik-App und sperrt erst nach eigener negativer Live-Prüfung bei Authentik |
+| ntfy oder ein fremder Push schleust Text, Schad-URL oder falschen Sperrbefehl ein | ntfy enthält nur feste Aktionen sowie gegebenenfalls Ereignis-ID, Typ und Revision; App ignoriert freie Texte/URLs, öffnet ausschließlich eine passende Authentik-App und sperrt erst nach eigener negativer Live-Prüfung bei Authentik |
 | Ereignis-ID wird abgegriffen | Detailabruf verlangt vertrauenswürdiges gebundenes Gerät, P-256-Signatur, Zeitfenster und einmalige Nonce |
 | fremder QR-Code schleust eine URL oder einen Token ein | Scanner akzeptiert ausschließlich den exakten App-Deep-Link oder `https://geraete.mission-leben.de/install` mit Geheimnis im Fragment und genau einem plausiblen Token; QR-Auswertung und Übergabe bleiben lokal |
 | Enrollment-QR wird kopiert | QR gilt wie der Authentik-Enrollment-Token als Geheimnis, wird nur zehn Minuten und modus-/principal-spezifisch angezeigt und nach erfolgreichem Einlösen serverseitig entwertet. Das URL-Fragment wird weder an Webserver noch Reverse Proxy übertragen. Beim persönlichen Gerät besteht die direkte Benutzerbindung bereits vor der QR-Ausgabe |
@@ -48,11 +48,11 @@
 | GitHub-Release oder OTA-Manifest wird manipuliert | App akzeptiert nur den fest verdrahteten Repositorypfad über HTTPS, einen höheren `versionCode`, die deklarierte Größe und SHA-256-Prüfsumme sowie ein APK mit identischem Paketnamen und demselben Android-Signaturzertifikat wie die installierte App |
 | Android-Signierschlüssel wird entwendet | privater Schlüssel bleibt außerhalb von GitHub und der CI, liegt lokal nur zugriffsgeschützt vor und benötigt eine verschlüsselte Offline-Sicherung; bei Verdacht werden keine weiteren OTA-Releases veröffentlicht |
 | Sperrbildschirm verrät Fachdaten | Android-Notification ist `PRIVATE` und besitzt eine neutrale öffentliche Version; Shared Tablets erzwingen `minimal` |
-| Bridge-Datenbank wird kopiert | FCM-Installations-IDs und die für Live-Prüfungen benötigten Authentik-Device-Token sind mit AES-256-GCM verschlüsselt; Schlüssel liegt nur als Server-Secret vor |
+| Bridge-Datenbank wird kopiert | ntfy-Lese-/Schreibtokens und Authentik-Device-Token sind mit AES-256-GCM verschlüsselt; Schlüssel liegt nur als Server-Secret vor |
 | ausgeschiedener Mitarbeiter behält ein noch gültiges Gerätetoken | der Live-Status prüft bei persönlichen Geräten zusätzlich die eindeutige Authentik-Benutzerbindung und `is_active`; ein fünfminütiger, idempotenter Reconciler deaktiviert das Gerät und bereinigt die Bridge |
 | Zimbra-Integrationskonto wird missbraucht | eigener Worker je Mailbox-Server, explizite Konto-ID-Liste, Secret-Datei, keine Benutzerkennwörter und begrenzte Suchabfragen; Rechte und Audit müssen vor Produktion geprüft werden |
-| FCM-Zuordnung bleibt nach Abmeldung aktiv | App löscht die Zuordnung bestmöglich am Device Service; Server sperrt sie zusätzlich bei Offboarding oder Gerätesperre |
-| Firebase-Dienstkonto wird kompromittiert | Dienstkonto nur im Server-Secret-Store, minimale Berechtigung, kein Schlüssel in Repository oder APK; Versand und Gerätezuordnung auditieren |
+| ntfy-Zuordnung bleibt nach Abmeldung aktiv | Bridge widerruft Reader und Writer; Server sperrt sie zusätzlich bei Offboarding oder Gerätesperre |
+| ntfy-Token wird kompromittiert | getrennte Read-/Write-Benutzer je zufälligem Topic, `deny-all`, keine Inhaltsdaten im Transport und sofortiger Widerruf bei Abmeldung/Sperre |
 
 ## Bewusste MVP-Grenzen
 

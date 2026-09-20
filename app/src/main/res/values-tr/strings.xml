@@ -187,6 +187,11 @@
     <string name="channel_talk_description">Talk etkinlikleri hakkında bildirimler</string>
     <string name="channel_security_name">Cihaz güvenliği</string>
     <string name="channel_security_description">Önemli cihaz güvenliği bildirimleri</string>
+    <string name="channel_connection_name">Arka plan bağlantısı</string>
+    <string name="channel_connection_description">Bildirimler ve cihaz kilitleme için güvenli bağlantı</string>
+    <string name="push_connection_title">Mission Leben – güvenli bağlantı</string>
+    <string name="push_connection_body">Bildirimler ve cihaz güvenliği etkin.</string>
+    <string name="push_registration_invalid">Güvenli anlık bildirim kaydı geçersiz.</string>
     <string name="login_approval_title">Oturum açma isteği</string>
     <string name="login_approval_body">Bir oturum açma isteği var.</string>
     <string name="login_approval_application">Uygulama: %1$s</string>

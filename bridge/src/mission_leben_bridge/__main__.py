@@ -6,9 +6,9 @@ import threading
 from .authentik import AuthentikClient
 from .config import Settings
 from .duo_compat import DuoCompatApi, DuoCompatSettings
-from .fcm import FcmSender, NullFcmSender
 from .http_api import BridgeHttpServer
 from .nextcloud_announcements import NextcloudAnnouncementClient
+from .ntfy import NtfyManager, NullNtfyManager
 from .security import SecretBox
 from .service import BridgeService
 from .store import Store
@@ -22,10 +22,15 @@ def main() -> None:
         settings.authentik_userinfo_url,
         settings.authentik_device_status_url,
     )
-    fcm = (
-        FcmSender(settings.firebase_project_id, settings.google_credentials_path)
-        if settings.fcm_configured and settings.google_credentials_path is not None
-        else NullFcmSender()
+    ntfy = (
+        NtfyManager(
+            settings.ntfy_public_base_url,
+            settings.ntfy_internal_base_url,
+            settings.ntfy_auth_file,
+            settings.ntfy_binary,
+        )
+        if settings.ntfy_configured and settings.ntfy_auth_file is not None
+        else NullNtfyManager()
     )
     announcement_client = None
     if (
@@ -39,7 +44,7 @@ def main() -> None:
     service = BridgeService(
         store,
         authentik,
-        fcm,
+        ntfy,
         settings.talk_targets,
         announcement_client,
         settings.announcement_cache_ttl_seconds,
@@ -69,10 +74,10 @@ def main() -> None:
     dispatcher.start()
     server = BridgeHttpServer(settings, service, duo_api)
     logging.getLogger("mission_leben_bridge").info(
-        "bridge listening on %s:%d (FCM configured: %s, login approval configured: %s)",
+        "bridge listening on %s:%d (ntfy configured: %s, login approval configured: %s)",
         settings.listen_host,
         settings.listen_port,
-        fcm.configured,
+        ntfy.configured,
         duo_api is not None,
     )
     try:

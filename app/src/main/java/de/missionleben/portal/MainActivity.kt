@@ -23,9 +23,9 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.VaultRequest
-import de.missionleben.portal.push.PortalFirebaseMessagingService
 import de.missionleben.portal.push.NotificationPresenter
 import de.missionleben.portal.push.PushCommand
+import de.missionleben.portal.push.PushEventDispatcher
 import de.missionleben.portal.push.PushManager
 import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.ui.MissionLebenApp
@@ -52,13 +52,13 @@ class MainActivity : FragmentActivity() {
     private val pushRegistrationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
-                PortalFirebaseMessagingService.ACTION_REGISTRATION_CHANGED -> viewModel.syncPushRegistration()
-                PortalFirebaseMessagingService.ACTION_LOGIN_APPROVAL_CHANGED -> {
+                PushEventDispatcher.ACTION_REGISTRATION_CHANGED -> viewModel.syncPushRegistration()
+                PushEventDispatcher.ACTION_LOGIN_APPROVAL_CHANGED -> {
                     handleLoginApprovalWake(intent)
                 }
-                PortalFirebaseMessagingService.ACTION_SECURITY_STATE_CHANGED -> {
+                PushEventDispatcher.ACTION_SECURITY_STATE_CHANGED -> {
                     viewModel.acceptBackgroundDeviceStatus(
-                        intent.getStringExtra(PortalFirebaseMessagingService.EXTRA_ENROLLMENT_STATE),
+                        intent.getStringExtra(PushEventDispatcher.EXTRA_ENROLLMENT_STATE),
                     )
                 }
             }
@@ -68,7 +68,7 @@ class MainActivity : FragmentActivity() {
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
-        if (granted) PushManager.register()
+        if (granted) viewModel.syncPushRegistration()
     }
 
     private val updatePermissionLauncher = registerForActivityResult(
@@ -128,7 +128,7 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         PushManager.initialize(this)
         viewModel.acceptEnrollmentLink(intent?.data)
-        viewModel.acceptPushAction(intent?.getStringExtra(PortalFirebaseMessagingService.EXTRA_PUSH_ACTION))
+        viewModel.acceptPushAction(intent?.getStringExtra(PushEventDispatcher.EXTRA_PUSH_ACTION))
         handleLoginApprovalWake(intent)
 
         setContent {
@@ -206,7 +206,7 @@ class MainActivity : FragmentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         viewModel.acceptEnrollmentLink(intent.data)
-        viewModel.acceptPushAction(intent.getStringExtra(PortalFirebaseMessagingService.EXTRA_PUSH_ACTION))
+        viewModel.acceptPushAction(intent.getStringExtra(PushEventDispatcher.EXTRA_PUSH_ACTION))
         handleLoginApprovalWake(intent)
     }
 
@@ -220,9 +220,9 @@ class MainActivity : FragmentActivity() {
             this,
             pushRegistrationReceiver,
             IntentFilter().apply {
-                addAction(PortalFirebaseMessagingService.ACTION_REGISTRATION_CHANGED)
-                addAction(PortalFirebaseMessagingService.ACTION_LOGIN_APPROVAL_CHANGED)
-                addAction(PortalFirebaseMessagingService.ACTION_SECURITY_STATE_CHANGED)
+                addAction(PushEventDispatcher.ACTION_REGISTRATION_CHANGED)
+                addAction(PushEventDispatcher.ACTION_LOGIN_APPROVAL_CHANGED)
+                addAction(PushEventDispatcher.ACTION_SECURITY_STATE_CHANGED)
             },
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
@@ -238,18 +238,18 @@ class MainActivity : FragmentActivity() {
 
     private fun handleLoginApprovalWake(intent: Intent?) {
         val requestId = intent
-            ?.getStringExtra(PortalFirebaseMessagingService.EXTRA_LOGIN_APPROVAL_REQUEST_ID)
+            ?.getStringExtra(PushEventDispatcher.EXTRA_LOGIN_APPROVAL_REQUEST_ID)
             ?.takeIf(PushCommand::validEventId)
             ?: return
         NotificationPresenter.cancelLoginApproval(this, requestId)
-        intent.removeExtra(PortalFirebaseMessagingService.EXTRA_LOGIN_APPROVAL_REQUEST_ID)
+        intent.removeExtra(PushEventDispatcher.EXTRA_LOGIN_APPROVAL_REQUEST_ID)
         viewModel.refreshLoginApproval()
     }
 
     private fun requestNotificationPermissionAfterLogin(signedIn: Boolean) {
         if (!signedIn || !PushManager.configured) return
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-            PushManager.register()
+            viewModel.syncPushRegistration()
             return
         }
         val store = PushRegistrationStore(this)

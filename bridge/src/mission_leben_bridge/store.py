@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hmac
 import json
 import secrets
 import sqlite3
@@ -27,6 +26,11 @@ CREATE TABLE IF NOT EXISTS push_registrations (
     device_id TEXT PRIMARY KEY,
     subject TEXT NOT NULL REFERENCES users(subject) ON DELETE CASCADE,
     installation_id_ciphertext TEXT NOT NULL,
+    push_provider TEXT NOT NULL DEFAULT 'none',
+    ntfy_topic TEXT NOT NULL DEFAULT '',
+    ntfy_reader_username TEXT NOT NULL DEFAULT '',
+    ntfy_writer_username TEXT NOT NULL DEFAULT '',
+    ntfy_publish_token_ciphertext TEXT NOT NULL DEFAULT '',
     agent_token_ciphertext TEXT NOT NULL,
     key_id TEXT NOT NULL UNIQUE,
     public_jwk TEXT NOT NULL,
@@ -105,7 +109,7 @@ CREATE TABLE IF NOT EXISTS announcement_cache (
 CREATE INDEX IF NOT EXISTS auth_requests_subject_status
 ON auth_requests(subject, status, expires_at);
 
-PRAGMA user_version=4;
+PRAGMA user_version=5;
 """
 
 
@@ -134,7 +138,19 @@ class Store:
                 connection.execute(
                     "ALTER TABLE push_registrations ADD COLUMN push_enabled INTEGER NOT NULL DEFAULT 1"
                 )
-            connection.execute("PRAGMA user_version=4")
+            additions = {
+                "push_provider": "TEXT NOT NULL DEFAULT 'none'",
+                "ntfy_topic": "TEXT NOT NULL DEFAULT ''",
+                "ntfy_reader_username": "TEXT NOT NULL DEFAULT ''",
+                "ntfy_writer_username": "TEXT NOT NULL DEFAULT ''",
+                "ntfy_publish_token_ciphertext": "TEXT NOT NULL DEFAULT ''",
+            }
+            for name, definition in additions.items():
+                if name not in columns:
+                    connection.execute(
+                        f"ALTER TABLE push_registrations ADD COLUMN {name} {definition}"
+                    )
+            connection.execute("PRAGMA user_version=5")
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path, timeout=15, factory=ClosingConnection)
@@ -167,6 +183,11 @@ class Store:
                     device_id TEXT PRIMARY KEY,
                     subject TEXT NOT NULL REFERENCES users(subject) ON DELETE CASCADE,
                     installation_id_ciphertext TEXT NOT NULL,
+                    push_provider TEXT NOT NULL DEFAULT 'none',
+                    ntfy_topic TEXT NOT NULL DEFAULT '',
+                    ntfy_reader_username TEXT NOT NULL DEFAULT '',
+                    ntfy_writer_username TEXT NOT NULL DEFAULT '',
+                    ntfy_publish_token_ciphertext TEXT NOT NULL DEFAULT '',
                     agent_token_ciphertext TEXT NOT NULL,
                     key_id TEXT NOT NULL UNIQUE,
                     public_jwk TEXT NOT NULL,
@@ -353,7 +374,11 @@ class Store:
         *,
         device_id: str,
         subject: str,
-        installation_id: str,
+        subscribe_token: str,
+        publish_token: str,
+        topic: str,
+        reader_username: str,
+        writer_username: str,
         agent_token: str,
         key_id: str,
         public_jwk: dict[str, Any],
@@ -377,13 +402,20 @@ class Store:
             connection.execute(
                 """
                 INSERT INTO push_registrations(
-                    device_id, subject, installation_id_ciphertext, agent_token_ciphertext,
+                    device_id, subject, installation_id_ciphertext, push_provider,
+                    ntfy_topic, ntfy_reader_username, ntfy_writer_username,
+                    ntfy_publish_token_ciphertext, agent_token_ciphertext,
                     key_id, public_jwk, mode, privacy, app_version, push_enabled,
                     updated_at, last_verified_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                ) VALUES (?, ?, ?, 'ntfy', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
                 ON CONFLICT(device_id) DO UPDATE SET
                     subject=excluded.subject,
                     installation_id_ciphertext=excluded.installation_id_ciphertext,
+                    push_provider='ntfy',
+                    ntfy_topic=excluded.ntfy_topic,
+                    ntfy_reader_username=excluded.ntfy_reader_username,
+                    ntfy_writer_username=excluded.ntfy_writer_username,
+                    ntfy_publish_token_ciphertext=excluded.ntfy_publish_token_ciphertext,
                     agent_token_ciphertext=excluded.agent_token_ciphertext,
                     key_id=excluded.key_id,
                     public_jwk=excluded.public_jwk,
@@ -397,7 +429,11 @@ class Store:
                 (
                     device_id,
                     subject,
-                    self.secret_box.encrypt(installation_id),
+                    self.secret_box.encrypt(subscribe_token),
+                    topic,
+                    reader_username,
+                    writer_username,
+                    self.secret_box.encrypt(publish_token),
                     self.secret_box.encrypt(agent_token),
                     key_id,
                     compact_json(public_jwk),
@@ -466,7 +502,9 @@ class Store:
             connection.execute(
                 """
                 UPDATE push_registrations
-                SET installation_id_ciphertext = ?, push_enabled = 0, updated_at = ?
+                SET installation_id_ciphertext = ?, push_provider = 'none',
+                    ntfy_topic = '', ntfy_reader_username = '', ntfy_writer_username = '',
+                    ntfy_publish_token_ciphertext = '', push_enabled = 0, updated_at = ?
                 WHERE device_id = ? AND subject = ?
                 """,
                 (self.secret_box.encrypt(""), int(time.time()), device_id, subject),
@@ -535,22 +573,17 @@ class Store:
         if row is None:
             return None
         value = dict(row)
-        value["installation_id"] = self.secret_box.decrypt(value.pop("installation_id_ciphertext"))
+        encrypted_subscription = value.pop("installation_id_ciphertext")
+        encrypted_publish = value.pop("ntfy_publish_token_ciphertext", "")
+        value["subscribe_token"] = (
+            self.secret_box.decrypt(encrypted_subscription) if encrypted_subscription else ""
+        )
+        value["publish_token"] = (
+            self.secret_box.decrypt(encrypted_publish) if encrypted_publish else ""
+        )
         value["agent_token"] = self.secret_box.decrypt(value.pop("agent_token_ciphertext"))
         value["public_jwk"] = json.loads(value["public_jwk"])
         return value
-
-    def remove_registration_by_token(self, installation_id: str) -> None:
-        with self._connect() as connection:
-            rows = connection.execute(
-                "SELECT device_id, installation_id_ciphertext FROM push_registrations"
-            ).fetchall()
-            for row in rows:
-                stored = self.secret_box.decrypt(row["installation_id_ciphertext"])
-                if hmac.compare_digest(stored, installation_id):
-                    connection.execute(
-                        "DELETE FROM push_registrations WHERE device_id = ?", (row["device_id"],)
-                    )
 
     def put_event(self, event: dict[str, Any]) -> tuple[dict[str, Any], bool]:
         now = int(time.time())

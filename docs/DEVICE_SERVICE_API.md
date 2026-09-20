@@ -54,7 +54,7 @@ Authorization: Bearer <authentik-user-access-token>
 
 Die Bridge prueft das Token live am Authentik-UserInfo-Endpunkt und liefert nur fest konfigurierte Talk-Ziele. Sie gibt keine Authentik-Geraeteliste aus.
 
-## FCM-Installation zuordnen
+## ntfy-Kanal zuordnen
 
 ```http
 PUT /v1/push/registrations/{authentik-device-uuid}
@@ -62,8 +62,7 @@ Authorization: Bearer <authentik-user-access-token>
 Content-Type: application/json
 
 {
-  "provider": "fcm",
-  "installation_id": "...",
+  "provider": "ntfy",
   "mode": "personal",
   "notification_privacy": "standard",
   "app_version": "0.6.0",
@@ -81,11 +80,11 @@ Content-Type: application/json
 
 Vor dem Speichern prueft die Bridge das Benutzer-Access-Token ueber Authentik UserInfo und das Device Token live ueber den Statusendpunkt des Geräteportals. Dieser liest den Datensatz einschließlich Ablauf- und Deaktivierungsstatus direkt aus Authentik. Die von Authentik gelieferte Device-UUID muss mit der URL uebereinstimmen.
 
-Die FCM-Installations-ID und das Authentik-Device-Token werden getrennt mit AES-256-GCM verschluesselt gespeichert. Der P-256-Schluessel dient nur der Kommunikationssignatur; sein privater Teil verlaesst den Android Keystore nie. `standard` liefert Titel und Zusammenfassung, `detailed` zusaetzlich eine kurze Vorschau, `minimal` nur einen neutralen lokalen Hinweis. Shared Tablets werden server- und clientseitig immer auf `minimal` reduziert.
+Die Antwort enthält `provider=ntfy`, die fest erwartete öffentliche Basis, ein zufälliges Topic und ausschließlich das Lesetoken. Das getrennte Schreibtoken bleibt AES-256-GCM-verschlüsselt in der Bridge. Auch das Authentik-Device-Token wird verschlüsselt gespeichert. Der P-256-Schluessel dient nur der Kommunikationssignatur; sein privater Teil verlaesst den Android Keystore nie. `standard` liefert Titel und Zusammenfassung, `detailed` zusaetzlich eine kurze Vorschau, `minimal` nur einen neutralen lokalen Hinweis. Shared Tablets werden server- und clientseitig immer auf `minimal` reduziert.
 
 ## Authentik-Anmeldung in der App bestaetigen
 
-Ein persoenliches Geraet registriert denselben Authentik-geprueften Kommunikationsschluessel unabhaengig von FCM:
+Ein persoenliches Geraet registriert denselben Authentik-geprueften Kommunikationsschluessel unabhaengig vom Pushtransport:
 
 ```http
 PUT /v1/auth/registrations/{authentik-device-uuid}
@@ -148,7 +147,7 @@ Die Quellanfrage ist ueber Zeitstempel, Body-Hash und HMAC signiert. Ereignisse 
 
 Vor jeder Zustellung prueft die Bridge das gespeicherte Device Token live bei Authentik. Lehnt Authentik es dauerhaft ab, wird nur die Kommunikationszuordnung aus der Bridge entfernt.
 
-FCM enthaelt ausschliesslich:
+ntfy enthaelt ausschliesslich:
 
 ```json
 {
@@ -159,7 +158,7 @@ FCM enthaelt ausschliesslich:
 }
 ```
 
-Fuer eine Authentik-Anmeldebestaetigung enthaelt FCM ausschliesslich:
+Fuer eine Authentik-Anmeldebestaetigung enthaelt ntfy ausschliesslich:
 
 ```json
 {
@@ -178,7 +177,7 @@ Beim Offboarding sendet die Bridge vor dem Loeschen der Kommunikationszuordnung 
 
 Die App leitet daraus keine Sperre ab, sondern prueft den gebundenen Endpoint live bei Authentik. Nur ein dort nicht mehr gueltiges oder gesperrtes Geraet loescht die lokale Sitzung und die Webdaten.
 
-Die App ruft den Inhalt anschliessend signiert ab. Eine Zustimmung oder Ablehnung wird nie als FCM-Aktion angeboten.
+Die App ruft den Inhalt anschliessend signiert ab. Eine Zustimmung oder Ablehnung wird nie als Pushaktion angeboten.
 
 ## Signierter Detailabruf
 

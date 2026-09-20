@@ -187,6 +187,11 @@
     <string name="channel_talk_description">Powiadomienia o aktywności Talk</string>
     <string name="channel_security_name">Bezpieczeństwo urządzenia</string>
     <string name="channel_security_description">Ważne powiadomienia o bezpieczeństwie urządzenia</string>
+    <string name="channel_connection_name">Połączenie w tle</string>
+    <string name="channel_connection_description">Bezpieczne połączenie dla powiadomień i blokady urządzenia</string>
+    <string name="push_connection_title">Mission Leben – bezpieczne połączenie</string>
+    <string name="push_connection_body">Powiadomienia i ochrona urządzenia są aktywne.</string>
+    <string name="push_registration_invalid">Bezpieczna rejestracja push jest nieprawidłowa.</string>
     <string name="login_approval_title">Żądanie logowania</string>
     <string name="login_approval_body">Oczekuje żądanie logowania.</string>
     <string name="login_approval_application">Aplikacja: %1$s</string>

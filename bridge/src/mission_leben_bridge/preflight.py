@@ -10,10 +10,7 @@ from typing import Any, Mapping
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from cryptography.hazmat.primitives import serialization
-
-
-COMPONENTS = ("bridge", "login_approval", "fcm", "zimbra", "talk", "announcements")
+COMPONENTS = ("bridge", "login_approval", "ntfy", "zimbra", "talk", "announcements")
 ROOM_TOKEN = re.compile(r"^[A-Za-z0-9_-]{6,128}$")
 DUO_INTEGRATION_KEY = re.compile(r"^[A-Za-z0-9]{20,64}$")
 API_HOSTNAME = re.compile(
@@ -92,30 +89,23 @@ def check_bridge(environment: Mapping[str, str]) -> dict[str, Any]:
     return _report("invalid" if issues else "ready", issues)
 
 
-def check_fcm(environment: Mapping[str, str]) -> dict[str, Any]:
-    project_id = _value(environment, "BRIDGE_FIREBASE_PROJECT_ID")
-    credentials_path = _value(environment, "GOOGLE_APPLICATION_CREDENTIALS")
-    if not project_id and not credentials_path:
+def check_ntfy(environment: Mapping[str, str]) -> dict[str, Any]:
+    public_url = _value(environment, "BRIDGE_NTFY_PUBLIC_BASE_URL")
+    internal_url = _value(environment, "BRIDGE_NTFY_INTERNAL_BASE_URL")
+    auth_file = _value(environment, "BRIDGE_NTFY_AUTH_FILE")
+    binary = _value(environment, "BRIDGE_NTFY_BINARY") or "/usr/local/bin/ntfy"
+    if not public_url and not internal_url and not auth_file:
         return _report("disabled", [])
 
     issues: list[str] = []
-    if not project_id:
-        issues.append("BRIDGE_FIREBASE_PROJECT_ID fehlt")
-    credentials, error = _read_json_object(credentials_path)
-    if error:
-        issues.append(f"Firebase-Dienstkonto: {error}")
-    elif credentials is not None:
-        if credentials.get("type") != "service_account":
-            issues.append("Firebase-Dienstkonto hat nicht den Typ service_account")
-        if project_id and credentials.get("project_id") != project_id:
-            issues.append("Firebase-Projekt-ID und Dienstkonto stimmen nicht überein")
-        if not str(credentials.get("client_email", "")).strip():
-            issues.append("Firebase-Dienstkonto enthält keine client_email")
-        private_key = str(credentials.get("private_key", ""))
-        try:
-            serialization.load_pem_private_key(private_key.encode(), password=None)
-        except (ValueError, TypeError):
-            issues.append("Firebase-Dienstkonto enthält keinen gültigen privaten Schlüssel")
+    if not _valid_url(public_url, https_only=True):
+        issues.append("BRIDGE_NTFY_PUBLIC_BASE_URL muss eine gültige HTTPS-URL sein")
+    if not _valid_url(internal_url, https_only=False):
+        issues.append("BRIDGE_NTFY_INTERNAL_BASE_URL muss eine gültige HTTP- oder HTTPS-URL sein")
+    if not auth_file or not Path(auth_file).is_file():
+        issues.append("BRIDGE_NTFY_AUTH_FILE fehlt oder ist keine reguläre Datei")
+    if not Path(binary).is_file():
+        issues.append("BRIDGE_NTFY_BINARY fehlt oder ist keine reguläre Datei")
     return _report("invalid" if issues else "ready", issues)
 
 
@@ -303,7 +293,7 @@ def evaluate(environment: Mapping[str, str], required: set[str] | None = None) -
     components = {
         "bridge": check_bridge(environment),
         "login_approval": check_login_approval(environment),
-        "fcm": check_fcm(environment),
+        "ntfy": check_ntfy(environment),
         "zimbra": check_zimbra(environment),
         "talk": check_talk(environment),
         "announcements": check_announcements(environment),
@@ -340,7 +330,7 @@ def main() -> None:
         "--require",
         default="",
         help=(
-            "Kommagetrennte Pflichtkomponenten: login_approval,fcm,zimbra,talk,announcements "
+            "Kommagetrennte Pflichtkomponenten: login_approval,ntfy,zimbra,talk,announcements "
             "(bridge ist immer Pflicht)."
         ),
     )

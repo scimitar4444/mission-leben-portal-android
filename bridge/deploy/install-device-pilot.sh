@@ -13,8 +13,8 @@ fi
 command -v docker >/dev/null
 command -v python3 >/dev/null
 
-install -d -m 0750 "$deploy_dir/data" "$deploy_dir/backups" "$deploy_dir/secrets"
-chown 10001:10001 "$deploy_dir/data"
+install -d -m 0750 "$deploy_dir/data" "$deploy_dir/backups" "$deploy_dir/secrets" "$deploy_dir/ntfy-data"
+chown 10001:10001 "$deploy_dir/data" "$deploy_dir/ntfy-data"
 
 if [[ ! -f "$env_file" ]]; then
     umask 077
@@ -34,8 +34,10 @@ if [[ ! -f "$env_file" ]]; then
         "BRIDGE_DUO_SECRET_KEY=$duo_secret_key" \
         'BRIDGE_DUO_API_HOSTNAME=id.mission-leben.de' \
         'BRIDGE_DUO_APPROVAL_TIMEOUT_SECONDS=60' \
-        'BRIDGE_FIREBASE_PROJECT_ID=' \
-        'GOOGLE_APPLICATION_CREDENTIALS=' \
+        'BRIDGE_NTFY_PUBLIC_BASE_URL=https://push.mission-leben.de' \
+        'BRIDGE_NTFY_INTERNAL_BASE_URL=http://ntfy:2586' \
+        'BRIDGE_NTFY_AUTH_FILE=/ntfy/user.db' \
+        'BRIDGE_NTFY_BINARY=/usr/local/bin/ntfy' \
         'BRIDGE_TALK_TARGETS_JSON=[]' \
         'BRIDGE_NEXTCLOUD_BACKEND_URL=' \
         'BRIDGE_TALK_RECIPIENTS_JSON={}' \
@@ -48,7 +50,21 @@ if [[ ! -f "$env_file" ]]; then
     chmod 0600 "$env_file"
 fi
 
-docker compose --project-name mission-leben-device -f "$compose_file" up -d --build bridge
+ensure_env_value() {
+    local name="$1"
+    local value="$2"
+    if ! grep -qE "^${name}=" "$env_file"; then
+        printf '%s=%s\n' "$name" "$value" >> "$env_file"
+    fi
+}
+
+ensure_env_value BRIDGE_NTFY_PUBLIC_BASE_URL https://push.mission-leben.de
+ensure_env_value BRIDGE_NTFY_INTERNAL_BASE_URL http://ntfy:2586
+ensure_env_value BRIDGE_NTFY_AUTH_FILE /ntfy/user.db
+ensure_env_value BRIDGE_NTFY_BINARY /usr/local/bin/ntfy
+chmod 0600 "$env_file"
+
+docker compose --project-name mission-leben-device -f "$compose_file" up -d --build ntfy bridge
 
 for attempt in {1..30}; do
     if curl --fail --silent --show-error http://127.0.0.1:8080/healthz >/dev/null; then
@@ -58,5 +74,5 @@ for attempt in {1..30}; do
 done
 
 docker compose --project-name mission-leben-device -f "$compose_file" ps
-docker compose --project-name mission-leben-device -f "$compose_file" logs --tail=100 bridge
+docker compose --project-name mission-leben-device -f "$compose_file" logs --tail=100 ntfy bridge
 exit 1

@@ -28,9 +28,9 @@ class DeviceSecurityRefreshJobService : JobService() {
             val status = refreshSecurityState()
             if (status != null) {
                 sendBroadcast(
-                    Intent(PortalFirebaseMessagingService.ACTION_SECURITY_STATE_CHANGED)
+                    Intent(PushEventDispatcher.ACTION_SECURITY_STATE_CHANGED)
                         .setPackage(packageName)
-                        .putExtra(PortalFirebaseMessagingService.EXTRA_ENROLLMENT_STATE, status.name),
+                        .putExtra(PushEventDispatcher.EXTRA_ENROLLMENT_STATE, status.name),
                 )
             }
             jobFinished(params, false)

@@ -187,6 +187,11 @@
     <string name="channel_talk_description">Notifications about Talk activity</string>
     <string name="channel_security_name">Device security</string>
     <string name="channel_security_description">Important device security notifications</string>
+    <string name="channel_connection_name">Background connection</string>
+    <string name="channel_connection_description">Secure connection for notifications and device locks</string>
+    <string name="push_connection_title">Mission Leben – securely connected</string>
+    <string name="push_connection_body">Notifications and device security are active.</string>
+    <string name="push_registration_invalid">The secure push registration is invalid.</string>
     <string name="login_approval_title">Login request</string>
     <string name="login_approval_body">There is a login request.</string>
     <string name="login_approval_application">Application: %1$s</string>

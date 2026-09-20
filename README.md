@@ -2,7 +2,7 @@
 
 Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen Web-Anwendungen. Die App wird auf dem Gerät als **Mission Leben Zentral** angezeigt und unterstützt persönliche Mitarbeitergeräte sowie gemeinsam genutzte Tablets ab Android 13.
 
-> Status: Pilot. Authentik Endpoint Devices 2026.8.3, OIDC/PKCE, der gehärtete Webcontainer und die getrennte Kommunikations-Bridge sind implementiert. Zimbra-, Nextcloud-/Talk- und FCM-Zustellung benötigen noch ihre produktiven Zugangsdaten und Ende-zu-Ende-Tests.
+> Status: Pilot. Authentik Endpoint Devices 2026.8.3, OIDC/PKCE, der gehärtete Webcontainer und die getrennte Kommunikations-Bridge sind implementiert. Zimbra-, Nextcloud-/Talk- und ntfy-Zustellung benötigen produktive Ende-zu-Ende-Tests.
 
 ## Funktionen
 
@@ -19,7 +19,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - Der Webcontainer gibt grundsätzlich keiner Webseite Kamera oder Mikrofon. Die Android-Kamera bleibt ausschließlich dem nativen QR-Scanner vorbehalten. Talk läuft deshalb bewusst als reiner Chat. Die App blendet die Nextcloud-Kopfzeile aus und öffnet beim nächsten Start direkt den zuletzt verwendeten Raum; Abmelden/Zurücksetzen löscht diese lokale Erinnerung.
 - Cookies, Webspeicher, HTTP-Zugangsdaten, Cache und geschützte Downloads werden bei sicherer Abmeldung oder Profilwechsel gelöscht
 - persönliche Geräte: Refresh Token wird mit einem zufälligen Datenschlüssel verschlüsselt; nur Biometrie oder Gerätecode kann diesen Schlüssel über Android Keystore freigeben
-- persönliche Geräte können Authentik-Anmeldungen im entsperrten Portal mit „Bestätigen“ oder „Ablehnen“ beantworten; ein sekundengenauer Countdown zeigt die verbleibende Gültigkeit der einzelnen Anfrage. Es gibt dabei keine zweite Biometrieabfrage. Die geöffnete App prüft alle zwei Sekunden, optionales FCM weckt sie später nur mit einer zufälligen Anfrage-ID. Authentik bleibt Benutzer- und Gerätequelle, Shared Tablets sind ausgeschlossen
+- persönliche Geräte können Authentik-Anmeldungen im entsperrten Portal mit „Bestätigen“ oder „Ablehnen“ beantworten; ein sekundengenauer Countdown zeigt die verbleibende Gültigkeit der einzelnen Anfrage. Es gibt dabei keine zweite Biometrieabfrage. Die geöffnete App prüft alle zwei Sekunden, ntfy weckt sie nur mit einer zufälligen Anfrage-ID. Authentik bleibt Benutzer- und Gerätequelle, Shared Tablets sind ausgeschlossen
 - persönliche Geräte müssen sich nach exakt 90 Tagen erneut bestätigen: Die App übernimmt den gespeicherten Benutzernamen, Authentik prüft zuerst Gerät und Benutzerbindung und fordert ein bereits vorhandenes TOTP an, ansonsten das Passwort. Eine TOTP-Einrichtung wird nie erzwungen
 - eine kompakte Anzeige nennt auf persönlichen Geräten die verbleibenden Tage der 90-Tage-Anmeldung
 - die tägliche Startseite zeigt nur Sitzungsstatus und freigegebene Anwendungen; Sprache, Benachrichtigungen, technische Gerätedaten und Updates liegen gesammelt unter **Einstellungen**
@@ -37,11 +37,11 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - nicht exportierbare P-256-Kommunikationsidentität im Android Keystore für signierte Benachrichtigungsabrufe
 - Nextcloud-Talk-Handoff an freigegebene Konferenzgeräte; übertragen wird ausschließlich der Raumtoken. Oberfläche und Bridge verlangen dafür die kanonische Authentik-Berechtigung `ENT_TALK_RAUMUEBERGABE`
 - **Geräteprofil wechseln** erscheint ausschließlich mit der Authentik-Berechtigung `ENT_DEVICE_PROFILE_SWITCH`; Pilotmitgliedschaften werden nur im produktiven Authentik gepflegt und nicht im öffentlichen Quellcode veröffentlicht
-- optionale FCM-Hinweise für Mail, Termine, Talk und Gerätesicherheit ab Android 13
-- FCM transportiert nur eine Ereignis-ID; Details holt ein freigegebenes Gerät signiert von der eigenen Bridge
+- selbst betriebene ntfy-Hinweise für Mail, Termine, Talk und Gerätesicherheit ab Android 13; Firebase ist nicht Bestandteil des Pushwegs
+- ntfy transportiert nur eine Ereignis-ID; Details holt ein freigegebenes Gerät signiert von der eigenen Bridge
 - Datenschutzstufen `Diskret`, `Standard` und `Ausführlich`; Shared Tablets erzwingen neutrale Hinweise
 - Sperrbildschirm zeigt unabhängig von der Stufe keine Absender, Betreffzeilen, Termin- oder Talk-Inhalte
-- separater Bridge-Container nur für Kommunikation: Authentik-UserInfo-Prüfung, verschlüsselte FCM-/Device-Token, Ereignisse und terminierte Zustellung; keine eigene Gerätedatenbank
+- separate Container für Bridge und ntfy: Authentik-UserInfo-Prüfung, verschlüsselte ntfy-/Device-Token, Ereignisse und terminierte Zustellung; keine eigene Gerätedatenbank
 - Zimbra-Worker mit SOAP WaitSet, begrenzter Mail-/Kalendersuche und Zuordnung zur stabilen Authentik-Benutzer-ID
 - ein Hinweis kann nur eine bekannte Authentik-App öffnen, niemals eine vom Pushdienst gelieferte URL
 - keine Client-Secrets im APK
@@ -92,10 +92,7 @@ ML_OIDC_CLIENT_ID=mission-leben-android
 ML_DEVICE_SERVICE_BASE_URL=https://id.mission-leben.de/device-bridge
 ML_WEB_ALLOWED_HOST_SUFFIXES=mission-leben.de,akademie-mission-leben.de
 ML_AUTHENTIK_AUTHENTICATION_FLOW_SLUGS=mission-leben-android-authentication,mission-leben-browser-authentication,mission-leben-zimbra-authentication,default-authentication-flow,nextcloud-akademie-kerberos-sso
-ML_FIREBASE_APPLICATION_ID=1:1234567890:android:…
-ML_FIREBASE_API_KEY=AIza…
-ML_FIREBASE_PROJECT_ID=mission-leben-portal
-ML_FIREBASE_SENDER_ID=1234567890
+ML_NTFY_PUBLIC_BASE_URL=https://push.mission-leben.de
 ML_ANNOUNCEMENTS_PAGE_URL=https://nextcloud.mission-leben.de/apps/announcementcenter/
 ```
 
@@ -105,7 +102,7 @@ Die Geräteregistrierung verwendet immer `ML_AUTHENTIK_BASE_URL` und spricht Aut
 
 `ML_AUTHENTIK_AUTHENTICATION_FLOW_SLUGS` enthält ausschließlich die Authentik-Flows, die eine erneute Benutzeranmeldung darstellen. So erkennt die App eine abgelaufene Web-Sitzung, ohne normale Provider-Freigabe-Flows fälschlich abzubrechen.
 
-FCM bleibt vollständig deaktiviert, solange einer der vier `ML_FIREBASE_*`-Werte fehlt. Diese Firebase-App-Kennung ist Client-Konfiguration, kein Servergeheimnis. Das Firebase-Dienstkonto für den Versand darf dagegen niemals in Gradle-Properties, APK oder Git-Repository liegen. Die Einrichtung ist in [docs/FCM_SETUP.md](docs/FCM_SETUP.md) beschrieben.
+Die ntfy-Adresse ist auf `https://push.mission-leben.de` festgelegt. Pro Gerät erzeugt die Bridge ein zufälliges Topic sowie getrennte, widerrufbare Lese- und Schreibidentitäten. Nur das Lesetoken gelangt verschlüsselt in die App; das Schreibtoken bleibt verschlüsselt in der Bridge. Die Einrichtung ist in [docs/NTFY_SETUP.md](docs/NTFY_SETUP.md) beschrieben.
 
 Der Enrollment-Scanner verwendet den Google Code Scanner. Die Erkennung läuft auf dem Gerät; beim ersten Aufruf kann Google Play Services das Scanner-Modul `barcode_ui` nachladen. Bei neuen Geräten akzeptiert die App ausschließlich einen vollständigen, vom Geräte-Einrichtungscontainer erzeugten Deep Link mit Token-ID und Gerätemodus. Ein alter Token-only-Link funktioniert nur noch auf einem Gerät, dessen Modus bereits lokal feststeht. Beliebige URLs und rohe QR-Texte werden verworfen.
 
@@ -125,13 +122,13 @@ app/
   ui/         Jetpack-Compose-Oberfläche
   web/        gehärteter WebView-Container und Domainregeln
 bridge/
-  src/        Ereignis-, FCM-, Talk- und Zimbra-Kommunikations-Bridge
+  src/        Ereignis-, ntfy-, Talk- und Zimbra-Kommunikations-Bridge
   tests/      Signatur-, Datenschutz- und Versandtests
   Dockerfile  nicht privilegierter Container
 docs/
   AUTHENTIK_SETUP.md
   DEVICE_SERVICE_API.md
-  FCM_SETUP.md
+  NTFY_SETUP.md
   NOTIFICATIONS.md
   OTA_UPDATES.md
   THREAT_MODEL.md

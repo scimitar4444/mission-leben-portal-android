@@ -187,6 +187,11 @@
     <string name="channel_talk_description">Сповіщення про активність Talk</string>
     <string name="channel_security_name">Безпека пристрою</string>
     <string name="channel_security_description">Важливі сповіщення про безпеку пристрою</string>
+    <string name="channel_connection_name">Фонове з’єднання</string>
+    <string name="channel_connection_description">Захищене з’єднання для сповіщень і блокування пристрою</string>
+    <string name="push_connection_title">Mission Leben – захищене з’єднання</string>
+    <string name="push_connection_body">Сповіщення та захист пристрою активні.</string>
+    <string name="push_registration_invalid">Захищена push-реєстрація недійсна.</string>
     <string name="login_approval_title">Запит на вхід</string>
     <string name="login_approval_body">Є запит на вхід.</string>
     <string name="login_approval_application">Застосунок: %1$s</string>

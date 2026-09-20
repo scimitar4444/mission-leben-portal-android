@@ -6,8 +6,8 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .authentik import AuthenticationError, AuthentikClient, UserInfo
-from .fcm import FcmSendError, FcmSender, NullFcmSender
 from .nextcloud_announcements import AnnouncementFetchError, NextcloudAnnouncementClient
+from .ntfy import NtfyCredentials, NtfyError, NtfyManager, NullNtfyManager
 from .offboard import offboard_subject
 from .security import canonical_device_request, device_key_id, verify_device_signature
 from .store import Store
@@ -64,7 +64,7 @@ class BridgeService:
         self,
         store: Store,
         authentik: AuthentikClient,
-        fcm: FcmSender | NullFcmSender,
+        ntfy: NtfyManager | NullNtfyManager,
         talk_targets: tuple[dict[str, Any], ...],
         announcement_client: NextcloudAnnouncementClient | None = None,
         announcement_cache_ttl_seconds: int = 300,
@@ -72,7 +72,7 @@ class BridgeService:
     ):
         self.store = store
         self.authentik = authentik
-        self.fcm = fcm
+        self.ntfy = ntfy
         self.talk_targets = tuple(self._normalize_target(target) for target in talk_targets)
         self.announcement_client = announcement_client
         self.announcement_cache_ttl_seconds = announcement_cache_ttl_seconds
@@ -86,11 +86,11 @@ class BridgeService:
     def set_user_active(self, subject: str, active: bool) -> bool:
         if active:
             return self.store.set_user_active(subject, True)
-        offboard_subject(self.store, self.fcm, subject)
+        offboard_subject(self.store, self.ntfy, subject)
         return True
 
     def offboard_subject(self, subject: str, *, dry_run: bool = False) -> dict[str, object]:
-        return offboard_subject(self.store, self.fcm, subject, dry_run=dry_run)
+        return offboard_subject(self.store, self.ntfy, subject, dry_run=dry_run)
 
     def capabilities(self, bearer: str) -> list[str]:
         user = self.authenticate(bearer)
@@ -163,14 +163,15 @@ class BridgeService:
         if capability not in user.capabilities:
             raise ApiError(403, "required capability is missing")
 
-    def register_push(self, device_id: str, bearer: str, payload: dict[str, Any]) -> None:
+    def register_push(self, device_id: str, bearer: str, payload: dict[str, Any]) -> dict[str, str]:
         user = self.authenticate(bearer)
         privacy = str(payload.get("notification_privacy", "standard"))
         if privacy not in PRIVACY_LEVELS:
             raise ApiError(400, "invalid notification privacy level")
-        if payload.get("provider") != "fcm":
-            raise ApiError(400, "only the fcm provider is supported")
-        installation_id = _text(payload.get("installation_id"), 4096, required=True)
+        if payload.get("provider") != "ntfy":
+            raise ApiError(400, "only the ntfy provider is supported")
+        if not self.ntfy.configured:
+            raise ApiError(503, "ntfy is not configured")
         mode = str(payload.get("mode", ""))
         key_id = str(payload.get("key_id", ""))
         jwk = payload.get("public_key_jwk")
@@ -191,11 +192,42 @@ class BridgeService:
             raise ApiError(403 if error.permanent else 503, str(error)) from error
         if verified_device_id != device_id:
             raise ApiError(403, "Authentik device token does not match the device id")
+        existing = self.store.get_registration(device_id)
+        if existing and existing["mode"] == "personal" and existing["subject"] != user.subject:
+            raise ApiError(403, "personal device is assigned to a different user")
+        created = False
+        if (
+            existing
+            and existing.get("push_provider") == "ntfy"
+            and existing.get("ntfy_topic")
+            and existing.get("subscribe_token")
+            and existing.get("publish_token")
+            and existing.get("ntfy_reader_username")
+            and existing.get("ntfy_writer_username")
+        ):
+            credentials = NtfyCredentials(
+                public_base_url=self.ntfy.public_base_url,
+                topic=existing["ntfy_topic"],
+                subscribe_token=existing["subscribe_token"],
+                publish_token=existing["publish_token"],
+                reader_username=existing["ntfy_reader_username"],
+                writer_username=existing["ntfy_writer_username"],
+            )
+        else:
+            try:
+                credentials = self.ntfy.provision(device_id)
+                created = True
+            except NtfyError as error:
+                raise ApiError(503, str(error)) from error
         try:
             self.store.register_push(
                 device_id=device_id,
                 subject=user.subject,
-                installation_id=installation_id,
+                subscribe_token=credentials.subscribe_token,
+                publish_token=credentials.publish_token,
+                topic=credentials.topic,
+                reader_username=credentials.reader_username,
+                writer_username=credentials.writer_username,
                 agent_token=agent_token,
                 key_id=key_id,
                 public_jwk=jwk,
@@ -204,7 +236,25 @@ class BridgeService:
                 app_version=_text(payload.get("app_version"), 30),
             )
         except PermissionError as error:
+            if created:
+                try:
+                    self.ntfy.revoke(credentials.reader_username, credentials.writer_username)
+                except NtfyError:
+                    pass
             raise ApiError(403, str(error)) from error
+        except Exception:
+            if created:
+                try:
+                    self.ntfy.revoke(credentials.reader_username, credentials.writer_username)
+                except NtfyError:
+                    pass
+            raise
+        return {
+            "provider": "ntfy",
+            "base_url": credentials.public_base_url,
+            "topic": credentials.topic,
+            "token": credentials.subscribe_token,
+        }
 
     def register_auth_channel(self, device_id: str, bearer: str, payload: dict[str, Any]) -> None:
         user = self.authenticate(bearer)
@@ -242,10 +292,16 @@ class BridgeService:
 
     def unregister_push(self, device_id: str, bearer: str) -> None:
         user = self.authenticate(bearer)
+        registration = self.store.get_registration(device_id)
+        if registration and registration["subject"] == user.subject:
+            self._revoke_ntfy_registration(registration)
         self.store.unregister_push(device_id, user.subject)
 
     def unregister_auth_channel(self, device_id: str, bearer: str) -> None:
         user = self.authenticate(bearer)
+        registration = self.store.get_registration(device_id)
+        if registration and registration["subject"] == user.subject:
+            self._revoke_ntfy_registration(registration)
         self.store.unregister_auth_channel(device_id, user.subject)
 
     def link_targets(self, bearer: str, capability: str) -> list[dict[str, Any]]:
@@ -321,6 +377,8 @@ class BridgeService:
         return dispatched
 
     def _dispatch_event(self, event: dict[str, Any]) -> tuple[int, bool]:
+        if not self.ntfy.configured:
+            return 0, False
         dispatches = 0
         complete = True
         for registration in self.store.registrations_for_subject(event["subject"]):
@@ -328,10 +386,14 @@ class BridgeService:
                 continue
             try:
                 if self.authentik.device_id(registration["agent_token"]) != registration["device_id"]:
-                    self.store.remove_registration(registration["device_id"])
+                    self._remove_registration(registration)
                     continue
-                self.fcm.send(
-                    registration["installation_id"],
+                if registration.get("push_provider") != "ntfy":
+                    self._remove_registration(registration)
+                    continue
+                self.ntfy.send(
+                    registration["ntfy_topic"],
+                    registration["publish_token"],
                     {
                         "action": "fetch_notification",
                         "event_id": event["event_id"],
@@ -339,16 +401,16 @@ class BridgeService:
                         "revision": str(event["revision"]),
                     },
                 )
-                dispatches += int(self.fcm.configured)
+                dispatches += 1
                 self.store.record_delivery(event["event_id"], registration["device_id"])
             except AuthenticationError as error:
                 if error.permanent:
-                    self.store.remove_registration(registration["device_id"])
+                    self._remove_registration(registration)
                 else:
                     complete = False
-            except FcmSendError as error:
-                if error.permanent_token_failure:
-                    self.store.remove_registration_by_token(registration["installation_id"])
+            except NtfyError as error:
+                if error.permanent_registration_failure:
+                    self._remove_registration(registration)
                 else:
                     complete = False
         return dispatches, complete
@@ -413,10 +475,10 @@ class BridgeService:
                     active_registrations.append(registration)
                     self.store.touch_registration(registration["device_id"])
                 else:
-                    self.store.remove_registration(registration["device_id"])
+                    self._remove_registration(registration)
             except AuthenticationError as error:
                 if error.permanent:
-                    self.store.remove_registration(registration["device_id"])
+                    self._remove_registration(registration)
         if not active_registrations:
             return False
 
@@ -429,19 +491,24 @@ class BridgeService:
             ttl=timeout_seconds,
         )
         for registration in active_registrations:
-            if not registration.get("push_enabled") or not registration.get("installation_id"):
+            if (
+                not self.ntfy.configured
+                or not registration.get("push_enabled")
+                or registration.get("push_provider") != "ntfy"
+            ):
                 continue
             try:
-                self.fcm.send(
-                    registration["installation_id"],
+                self.ntfy.send(
+                    registration["ntfy_topic"],
+                    registration["publish_token"],
                     {
                         "action": "fetch_login_approval",
                         "request_id": request["request_id"],
                     },
                 )
-            except FcmSendError as error:
-                if error.permanent_token_failure:
-                    self.store.remove_registration_by_token(registration["installation_id"])
+            except NtfyError as error:
+                if error.permanent_registration_failure:
+                    self._remove_registration(registration)
 
         deadline = time.monotonic() + timeout_seconds
         while time.monotonic() < deadline:
@@ -452,6 +519,22 @@ class BridgeService:
                 return False
             time.sleep(0.2)
         return False
+
+    def _remove_registration(self, registration: dict[str, Any]) -> None:
+        self._revoke_ntfy_registration(registration)
+        self.store.remove_registration(registration["device_id"])
+
+    def _revoke_ntfy_registration(self, registration: dict[str, Any]) -> None:
+        if registration.get("push_provider") != "ntfy" or not self.ntfy.configured:
+            return
+        try:
+            self.ntfy.revoke(
+                registration.get("ntfy_reader_username", ""),
+                registration.get("ntfy_writer_username", ""),
+            )
+        except NtfyError:
+            # Authentik/device state remains authoritative. Local data must still be removed.
+            pass
 
     def pending_login_approval(
         self,

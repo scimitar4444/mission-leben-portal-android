@@ -1,10 +1,10 @@
 # Benachrichtigungen für Mail, Termine und Talk
 
-Ein WebView kann im Hintergrund keine zuverlässigen Hinweise erzeugen. Deshalb besteht die Lösung aus Quelladaptern, Bridge, FCM und einem signierenden Android-Gerät.
+Ein WebView kann im Hintergrund keine zuverlässigen Hinweise erzeugen. Deshalb besteht die Lösung aus Quelladaptern, Bridge, eigenem ntfy-Transport und einem signierenden Android-Gerät.
 
 ```text
 Zimbra WaitSet/Calendar ─┐
-                        ├─ Notification Bridge ─ FCM (nur Ereignis-ID) ─ Android
+                        ├─ Notification Bridge ─ ntfy (nur Ereignis-ID) ─ Android
 Nextcloud/Talk Adapter ──┘                                      │
                                                                └─ signierter Detailabruf
 ```
@@ -14,8 +14,8 @@ Nextcloud/Talk Adapter ──┘                                      │
 Android-App:
 
 - getrennte Kanäle für Mail, Termine, Talk und Gerätesicherheit
-- Data Messages mit fester Aktionsliste; freie URLs und FCM-Texte werden ignoriert
-- Anmeldeanfragen werden per FCM nur mit einer zufälligen Anfrage-ID geweckt; Details und Entscheidung bleiben in der entsperrten App
+- ntfy-Nachrichten mit fester Aktionsliste; freie URLs und Texte werden ignoriert
+- Anmeldeanfragen werden per ntfy nur mit einer zufälligen Anfrage-ID geweckt; Details und Entscheidung bleiben in der entsperrten App
 - sofortiger neutraler Hinweis und nachgelagerter Detailabruf über einen Android-Job
 - Detailabruf mit Geräte-ID, Schlüssel-ID, Zeitstempel, Nonce und P-256-Signatur
 - Sperrbildschirm-Version ohne Absender, Betreff, Termin oder Vorschau
@@ -27,8 +27,8 @@ Android-App:
 Kommunikations-Bridge:
 
 - Live-Prüfung von Authentik-Benutzer und Authentik-Device-Token einschließlich Deaktivierungsstatus; keine eigene Gerätefreigabe
-- verschlüsselte FCM-Installations-IDs
-- FCM HTTP v1 mit Ereignis-ID statt Inhalt
+- getrennte ntfy-Lese-/Schreibidentitäten je Gerät, verschlüsselte Tokens und `deny-all`
+- ntfy mit Ereignis-ID statt Inhalt
 - Detailfreigabe nur an eine registrierte Kommunikationsidentität, deren Authentik-Device-Token weiterhin gültig ist
 - zeitgesteuerte Kalenderhinweise
 - Zimbra WaitSet für Mail-/Kalenderänderungen ausgewählter Konten
@@ -46,9 +46,9 @@ Kommunikations-Bridge:
 
 Die Tabellenfelder sind ein Darstellungsvertrag. Der jeweilige Quelladapter muss sie korrekt normalisieren; freie Ziel-URLs bleiben verboten.
 
-## Warum nicht alle Details direkt über FCM gehen
+## Warum nicht alle Details direkt über ntfy gehen
 
-FCM-Verbindungen sind transportverschlüsselt, aber Data Messages sind nicht automatisch Ende-zu-Ende-verschlüsselt. Deshalb transportiert FCM hier nur eine wertlose, kurz verwendbare Ereignis-ID. Details liefert die eigene Bridge erst nach Geräteprüfung aus.
+Die ntfy-Verbindung ist TLS-geschützt, aber die Nachrichten sind nicht automatisch Ende-zu-Ende-verschlüsselt. Deshalb transportiert ntfy hier nur eine wertlose, kurz verwendbare Ereignis-ID. Details liefert die eigene Bridge erst nach Geräteprüfung aus.
 
 ## Zimbra-Verbindung
 

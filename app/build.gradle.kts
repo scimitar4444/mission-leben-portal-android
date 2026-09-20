@@ -34,10 +34,8 @@ val authentikAuthenticationFlowSlugs = providers.gradleProperty("ML_AUTHENTIK_AU
             "mission-leben-zimbra-authentication," +
             "default-authentication-flow,nextcloud-akademie-kerberos-sso",
     )
-val firebaseApplicationId = providers.gradleProperty("ML_FIREBASE_APPLICATION_ID").orElse("")
-val firebaseApiKey = providers.gradleProperty("ML_FIREBASE_API_KEY").orElse("")
-val firebaseProjectId = providers.gradleProperty("ML_FIREBASE_PROJECT_ID").orElse("")
-val firebaseSenderId = providers.gradleProperty("ML_FIREBASE_SENDER_ID").orElse("")
+val ntfyPublicBaseUrl = providers.gradleProperty("ML_NTFY_PUBLIC_BASE_URL")
+    .orElse("https://push.mission-leben.de")
 val updateManifestUrl =
     "https://github.com/scimitar4444/mission-leben-portal-android/" +
         "releases/latest/download/update.json"
@@ -65,8 +63,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 43
-        versionName = "0.10.9"
+        versionCode = 44
+        versionName = "0.11.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
@@ -99,10 +97,7 @@ android {
             "AUTHENTIK_AUTHENTICATION_FLOW_SLUGS",
             authentikAuthenticationFlowSlugs.get().asBuildConfigString(),
         )
-        buildConfigField("String", "FIREBASE_APPLICATION_ID", firebaseApplicationId.get().asBuildConfigString())
-        buildConfigField("String", "FIREBASE_API_KEY", firebaseApiKey.get().asBuildConfigString())
-        buildConfigField("String", "FIREBASE_PROJECT_ID", firebaseProjectId.get().asBuildConfigString())
-        buildConfigField("String", "FIREBASE_SENDER_ID", firebaseSenderId.get().asBuildConfigString())
+        buildConfigField("String", "NTFY_PUBLIC_BASE_URL", ntfyPublicBaseUrl.get().asBuildConfigString())
         buildConfigField("String", "UPDATE_MANIFEST_URL", updateManifestUrl.asBuildConfigString())
     }
 
@@ -178,9 +173,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("net.openid:appauth:0.11.1")
 
-    val firebaseBom = platform("com.google.firebase:firebase-bom:34.19.0")
-    implementation(firebaseBom)
-    implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")

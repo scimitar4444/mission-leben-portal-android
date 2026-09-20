@@ -47,7 +47,7 @@ object NotificationPresenter {
         val notificationId = loginApprovalNotificationId(requestId)
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra(PortalFirebaseMessagingService.EXTRA_LOGIN_APPROVAL_REQUEST_ID, requestId)
+            putExtra(PushEventDispatcher.EXTRA_LOGIN_APPROVAL_REQUEST_ID, requestId)
         }
         val pendingIntent = PendingIntent.getActivity(
             context,
@@ -100,8 +100,8 @@ object NotificationPresenter {
         val summary = if (rich) detail.summary.ifBlank { genericBody } else genericBody
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra(PortalFirebaseMessagingService.EXTRA_PUSH_ACTION, action.wireName)
-            if (eventId != null) putExtra(PortalFirebaseMessagingService.EXTRA_EVENT_ID, eventId)
+            putExtra(PushEventDispatcher.EXTRA_PUSH_ACTION, action.wireName)
+            if (eventId != null) putExtra(PushEventDispatcher.EXTRA_EVENT_ID, eventId)
         }
         val requestCode = eventId?.let(::notificationId) ?: action.notificationId
         val pendingIntent = PendingIntent.getActivity(

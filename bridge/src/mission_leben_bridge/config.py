@@ -35,8 +35,10 @@ class Settings:
     authentik_device_status_url: str
     internal_hmac_secret: bytes
     data_key: bytes
-    firebase_project_id: str
-    google_credentials_path: Path | None
+    ntfy_public_base_url: str
+    ntfy_internal_base_url: str
+    ntfy_auth_file: Path | None
+    ntfy_binary: Path
     talk_targets: tuple[dict[str, Any], ...]
     nextcloud_talk_secret: bytes | None
     nextcloud_backend_url: str
@@ -53,8 +55,12 @@ class Settings:
     dev_mode: bool
 
     @property
-    def fcm_configured(self) -> bool:
-        return bool(self.firebase_project_id and self.google_credentials_path)
+    def ntfy_configured(self) -> bool:
+        return bool(
+            self.ntfy_public_base_url
+            and self.ntfy_internal_base_url
+            and self.ntfy_auth_file
+        )
 
     @property
     def duo_configured(self) -> bool:
@@ -88,7 +94,12 @@ class Settings:
         if not isinstance(parsed_targets, list):
             raise RuntimeError("BRIDGE_TALK_TARGETS_JSON must contain a list")
 
-        credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
+        ntfy_public_url = os.getenv("BRIDGE_NTFY_PUBLIC_BASE_URL", "").strip().rstrip("/")
+        ntfy_internal_url = os.getenv("BRIDGE_NTFY_INTERNAL_BASE_URL", "").strip().rstrip("/")
+        ntfy_auth_file_value = os.getenv("BRIDGE_NTFY_AUTH_FILE", "").strip()
+        ntfy_values = (ntfy_public_url, ntfy_internal_url, ntfy_auth_file_value)
+        if any(ntfy_values) and not all(ntfy_values):
+            raise RuntimeError("All BRIDGE_NTFY_* connection values must be configured together")
         talk_secret_file = os.getenv("BRIDGE_NEXTCLOUD_TALK_SECRET_FILE", "").strip()
         talk_secret_value = os.getenv("BRIDGE_NEXTCLOUD_TALK_SECRET", "").strip()
         if talk_secret_file:
@@ -167,8 +178,10 @@ class Settings:
             ),
             internal_hmac_secret=hmac_value.encode(),
             data_key=data_key,
-            firebase_project_id=os.getenv("BRIDGE_FIREBASE_PROJECT_ID", "").strip(),
-            google_credentials_path=Path(credentials) if credentials else None,
+            ntfy_public_base_url=ntfy_public_url,
+            ntfy_internal_base_url=ntfy_internal_url,
+            ntfy_auth_file=Path(ntfy_auth_file_value) if ntfy_auth_file_value else None,
+            ntfy_binary=Path(os.getenv("BRIDGE_NTFY_BINARY", "/usr/local/bin/ntfy")),
             talk_targets=tuple(parsed_targets),
             nextcloud_talk_secret=talk_secret_value.encode() if talk_secret_value else None,
             nextcloud_backend_url=os.getenv("BRIDGE_NEXTCLOUD_BACKEND_URL", "").rstrip("/"),

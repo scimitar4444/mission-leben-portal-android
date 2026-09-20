@@ -48,7 +48,7 @@ import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
-import de.missionleben.portal.push.PortalFirebaseMessagingService
+import de.missionleben.portal.push.PushEventDispatcher
 import org.json.JSONObject
 import java.io.File
 
@@ -82,8 +82,8 @@ class PortalBrowserActivity : FragmentActivity() {
     private val securityStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (
-                intent?.action == PortalFirebaseMessagingService.ACTION_SECURITY_STATE_CHANGED &&
-                intent.getStringExtra(PortalFirebaseMessagingService.EXTRA_ENROLLMENT_STATE) == EnrollmentState.BLOCKED.name
+                intent?.action == PushEventDispatcher.ACTION_SECURITY_STATE_CHANGED &&
+                intent.getStringExtra(PushEventDispatcher.EXTRA_ENROLLMENT_STATE) == EnrollmentState.BLOCKED.name
             ) {
                 setResult(RESULT_OK, Intent().putExtra(EXTRA_DEVICE_BLOCKED, true))
                 finish()
@@ -143,7 +143,7 @@ class PortalBrowserActivity : FragmentActivity() {
         ContextCompat.registerReceiver(
             this,
             securityStateReceiver,
-            IntentFilter(PortalFirebaseMessagingService.ACTION_SECURITY_STATE_CHANGED),
+            IntentFilter(PushEventDispatcher.ACTION_SECURITY_STATE_CHANGED),
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
     }

@@ -10,7 +10,7 @@ Die Bridge hält **keine dauerhafte Verbindung und keine Zimbra-Sitzung pro Mita
 - Der WaitSet meldet nur: „Bei Konto-ID X hat sich Mail oder Kalender geändert.“
 - Erst dann liest der Worker mit seinem technischen Zimbra-Konto die notwendigen Benachrichtigungsfelder und ordnet die Zimbra-Konto-ID über eine lokale Mapping-Datei dem stabilen Authentik-`sub` zu.
 - Die Bridge ermittelt daraus die aktuell freigegebenen Geräte dieses Benutzers.
-- FCM erhält ausschließlich `event_id`, Typ und Revision. Absender, Betreff, Terminzeit und Talk-Text gehen nicht durch FCM.
+- ntfy erhält ausschließlich `event_id`, Typ und Revision. Absender, Betreff, Terminzeit und Talk-Text gehen nicht durch ntfy.
 - Ein persönliches, freigegebenes Android-Gerät holt die Details anschließend mit einer kurzlebigen, signierten Anfrage. Der private Geräteschlüssel bleibt im Android Keystore.
 - Beim Öffnen verwendet Zimbra oder Nextcloud weiterhin die echte Authentik-/Benutzersitzung im Webcontainer. Das technische Zimbra-Konto wird niemals an die App weitergereicht.
 
@@ -20,17 +20,17 @@ Ein WaitSet arbeitet serverbezogen. Bei mehreren Zimbra-Mailbox-Servern wird des
 
 Authentik Endpoint Devices ist trotz Early Preview die einzige Gerätedatenbank. Enrollment, Device, Connection, Device Token, Fakten, Ablauf und Device Access Group liegen in Authentik. Die Bridge besitzt keine Gerätefreigabe und keine Enrollment-Codes.
 
-Sie speichert nur die für Kommunikation notwendige Zuordnung eines von Authentik live bestätigten Geräts: Authentik-Subject, verschlüsselte Firebase-Installations-ID, verschlüsseltes Authentik-Device-Token, öffentlichen P-256-Kommunikationsschlüssel und Datenschutzmodus. Das Device Token wird vor Registrierung, Zustellung und Detailabruf live über den zustandslosen Statusendpunkt des Geräteportals geprüft. Dieser validiert Token, Ablauf und Deaktivierungsstatus unmittelbar gegen Authentik; das Portal führt keine zweite Gerätedatenbank.
+Sie speichert nur die für Kommunikation notwendige Zuordnung eines von Authentik live bestätigten Geräts: Authentik-Subject, verschlüsseltes ntfy-Lese-/Schreibtoken, zufälliges Topic, verschlüsseltes Authentik-Device-Token, öffentlichen P-256-Kommunikationsschlüssel und Datenschutzmodus. Das Device Token wird vor Registrierung, Zustellung und Detailabruf live über den zustandslosen Statusendpunkt des Geräteportals geprüft. Dieser validiert Token, Ablauf und Deaktivierungsstatus unmittelbar gegen Authentik; das Portal führt keine zweite Gerätedatenbank.
 
 ## Enthaltene Funktionen
 
 - Authentik-UserInfo-Prüfung bei Push-Anmeldung, Abmeldung, Talk-Handoff und Link-Zielen
 - Live-Prüfung des Authentik Device Token vor Push-Registrierung, Zustellung und Detailabruf
-- verschlüsselte Speicherung von Firebase-Installations-ID und Authentik Device Token mit AES-256-GCM
+- verschlüsselte Speicherung von ntfy-Tokens und Authentik Device Token mit AES-256-GCM
 - P-256-Signaturprüfung für Detailabrufe, 120-Sekunden-Zeitfenster und Nonce-Wiederholungsschutz
 - drei Datenschutzstufen: `minimal`, `standard`, `detailed`; Shared Tablets erzwingen `minimal`
 - HMAC-signierter Normaleingang sowie ein nativer Nextcloud-Talk-Bot-Webhook
-- FCM HTTP v1 mit OAuth-Servicekonto; Data Message ohne vertrauliche Inhalte
+- eigener ntfy-Container mit `deny-all`, getrennten Lese-/Schreibrechten und Nachrichten ohne vertrauliche Inhalte
 - terminierter Versand von Kalenderhinweisen, standardmäßig durch den Zimbra-Worker 15 Minuten vor Beginn
 - deduplizierte Quellereignisse und Versandstatus pro Gerät
 - Zimbra SOAP WaitSet für ausgewählte Konten, Mail-Suche und Kalenderinstanzen
@@ -44,12 +44,12 @@ Der Container ist eine überprüfbare Pilotimplementierung. Vor einem Live-Rollo
 1. Zimbra-10.1-Rechte des dedizierten Integrationskontos und Routing je Mailbox-Server.
 2. Serien, Ausnahmen, Absagen und individuelle Erinnerungszeiten der realen Zimbra-Kalender.
 3. Talk-Bot-Zuordnungen und Signaturen gegen die tatsächlich installierte Nextcloud-/Talk-Version sowie die gepflegte Raum-Teilnehmer-Zuordnung.
-4. Mitarbeiter-Offboarding beginnt ausschließlich mit der Kontodeaktivierung in Authentik. Der fünfminütige Reconciler deaktiviert zugeordnete persönliche Geräte, entzieht Authentik-Sitzungen und -Tokens und ruft `mission-leben-bridge-offboard` für das stabile Subject auf. Vor ihrer Datenbereinigung sendet die Bridge an vorhandene FCM-Zuordnungen nur `refresh_security_state`; die App prüft daraufhin Authentik selbst und löscht bei gesperrtem Endpoint die lokale Sitzung und Webdaten. Danach löscht die Bridge Kommunikationsregistrierungen, Nonces, Benachrichtigungsinhalte, Anmeldeanfragen und Talk-Übergaben; nur ein inaktiver Subject-Tombstone ohne Name oder E-Mail bleibt als Sperre. Ohne konfigurierte FCM-Zugangsdaten greift die Prüfung beim nächsten App-Start beziehungsweise vor dem Öffnen einer Web-App. Für garantiertes Fernlöschen auf ausgeschalteten Geräten bleibt MDM/Android Work Profile notwendig.
+4. Mitarbeiter-Offboarding beginnt ausschließlich mit der Kontodeaktivierung in Authentik. Der fünfminütige Reconciler deaktiviert zugeordnete persönliche Geräte, entzieht Authentik-Sitzungen und -Tokens und ruft `mission-leben-bridge-offboard` für das stabile Subject auf. Vor ihrer Datenbereinigung sendet die Bridge über ntfy nur `refresh_security_state`; anschließend werden beide ntfy-Geräteidentitäten widerrufen. Die App prüft Authentik selbst und löscht bei gesperrtem Endpoint die lokale Sitzung und Webdaten. Danach löscht die Bridge Kommunikationsregistrierungen, Nonces, Benachrichtigungsinhalte, Anmeldeanfragen und Talk-Übergaben; nur ein inaktiver Subject-Tombstone ohne Name oder E-Mail bleibt als Sperre. Für garantiertes Fernlöschen auf ausgeschalteten Geräten bleibt MDM/Android Work Profile notwendig.
 5. SQLite ist für einen einzelnen Pilotcontainer vorgesehen. Vor horizontaler Skalierung muss der Store auf PostgreSQL und eine gemeinsame Job-Queue umgestellt werden.
 
 ## Start als Pilot
 
-Für den ersten Kommunikations-Pilot ohne FCM, Zimbra und Talk steht eine reduzierte Compose-Datei bereit. Sie erzeugt beim ersten Start die Secrets lokal, bindet den Dienst ausschließlich an `127.0.0.1:8080` und legt die SQLite-Datenbank persistent unter `data/bridge.sqlite3` an:
+Für den Kommunikations-Pilot steht eine reduzierte Compose-Datei mit Bridge und ntfy bereit. Sie erzeugt beim ersten Start die Secrets lokal, bindet beide Dienste ausschließlich an Loopback und legt ihre SQLite-Datenbanken persistent ab:
 
 ```bash
 sudo ./deploy/install-device-pilot.sh
@@ -74,7 +74,7 @@ Das Secret ist ein eigener zufälliger Wert mit mindestens 32 Zeichen und wird i
 
 Für die App-Bestätigung müssen `BRIDGE_DUO_INTEGRATION_KEY`, `BRIDGE_DUO_SECRET_KEY` und `BRIDGE_DUO_API_HOSTNAME` mit der Authentik-Stufe aus `authentik/bootstrap_app_approval.py` übereinstimmen. Das API-Geheimnis wird nie an Android übertragen. `/auth/v2/auth` wartet höchstens 60 Sekunden; bei Zeitablauf, Bridge-Fehler oder unbekanntem/gesperrtem Endpoint liefert die Bridge ausdrücklich `deny`.
 
-Für den vollständigen Benachrichtigungspilot mit FCM, Zimbra und Talk gilt weiterhin:
+Für den vollständigen Benachrichtigungspilot mit ntfy, Zimbra und Talk gilt:
 
 ```bash
 cd bridge
@@ -85,7 +85,7 @@ docker compose -f compose.example.yml --profile tools run --rm preflight
 docker compose -f compose.example.yml up --build -d bridge zimbra-worker
 ```
 
-Die Vorprüfung beendet sich nur dann erfolgreich, wenn Bridge-Grundschutz, Firebase-Dienstkonto, Zimbra-Dateien und Talk-Zuordnungen vollständig und syntaktisch plausibel sind. Sie gibt ausschließlich Status und Fehlerursachen aus, niemals Kennwörter, Schlüssel oder Token. Der laufende Geräte-Pilot kann ohne optionale Quellen geprüft werden mit:
+Die Vorprüfung beendet sich nur dann erfolgreich, wenn Bridge-Grundschutz, ntfy-Dateien, Zimbra-Dateien und Talk-Zuordnungen vollständig und syntaktisch plausibel sind. Sie gibt ausschließlich Status und Fehlerursachen aus, niemals Kennwörter, Schlüssel oder Token. Der laufende Geräte-Pilot kann ohne optionale Quellen geprüft werden mit:
 
 ```bash
 docker compose -f compose.device-pilot.yml run --rm bridge mission-leben-bridge-preflight

@@ -21,7 +21,7 @@ object DeviceSecurityLock {
         }
         SecureSessionVault(applicationContext).clear()
         NotificationManagerCompat.from(applicationContext).cancelAll()
-        PushManager.unregister()
+        PushManager.stop(applicationContext)
     }
 
     suspend fun clearWebData(context: Context) {

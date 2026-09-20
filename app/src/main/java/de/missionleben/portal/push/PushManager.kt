@@ -1,56 +1,47 @@
 package de.missionleben.portal.push
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.util.Log
-import com.google.firebase.FirebaseApp
-import com.google.firebase.FirebaseOptions
-import com.google.firebase.messaging.FirebaseMessaging
+import android.content.Intent
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import de.missionleben.portal.BuildConfig
 import de.missionleben.portal.R
 
 object PushManager {
+    const val CONNECTION_NOTIFICATION_ID = 290_104_010
+
     val configured: Boolean
-        get() = listOf(
-            BuildConfig.FIREBASE_APPLICATION_ID,
-            BuildConfig.FIREBASE_API_KEY,
-            BuildConfig.FIREBASE_PROJECT_ID,
-            BuildConfig.FIREBASE_SENDER_ID,
-        ).all(String::isNotBlank)
+        get() = BuildConfig.NTFY_PUBLIC_BASE_URL.startsWith("https://")
 
     fun initialize(context: Context) {
         createChannels(context)
-        if (!configured) return
-
-        if (FirebaseApp.getApps(context).none { it.name == FirebaseApp.DEFAULT_APP_NAME }) {
-            val options = FirebaseOptions.Builder()
-                .setApplicationId(BuildConfig.FIREBASE_APPLICATION_ID)
-                .setApiKey(BuildConfig.FIREBASE_API_KEY)
-                .setProjectId(BuildConfig.FIREBASE_PROJECT_ID)
-                .setGcmSenderId(BuildConfig.FIREBASE_SENDER_ID)
-                .build()
-            FirebaseApp.initializeApp(context, options)
-        }
-
-        FirebaseMessaging.getInstance().setAutoInitEnabled(false)
+        start(context)
     }
 
-    fun register() {
-        if (!configured) return
-        FirebaseMessaging.getInstance().register().addOnFailureListener { error ->
-            Log.w(TAG, "FCM installation registration failed", error)
+    fun start(context: Context) {
+        if (
+            !configured ||
+            NtfyCredentialVault(context).load() == null ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        runCatching {
+            ContextCompat.startForegroundService(
+                context,
+                Intent(context, NtfySubscriberService::class.java),
+            )
         }
     }
 
-    fun unregister() {
-        if (!configured) return
-        FirebaseMessaging.getInstance().unregister().addOnFailureListener { error ->
-            Log.w(TAG, "FCM installation unregistration failed", error)
-        }
+    fun stop(context: Context, clearCredentials: Boolean = true) {
+        context.stopService(Intent(context, NtfySubscriberService::class.java))
+        if (clearCredentials) NtfyCredentialVault(context).clear()
     }
-
-    fun installationId(context: Context): String? = PushRegistrationStore(context).installationId
 
     private fun createChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
@@ -68,9 +59,13 @@ object PushManager {
                 NotificationChannel("security", context.getString(R.string.channel_security_name), NotificationManager.IMPORTANCE_HIGH).apply {
                     description = context.getString(R.string.channel_security_description)
                 },
+                NotificationChannel("connection", context.getString(R.string.channel_connection_name), NotificationManager.IMPORTANCE_LOW).apply {
+                    description = context.getString(R.string.channel_connection_description)
+                    enableVibration(false)
+                    setSound(null, null)
+                    setShowBadge(false)
+                },
             ),
         )
     }
-
-    private const val TAG = "PortalPush"
 }
