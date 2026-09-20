@@ -13,7 +13,7 @@ fi
 command -v docker >/dev/null
 command -v python3 >/dev/null
 
-install -d -m 0750 "$deploy_dir/data" "$deploy_dir/backups"
+install -d -m 0750 "$deploy_dir/data" "$deploy_dir/backups" "$deploy_dir/secrets"
 chown 10001:10001 "$deploy_dir/data"
 
 if [[ ! -f "$env_file" ]]; then
@@ -40,6 +40,10 @@ if [[ ! -f "$env_file" ]]; then
         'BRIDGE_NEXTCLOUD_BACKEND_URL=' \
         'BRIDGE_TALK_RECIPIENTS_JSON={}' \
         'BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON={}' \
+        'BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL=' \
+        'BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET_FILE=/run/secrets/nextcloud-announcements-secret' \
+        'BRIDGE_ANNOUNCEMENT_CACHE_TTL_SECONDS=300' \
+        'BRIDGE_ANNOUNCEMENT_STALE_TTL_SECONDS=86400' \
         > "$env_file"
     chmod 0600 "$env_file"
 fi

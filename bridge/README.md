@@ -57,6 +57,21 @@ sudo ./deploy/install-device-pilot.sh
 
 Die Nginx-Locations aus `deploy/nginx-device-bridge-location.conf` veröffentlichen `/device-bridge/healthz`, `/device-bridge/v1/` sowie exakt die drei von Authentik signierten Routen `/auth/v2/ping`, `/auth/v2/check` und `/auth/v2/auth`. Admin-, interne und Quellendpunkte bleiben von außen gesperrt. Der tägliche konsistente SQLite-Backupjob wird mit den beiden mitgelieferten systemd-Units aktiviert.
 
+## Nextcloud-Ankündigungen
+
+Die kleine Nextcloud-App unter `nextcloud-app/missionleben_announcements` stellt ausschließlich einen HMAC-signierten Leseendpunkt bereit. Die Bridge sendet die aus dem live geprüften Authentik-Token stammende Benutzerkennung beziehungsweise E-Mail. Nextcloud löst genau ein aktives Konto auf und filtert die Einträge aus dem Announcement Center anhand der aktuellen Nextcloud-Gruppen des Benutzers. Gruppenbezeichnungen werden weder an die Bridge noch an Android ausgegeben.
+
+Der Bridge-Cache ist nach Authentik-Subject getrennt. Ein Abruf prüft immer zuerst das Access-Token bei Authentik; der Cache ist also kein Ersatz für Benutzer- oder Sperrprüfung. Ein Ergebnis gilt fünf Minuten als frisch. Ist Nextcloud danach nicht erreichbar, darf die Bridge es höchstens 24 Stunden mit `stale=true` ausliefern. Beim Offboarding wird auch dieser Cache gelöscht.
+
+```dotenv
+BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL=https://nextcloud.mission-leben.de
+BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET_FILE=/run/secrets/nextcloud-announcements-secret
+BRIDGE_ANNOUNCEMENT_CACHE_TTL_SECONDS=300
+BRIDGE_ANNOUNCEMENT_STALE_TTL_SECONDS=86400
+```
+
+Das Secret ist ein eigener zufälliger Wert mit mindestens 32 Zeichen und wird im Container nur als schreibgeschützte Datei eingebunden. Für den Pilot muss die Vorprüfung `announcements` als Pflichtkomponente enthalten. Ein Authentik-Clusterwechsel benötigt keine Codeänderung, solange die öffentliche Issuer-/UserInfo-Adresse stabil bleibt; Authentik bleibt vor jedem Cachezugriff erreichbar und autoritativ.
+
 Für die App-Bestätigung müssen `BRIDGE_DUO_INTEGRATION_KEY`, `BRIDGE_DUO_SECRET_KEY` und `BRIDGE_DUO_API_HOSTNAME` mit der Authentik-Stufe aus `authentik/bootstrap_app_approval.py` übereinstimmen. Das API-Geheimnis wird nie an Android übertragen. `/auth/v2/auth` wartet höchstens 60 Sekunden; bei Zeitablauf, Bridge-Fehler oder unbekanntem/gesperrtem Endpoint liefert die Bridge ausdrücklich `deny`.
 
 Für den vollständigen Benachrichtigungspilot mit FCM, Zimbra und Talk gilt weiterhin:

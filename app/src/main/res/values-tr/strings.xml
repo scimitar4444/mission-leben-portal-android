@@ -57,6 +57,9 @@
     <string name="session_valid_today_short">Bugün</string>
     <string name="news_title">Güncel</string>
     <string name="news_all">Tüm haberler</string>
+    <string name="announcements_title">Önemli duyurular</string>
+    <string name="announcements_all">Tüm duyurular</string>
+    <string name="announcements_cached">Önbelleğe alınmış durum – şu anda güncellenemiyor</string>
     <string name="birthday_greeting">Doğum günün kutlu olsun, %1$s!</string>
     <string name="motivation_welcome">Burada olman çok güzel.</string>
     <string name="motivation_together">Birlikte fark yaratıyoruz.</string>

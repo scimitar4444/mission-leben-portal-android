@@ -40,6 +40,10 @@ class Settings:
     talk_targets: tuple[dict[str, Any], ...]
     nextcloud_talk_secret: bytes | None
     nextcloud_backend_url: str
+    nextcloud_announcements_secret: bytes | None
+    nextcloud_announcements_url: str
+    announcement_cache_ttl_seconds: int
+    announcement_stale_ttl_seconds: int
     talk_recipients: dict[str, tuple[str, ...]]
     nextcloud_user_subjects: dict[str, str]
     duo_integration_key: str
@@ -89,6 +93,42 @@ class Settings:
         talk_secret_value = os.getenv("BRIDGE_NEXTCLOUD_TALK_SECRET", "").strip()
         if talk_secret_file:
             talk_secret_value = Path(talk_secret_file).read_text(encoding="utf-8").strip()
+        announcements_secret_file = os.getenv(
+            "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET_FILE", ""
+        ).strip()
+        announcements_secret_value = os.getenv(
+            "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET", ""
+        ).strip()
+        if announcements_secret_file:
+            announcements_secret_value = Path(announcements_secret_file).read_text(
+                encoding="utf-8"
+            ).strip()
+        announcements_url = os.getenv(
+            "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL", ""
+        ).strip().rstrip("/")
+        if bool(announcements_url) != bool(announcements_secret_value):
+            raise RuntimeError(
+                "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL and secret must be configured together"
+            )
+        if announcements_secret_value and len(announcements_secret_value) < 32:
+            raise RuntimeError(
+                "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET must contain at least 32 characters"
+            )
+        try:
+            announcement_cache_ttl = int(
+                os.getenv("BRIDGE_ANNOUNCEMENT_CACHE_TTL_SECONDS", "300")
+            )
+            announcement_stale_ttl = int(
+                os.getenv("BRIDGE_ANNOUNCEMENT_STALE_TTL_SECONDS", "86400")
+            )
+        except ValueError as error:
+            raise RuntimeError("Announcement cache TTL values must be integers") from error
+        if not 30 <= announcement_cache_ttl <= 3600:
+            raise RuntimeError("Announcement cache TTL must be between 30 and 3600 seconds")
+        if not announcement_cache_ttl <= announcement_stale_ttl <= 604800:
+            raise RuntimeError(
+                "Announcement stale TTL must be at least the cache TTL and at most 604800 seconds"
+            )
         recipients_value = json.loads(os.getenv("BRIDGE_TALK_RECIPIENTS_JSON", "{}"))
         user_subjects_value = json.loads(os.getenv("BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON", "{}"))
         if not isinstance(recipients_value, dict) or not isinstance(user_subjects_value, dict):
@@ -132,6 +172,12 @@ class Settings:
             talk_targets=tuple(parsed_targets),
             nextcloud_talk_secret=talk_secret_value.encode() if talk_secret_value else None,
             nextcloud_backend_url=os.getenv("BRIDGE_NEXTCLOUD_BACKEND_URL", "").rstrip("/"),
+            nextcloud_announcements_secret=(
+                announcements_secret_value.encode() if announcements_secret_value else None
+            ),
+            nextcloud_announcements_url=announcements_url,
+            announcement_cache_ttl_seconds=announcement_cache_ttl,
+            announcement_stale_ttl_seconds=announcement_stale_ttl,
             talk_recipients={
                 str(room): tuple(str(subject) for subject in subjects)
                 for room, subjects in recipients_value.items()

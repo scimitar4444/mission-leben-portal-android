@@ -57,6 +57,9 @@
     <string name="session_valid_today_short">Today</string>
     <string name="news_title">Latest news</string>
     <string name="news_all">All news</string>
+    <string name="announcements_title">Important notices</string>
+    <string name="announcements_all">All notices</string>
+    <string name="announcements_cached">Cached status – currently unable to update</string>
     <string name="birthday_greeting">Happy birthday, %1$s!</string>
     <string name="motivation_welcome">Great to have you here.</string>
     <string name="motivation_together">Together, we make a difference.</string>

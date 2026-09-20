@@ -8,6 +8,7 @@ from .config import Settings
 from .duo_compat import DuoCompatApi, DuoCompatSettings
 from .fcm import FcmSender, NullFcmSender
 from .http_api import BridgeHttpServer
+from .nextcloud_announcements import NextcloudAnnouncementClient
 from .security import SecretBox
 from .service import BridgeService
 from .store import Store
@@ -26,7 +27,24 @@ def main() -> None:
         if settings.fcm_configured and settings.google_credentials_path is not None
         else NullFcmSender()
     )
-    service = BridgeService(store, authentik, fcm, settings.talk_targets)
+    announcement_client = None
+    if (
+        settings.nextcloud_announcements_url
+        and settings.nextcloud_announcements_secret is not None
+    ):
+        announcement_client = NextcloudAnnouncementClient(
+            settings.nextcloud_announcements_url,
+            settings.nextcloud_announcements_secret,
+        )
+    service = BridgeService(
+        store,
+        authentik,
+        fcm,
+        settings.talk_targets,
+        announcement_client,
+        settings.announcement_cache_ttl_seconds,
+        settings.announcement_stale_ttl_seconds,
+    )
     duo_api = None
     if settings.duo_configured and settings.duo_secret_key is not None:
         duo_api = DuoCompatApi(

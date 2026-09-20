@@ -93,6 +93,10 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                         "status": "ok",
                         "fcm_configured": self.server.service.fcm.configured,
                         "login_approval_configured": self.server.duo_api is not None,
+                        "announcements_configured": bool(
+                            self.server.service.announcement_client
+                            and self.server.service.announcement_client.configured
+                        ),
                     },
                 )
                 return
@@ -155,6 +159,10 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
 
             if method == "GET" and path == "/v1/capabilities":
                 self._json(200, {"capabilities": self.server.service.capabilities(self._bearer())})
+                return
+
+            if method == "GET" and path == "/v1/announcements":
+                self._json(200, self.server.service.announcements(self._bearer()))
                 return
 
             if method == "GET" and path == "/v1/link-targets":

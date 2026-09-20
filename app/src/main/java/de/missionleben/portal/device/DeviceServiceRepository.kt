@@ -5,6 +5,7 @@ import android.os.Build
 import de.missionleben.portal.BuildConfig
 import de.missionleben.portal.R
 import de.missionleben.portal.model.DeviceMode
+import de.missionleben.portal.model.AnnouncementItem
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
 import de.missionleben.portal.model.LoginApprovalRequest
@@ -27,6 +28,11 @@ import java.util.Base64
 data class EnrollmentResult(
     val deviceId: String,
     val trusted: Boolean,
+)
+
+data class AnnouncementResult(
+    val items: List<AnnouncementItem>,
+    val stale: Boolean,
 )
 
 class NotificationFetchException(
@@ -128,6 +134,29 @@ class DeviceServiceRepository(context: Context? = null) {
                 PortalCapability.fromWireName(values.optString(index))?.let(::add)
             }
         }
+    }
+
+    suspend fun announcements(accessToken: String): AnnouncementResult = withContext(Dispatchers.IO) {
+        if (!communicationConfigured) return@withContext AnnouncementResult(emptyList(), false)
+        val root = JSONObject(request("/v1/announcements", "GET", null, accessToken))
+        val values = root.optJSONArray("results") ?: JSONArray()
+        val items = buildList {
+            for (index in 0 until values.length()) {
+                val item = values.optJSONObject(index) ?: continue
+                val subject = item.optString("subject").trim()
+                if (subject.isEmpty()) continue
+                add(
+                    AnnouncementItem(
+                        id = item.optLong("id"),
+                        subject = subject,
+                        message = item.optString("message").trim(),
+                        author = item.optString("author").trim(),
+                        publishedAtEpochSeconds = item.optLong("time"),
+                    ),
+                )
+            }
+        }
+        AnnouncementResult(items, root.optBoolean("stale"))
     }
 
     suspend fun openTalk(accessToken: String, targetId: String, talkUrl: String) = withContext(Dispatchers.IO) {

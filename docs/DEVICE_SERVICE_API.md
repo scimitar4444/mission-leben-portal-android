@@ -13,6 +13,17 @@ Authorization: Bearer <Authentik-OIDC-Access-Token>
 
 Die Antwort enthaelt nur bekannte, in Authentik erteilte Capabilities. `open_talk` wird aus `ENT_TALK_RAUMUEBERGABE`, `device_profile_switch` aus `ENT_DEVICE_PROFILE_SWITCH` abgeleitet. `GET /v1/link-targets?capability=open_talk` und `POST /v1/handoffs` verweigern den Zugriff ohne `open_talk` serverseitig.
 
+## Gruppengefilterte IT-Ankuendigungen
+
+```http
+GET /v1/announcements
+Authorization: Bearer <Authentik-OIDC-Access-Token>
+```
+
+Die Bridge prueft das Token bei jedem Aufruf live an Authentik. Danach liest sie ueber einen getrennten HMAC-signierten, nur lesenden Nextcloud-Endpunkt die Announcement-Center-Eintraege, die fuer das exakt aufgeloeste Nextcloud-Konto oder eine seiner aktuellen Gruppen gelten. Der Benutzer erhaelt keine Gruppenliste.
+
+Die Antwort enthaelt hoechstens sieben normalisierte Eintraege sowie `fetched_at`, `cache_hit` und `stale`. Der Cache ist nach stabilem Authentik-Subject getrennt: fuenf Minuten frisch, bei einem Nextcloud-Ausfall hoechstens 24 Stunden und dann ausdruecklich `stale=true`. Eine abgelaufene Ankuendigung wird auch aus dem Cache nicht mehr geliefert. Offboarding loescht den Cache des Subjects.
+
 ## Direkter Authentik-Geraetevertrag
 
 Die Android-App spricht fuer den Geraetelebenszyklus direkt mit Authentik:

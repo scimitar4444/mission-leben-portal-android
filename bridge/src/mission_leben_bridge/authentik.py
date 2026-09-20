@@ -24,6 +24,7 @@ class UserInfo:
     email: str
     display_name: str
     capabilities: frozenset[str] = frozenset()
+    nextcloud_user_id: str = ""
 
 
 class AuthentikClient:
@@ -74,6 +75,7 @@ class AuthentikClient:
             email=email,
             display_name=name,
             capabilities=frozenset(capabilities),
+            nextcloud_user_id=str(payload.get("nextcloud_uid") or "").strip(),
         )
 
     def device_id(self, agent_token: str) -> str:

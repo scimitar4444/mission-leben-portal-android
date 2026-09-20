@@ -72,6 +72,9 @@
     <string name="session_valid_today_short">Heute</string>
     <string name="news_title">Aktuelles</string>
     <string name="news_all">Alle Meldungen</string>
+    <string name="announcements_title">Wichtige Hinweise</string>
+    <string name="announcements_all">Alle Hinweise</string>
+    <string name="announcements_cached">Zwischengespeicherter Stand – Aktualisierung derzeit nicht möglich</string>
     <string name="birthday_greeting">Herzlichen Glückwunsch zum Geburtstag, %1$s!</string>
     <string name="motivation_welcome">Schön, dass du da bist.</string>
     <string name="motivation_together">Gemeinsam machen wir den Unterschied.</string>

@@ -57,6 +57,9 @@
     <string name="session_valid_today_short">Aujourd’hui</string>
     <string name="news_title">Actualités</string>
     <string name="news_all">Toutes les actualités</string>
+    <string name="announcements_title">Informations importantes</string>
+    <string name="announcements_all">Toutes les informations</string>
+    <string name="announcements_cached">État enregistré – mise à jour momentanément impossible</string>
     <string name="birthday_greeting">Joyeux anniversaire, %1$s !</string>
     <string name="motivation_welcome">C’est un plaisir de te voir ici.</string>
     <string name="motivation_together">Ensemble, nous faisons la différence.</string>

@@ -11,6 +11,7 @@ services:
       - ./data:/data
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
       - ./secrets/nextcloud-talk-bot-secret:/run/secrets/nextcloud-talk-bot-secret:ro
+      - ./secrets/nextcloud-announcements-secret:/run/secrets/nextcloud-announcements-secret:ro
     read_only: true
     tmpfs:
       - /tmp:size=32m,mode=1777
@@ -41,11 +42,12 @@ services:
   preflight:
     profiles: ["tools"]
     build: .
-    command: ["mission-leben-bridge-preflight", "--require", "login_approval,fcm,zimbra,talk"]
+    command: ["mission-leben-bridge-preflight", "--require", "login_approval,fcm,zimbra,talk,announcements"]
     env_file: .env
     volumes:
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
       - ./secrets/nextcloud-talk-bot-secret:/run/secrets/nextcloud-talk-bot-secret:ro
+      - ./secrets/nextcloud-announcements-secret:/run/secrets/nextcloud-announcements-secret:ro
       - ./secrets/zimbra-admin-password:/run/secrets/zimbra-admin-password:ro
       - ./secrets/zimbra-account-map.json:/run/secrets/zimbra-account-map.json:ro
     read_only: true

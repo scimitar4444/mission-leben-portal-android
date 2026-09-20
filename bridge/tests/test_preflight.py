@@ -36,6 +36,7 @@ class PreflightTest(unittest.TestCase):
         self.assertEqual("disabled", result["components"]["fcm"]["status"])
         self.assertEqual("disabled", result["components"]["zimbra"]["status"])
         self.assertEqual("disabled", result["components"]["talk"]["status"])
+        self.assertEqual("disabled", result["components"]["announcements"]["status"])
 
     def test_bridge_runtime_defaults_are_accepted(self) -> None:
         environment = {
@@ -162,6 +163,36 @@ class PreflightTest(unittest.TestCase):
 
         self.assertEqual("not_ready", result["status"])
         self.assertEqual("invalid", result["components"]["talk"]["status"])
+
+    def test_complete_announcement_configuration_is_ready_without_secret_leak(self) -> None:
+        secret = "announcement-secret-do-not-print-0123456789"
+        secret_path = self.root / "announcements.secret"
+        secret_path.write_text(secret, encoding="utf-8")
+        environment = {
+            **self.environment,
+            "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL": "https://cloud.example.invalid",
+            "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET_FILE": str(secret_path),
+            "BRIDGE_ANNOUNCEMENT_CACHE_TTL_SECONDS": "300",
+            "BRIDGE_ANNOUNCEMENT_STALE_TTL_SECONDS": "86400",
+        }
+
+        result = evaluate(environment, {"announcements"})
+        serialized = json.dumps(result)
+
+        self.assertEqual("ready", result["status"])
+        self.assertEqual("ready", result["components"]["announcements"]["status"])
+        self.assertNotIn(secret, serialized)
+
+    def test_partial_announcement_configuration_is_invalid(self) -> None:
+        environment = {
+            **self.environment,
+            "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL": "http://cloud.example.invalid",
+        }
+
+        result = evaluate(environment)
+
+        self.assertEqual("not_ready", result["status"])
+        self.assertEqual("invalid", result["components"]["announcements"]["status"])
 
 
 if __name__ == "__main__":

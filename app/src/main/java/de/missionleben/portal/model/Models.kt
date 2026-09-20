@@ -39,6 +39,14 @@ data class NewsItem(
     val publishedAtEpochSeconds: Long,
 )
 
+data class AnnouncementItem(
+    val id: Long,
+    val subject: String,
+    val message: String,
+    val author: String,
+    val publishedAtEpochSeconds: Long,
+)
+
 data class LinkTarget(
     val id: String,
     val name: String,
@@ -93,6 +101,9 @@ data class UiState(
     val applicationsLoading: Boolean = false,
     val news: List<NewsItem> = emptyList(),
     val newsLoading: Boolean = false,
+    val announcements: List<AnnouncementItem> = emptyList(),
+    val announcementsLoading: Boolean = false,
+    val announcementsStale: Boolean = false,
     val enrollmentState: EnrollmentState = EnrollmentState.NOT_ENROLLED,
     val deviceId: String? = null,
     val deviceKeyId: String = "",

@@ -61,6 +61,7 @@ import de.missionleben.portal.R
 import de.missionleben.portal.auth.IdentityBirthday
 import de.missionleben.portal.auth.ReauthenticationPolicy
 import de.missionleben.portal.model.DeviceMode
+import de.missionleben.portal.model.AnnouncementItem
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
 import de.missionleben.portal.model.NewsItem
@@ -364,6 +365,16 @@ private fun Home(
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
         if (state.signedIn) {
             item { Greeting(state) }
+            if (state.announcementsLoading || state.announcements.isNotEmpty()) {
+                item {
+                    AnnouncementsPanel(
+                        state.announcements,
+                        state.announcementsLoading,
+                        state.announcementsStale,
+                        onOpenUrl,
+                    )
+                }
+            }
             if (state.newsLoading || state.news.isNotEmpty()) {
                 item { NewsPanel(state.news, state.newsLoading, onOpenPublicUrl) }
             }
@@ -423,6 +434,91 @@ private fun Home(
             },
             onDismiss = { talkDialogOpen = false },
         )
+    }
+}
+
+@Composable
+private fun AnnouncementsPanel(
+    announcements: List<AnnouncementItem>,
+    loading: Boolean,
+    stale: Boolean,
+    onOpenUrl: (String) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 9.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(R.string.announcements_title),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                TextButton(onClick = { onOpenUrl(BuildConfig.ANNOUNCEMENTS_PAGE_URL) }) {
+                    Text(stringResource(R.string.announcements_all))
+                }
+            }
+            if (loading && announcements.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+                }
+            } else {
+                announcements.firstOrNull()?.let { item ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenUrl(BuildConfig.ANNOUNCEMENTS_PAGE_URL) }
+                            .padding(vertical = 6.dp),
+                    ) {
+                        if (item.publishedAtEpochSeconds > 0L) {
+                            Text(
+                                DateFormat.getDateInstance(DateFormat.MEDIUM)
+                                    .format(Date(item.publishedAtEpochSeconds * 1_000L)),
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.labelMedium,
+                            )
+                            Spacer(Modifier.height(2.dp))
+                        }
+                        Text(
+                            item.subject,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (item.message.isNotBlank()) {
+                            Spacer(Modifier.height(3.dp))
+                            Text(
+                                item.message,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        if (stale) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                stringResource(R.string.announcements_cached),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

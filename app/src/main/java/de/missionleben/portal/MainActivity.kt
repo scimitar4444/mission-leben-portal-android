@@ -213,6 +213,7 @@ class MainActivity : FragmentActivity() {
         super.onStart()
         viewModel.checkForUpdates()
         viewModel.refreshDeviceStatus()
+        viewModel.refreshAnnouncements()
         viewModel.startLoginApprovalPolling()
         ContextCompat.registerReceiver(
             this,

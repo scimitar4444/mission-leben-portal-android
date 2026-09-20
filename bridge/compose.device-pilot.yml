@@ -11,6 +11,7 @@ services:
       - "geraete.mission-leben.de:host-gateway"
     volumes:
       - ./data:/data
+      - ./secrets/nextcloud-announcements-secret:/run/secrets/nextcloud-announcements-secret:ro
     read_only: true
     tmpfs:
       - /tmp:size=32m,mode=1777

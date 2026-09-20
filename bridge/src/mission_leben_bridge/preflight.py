@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from cryptography.hazmat.primitives import serialization
 
 
-COMPONENTS = ("bridge", "login_approval", "fcm", "zimbra", "talk")
+COMPONENTS = ("bridge", "login_approval", "fcm", "zimbra", "talk", "announcements")
 ROOM_TOKEN = re.compile(r"^[A-Za-z0-9_-]{6,128}$")
 DUO_INTEGRATION_KEY = re.compile(r"^[A-Za-z0-9]{20,64}$")
 API_HOSTNAME = re.compile(
@@ -197,6 +197,46 @@ def check_talk(environment: Mapping[str, str]) -> dict[str, Any]:
     return _report("invalid" if issues else "ready", issues)
 
 
+def check_announcements(environment: Mapping[str, str]) -> dict[str, Any]:
+    url = _value(environment, "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL").rstrip("/")
+    secret_file = _value(environment, "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET_FILE")
+    inline_secret = _value(environment, "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET")
+    if not url and not secret_file and not inline_secret:
+        return _report("disabled", [])
+
+    issues: list[str] = []
+    if not _valid_url(url, https_only=True):
+        issues.append("BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL muss eine gültige HTTPS-URL sein")
+
+    secret = inline_secret
+    if secret_file:
+        path = Path(secret_file)
+        if not path.is_file():
+            issues.append("Nextcloud-Ankündigungs-Secret-Datei fehlt")
+        else:
+            try:
+                secret = path.read_text(encoding="utf-8").strip()
+            except (OSError, UnicodeError):
+                issues.append("Nextcloud-Ankündigungs-Secret-Datei ist nicht lesbar")
+    if len(secret) < 32:
+        issues.append("Nextcloud-Ankündigungs-Secret fehlt oder ist kürzer als 32 Zeichen")
+
+    try:
+        cache_ttl = int(_value(environment, "BRIDGE_ANNOUNCEMENT_CACHE_TTL_SECONDS") or "300")
+        if not 30 <= cache_ttl <= 3600:
+            raise ValueError
+    except ValueError:
+        cache_ttl = 300
+        issues.append("Ankündigungs-Frischcache muss zwischen 30 und 3600 Sekunden liegen")
+    try:
+        stale_ttl = int(_value(environment, "BRIDGE_ANNOUNCEMENT_STALE_TTL_SECONDS") or "86400")
+        if not cache_ttl <= stale_ttl <= 604800:
+            raise ValueError
+    except ValueError:
+        issues.append("Ankündigungs-Ausfallcache muss mindestens so lang wie der Frischcache und höchstens 7 Tage sein")
+    return _report("invalid" if issues else "ready", issues)
+
+
 def check_zimbra(environment: Mapping[str, str]) -> dict[str, Any]:
     names = (
         "ZIMBRA_ADMIN_SOAP_URL",
@@ -266,6 +306,7 @@ def evaluate(environment: Mapping[str, str], required: set[str] | None = None) -
         "fcm": check_fcm(environment),
         "zimbra": check_zimbra(environment),
         "talk": check_talk(environment),
+        "announcements": check_announcements(environment),
     }
     ready = all(report["status"] != "invalid" for report in components.values()) and all(
         components[name]["status"] == "ready" for name in required_components
@@ -299,7 +340,7 @@ def main() -> None:
         "--require",
         default="",
         help=(
-            "Kommagetrennte Pflichtkomponenten: login_approval,fcm,zimbra,talk "
+            "Kommagetrennte Pflichtkomponenten: login_approval,fcm,zimbra,talk,announcements "
             "(bridge ist immer Pflicht)."
         ),
     )

@@ -23,6 +23,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - persönliche Geräte müssen sich nach exakt 90 Tagen erneut bestätigen: Die App übernimmt den gespeicherten Benutzernamen, Authentik prüft zuerst Gerät und Benutzerbindung und fordert ein bereits vorhandenes TOTP an, ansonsten das Passwort. Eine TOTP-Einrichtung wird nie erzwungen
 - eine kompakte Anzeige nennt auf persönlichen Geräten die verbleibenden Tage der 90-Tage-Anmeldung
 - die tägliche Startseite zeigt nur Sitzungsstatus und freigegebene Anwendungen; Sprache, Benachrichtigungen, technische Gerätedaten und Updates liegen gesammelt unter **Einstellungen**
+- eine kompakte Kachel **Wichtige Hinweise** zeigt die neueste, für den angemeldeten Benutzer beziehungsweise seine Nextcloud-Gruppen bestimmte IT-Ankündigung; die Bridge hält das bereits gefilterte Ergebnis fünf Minuten frisch und kann es bei einem Nextcloud-Ausfall höchstens 24 Stunden deutlich als zwischengespeichert anzeigen
 - automatische OTA-Prüfung einmal je App-Start sowie eine manuelle Schaltfläche **Nach Updates suchen**; Updates kommen als öffentliches GitHub-Release und werden vor der Android-Installation anhand von Paketname, Version, Dateigröße, SHA-256 und App-Signatur geprüft
 - Shared Tablets: kein Refresh Token und keine persistente Mitarbeitersitzung
 - Authentik-Enrollment per verifiziertem HTTPS-App-Link mit einmaligem Token im URL-Fragment; eine vorhandene App öffnet direkt, andernfalls führt dieselbe Seite durch Installation und Einrichtung
@@ -95,6 +96,7 @@ ML_FIREBASE_APPLICATION_ID=1:1234567890:android:…
 ML_FIREBASE_API_KEY=AIza…
 ML_FIREBASE_PROJECT_ID=mission-leben-portal
 ML_FIREBASE_SENDER_ID=1234567890
+ML_ANNOUNCEMENTS_PAGE_URL=https://nextcloud.mission-leben.de/apps/announcementcenter/
 ```
 
 Die Geräteregistrierung verwendet immer `ML_AUTHENTIK_BASE_URL` und spricht Authentik Endpoint Devices direkt an. `ML_DEVICE_SERVICE_BASE_URL` betrifft ausschließlich Push, Benachrichtigungsdetails und Talk-Handoff; der Mission-Leben-Pilotwert ist bereits voreingestellt.

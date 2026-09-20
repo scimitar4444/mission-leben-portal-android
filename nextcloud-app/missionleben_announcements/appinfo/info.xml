@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>missionleben_announcements</id>
+    <name>Mission Leben announcement bridge</name>
+    <summary>Provides a narrow, signed API for user-filtered Announcement Center entries.</summary>
+    <description>The Mission Leben communication bridge can read only those announcements that Nextcloud exposes to a resolved user and their groups.</description>
+    <version>0.1.0</version>
+    <licence>agpl</licence>
+    <author>Mission Leben</author>
+    <namespace>MissionLebenAnnouncements</namespace>
+    <category>integration</category>
+    <dependencies>
+        <nextcloud min-version="34" max-version="35" />
+    </dependencies>
+</info>

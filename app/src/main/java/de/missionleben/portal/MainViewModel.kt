@@ -118,6 +118,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 signedIn = false,
                 user = null,
                 applications = emptyList(),
+                announcements = emptyList(),
+                announcementsLoading = false,
+                announcementsStale = false,
                 quickUnlockEnabled = false,
                 reauthenticationRequired = false,
                 notificationPrivacy = effectiveNotificationPrivacy(mode),
@@ -323,6 +326,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             serializedState = state,
             onSuccess = { token, updatedState ->
                 updateSerializedState(updatedState)
+                loadAnnouncementsWithToken(token)
                 viewModelScope.launch {
                     runCatching { portalRepository.applications(token) }
                         .onSuccess { applications ->
@@ -344,6 +348,41 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             },
             onError = { failure ->
                 handleAccessTokenFailure(failure) { it.copy(applicationsLoading = false) }
+            },
+        )
+    }
+
+    private fun loadAnnouncementsWithToken(token: String) {
+        if (_uiState.value.announcementsLoading) return
+        _uiState.update { it.copy(announcementsLoading = true) }
+        viewModelScope.launch {
+            runCatching { deviceService.announcements(token) }
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(
+                            announcements = result.items,
+                            announcementsLoading = false,
+                            announcementsStale = result.stale,
+                        )
+                    }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(announcementsLoading = false) }
+                }
+        }
+    }
+
+    fun refreshAnnouncements() {
+        if (!_uiState.value.signedIn || expireAtAbsoluteDeadline()) return
+        val state = serializedAuthState ?: return
+        authRepository.withFreshAccessToken(
+            serializedState = state,
+            onSuccess = { token, updatedState ->
+                updateSerializedState(updatedState)
+                loadAnnouncementsWithToken(token)
+            },
+            onError = { failure ->
+                handleAccessTokenFailure(failure) { it.copy(announcementsLoading = false) }
             },
         )
     }
@@ -482,6 +521,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 vaultRequest = VaultRequest.NONE,
                 applications = emptyList(),
                 applicationsLoading = false,
+                announcements = emptyList(),
+                announcementsLoading = false,
+                announcementsStale = false,
                 linkTargets = emptyList(),
                 capabilities = emptySet(),
                 requestedUrl = null,
@@ -512,6 +554,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 user = null,
                 reauthenticationRequired = false,
                 applications = emptyList(),
+                announcements = emptyList(),
+                announcementsLoading = false,
+                announcementsStale = false,
                 linkTargets = emptyList(),
                 capabilities = emptySet(),
                 quickUnlockEnabled = false,

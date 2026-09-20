@@ -7,6 +7,7 @@ from typing import Any
 
 from .authentik import AuthenticationError, AuthentikClient, UserInfo
 from .fcm import FcmSendError, FcmSender, NullFcmSender
+from .nextcloud_announcements import AnnouncementFetchError, NextcloudAnnouncementClient
 from .offboard import offboard_subject
 from .security import canonical_device_request, device_key_id, verify_device_signature
 from .store import Store
@@ -56,11 +57,17 @@ class BridgeService:
         authentik: AuthentikClient,
         fcm: FcmSender | NullFcmSender,
         talk_targets: tuple[dict[str, Any], ...],
+        announcement_client: NextcloudAnnouncementClient | None = None,
+        announcement_cache_ttl_seconds: int = 300,
+        announcement_stale_ttl_seconds: int = 86_400,
     ):
         self.store = store
         self.authentik = authentik
         self.fcm = fcm
         self.talk_targets = tuple(self._normalize_target(target) for target in talk_targets)
+        self.announcement_client = announcement_client
+        self.announcement_cache_ttl_seconds = announcement_cache_ttl_seconds
+        self.announcement_stale_ttl_seconds = announcement_stale_ttl_seconds
 
     def authenticate(self, bearer: str) -> UserInfo:
         user = self.authentik.user_info(bearer)
@@ -79,6 +86,68 @@ class BridgeService:
     def capabilities(self, bearer: str) -> list[str]:
         user = self.authenticate(bearer)
         return sorted(user.capabilities & KNOWN_CAPABILITIES)
+
+    def announcements(self, bearer: str) -> dict[str, Any]:
+        user = self.authenticate(bearer)
+        now = int(time.time())
+        cached = self.store.get_announcement_cache(user.subject)
+        if cached is not None:
+            values, fetched_at = cached
+            if now - fetched_at <= self.announcement_cache_ttl_seconds:
+                return self._announcement_response(values, fetched_at, stale=False, cache_hit=True)
+        client = self.announcement_client
+        if client is None or not client.configured:
+            return self._announcement_response([], now, stale=False, cache_hit=False)
+        try:
+            values = client.fetch(user_id=user.nextcloud_user_id, email=user.email)
+        except AnnouncementFetchError as error:
+            if cached is not None:
+                values, fetched_at = cached
+                if now - fetched_at <= self.announcement_stale_ttl_seconds:
+                    return self._announcement_response(
+                        values, fetched_at, stale=True, cache_hit=True
+                    )
+            raise ApiError(503, "announcements are temporarily unavailable") from error
+        normalized = [self._normalize_announcement(value) for value in values]
+        normalized = [value for value in normalized if value is not None]
+        self.store.put_announcement_cache(user.subject, normalized, now)
+        return self._announcement_response(normalized, now, stale=False, cache_hit=False)
+
+    @staticmethod
+    def _normalize_announcement(value: dict[str, Any]) -> dict[str, Any] | None:
+        try:
+            announcement_id = int(value.get("id", 0))
+            created_at = int(value.get("time", 0))
+            delete_time = int(value.get("delete_time") or 0)
+        except (TypeError, ValueError):
+            return None
+        subject = _text(value.get("subject"), 200, required=True)
+        return {
+            "id": announcement_id,
+            "subject": subject,
+            "message": _text(value.get("message"), 500),
+            "author": _text(value.get("author"), 120),
+            "time": max(created_at, 0),
+            "delete_time": max(delete_time, 0),
+        }
+
+    @staticmethod
+    def _announcement_response(
+        values: list[dict[str, Any]], fetched_at: int, *, stale: bool, cache_hit: bool
+    ) -> dict[str, Any]:
+        now = int(time.time())
+        active = [
+            value
+            for value in values
+            if int(value.get("delete_time") or 0) == 0
+            or int(value.get("delete_time") or 0) > now
+        ]
+        return {
+            "results": active[:7],
+            "fetched_at": fetched_at,
+            "stale": stale,
+            "cache_hit": cache_hit,
+        }
 
     @staticmethod
     def _require_capability(user: UserInfo, capability: str) -> None:

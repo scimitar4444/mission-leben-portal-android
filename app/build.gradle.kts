@@ -24,6 +24,8 @@ val newsFeedUrl = providers.gradleProperty("ML_NEWS_FEED_URL")
     .orElse("https://www.mission-leben.de/rss.xml")
 val newsPageUrl = providers.gradleProperty("ML_NEWS_PAGE_URL")
     .orElse("https://www.mission-leben.de/mission-leben-darmstadt/aktuelles-archiv-nachrichten")
+val announcementsPageUrl = providers.gradleProperty("ML_ANNOUNCEMENTS_PAGE_URL")
+    .orElse("https://nextcloud.mission-leben.de/apps/announcementcenter/")
 val webAllowedHostSuffixes = providers.gradleProperty("ML_WEB_ALLOWED_HOST_SUFFIXES")
     .orElse("mission-leben.de,akademie-mission-leben.de")
 val authentikAuthenticationFlowSlugs = providers.gradleProperty("ML_AUTHENTIK_AUTHENTICATION_FLOW_SLUGS")
@@ -63,8 +65,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 40
-        versionName = "0.10.6"
+        versionCode = 41
+        versionName = "0.10.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
@@ -86,6 +88,11 @@ android {
         buildConfigField("String", "SELF_ENROLLMENT_URL", selfEnrollmentUrl.get().asBuildConfigString())
         buildConfigField("String", "NEWS_FEED_URL", newsFeedUrl.get().asBuildConfigString())
         buildConfigField("String", "NEWS_PAGE_URL", newsPageUrl.get().asBuildConfigString())
+        buildConfigField(
+            "String",
+            "ANNOUNCEMENTS_PAGE_URL",
+            announcementsPageUrl.get().asBuildConfigString(),
+        )
         buildConfigField("String", "WEB_ALLOWED_HOST_SUFFIXES", webAllowedHostSuffixes.get().asBuildConfigString())
         buildConfigField(
             "String",

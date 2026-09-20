@@ -21,6 +21,7 @@ from mission_leben_bridge.security import (
     device_key_id,
 )
 from mission_leben_bridge.nextcloud_talk import NextcloudTalkWebhook
+from mission_leben_bridge.nextcloud_announcements import AnnouncementFetchError
 from mission_leben_bridge.service import BridgeService
 from mission_leben_bridge.store import Store
 
@@ -50,6 +51,29 @@ class FakeFcm:
 
     def send(self, installation_id: str, data: dict[str, str]) -> None:
         self.messages.append((installation_id, data))
+
+
+class FakeAnnouncements:
+    configured = True
+
+    def __init__(self) -> None:
+        self.fail = False
+        self.calls = 0
+
+    def fetch(self, *, user_id: str = "", email: str = "") -> list[dict[str, object]]:
+        self.calls += 1
+        if self.fail:
+            raise AnnouncementFetchError("offline")
+        return [
+            {
+                "id": 12,
+                "subject": "Maintenance",
+                "message": "Sigma is temporarily unavailable.",
+                "author": "IT",
+                "time": int(time.time()),
+                "delete_time": 0,
+            }
+        ]
 
 
 class ServiceTest(unittest.TestCase):
@@ -204,6 +228,26 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual([], self.fcm.messages)
         self.assertEqual(0, self.service.dispatch_due_events())
 
+    def test_announcements_are_cached_per_authenticated_subject(self) -> None:
+        client = FakeAnnouncements()
+        service = BridgeService(
+            self.store,
+            FakeAuthentik(),
+            self.fcm,
+            (),
+            client,  # type: ignore[arg-type]
+            announcement_cache_ttl_seconds=-1,
+            announcement_stale_ttl_seconds=86_400,
+        )
+        live = service.announcements("valid-token")
+        self.assertFalse(live["stale"])
+        self.assertEqual("Maintenance", live["results"][0]["subject"])
+        client.fail = True
+        cached = service.announcements("valid-token")
+        self.assertTrue(cached["stale"])
+        self.assertTrue(cached["cache_hit"])
+        self.assertEqual("Maintenance", cached["results"][0]["subject"])
+
     def test_offboarding_removes_personal_data_and_blocks_new_events(self) -> None:
         subject = "authentik-user-1"
         device_id = "11111111-1111-1111-1111-111111111111"
@@ -254,12 +298,18 @@ class ServiceTest(unittest.TestCase):
             source_ip="192.0.2.10",
             ttl=60,
         )
+        self.store.put_announcement_cache(
+            subject,
+            [{"id": 1, "subject": "Internal", "delete_time": 0}],
+            int(time.time()),
+        )
 
         preview = self.service.offboard_subject(subject, dry_run=True)
         self.assertFalse(preview["applied"])
         self.assertEqual(1, preview["registrations"])
         self.assertEqual(1, preview["events"])
         self.assertEqual(1, preview["auth_requests"])
+        self.assertEqual(1, preview["announcement_cache"])
         self.assertEqual(1, preview["security_signal_targets"])
         self.assertEqual([], self.fcm.messages)
         self.assertIsNotNone(self.store.get_registration(device_id))
@@ -289,6 +339,7 @@ class ServiceTest(unittest.TestCase):
                 "event_deliveries",
                 "handoffs",
                 "auth_requests",
+                "announcement_cache",
             ):
                 self.assertEqual(0, connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
 

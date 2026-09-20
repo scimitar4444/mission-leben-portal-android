@@ -96,10 +96,16 @@ CREATE TABLE IF NOT EXISTS auth_requests (
     completed_at INTEGER
 );
 
+CREATE TABLE IF NOT EXISTS announcement_cache (
+    subject TEXT PRIMARY KEY REFERENCES users(subject) ON DELETE CASCADE,
+    payload TEXT NOT NULL,
+    fetched_at INTEGER NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS auth_requests_subject_status
 ON auth_requests(subject, status, expires_at);
 
-PRAGMA user_version=3;
+PRAGMA user_version=4;
 """
 
 
@@ -128,7 +134,7 @@ class Store:
                 connection.execute(
                     "ALTER TABLE push_registrations ADD COLUMN push_enabled INTEGER NOT NULL DEFAULT 1"
                 )
-            connection.execute("PRAGMA user_version=3")
+            connection.execute("PRAGMA user_version=4")
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path, timeout=15, factory=ClosingConnection)
@@ -264,6 +270,9 @@ class Store:
                 "auth_requests": connection.execute(
                     "SELECT COUNT(*) FROM auth_requests WHERE subject = ?", (subject,)
                 ).fetchone()[0],
+                "announcement_cache": connection.execute(
+                    "SELECT COUNT(*) FROM announcement_cache WHERE subject = ?", (subject,)
+                ).fetchone()[0],
             }
             user_exists = connection.execute(
                 "SELECT 1 FROM users WHERE subject = ?", (subject,)
@@ -288,6 +297,7 @@ class Store:
             connection.execute("DELETE FROM notification_events WHERE subject = ?", (subject,))
             connection.execute("DELETE FROM handoffs WHERE subject = ?", (subject,))
             connection.execute("DELETE FROM auth_requests WHERE subject = ?", (subject,))
+            connection.execute("DELETE FROM announcement_cache WHERE subject = ?", (subject,))
             connection.execute(
                 """
                 INSERT INTO users(subject, email, display_name, active, verified_at)
@@ -305,6 +315,38 @@ class Store:
                 "applied": True,
                 **counts,
             }
+
+    def put_announcement_cache(
+        self, subject: str, announcements: list[dict[str, Any]], fetched_at: int
+    ) -> None:
+        payload = json.dumps(announcements, ensure_ascii=False, separators=(",", ":"))
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO announcement_cache(subject, payload, fetched_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(subject) DO UPDATE SET
+                    payload=excluded.payload,
+                    fetched_at=excluded.fetched_at
+                """,
+                (subject, payload, fetched_at),
+            )
+
+    def get_announcement_cache(self, subject: str) -> tuple[list[dict[str, Any]], int] | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT payload, fetched_at FROM announcement_cache WHERE subject = ?",
+                (subject,),
+            ).fetchone()
+        if row is None:
+            return None
+        try:
+            payload = json.loads(row["payload"])
+        except (TypeError, json.JSONDecodeError):
+            return None
+        if not isinstance(payload, list) or not all(isinstance(item, dict) for item in payload):
+            return None
+        return payload, int(row["fetched_at"])
 
     def register_push(
         self,
