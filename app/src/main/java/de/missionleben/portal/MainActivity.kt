@@ -21,6 +21,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.NotificationPresenter
@@ -33,20 +35,13 @@ import de.missionleben.portal.ui.MissionLebenTheme
 import de.missionleben.portal.update.UpdateInstaller
 import de.missionleben.portal.update.UpdateStatus
 import de.missionleben.portal.web.PortalBrowserActivity
-import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
-import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 private const val AUTH_LOG_TAG = "MissionLebenAuth"
 
 class MainActivity : FragmentActivity() {
     private val viewModel: MainViewModel by viewModels()
-    private val enrollmentScanner by lazy {
-        val options = GmsBarcodeScannerOptions.Builder()
-            .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
-            .enableAutoZoom()
-            .build()
-        GmsBarcodeScanning.getClient(this, options)
+    private val enrollmentScanner = registerForActivityResult(ScanContract()) { result ->
+        result.contents?.let(viewModel::enrollDeviceFromQr)
     }
 
     private val pushRegistrationReceiver = object : BroadcastReceiver() {
@@ -269,11 +264,14 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun scanEnrollmentQr() {
-        enrollmentScanner.startScan()
-            .addOnSuccessListener { barcode ->
-                viewModel.enrollDeviceFromQr(barcode.rawValue.orEmpty())
-            }
-            .addOnFailureListener {
+        val options = ScanOptions()
+            .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+            .setPrompt(getString(R.string.scan_enrollment_qr))
+            .setBeepEnabled(false)
+            .setBarcodeImageEnabled(false)
+            .setOrientationLocked(false)
+        runCatching { enrollmentScanner.launch(options) }
+            .onFailure {
                 Toast.makeText(this, R.string.qr_scanner_unavailable, Toast.LENGTH_LONG).show()
             }
     }

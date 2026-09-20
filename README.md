@@ -104,7 +104,7 @@ Die Geräteregistrierung verwendet immer `ML_AUTHENTIK_BASE_URL` und spricht Aut
 
 Die ntfy-Adresse ist auf `https://push.mission-leben.de` festgelegt. Pro Gerät erzeugt die Bridge ein zufälliges Topic sowie getrennte, widerrufbare Lese- und Schreibidentitäten. Nur das Lesetoken gelangt verschlüsselt in die App; das Schreibtoken bleibt verschlüsselt in der Bridge. Die Einrichtung ist in [docs/NTFY_SETUP.md](docs/NTFY_SETUP.md) beschrieben.
 
-Der Enrollment-Scanner verwendet den Google Code Scanner. Die Erkennung läuft auf dem Gerät; beim ersten Aufruf kann Google Play Services das Scanner-Modul `barcode_ui` nachladen. Bei neuen Geräten akzeptiert die App ausschließlich einen vollständigen, vom Geräte-Einrichtungscontainer erzeugten Deep Link mit Token-ID und Gerätemodus. Ein alter Token-only-Link funktioniert nur noch auf einem Gerät, dessen Modus bereits lokal feststeht. Beliebige URLs und rohe QR-Texte werden verworfen.
+Der Enrollment-Scanner verwendet die freie ZXing-Engine direkt in der App. Er benötigt weder Google Play Services noch einen nachzuladenden Google-Scanner und verarbeitet das Kamerabild ausschließlich lokal. Bei neuen Geräten akzeptiert die App ausschließlich einen vollständigen, vom Geräte-Einrichtungscontainer erzeugten Deep Link mit Token-ID und Gerätemodus. Ein alter Token-only-Link funktioniert nur noch auf einem Gerät, dessen Modus bereits lokal feststeht. Beliebige URLs und rohe QR-Texte werden verworfen.
 
 `ML_DEVICE_SERVICE_BASE_URL` zeigt im Pilot auf den eigenen Kommunikationscontainer. Er läuft separat hinter TLS und enthält keine Authentik-Gerätefreigaben.
 
