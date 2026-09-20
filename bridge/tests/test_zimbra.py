@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import tempfile
 import time
 import unittest
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
+from pathlib import Path
 from unittest.mock import patch
 
 from mission_leben_bridge.zimbra_waitset import (
@@ -128,6 +130,14 @@ class ZimbraWorkerTest(unittest.TestCase):
         self.assertEqual("Betreff", event["summary"])
         self.assertEqual("Vorschau", event["preview"])
         self.assertNotIn("email", event)
+
+    def test_worker_heartbeat_is_updated_without_exposing_account_data(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            heartbeat = Path(directory) / "heartbeat"
+            self.worker.heartbeat_path = heartbeat
+            with patch("mission_leben_bridge.zimbra_worker.time.time", return_value=1_800_000_000):
+                self.worker._touch_heartbeat()
+            self.assertEqual("1800000000", heartbeat.read_text(encoding="ascii"))
 
     def test_calendar_event_contains_start_time_and_skips_old_instances(self) -> None:
         start_millis = 1_800_000_000_000

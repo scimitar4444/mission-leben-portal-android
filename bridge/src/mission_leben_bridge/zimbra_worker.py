@@ -31,11 +31,13 @@ class ZimbraWorker:
         bridge: BridgeSourceClient,
         account_map: dict[str, dict[str, str]],
         timezone_name: str = "Europe/Berlin",
+        heartbeat_path: Path | None = None,
     ):
         self.soap = soap
         self.bridge = bridge
         self.account_map = account_map
         self.timezone_name = timezone_name
+        self.heartbeat_path = heartbeat_path
         self.stop_event = threading.Event()
 
     def run(self) -> None:
@@ -45,11 +47,13 @@ class ZimbraWorker:
             try:
                 self.soap.authenticate()
                 waitset_id, sequence = self.soap.create_waitset(list(self.account_map))
+                self._touch_heartbeat()
                 LOGGER.info("Zimbra WaitSet created for %d mapped accounts", len(self.account_map))
                 self._initial_calendar_scan()
                 backoff = 2
                 while not self.stop_event.is_set():
                     sequence, changed_accounts = self.soap.wait(waitset_id, sequence, timeout_seconds=60)
+                    self._touch_heartbeat()
                     for account_id in changed_accounts:
                         if account_id in self.account_map:
                             self._scan_account(account_id)
@@ -66,6 +70,10 @@ class ZimbraWorker:
 
     def stop(self) -> None:
         self.stop_event.set()
+
+    def _touch_heartbeat(self) -> None:
+        if self.heartbeat_path is not None:
+            self.heartbeat_path.write_text(str(int(time.time())), encoding="ascii")
 
     def _initial_calendar_scan(self) -> None:
         for account_id in self.account_map:
@@ -170,6 +178,7 @@ def main() -> None:
         ),
         account_map=_account_map(),
         timezone_name=os.getenv("ZIMBRA_TIMEZONE", "Europe/Berlin"),
+        heartbeat_path=Path(os.getenv("ZIMBRA_HEARTBEAT_FILE", "/tmp/zimbra-worker-heartbeat")),
     )
     signal.signal(signal.SIGTERM, lambda *_: worker.stop())
     signal.signal(signal.SIGINT, lambda *_: worker.stop())
