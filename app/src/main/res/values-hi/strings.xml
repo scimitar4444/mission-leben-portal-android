@@ -60,6 +60,8 @@
     <string name="announcements_title">महत्वपूर्ण सूचनाएँ</string>
     <string name="announcements_all">सभी सूचनाएँ</string>
     <string name="announcements_cached">सहेजी गई स्थिति – अभी अपडेट संभव नहीं है</string>
+    <string name="announcements_mark_read">पढ़ लिया</string>
+    <string name="announcements_expand">खोलें</string>
     <string name="birthday_greeting">जन्मदिन मुबारक हो, %1$s!</string>
     <string name="motivation_welcome">अच्छा लगा कि आप यहाँ हैं।</string>
     <string name="motivation_together">मिलकर हम बदलाव लाते हैं।</string>

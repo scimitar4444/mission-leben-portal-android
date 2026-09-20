@@ -60,6 +60,8 @@
     <string name="announcements_title">Önemli duyurular</string>
     <string name="announcements_all">Tüm duyurular</string>
     <string name="announcements_cached">Önbelleğe alınmış durum – şu anda güncellenemiyor</string>
+    <string name="announcements_mark_read">Okundu</string>
+    <string name="announcements_expand">Aç</string>
     <string name="birthday_greeting">Doğum günün kutlu olsun, %1$s!</string>
     <string name="motivation_welcome">Burada olman çok güzel.</string>
     <string name="motivation_together">Birlikte fark yaratıyoruz.</string>

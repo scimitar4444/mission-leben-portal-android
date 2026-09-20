@@ -83,6 +83,7 @@ fun MissionLebenApp(
     onOpenUrl: (String) -> Unit,
     onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
+    onMarkAnnouncementRead: (Long) -> Unit,
     onScanEnrollmentQr: () -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
@@ -123,6 +124,7 @@ fun MissionLebenApp(
                 onOpenUrl = onOpenUrl,
                 onOpenPublicUrl = onOpenPublicUrl,
                 onReloadApplications = onReloadApplications,
+                onMarkAnnouncementRead = onMarkAnnouncementRead,
                 onScanEnrollmentQr = onScanEnrollmentQr,
                 onSelfEnrollment = onSelfEnrollment,
                 onRefreshDeviceStatus = onRefreshDeviceStatus,
@@ -307,6 +309,7 @@ private fun Home(
     onOpenUrl: (String) -> Unit,
     onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
+    onMarkAnnouncementRead: (Long) -> Unit,
     onScanEnrollmentQr: () -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
@@ -371,7 +374,9 @@ private fun Home(
                         state.announcements,
                         state.announcementsLoading,
                         state.announcementsStale,
+                        state.readAnnouncementIds,
                         onOpenUrl,
+                        onMarkAnnouncementRead,
                     )
                 }
             }
@@ -442,30 +447,52 @@ private fun AnnouncementsPanel(
     announcements: List<AnnouncementItem>,
     loading: Boolean,
     stale: Boolean,
+    readAnnouncementIds: Set<Long>,
     onOpenUrl: (String) -> Unit,
+    onMarkRead: (Long) -> Unit,
 ) {
+    val latest = announcements.firstOrNull()
+    val alreadyRead = latest?.id in readAnnouncementIds
+    var expanded by rememberSaveable(latest?.id, alreadyRead) {
+        mutableStateOf(latest != null && !alreadyRead)
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 9.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    stringResource(R.string.announcements_title),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                TextButton(onClick = { onOpenUrl(BuildConfig.ANNOUNCEMENTS_PAGE_URL) }) {
-                    Text(stringResource(R.string.announcements_all))
+        Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp)) {
+            if (latest != null && !expanded) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { expanded = true }
+                        .padding(vertical = 3.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.announcements_title),
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            latest.subject,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        stringResource(R.string.announcements_expand),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
                 }
-            }
-            if (loading && announcements.isEmpty()) {
+            } else if (loading && announcements.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center,
@@ -473,13 +500,25 @@ private fun AnnouncementsPanel(
                     CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
                 }
             } else {
-                announcements.firstOrNull()?.let { item ->
+                latest?.let { item ->
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onOpenUrl(BuildConfig.ANNOUNCEMENTS_PAGE_URL) }
-                            .padding(vertical = 6.dp),
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                stringResource(R.string.announcements_title),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            TextButton(onClick = { onOpenUrl(BuildConfig.ANNOUNCEMENTS_PAGE_URL) }) {
+                                Text(stringResource(R.string.announcements_all))
+                            }
+                        }
                         if (item.publishedAtEpochSeconds > 0L) {
                             Text(
                                 DateFormat.getDateInstance(DateFormat.MEDIUM)
@@ -514,6 +553,14 @@ private fun AnnouncementsPanel(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
                                 style = MaterialTheme.typography.labelSmall,
                             )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                        ) {
+                            TextButton(onClick = { onMarkRead(item.id) }) {
+                                Text(stringResource(R.string.announcements_mark_read))
+                            }
                         }
                     }
                 }

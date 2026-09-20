@@ -3,6 +3,7 @@ package de.missionleben.portal.data
 import android.content.Context
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
+import java.security.MessageDigest
 
 class AppPreferences(context: Context) {
     private val preferences = context.getSharedPreferences("mission_leben_settings", Context.MODE_PRIVATE)
@@ -49,6 +50,32 @@ class AppPreferences(context: Context) {
             .apply()
     }
 
+    fun readAnnouncementIds(subject: String): Set<Long> {
+        if (subject.isBlank()) return emptySet()
+        return preferences.getStringSet(announcementReadKey(subject), emptySet())
+            .orEmpty()
+            .mapNotNull(String::toLongOrNull)
+            .toSet()
+    }
+
+    fun markAnnouncementRead(subject: String, announcementId: Long) {
+        if (subject.isBlank() || announcementId <= 0L) return
+        val ids = (readAnnouncementIds(subject) + announcementId)
+            .sortedDescending()
+            .take(MAX_READ_ANNOUNCEMENTS)
+            .map(Long::toString)
+            .toSet()
+        preferences.edit().putStringSet(announcementReadKey(subject), ids).apply()
+    }
+
+    fun clearAnnouncementReadState() {
+        val editor = preferences.edit()
+        preferences.all.keys
+            .filter { it.startsWith(KEY_ANNOUNCEMENTS_READ_PREFIX) }
+            .forEach(editor::remove)
+        editor.apply()
+    }
+
     fun clearProfile() {
         preferences.edit()
             .remove(KEY_DEVICE_MODE)
@@ -57,6 +84,13 @@ class AppPreferences(context: Context) {
             .remove(KEY_REAUTHENTICATION_HINT)
             .remove(KEY_REAUTHENTICATION_REQUIRED)
             .apply()
+        clearAnnouncementReadState()
+    }
+
+    private fun announcementReadKey(subject: String): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(subject.toByteArray(Charsets.UTF_8))
+        val suffix = digest.joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        return KEY_ANNOUNCEMENTS_READ_PREFIX + suffix
     }
 
     private companion object {
@@ -65,5 +99,7 @@ class AppPreferences(context: Context) {
         const val KEY_ENROLLMENT_STATE = "enrollment_state"
         const val KEY_REAUTHENTICATION_HINT = "reauthentication_hint"
         const val KEY_REAUTHENTICATION_REQUIRED = "reauthentication_required"
+        const val KEY_ANNOUNCEMENTS_READ_PREFIX = "announcements_read_"
+        const val MAX_READ_ANNOUNCEMENTS = 100
     }
 }

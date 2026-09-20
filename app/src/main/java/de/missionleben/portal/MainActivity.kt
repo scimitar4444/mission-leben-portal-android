@@ -171,6 +171,7 @@ class MainActivity : FragmentActivity() {
                     onOpenUrl = viewModel::openApplication,
                     onOpenPublicUrl = ::openUrl,
                     onReloadApplications = viewModel::loadApplications,
+                    onMarkAnnouncementRead = viewModel::markAnnouncementRead,
                     onScanEnrollmentQr = ::scanEnrollmentQr,
                     onSelfEnrollment = {
                         selfEnrollmentLauncher.launch(

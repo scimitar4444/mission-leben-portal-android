@@ -104,6 +104,7 @@ data class UiState(
     val announcements: List<AnnouncementItem> = emptyList(),
     val announcementsLoading: Boolean = false,
     val announcementsStale: Boolean = false,
+    val readAnnouncementIds: Set<Long> = emptySet(),
     val enrollmentState: EnrollmentState = EnrollmentState.NOT_ENROLLED,
     val deviceId: String? = null,
     val deviceKeyId: String = "",

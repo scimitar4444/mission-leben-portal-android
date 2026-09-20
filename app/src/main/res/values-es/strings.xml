@@ -60,6 +60,8 @@
     <string name="announcements_title">Avisos importantes</string>
     <string name="announcements_all">Todos los avisos</string>
     <string name="announcements_cached">Estado guardado – no se puede actualizar ahora</string>
+    <string name="announcements_mark_read">Leído</string>
+    <string name="announcements_expand">Desplegar</string>
     <string name="birthday_greeting">¡Feliz cumpleaños, %1$s!</string>
     <string name="motivation_welcome">Qué bien tenerte aquí.</string>
     <string name="motivation_together">Juntos marcamos la diferencia.</string>

@@ -60,6 +60,8 @@
     <string name="announcements_title">Важливі повідомлення</string>
     <string name="announcements_all">Усі повідомлення</string>
     <string name="announcements_cached">Збережений стан – оновлення наразі неможливе</string>
+    <string name="announcements_mark_read">Прочитано</string>
+    <string name="announcements_expand">Розгорнути</string>
     <string name="birthday_greeting">З днем народження, %1$s!</string>
     <string name="motivation_welcome">Раді, що ви тут.</string>
     <string name="motivation_together">Разом ми змінюємо світ на краще.</string>

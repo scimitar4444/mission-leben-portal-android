@@ -60,6 +60,8 @@
     <string name="announcements_title">Anunțuri importante</string>
     <string name="announcements_all">Toate anunțurile</string>
     <string name="announcements_cached">Stare salvată – actualizarea nu este posibilă momentan</string>
+    <string name="announcements_mark_read">Citit</string>
+    <string name="announcements_expand">Extinde</string>
     <string name="birthday_greeting">La mulți ani, %1$s!</string>
     <string name="motivation_welcome">Ne bucurăm că ești aici.</string>
     <string name="motivation_together">Împreună facem diferența.</string>

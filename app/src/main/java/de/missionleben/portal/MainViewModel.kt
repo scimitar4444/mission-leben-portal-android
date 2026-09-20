@@ -109,6 +109,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             dataEncryptionKey = null
             vault.clear()
             preferences.clearReauthentication()
+            preferences.clearAnnouncementReadState()
             clearNotifications()
         }
         preferences.deviceMode = mode
@@ -121,6 +122,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 announcements = emptyList(),
                 announcementsLoading = false,
                 announcementsStale = false,
+                readAnnouncementIds = emptySet(),
                 quickUnlockEnabled = false,
                 reauthenticationRequired = false,
                 notificationPrivacy = effectiveNotificationPrivacy(mode),
@@ -142,6 +144,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         dataEncryptionKey = null
         vault.clear()
         preferences.clearReauthentication()
+        preferences.clearAnnouncementReadState()
         clearNotifications()
         preferences.deviceMode = null
         _uiState.value = UiState(
@@ -363,6 +366,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             announcements = result.items,
                             announcementsLoading = false,
                             announcementsStale = result.stale,
+                            readAnnouncementIds = preferences.readAnnouncementIds(
+                                _uiState.value.user?.subject.orEmpty(),
+                            ),
                         )
                     }
                 }
@@ -385,6 +391,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 handleAccessTokenFailure(failure) { it.copy(announcementsLoading = false) }
             },
         )
+    }
+
+    fun markAnnouncementRead(announcementId: Long) {
+        val subject = _uiState.value.user?.subject ?: return
+        preferences.markAnnouncementRead(subject, announcementId)
+        _uiState.update {
+            it.copy(readAnnouncementIds = it.readAnnouncementIds + announcementId)
+        }
     }
 
     fun openApplication(url: String) {
@@ -524,6 +538,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 announcements = emptyList(),
                 announcementsLoading = false,
                 announcementsStale = false,
+                readAnnouncementIds = emptySet(),
                 linkTargets = emptyList(),
                 capabilities = emptySet(),
                 requestedUrl = null,
@@ -557,6 +572,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 announcements = emptyList(),
                 announcementsLoading = false,
                 announcementsStale = false,
+                readAnnouncementIds = emptySet(),
                 linkTargets = emptyList(),
                 capabilities = emptySet(),
                 quickUnlockEnabled = false,
