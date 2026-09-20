@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS push_registrations (
     public_jwk TEXT NOT NULL,
     mode TEXT NOT NULL CHECK (mode IN ('personal', 'shared')),
     privacy TEXT NOT NULL CHECK (privacy IN ('minimal', 'standard', 'detailed')),
+    calendar_reminder_minutes INTEGER NOT NULL DEFAULT 15
+        CHECK (calendar_reminder_minutes IN (5, 10, 15, 30)),
     app_version TEXT NOT NULL,
     push_enabled INTEGER NOT NULL DEFAULT 1,
     updated_at INTEGER NOT NULL,
@@ -75,6 +77,17 @@ CREATE TABLE IF NOT EXISTS event_deliveries (
     PRIMARY KEY(event_id, device_id)
 );
 
+CREATE TABLE IF NOT EXISTS event_delivery_queue (
+    event_id TEXT NOT NULL REFERENCES notification_events(event_id) ON DELETE CASCADE,
+    device_id TEXT NOT NULL REFERENCES push_registrations(device_id) ON DELETE CASCADE,
+    deliver_epoch INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY(event_id, device_id)
+);
+
+CREATE INDEX IF NOT EXISTS event_delivery_queue_due
+ON event_delivery_queue(deliver_epoch, event_id, device_id);
+
 CREATE TABLE IF NOT EXISTS handoffs (
     handoff_id TEXT PRIMARY KEY,
     subject TEXT NOT NULL,
@@ -109,7 +122,7 @@ CREATE TABLE IF NOT EXISTS announcement_cache (
 CREATE INDEX IF NOT EXISTS auth_requests_subject_status
 ON auth_requests(subject, status, expires_at);
 
-PRAGMA user_version=5;
+PRAGMA user_version=6;
 """
 
 
@@ -144,13 +157,26 @@ class Store:
                 "ntfy_reader_username": "TEXT NOT NULL DEFAULT ''",
                 "ntfy_writer_username": "TEXT NOT NULL DEFAULT ''",
                 "ntfy_publish_token_ciphertext": "TEXT NOT NULL DEFAULT ''",
+                "calendar_reminder_minutes": "INTEGER NOT NULL DEFAULT 15 CHECK (calendar_reminder_minutes IN (5, 10, 15, 30))",
             }
             for name, definition in additions.items():
                 if name not in columns:
                     connection.execute(
                         f"ALTER TABLE push_registrations ADD COLUMN {name} {definition}"
                     )
-            connection.execute("PRAGMA user_version=5")
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO event_delivery_queue(event_id, device_id, deliver_epoch, created_at)
+                SELECT e.event_id, r.device_id, e.deliver_epoch, ?
+                FROM notification_events e
+                JOIN push_registrations r ON r.subject = e.subject AND r.push_enabled = 1
+                LEFT JOIN event_deliveries d
+                  ON d.event_id = e.event_id AND d.device_id = r.device_id
+                WHERE e.delivered_at IS NULL AND d.event_id IS NULL
+                """,
+                (int(time.time()),),
+            )
+            connection.execute("PRAGMA user_version=6")
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path, timeout=15, factory=ClosingConnection)
@@ -193,6 +219,8 @@ class Store:
                     public_jwk TEXT NOT NULL,
                     mode TEXT NOT NULL CHECK (mode IN ('personal', 'shared')),
                     privacy TEXT NOT NULL CHECK (privacy IN ('minimal', 'standard', 'detailed')),
+                    calendar_reminder_minutes INTEGER NOT NULL DEFAULT 15
+                        CHECK (calendar_reminder_minutes IN (5, 10, 15, 30)),
                     app_version TEXT NOT NULL,
                     push_enabled INTEGER NOT NULL DEFAULT 1,
                     updated_at INTEGER NOT NULL,
@@ -385,11 +413,15 @@ class Store:
         mode: str,
         privacy: str,
         app_version: str,
+        calendar_reminder_minutes: int = 15,
     ) -> None:
         if mode not in {"personal", "shared"}:
             raise ValueError("invalid device mode")
         if mode == "shared":
             privacy = "minimal"
+            calendar_reminder_minutes = 15
+        if calendar_reminder_minutes not in {5, 10, 15, 30}:
+            raise ValueError("invalid calendar reminder")
         now = int(time.time())
         with self._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
@@ -405,9 +437,10 @@ class Store:
                     device_id, subject, installation_id_ciphertext, push_provider,
                     ntfy_topic, ntfy_reader_username, ntfy_writer_username,
                     ntfy_publish_token_ciphertext, agent_token_ciphertext,
-                    key_id, public_jwk, mode, privacy, app_version, push_enabled,
+                    key_id, public_jwk, mode, privacy, calendar_reminder_minutes,
+                    app_version, push_enabled,
                     updated_at, last_verified_at
-                ) VALUES (?, ?, ?, 'ntfy', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                ) VALUES (?, ?, ?, 'ntfy', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
                 ON CONFLICT(device_id) DO UPDATE SET
                     subject=excluded.subject,
                     installation_id_ciphertext=excluded.installation_id_ciphertext,
@@ -421,6 +454,7 @@ class Store:
                     public_jwk=excluded.public_jwk,
                     mode=excluded.mode,
                     privacy=excluded.privacy,
+                    calendar_reminder_minutes=excluded.calendar_reminder_minutes,
                     app_version=excluded.app_version,
                     push_enabled=1,
                     updated_at=excluded.updated_at,
@@ -439,10 +473,64 @@ class Store:
                     compact_json(public_jwk),
                     mode,
                     privacy,
+                    calendar_reminder_minutes,
                     app_version,
                     now,
                     now,
                 ),
+            )
+            connection.execute(
+                """
+                UPDATE event_delivery_queue
+                SET deliver_epoch = (
+                    SELECT CAST(strftime('%s', e.display_at) AS INTEGER) - ?
+                    FROM notification_events e
+                    WHERE e.event_id = event_delivery_queue.event_id
+                )
+                WHERE device_id = ?
+                  AND event_id IN (
+                      SELECT event_id FROM notification_events
+                      WHERE event_type = 'open_calendar' AND display_at IS NOT NULL
+                  )
+                """,
+                (calendar_reminder_minutes * 60, device_id),
+            )
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO event_delivery_queue(
+                    event_id, device_id, deliver_epoch, created_at
+                )
+                SELECT e.event_id, ?,
+                       CAST(strftime('%s', e.display_at) AS INTEGER) - ?, ?
+                FROM notification_events e
+                LEFT JOIN event_deliveries d
+                  ON d.event_id = e.event_id AND d.device_id = ?
+                WHERE e.subject = ?
+                  AND e.event_type = 'open_calendar'
+                  AND e.display_at IS NOT NULL
+                  AND CAST(strftime('%s', e.display_at) AS INTEGER) > ?
+                  AND (e.expires_epoch IS NULL OR e.expires_epoch > ?)
+                  AND d.event_id IS NULL
+                """,
+                (
+                    device_id,
+                    calendar_reminder_minutes * 60,
+                    now,
+                    device_id,
+                    subject,
+                    now,
+                    now,
+                ),
+            )
+            connection.execute(
+                """
+                UPDATE notification_events
+                SET delivered_at = NULL
+                WHERE event_id IN (
+                    SELECT event_id FROM event_delivery_queue WHERE device_id = ?
+                )
+                """,
+                (device_id,),
             )
 
     def register_auth_channel(
@@ -499,6 +587,7 @@ class Store:
 
     def unregister_push(self, device_id: str, subject: str) -> None:
         with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
             connection.execute(
                 """
                 UPDATE push_registrations
@@ -508,6 +597,22 @@ class Store:
                 WHERE device_id = ? AND subject = ?
                 """,
                 (self.secret_box.encrypt(""), int(time.time()), device_id, subject),
+            )
+            connection.execute(
+                "DELETE FROM event_delivery_queue WHERE device_id = ?",
+                (device_id,),
+            )
+            connection.execute(
+                """
+                UPDATE notification_events
+                SET delivered_at = ?
+                WHERE delivered_at IS NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM event_delivery_queue q
+                      WHERE q.event_id = notification_events.event_id
+                  )
+                """,
+                (int(time.time()),),
             )
 
     def unregister_auth_channel(self, device_id: str, subject: str) -> None:
@@ -640,6 +745,82 @@ class Store:
                 (now, now, limit),
             ).fetchall()
         return [dict(row) for row in rows]
+
+    def queue_delivery(self, event_id: str, device_id: str, deliver_epoch: int) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO event_delivery_queue(
+                    event_id, device_id, deliver_epoch, created_at
+                ) VALUES (?, ?, ?, ?)
+                """,
+                (event_id, device_id, deliver_epoch, int(time.time())),
+            )
+
+    def due_delivery_queue(
+        self, *, event_id: str | None = None, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        now = int(time.time())
+        query = """
+            SELECT q.event_id, q.device_id
+            FROM event_delivery_queue q
+            JOIN notification_events e ON e.event_id = q.event_id
+            WHERE q.deliver_epoch <= ?
+              AND (e.expires_epoch IS NULL OR e.expires_epoch > ?)
+        """
+        parameters: list[Any] = [now, now]
+        if event_id is not None:
+            query += " AND q.event_id = ?"
+            parameters.append(event_id)
+        query += " ORDER BY q.deliver_epoch ASC, q.event_id, q.device_id LIMIT ?"
+        parameters.append(limit)
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_event(self, event_id: str) -> dict[str, Any] | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM notification_events WHERE event_id = ?", (event_id,)
+            ).fetchone()
+        return dict(row) if row is not None else None
+
+    def finish_queued_delivery(self, event_id: str, device_id: str, *, delivered: bool) -> None:
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            if delivered:
+                connection.execute(
+                    """
+                    INSERT OR IGNORE INTO event_deliveries(event_id, device_id, delivered_at)
+                    VALUES (?, ?, ?)
+                    """,
+                    (event_id, device_id, int(time.time())),
+                )
+            connection.execute(
+                "DELETE FROM event_delivery_queue WHERE event_id = ? AND device_id = ?",
+                (event_id, device_id),
+            )
+            pending = connection.execute(
+                "SELECT 1 FROM event_delivery_queue WHERE event_id = ? LIMIT 1",
+                (event_id,),
+            ).fetchone()
+            if pending is None:
+                connection.execute(
+                    "UPDATE notification_events SET delivered_at = ? WHERE event_id = ? AND delivered_at IS NULL",
+                    (int(time.time()), event_id),
+                )
+
+    def finish_event_without_targets(self, event_id: str) -> None:
+        with self._connect() as connection:
+            queued = connection.execute(
+                "SELECT 1 FROM event_delivery_queue WHERE event_id = ? LIMIT 1",
+                (event_id,),
+            ).fetchone()
+            if queued is None:
+                connection.execute(
+                    "UPDATE notification_events SET delivered_at = ? WHERE event_id = ? AND delivered_at IS NULL",
+                    (int(time.time()), event_id),
+                )
 
     def mark_event_delivered(self, event_id: str) -> None:
         with self._connect() as connection:

@@ -115,7 +115,6 @@ class PreflightTest(unittest.TestCase):
             "ZIMBRA_ADMIN_PASSWORD_FILE": str(zimbra_password_path),
             "ZIMBRA_ACCOUNT_MAP_FILE": str(account_map_path),
             "ZIMBRA_TIMEZONE": "Europe/Berlin",
-            "ZIMBRA_REMINDER_MINUTES": "15",
         }
 
         result = evaluate(environment, {"ntfy", "zimbra", "talk"})

@@ -106,6 +106,9 @@
     <string name="privacy_standard_description">Afficher l’expéditeur et l’objet, ou l’heure et le lieu du rendez-vous.</string>
     <string name="privacy_detailed_label">Détaillé</string>
     <string name="privacy_detailed_description">Afficher aussi un court aperçu de l’e-mail ou de Talk.</string>
+    <string name="calendar_reminder_title">Rappel de rendez-vous</string>
+    <string name="calendar_reminder_description">Choisissez combien de temps avant un rendez-vous la notification doit apparaître.</string>
+    <string name="calendar_reminder_minutes">%1$d min</string>
     <string name="message_auth_cancelled">La connexion a été annulée.</string>
     <string name="message_session_expired">Pour des raisons de sécurité, votre session a expiré. Veuillez vous reconnecter.</string>
     <string name="message_session_reauth_required">Votre connexion de 90 jours a expiré. Renouvelez-la avec votre code TOTP existant ou votre mot de passe.</string>

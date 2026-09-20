@@ -106,6 +106,9 @@
     <string name="privacy_standard_description">Pokazuj nadawcę i temat albo czas i miejsce spotkania.</string>
     <string name="privacy_detailed_label">Szczegółowe</string>
     <string name="privacy_detailed_description">Pokazuj także krótki podgląd wiadomości lub Talk.</string>
+    <string name="calendar_reminder_title">Przypomnienie o spotkaniu</string>
+    <string name="calendar_reminder_description">Wybierz, ile czasu przed spotkaniem ma się pojawić powiadomienie.</string>
+    <string name="calendar_reminder_minutes">%1$d min</string>
     <string name="message_auth_cancelled">Logowanie anulowano.</string>
     <string name="message_session_expired">Ze względów bezpieczeństwa sesja wygasła. Zaloguj się ponownie.</string>
     <string name="message_session_reauth_required">90-dniowe logowanie wygasło. Odnów je istniejącym kodem TOTP lub hasłem.</string>

@@ -177,6 +177,7 @@ class MainActivity : FragmentActivity() {
                     onEnableQuickUnlock = viewModel::retryQuickUnlockSetup,
                     onOpenTalk = viewModel::openTalkOn,
                     onNotificationPrivacyChange = viewModel::setNotificationPrivacy,
+                    onCalendarReminderChange = viewModel::setCalendarReminderMinutes,
                     onLogout = { viewModel.logout(::openLogout) },
                     onResetProfile = {
                         PortalBrowserActivity.clearLocalWebData(this@MainActivity) {

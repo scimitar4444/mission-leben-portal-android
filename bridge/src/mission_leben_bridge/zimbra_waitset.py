@@ -6,7 +6,7 @@ import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 
@@ -211,8 +211,3 @@ def format_appointment_summary(start_millis: int, location: str, timezone_name: 
 
 def iso_from_millis(value: int) -> str:
     return datetime.fromtimestamp(value / 1000, timezone.utc).isoformat().replace("+00:00", "Z")
-
-
-def reminder_iso(start_millis: int, minutes_before: int) -> str:
-    value = datetime.fromtimestamp(start_millis / 1000, timezone.utc) - timedelta(minutes=minutes_before)
-    return value.isoformat().replace("+00:00", "Z")

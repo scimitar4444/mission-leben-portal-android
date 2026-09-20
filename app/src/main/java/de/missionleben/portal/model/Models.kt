@@ -112,6 +112,7 @@ data class UiState(
     val communicationServiceConfigured: Boolean = false,
     val pushConfigured: Boolean = false,
     val notificationPrivacy: NotificationPrivacy = NotificationPrivacy.MINIMAL,
+    val calendarReminderMinutes: Int = 15,
     val capabilities: Set<PortalCapability> = emptySet(),
     val linkTargets: List<LinkTarget> = emptyList(),
     val loginApprovalRequest: LoginApprovalRequest? = null,

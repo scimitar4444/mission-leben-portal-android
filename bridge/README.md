@@ -31,7 +31,7 @@ Sie speichert nur die für Kommunikation notwendige Zuordnung eines von Authenti
 - drei Datenschutzstufen: `minimal`, `standard`, `detailed`; Shared Tablets erzwingen `minimal`
 - HMAC-signierter Normaleingang sowie ein nativer Nextcloud-Talk-Bot-Webhook
 - eigener ntfy-Container mit `deny-all`, getrennten Lese-/Schreibrechten und Nachrichten ohne vertrauliche Inhalte
-- terminierter Versand von Kalenderhinweisen, standardmäßig durch den Zimbra-Worker 15 Minuten vor Beginn
+- indizierte Zustellwarteschlange für Kalenderhinweise mit 5, 10, 15 oder 30 Minuten Vorlauf pro persönlichem Gerät; Shared Tablets verwenden 15 Minuten
 - deduplizierte Quellereignisse und Versandstatus pro Gerät
 - Zimbra SOAP WaitSet für ausgewählte Konten, Mail-Suche und Kalenderinstanzen
 - Talk-Handoff-Vertrag mit fest konfigurierten Zielgeräten und maximal 30 Sekunden TTL

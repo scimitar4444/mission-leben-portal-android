@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import threading
 import time
 from datetime import datetime, timezone
 from typing import Any
@@ -19,6 +20,8 @@ KEY_ID = re.compile(r"^[a-f0-9]{24}$")
 ROOM_TOKEN = re.compile(r"^[A-Za-z0-9_-]{6,128}$")
 EVENT_TYPES = {"open_mail", "open_calendar", "open_talk"}
 PRIVACY_LEVELS = {"minimal", "standard", "detailed"}
+CALENDAR_REMINDER_MINUTES = {5, 10, 15, 30}
+DEFAULT_CALENDAR_REMINDER_MINUTES = 15
 KNOWN_CAPABILITIES = {"open_talk", "device_profile_switch"}
 
 
@@ -77,6 +80,7 @@ class BridgeService:
         self.announcement_client = announcement_client
         self.announcement_cache_ttl_seconds = announcement_cache_ttl_seconds
         self.announcement_stale_ttl_seconds = announcement_stale_ttl_seconds
+        self._dispatch_lock = threading.Lock()
 
     def authenticate(self, bearer: str) -> UserInfo:
         user = self.authentik.user_info(bearer)
@@ -168,6 +172,14 @@ class BridgeService:
         privacy = str(payload.get("notification_privacy", "standard"))
         if privacy not in PRIVACY_LEVELS:
             raise ApiError(400, "invalid notification privacy level")
+        try:
+            calendar_reminder_minutes = int(
+                payload.get("calendar_reminder_minutes", DEFAULT_CALENDAR_REMINDER_MINUTES)
+            )
+        except (TypeError, ValueError) as error:
+            raise ApiError(400, "invalid calendar reminder") from error
+        if calendar_reminder_minutes not in CALENDAR_REMINDER_MINUTES:
+            raise ApiError(400, "calendar reminder must be 5, 10, 15 or 30 minutes")
         if payload.get("provider") != "ntfy":
             raise ApiError(400, "only the ntfy provider is supported")
         if not self.ntfy.configured:
@@ -234,6 +246,7 @@ class BridgeService:
                 mode=mode,
                 privacy=privacy,
                 app_version=_text(payload.get("app_version"), 30),
+                calendar_reminder_minutes=calendar_reminder_minutes,
             )
         except PermissionError as error:
             if created:
@@ -337,7 +350,7 @@ class BridgeService:
         subject = _text(payload.get("user_subject"), 200, required=True)
         if self.store.user_active_state(subject) is False:
             raise ApiError(403, "user is inactive")
-        display_at, _ = _iso_epoch(payload.get("display_at"))
+        display_at, display_epoch = _iso_epoch(payload.get("display_at"))
         _, deliver_epoch = _iso_epoch(payload.get("deliver_at"))
         expires_at, expires_epoch = _iso_epoch(payload.get("expires_at"))
         if expires_epoch is None:
@@ -357,63 +370,82 @@ class BridgeService:
                 "display_at": display_at,
                 "expires_at": expires_at,
                 "expires_epoch": expires_epoch,
-                "deliver_epoch": deliver_epoch or int(time.time()),
+                "deliver_epoch": (
+                    display_epoch - max(CALENDAR_REMINDER_MINUTES) * 60
+                    if event_type == "open_calendar" and display_epoch is not None
+                    else deliver_epoch or int(time.time())
+                ),
             }
         )
         dispatches = 0
-        if created and event["deliver_epoch"] <= int(time.time()):
-            dispatches, complete = self._dispatch_event(event)
-            if complete:
-                self.store.mark_event_delivered(event["event_id"])
+        if created:
+            registrations = self.store.registrations_for_subject(subject)
+            for registration in registrations:
+                registration_delivery_epoch = event["deliver_epoch"]
+                if event_type == "open_calendar" and display_epoch is not None:
+                    registration_delivery_epoch = display_epoch - int(
+                        registration.get(
+                            "calendar_reminder_minutes",
+                            DEFAULT_CALENDAR_REMINDER_MINUTES,
+                        )
+                    ) * 60
+                self.store.queue_delivery(
+                    event["event_id"],
+                    registration["device_id"],
+                    registration_delivery_epoch,
+                )
+            if registrations:
+                dispatches = self.dispatch_due_events(event_id=event["event_id"])
+            else:
+                self.store.finish_event_without_targets(event["event_id"])
         return {"event_id": event["event_id"], "created": created, "dispatched": dispatches}
 
-    def dispatch_due_events(self) -> int:
-        dispatched = 0
-        for event in self.store.due_events():
-            count, complete = self._dispatch_event(event)
-            dispatched += count
-            if complete:
-                self.store.mark_event_delivered(event["event_id"])
-        return dispatched
-
-    def _dispatch_event(self, event: dict[str, Any]) -> tuple[int, bool]:
+    def dispatch_due_events(self, *, event_id: str | None = None) -> int:
         if not self.ntfy.configured:
-            return 0, False
-        dispatches = 0
-        complete = True
-        for registration in self.store.registrations_for_subject(event["subject"]):
-            if self.store.delivery_exists(event["event_id"], registration["device_id"]):
-                continue
-            try:
-                if self.authentik.device_id(registration["agent_token"]) != registration["device_id"]:
-                    self._remove_registration(registration)
+            return 0
+        with self._dispatch_lock:
+            dispatches = 0
+            for queued in self.store.due_delivery_queue(event_id=event_id):
+                queued_event_id = queued["event_id"]
+                device_id = queued["device_id"]
+                event = self.store.get_event(queued_event_id)
+                registration = self.store.get_registration(device_id)
+                if event is None or registration is None or registration["subject"] != event["subject"]:
+                    self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
                     continue
-                if registration.get("push_provider") != "ntfy":
-                    self._remove_registration(registration)
+                if event["expires_epoch"] is not None and event["expires_epoch"] <= int(time.time()):
+                    self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
                     continue
-                self.ntfy.send(
-                    registration["ntfy_topic"],
-                    registration["publish_token"],
-                    {
-                        "action": "fetch_notification",
-                        "event_id": event["event_id"],
-                        "event_type": event["event_type"],
-                        "revision": str(event["revision"]),
-                    },
-                )
-                dispatches += 1
-                self.store.record_delivery(event["event_id"], registration["device_id"])
-            except AuthenticationError as error:
-                if error.permanent:
-                    self._remove_registration(registration)
-                else:
-                    complete = False
-            except NtfyError as error:
-                if error.permanent_registration_failure:
-                    self._remove_registration(registration)
-                else:
-                    complete = False
-        return dispatches, complete
+                try:
+                    if self.authentik.device_id(registration["agent_token"]) != device_id:
+                        self._remove_registration(registration)
+                        self.store.finish_event_without_targets(queued_event_id)
+                        continue
+                    if registration.get("push_provider") != "ntfy":
+                        self._remove_registration(registration)
+                        self.store.finish_event_without_targets(queued_event_id)
+                        continue
+                    self.ntfy.send(
+                        registration["ntfy_topic"],
+                        registration["publish_token"],
+                        {
+                            "action": "fetch_notification",
+                            "event_id": queued_event_id,
+                            "event_type": event["event_type"],
+                            "revision": str(event["revision"]),
+                        },
+                    )
+                    dispatches += 1
+                    self.store.finish_queued_delivery(queued_event_id, device_id, delivered=True)
+                except AuthenticationError as error:
+                    if error.permanent:
+                        self._remove_registration(registration)
+                        self.store.finish_event_without_targets(queued_event_id)
+                except NtfyError as error:
+                    if error.permanent_registration_failure:
+                        self._remove_registration(registration)
+                        self.store.finish_event_without_targets(queued_event_id)
+            return dispatches
 
     def notification_detail(
         self,

@@ -273,12 +273,6 @@ def check_zimbra(environment: Mapping[str, str]) -> dict[str, Any]:
     if len(_value(environment, "BRIDGE_INTERNAL_HMAC_SECRET")) < 32:
         issues.append("Zimbra-Worker benötigt dasselbe mindestens 32 Zeichen lange Bridge-HMAC-Secret")
     try:
-        minutes = int(_value(environment, "ZIMBRA_REMINDER_MINUTES") or "15")
-        if not 0 <= minutes <= 1440:
-            raise ValueError
-    except ValueError:
-        issues.append("ZIMBRA_REMINDER_MINUTES muss zwischen 0 und 1440 liegen")
-    try:
         ZoneInfo(_value(environment, "ZIMBRA_TIMEZONE") or "Europe/Berlin")
     except ZoneInfoNotFoundError:
         issues.append("ZIMBRA_TIMEZONE ist unbekannt")

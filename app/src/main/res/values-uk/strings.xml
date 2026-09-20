@@ -106,6 +106,9 @@
     <string name="privacy_standard_description">Показувати відправника й тему або час і місце зустрічі.</string>
     <string name="privacy_detailed_label">Докладно</string>
     <string name="privacy_detailed_description">Також показувати короткий попередній перегляд пошти або Talk.</string>
+    <string name="calendar_reminder_title">Нагадування про зустріч</string>
+    <string name="calendar_reminder_description">Виберіть, за скільки часу до зустрічі показувати сповіщення.</string>
+    <string name="calendar_reminder_minutes">%1$d хв</string>
     <string name="message_auth_cancelled">Вхід скасовано.</string>
     <string name="message_session_expired">З міркувань безпеки термін дії сеансу завершився. Увійдіть знову.</string>
     <string name="message_session_reauth_required">Термін 90-денної авторизації завершився. Поновіть її наявним кодом TOTP або паролем.</string>

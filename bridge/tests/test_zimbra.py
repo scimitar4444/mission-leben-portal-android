@@ -110,7 +110,6 @@ class ZimbraWorkerTest(unittest.TestCase):
             bridge=self.bridge,  # type: ignore[arg-type]
             account_map={"account-a": {"subject": "authentik-subject", "email": "user@example.invalid"}},
             timezone_name="Europe/Berlin",
-            reminder_minutes=15,
         )
 
     def test_mail_event_contains_only_notification_fields(self) -> None:
@@ -130,7 +129,7 @@ class ZimbraWorkerTest(unittest.TestCase):
         self.assertEqual("Vorschau", event["preview"])
         self.assertNotIn("email", event)
 
-    def test_calendar_event_is_scheduled_before_start_and_skips_old_instances(self) -> None:
+    def test_calendar_event_contains_start_time_and_skips_old_instances(self) -> None:
         start_millis = 1_800_000_000_000
         now = start_millis / 1000 - 3600
         appointments = [
@@ -148,9 +147,10 @@ class ZimbraWorkerTest(unittest.TestCase):
         self.assertEqual("Besprechung", event["title"])
         self.assertIn("Raum 1", str(event["summary"]))
         self.assertEqual(
-            datetime.fromtimestamp(start_millis / 1000 - 15 * 60, timezone.utc).isoformat().replace("+00:00", "Z"),
-            event["deliver_at"],
+            datetime.fromtimestamp(start_millis / 1000, timezone.utc).isoformat().replace("+00:00", "Z"),
+            event["display_at"],
         )
+        self.assertNotIn("deliver_at", event)
         self.assertEqual(
             datetime.fromtimestamp(start_millis / 1000 + 3600, timezone.utc).isoformat().replace("+00:00", "Z"),
             event["expires_at"],

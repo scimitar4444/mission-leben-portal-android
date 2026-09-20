@@ -106,6 +106,9 @@
     <string name="privacy_standard_description">भेजने वाला और विषय, या अपॉइंटमेंट का समय और स्थान दिखाएँ।</string>
     <string name="privacy_detailed_label">विस्तृत</string>
     <string name="privacy_detailed_description">मेल या Talk का छोटा पूर्वावलोकन भी दिखाएँ।</string>
+    <string name="calendar_reminder_title">अपॉइंटमेंट रिमाइंडर</string>
+    <string name="calendar_reminder_description">चुनें कि अपॉइंटमेंट से कितनी देर पहले सूचना दिखाई जाए।</string>
+    <string name="calendar_reminder_minutes">%1$d मिनट</string>
     <string name="message_auth_cancelled">साइन इन रद्द कर दिया गया।</string>
     <string name="message_session_expired">सुरक्षा कारणों से आपका सत्र समाप्त हो गया है। कृपया फिर से साइन इन करें।</string>
     <string name="message_session_reauth_required">आपका 90-दिन का साइन इन समाप्त हो गया है। इसे अपने मौजूदा TOTP कोड या पासवर्ड से नवीनीकृत करें।</string>

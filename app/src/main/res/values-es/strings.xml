@@ -106,6 +106,9 @@
     <string name="privacy_standard_description">Mostrar remitente y asunto, o la hora y el lugar de la cita.</string>
     <string name="privacy_detailed_label">Detallado</string>
     <string name="privacy_detailed_description">Mostrar también una vista previa breve del correo o de Talk.</string>
+    <string name="calendar_reminder_title">Recordatorio de cita</string>
+    <string name="calendar_reminder_description">Elige cuánto tiempo antes de una cita debe aparecer la notificación.</string>
+    <string name="calendar_reminder_minutes">%1$d min</string>
     <string name="message_auth_cancelled">Se canceló el inicio de sesión.</string>
     <string name="message_session_expired">Por motivos de seguridad, tu sesión ha caducado. Vuelve a iniciar sesión.</string>
     <string name="message_session_reauth_required">Tu acceso de 90 días ha caducado. Renuévalo con tu código TOTP existente o con tu contraseña.</string>

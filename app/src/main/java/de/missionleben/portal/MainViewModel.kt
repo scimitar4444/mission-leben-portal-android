@@ -77,6 +77,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             communicationServiceConfigured = deviceService.communicationConfigured,
             pushConfigured = PushManager.configured,
             notificationPrivacy = effectiveNotificationPrivacy(preferences.deviceMode),
+            calendarReminderMinutes = effectiveCalendarReminderMinutes(preferences.deviceMode),
             quickUnlockEnabled = vault.hasSession(),
             reauthenticationRequired = preferences.reauthenticationRequired,
             news = newsRepository.cached(),
@@ -131,6 +132,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 quickUnlockEnabled = false,
                 reauthenticationRequired = false,
                 notificationPrivacy = effectiveNotificationPrivacy(mode),
+                calendarReminderMinutes = effectiveCalendarReminderMinutes(mode),
                 busy = false,
                 message = null,
                 loginApprovalRequest = null,
@@ -161,6 +163,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             communicationServiceConfigured = deviceService.communicationConfigured,
             pushConfigured = PushManager.configured,
             notificationPrivacy = NotificationPrivacy.MINIMAL,
+            calendarReminderMinutes = PushRegistrationStore.DEFAULT_CALENDAR_REMINDER_MINUTES,
             news = newsRepository.cached(),
         )
     }
@@ -930,6 +933,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         syncPushRegistration()
     }
 
+    fun setCalendarReminderMinutes(value: Int) {
+        if (_uiState.value.mode != DeviceMode.PERSONAL) return
+        if (value !in PushRegistrationStore.SUPPORTED_CALENDAR_REMINDER_MINUTES) return
+        pushStore.calendarReminderMinutes = value
+        _uiState.update { it.copy(calendarReminderMinutes = value) }
+        syncPushRegistration()
+    }
+
     fun syncPushRegistration() {
         if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
@@ -985,8 +996,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         val privacy = effectiveNotificationPrivacy(mode)
+        val calendarReminderMinutes = effectiveCalendarReminderMinutes(mode)
         viewModelScope.launch {
-            runCatching { deviceService.registerPush(accessToken, deviceId, mode, privacy) }
+            runCatching {
+                deviceService.registerPush(
+                    accessToken,
+                    deviceId,
+                    mode,
+                    privacy,
+                    calendarReminderMinutes,
+                )
+            }
                 .onSuccess { subscription ->
                     val previousMessageId = ntfyVault.load()
                         ?.takeIf {
@@ -1087,6 +1107,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun effectiveNotificationPrivacy(mode: DeviceMode?): NotificationPrivacy =
         NotificationPrivacy.effective(mode, pushStore.personalPrivacy)
+
+    private fun effectiveCalendarReminderMinutes(mode: DeviceMode?): Int =
+        if (mode == DeviceMode.PERSONAL) {
+            pushStore.calendarReminderMinutes
+        } else {
+            PushRegistrationStore.DEFAULT_CALENDAR_REMINDER_MINUTES
+        }
 
     private fun clearNotifications(preservePushConnection: Boolean = false) {
         val application = getApplication<Application>()

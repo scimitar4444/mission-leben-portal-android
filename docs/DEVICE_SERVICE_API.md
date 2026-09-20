@@ -65,7 +65,8 @@ Content-Type: application/json
   "provider": "ntfy",
   "mode": "personal",
   "notification_privacy": "standard",
-  "app_version": "0.6.0",
+  "calendar_reminder_minutes": 15,
+  "app_version": "0.11.2",
   "authentik_device_token": "...",
   "key_id": "...",
   "public_key_jwk": {
@@ -81,6 +82,8 @@ Content-Type: application/json
 Vor dem Speichern prueft die Bridge das Benutzer-Access-Token ueber Authentik UserInfo und das Device Token live ueber den Statusendpunkt des Geräteportals. Dieser liest den Datensatz einschließlich Ablauf- und Deaktivierungsstatus direkt aus Authentik. Die von Authentik gelieferte Device-UUID muss mit der URL uebereinstimmen.
 
 Die Antwort enthält `provider=ntfy`, die fest erwartete öffentliche Basis, ein zufälliges Topic und ausschließlich das Lesetoken. Das getrennte Schreibtoken bleibt AES-256-GCM-verschlüsselt in der Bridge. Auch das Authentik-Device-Token wird verschlüsselt gespeichert. Der P-256-Schluessel dient nur der Kommunikationssignatur; sein privater Teil verlaesst den Android Keystore nie. `standard` liefert Titel und Zusammenfassung, `detailed` zusaetzlich eine kurze Vorschau, `minimal` nur einen neutralen lokalen Hinweis. Shared Tablets werden server- und clientseitig immer auf `minimal` reduziert.
+
+`calendar_reminder_minutes` akzeptiert ausschließlich `5`, `10`, `15` oder `30`; Standard sind 15 Minuten. Der Wert gilt pro persönlichem Gerät und wird auch auf bereits vorgemerkte, noch nicht zugestellte Termine angewendet. Shared Tablets verwenden serverseitig immer den zentralen Standard von 15 Minuten.
 
 ## Authentik-Anmeldung in der App bestaetigen
 
@@ -143,7 +146,7 @@ Content-Type: application/json
 }
 ```
 
-Die Quellanfrage ist ueber Zeitstempel, Body-Hash und HMAC signiert. Ereignisse werden anhand `source + source_event_id` dedupliziert. Fuer Termine kann `deliver_at` gesetzt werden; die Bridge versendet erst zu diesem Zeitpunkt.
+Die Quellanfrage ist ueber Zeitstempel, Body-Hash und HMAC signiert. Ereignisse werden anhand `source + source_event_id` dedupliziert. Bei Terminen liefert die Quelle den Startzeitpunkt in `display_at`; die Bridge erzeugt daraus je registriertem Gerät genau einen Zustellauftrag mit dessen gewähltem Vorlauf. Die Warteschlange wird nach Zustellzeit indiziert, sodass weder pro Gerät eine Zimbra-Verbindung noch ein periodischer Vollscan benötigt wird.
 
 Vor jeder Zustellung prueft die Bridge das gespeicherte Device Token live bei Authentik. Lehnt Authentik es dauerhaft ab, wird nur die Kommunikationszuordnung aus der Bridge entfernt.
 

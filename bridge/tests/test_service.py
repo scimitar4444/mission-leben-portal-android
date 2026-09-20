@@ -176,6 +176,124 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual("Confidential subject", detail["summary"])
         self.assertEqual("", detail["preview"])
 
+    def test_detailed_privacy_releases_preview_only_after_signed_fetch(self) -> None:
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        numbers = private_key.public_key().public_numbers()
+        jwk = {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": base64url_encode(numbers.x.to_bytes(32, "big")),
+            "y": base64url_encode(numbers.y.to_bytes(32, "big")),
+        }
+        jwk["kid"] = device_key_id(jwk)
+        device_id = "11111111-1111-1111-1111-111111111111"
+        self.service.register_push(
+            device_id,
+            "valid-token",
+            {
+                "provider": "ntfy",
+                "authentik_device_token": "valid-agent-token",
+                "mode": "personal",
+                "notification_privacy": "detailed",
+                "app_version": "0.11.2",
+                "key_id": jwk["kid"],
+                "public_key_jwk": jwk,
+            },
+        )
+        result = self.service.ingest_event(
+            "zimbra",
+            {
+                "source_event_id": "mail:account:detailed",
+                "user_subject": "authentik-user-1",
+                "event_type": "open_mail",
+                "title": "Sender Name",
+                "summary": "Confidential subject",
+                "preview": "Confidential preview",
+            },
+        )
+        self.assertNotIn("Confidential", str(self.ntfy.messages[0][2]))
+
+        timestamp = str(int(time.time()))
+        path = f"/v1/notifications/{result['event_id']}"
+        nonce = "detailed-nonce-0123456789"
+        canonical = canonical_device_request(
+            "GET", path, device_id, jwk["kid"], timestamp, nonce
+        )
+        signature = base64url_encode(
+            private_key.sign(canonical, ec.ECDSA(hashes.SHA256()))
+        )
+        detail = self.service.notification_detail(
+            result["event_id"],
+            device_id,
+            jwk["kid"],
+            timestamp,
+            nonce,
+            signature,
+            path,
+        )
+        self.assertEqual("Confidential preview", detail["preview"])
+
+    def test_shared_device_is_forced_to_minimal_privacy(self) -> None:
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        numbers = private_key.public_key().public_numbers()
+        jwk = {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": base64url_encode(numbers.x.to_bytes(32, "big")),
+            "y": base64url_encode(numbers.y.to_bytes(32, "big")),
+        }
+        jwk["kid"] = device_key_id(jwk)
+        device_id = "11111111-1111-1111-1111-111111111111"
+        self.service.register_push(
+            device_id,
+            "valid-token",
+            {
+                "provider": "ntfy",
+                "authentik_device_token": "valid-agent-token",
+                "mode": "shared",
+                "notification_privacy": "detailed",
+                "calendar_reminder_minutes": 30,
+                "app_version": "0.11.2",
+                "key_id": jwk["kid"],
+                "public_key_jwk": jwk,
+            },
+        )
+        registration = self.store.get_registration(device_id)
+        self.assertIsNotNone(registration)
+        self.assertEqual("minimal", registration["privacy"])
+        self.assertEqual(15, registration["calendar_reminder_minutes"])
+
+        result = self.service.ingest_event(
+            "zimbra",
+            {
+                "source_event_id": "mail:account:shared",
+                "user_subject": "authentik-user-1",
+                "event_type": "open_mail",
+                "title": "Sender Name",
+                "summary": "Confidential subject",
+                "preview": "Confidential preview",
+            },
+        )
+        timestamp = str(int(time.time()))
+        path = f"/v1/notifications/{result['event_id']}"
+        nonce = "shared-nonce-0123456789"
+        canonical = canonical_device_request(
+            "GET", path, device_id, jwk["kid"], timestamp, nonce
+        )
+        signature = base64url_encode(
+            private_key.sign(canonical, ec.ECDSA(hashes.SHA256()))
+        )
+        with self.assertRaisesRegex(Exception, "details are disabled"):
+            self.service.notification_detail(
+                result["event_id"],
+                device_id,
+                jwk["kid"],
+                timestamp,
+                nonce,
+                signature,
+                path,
+            )
+
     def test_capabilities_and_talk_handoff_are_authorized_server_side(self) -> None:
         service = BridgeService(
             self.store,
@@ -245,6 +363,55 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual(0, result["dispatched"])
         self.assertEqual([], self.ntfy.messages)
         self.assertEqual(0, self.service.dispatch_due_events())
+
+    def test_personal_calendar_reminder_reschedules_pending_event(self) -> None:
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        numbers = private_key.public_key().public_numbers()
+        jwk = {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": base64url_encode(numbers.x.to_bytes(32, "big")),
+            "y": base64url_encode(numbers.y.to_bytes(32, "big")),
+        }
+        jwk["kid"] = device_key_id(jwk)
+        device_id = "11111111-1111-1111-1111-111111111111"
+
+        def register(reminder_minutes: int) -> None:
+            self.service.register_push(
+                device_id,
+                "valid-token",
+                {
+                    "provider": "ntfy",
+                    "authentik_device_token": "valid-agent-token",
+                    "mode": "personal",
+                    "notification_privacy": "standard",
+                    "calendar_reminder_minutes": reminder_minutes,
+                    "app_version": "0.11.2",
+                    "key_id": jwk["kid"],
+                    "public_key_jwk": jwk,
+                },
+            )
+
+        register(5)
+        starts_at = datetime.now(timezone.utc) + timedelta(minutes=20)
+        result = self.service.ingest_event(
+            "zimbra",
+            {
+                "source_event_id": "calendar:account:personal-reminder",
+                "user_subject": "authentik-user-1",
+                "event_type": "open_calendar",
+                "title": "Team meeting",
+                "summary": "In twenty minutes",
+                "display_at": starts_at.isoformat(),
+                "expires_at": (starts_at + timedelta(hours=1)).isoformat(),
+            },
+        )
+        self.assertEqual(0, result["dispatched"])
+        self.assertEqual(0, self.service.dispatch_due_events())
+
+        register(30)
+        self.assertEqual(1, self.service.dispatch_due_events())
+        self.assertEqual(result["event_id"], self.ntfy.messages[0][2]["event_id"])
 
     def test_announcements_are_cached_per_authenticated_subject(self) -> None:
         client = FakeAnnouncements()

@@ -106,6 +106,9 @@
     <string name="privacy_standard_description">Show sender and subject, or appointment time and location.</string>
     <string name="privacy_detailed_label">Detailed</string>
     <string name="privacy_detailed_description">Also show a short mail or Talk preview.</string>
+    <string name="calendar_reminder_title">Appointment reminder</string>
+    <string name="calendar_reminder_description">Choose how long before an appointment the notification appears.</string>
+    <string name="calendar_reminder_minutes">%1$d min</string>
     <string name="message_auth_cancelled">Sign-in was cancelled.</string>
     <string name="message_session_expired">For security reasons, your session has expired. Please sign in again.</string>
     <string name="message_session_reauth_required">Your 90-day sign-in has expired. Renew it with your existing TOTP code or your password.</string>

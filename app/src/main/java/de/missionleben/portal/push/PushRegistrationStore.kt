@@ -14,8 +14,21 @@ class PushRegistrationStore(context: Context) {
             ?: NotificationPrivacy.STANDARD
         set(value) = preferences.edit().putString(KEY_PERSONAL_PRIVACY, value.wireName).apply()
 
-    private companion object {
+    var calendarReminderMinutes: Int
+        get() = preferences.getInt(KEY_CALENDAR_REMINDER_MINUTES, DEFAULT_CALENDAR_REMINDER_MINUTES)
+            .takeIf(SUPPORTED_CALENDAR_REMINDER_MINUTES::contains)
+            ?: DEFAULT_CALENDAR_REMINDER_MINUTES
+        set(value) {
+            require(value in SUPPORTED_CALENDAR_REMINDER_MINUTES)
+            preferences.edit().putInt(KEY_CALENDAR_REMINDER_MINUTES, value).apply()
+        }
+
+    companion object {
+        val SUPPORTED_CALENDAR_REMINDER_MINUTES = listOf(5, 10, 15, 30)
+        const val DEFAULT_CALENDAR_REMINDER_MINUTES = 15
+
         const val KEY_PERMISSION_REQUESTED = "permission_requested"
         const val KEY_PERSONAL_PRIVACY = "personal_privacy"
+        const val KEY_CALENDAR_REMINDER_MINUTES = "calendar_reminder_minutes"
     }
 }

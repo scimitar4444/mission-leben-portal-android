@@ -69,6 +69,7 @@ import de.missionleben.portal.model.PortalCapability
 import de.missionleben.portal.model.PortalApplication
 import de.missionleben.portal.model.UiState
 import de.missionleben.portal.push.NotificationPrivacy
+import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.update.UpdateStatus
 import kotlinx.coroutines.delay
 import java.text.DateFormat
@@ -90,6 +91,7 @@ fun MissionLebenApp(
     onEnableQuickUnlock: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
+    onCalendarReminderChange: (Int) -> Unit,
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
@@ -131,6 +133,7 @@ fun MissionLebenApp(
                 onEnableQuickUnlock = onEnableQuickUnlock,
                 onOpenTalk = onOpenTalk,
                 onNotificationPrivacyChange = onNotificationPrivacyChange,
+                onCalendarReminderChange = onCalendarReminderChange,
                 onLogout = onLogout,
                 onResetProfile = onResetProfile,
                 onDismissMessage = onDismissMessage,
@@ -316,6 +319,7 @@ private fun Home(
     onEnableQuickUnlock: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
+    onCalendarReminderChange: (Int) -> Unit,
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
@@ -338,6 +342,7 @@ private fun Home(
             onSelfEnrollment = onSelfEnrollment,
             onRefreshDeviceStatus = onRefreshDeviceStatus,
             onNotificationPrivacyChange = onNotificationPrivacyChange,
+            onCalendarReminderChange = onCalendarReminderChange,
             onLogout = onLogout,
             onResetProfile = onResetProfile,
             onDismissMessage = onDismissMessage,
@@ -590,6 +595,7 @@ private fun SettingsScreen(
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
+    onCalendarReminderChange: (Int) -> Unit,
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
@@ -619,7 +625,13 @@ private fun SettingsScreen(
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
         item { DevicePanel(state, onScanEnrollmentQr, onSelfEnrollment, onRefreshDeviceStatus) }
         if (state.signedIn) {
-            item { NotificationPrivacyPanel(state, onNotificationPrivacyChange) }
+            item {
+                NotificationPrivacyPanel(
+                    state,
+                    onNotificationPrivacyChange,
+                    onCalendarReminderChange,
+                )
+            }
         }
         item { LanguagePanel(currentLanguageTag, onLanguageChange) }
         if (state.signedIn) {
@@ -1231,6 +1243,7 @@ private fun TalkHandoffDialog(
 private fun NotificationPrivacyPanel(
     state: UiState,
     onChange: (NotificationPrivacy) -> Unit,
+    onCalendarReminderChange: (Int) -> Unit,
 ) {
     if (!state.pushConfigured) return
     Card(
@@ -1278,6 +1291,32 @@ private fun NotificationPrivacyPanel(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                 )
+                Spacer(Modifier.height(18.dp))
+                Text(
+                    stringResource(R.string.calendar_reminder_title),
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    stringResource(R.string.calendar_reminder_description),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    PushRegistrationStore.SUPPORTED_CALENDAR_REMINDER_MINUTES.forEach { minutes ->
+                        val label = stringResource(R.string.calendar_reminder_minutes, minutes)
+                        if (state.calendarReminderMinutes == minutes) {
+                            Button(onClick = { onCalendarReminderChange(minutes) }) { Text(label) }
+                        } else {
+                            OutlinedButton(onClick = { onCalendarReminderChange(minutes) }) { Text(label) }
+                        }
+                    }
+                }
             }
         }
     }

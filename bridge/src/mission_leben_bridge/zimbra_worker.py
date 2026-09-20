@@ -18,7 +18,6 @@ from .zimbra_waitset import (
     ZimbraSoapError,
     format_appointment_summary,
     iso_from_millis,
-    reminder_iso,
 )
 
 
@@ -32,13 +31,11 @@ class ZimbraWorker:
         bridge: BridgeSourceClient,
         account_map: dict[str, dict[str, str]],
         timezone_name: str = "Europe/Berlin",
-        reminder_minutes: int = 15,
     ):
         self.soap = soap
         self.bridge = bridge
         self.account_map = account_map
         self.timezone_name = timezone_name
-        self.reminder_minutes = reminder_minutes
         self.stop_event = threading.Event()
 
     def run(self) -> None:
@@ -125,7 +122,6 @@ class ZimbraWorker:
                     ),
                     "preview": "",
                     "display_at": iso_from_millis(appointment.start_millis),
-                    "deliver_at": reminder_iso(appointment.start_millis, self.reminder_minutes),
                     "expires_at": iso_from_millis(appointment.start_millis + duration),
                 }
             )
@@ -174,7 +170,6 @@ def main() -> None:
         ),
         account_map=_account_map(),
         timezone_name=os.getenv("ZIMBRA_TIMEZONE", "Europe/Berlin"),
-        reminder_minutes=int(os.getenv("ZIMBRA_REMINDER_MINUTES", "15")),
     )
     signal.signal(signal.SIGTERM, lambda *_: worker.stop())
     signal.signal(signal.SIGINT, lambda *_: worker.stop())
