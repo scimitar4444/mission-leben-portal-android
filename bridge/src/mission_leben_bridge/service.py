@@ -191,6 +191,8 @@ class BridgeService:
             raise ApiError(400, "invalid event type")
         source_event_id = _text(payload.get("source_event_id"), 200, required=True)
         subject = _text(payload.get("user_subject"), 200, required=True)
+        if self.store.user_active_state(subject) is False:
+            raise ApiError(403, "user is inactive")
         display_at, _ = _iso_epoch(payload.get("display_at"))
         _, deliver_epoch = _iso_epoch(payload.get("deliver_at"))
         expires_at, expires_epoch = _iso_epoch(payload.get("expires_at"))

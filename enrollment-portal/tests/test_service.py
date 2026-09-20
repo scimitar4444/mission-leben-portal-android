@@ -71,12 +71,20 @@ class FakeAuthentik:
         assert user_pk == self.user["pk"]
         return self.user
 
+    async def user_record(self, user_pk):
+        assert user_pk == self.user["pk"]
+        return self.user
+
     async def employee_by_username(self, username):
         assert username == self.user["username"]
         return self.user
 
     async def access_group_by_name(self, _):
         return self.existing_group
+
+    async def access_group(self, group_uuid):
+        assert group_uuid == self.token_record["device_group"]
+        return self.token_record["device_group_obj"]
 
     async def create_access_group(self, name, attributes):
         group = {
@@ -501,6 +509,19 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
 
 def test_device_status_reads_live_authentik_device_state(settings):
     authentik = FakeAuthentik(settings)
+    authentik.token_record["device_group_obj"]["attributes"] = {
+        "mission-leben.de/purpose": "android-portal",
+        "mission-leben.de/mode": "personal",
+    }
+    authentik._bindings = [
+        {
+            "enabled": True,
+            "negate": False,
+            "policy": None,
+            "user": authentik.user["pk"],
+            "group": None,
+        }
+    ]
     authentik.device_records.append(
         {
             "device_uuid": authentik.device_uuid,
@@ -528,6 +549,73 @@ def test_device_status_reads_live_authentik_device_state(settings):
         )
         assert disabled.status_code == 403
         assert disabled.json() == {"error": "Das Gerät ist deaktiviert oder abgelaufen."}
+
+
+def test_device_status_rejects_inactive_bound_user(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.token_record["device_group_obj"]["attributes"] = {
+        "mission-leben.de/purpose": "android-portal",
+        "mission-leben.de/mode": "personal",
+    }
+    authentik._bindings = [
+        {
+            "enabled": True,
+            "negate": False,
+            "policy": None,
+            "user": authentik.user["pk"],
+            "group": None,
+        }
+    ]
+    authentik.user["is_active"] = False
+    authentik.device_records.append(
+        {
+            "device_uuid": authentik.device_uuid,
+            "name": "Testgerät",
+            "access_group": authentik.token_record["device_group"],
+            "expiring": False,
+            "expires": None,
+            "attributes": {"mission-leben.de/status": "active"},
+        }
+    )
+    app = create_app(settings, authentik)
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/devices/status",
+            headers={"authorization": "Bearer+Agent abcdefghijklmnopqrstuvwxyz0123456789_-"},
+        )
+
+    assert response.status_code == 403
+    assert response.json() == {"error": "Der zugeordnete Mitarbeiter ist deaktiviert."}
+
+
+def test_device_status_rejects_ambiguous_personal_binding(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.token_record["device_group_obj"]["attributes"] = {
+        "mission-leben.de/purpose": "android-portal",
+        "mission-leben.de/mode": "personal",
+    }
+    authentik._bindings = []
+    authentik.device_records.append(
+        {
+            "device_uuid": authentik.device_uuid,
+            "name": "Testgerät",
+            "access_group": authentik.token_record["device_group"],
+            "expiring": False,
+            "expires": None,
+            "attributes": {"mission-leben.de/status": "active"},
+        }
+    )
+    app = create_app(settings, authentik)
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/devices/status",
+            headers={"authorization": "Bearer+Agent abcdefghijklmnopqrstuvwxyz0123456789_-"},
+        )
+
+    assert response.status_code == 403
+    assert response.json() == {"error": "Die persönliche Gerätebindung ist nicht eindeutig."}
 
 
 def test_device_status_rejects_missing_or_malformed_agent_token(settings):

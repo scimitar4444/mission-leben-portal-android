@@ -26,6 +26,22 @@ async def test_agent_device_id_uses_authentik_agent_scheme(settings):
 
 
 @pytest.mark.asyncio
+async def test_access_group_reads_exact_authentik_record(settings):
+    group_uuid = "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == f"/api/v3/endpoints/device_access_groups/{group_uuid}/"
+        return httpx.Response(200, json={"pbm_uuid": group_uuid, "attributes": {}})
+
+    client = AuthentikClient(settings, httpx.MockTransport(handler))
+    try:
+        result = await client.access_group(group_uuid)
+        assert result["pbm_uuid"] == group_uuid
+    finally:
+        await client.close()
+
+
+@pytest.mark.asyncio
 async def test_disable_device_preserves_record_and_existing_attributes(settings):
     device_uuid = "eeeeeeee-bbbb-cccc-dddd-eeeeeeeeeeee"
     disabled_at = datetime(2026, 9, 20, 13, 45, tzinfo=UTC)

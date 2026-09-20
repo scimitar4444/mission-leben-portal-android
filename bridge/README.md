@@ -44,7 +44,7 @@ Der Container ist eine überprüfbare Pilotimplementierung. Vor einem Live-Rollo
 1. Zimbra-10.1-Rechte des dedizierten Integrationskontos und Routing je Mailbox-Server.
 2. Serien, Ausnahmen, Absagen und individuelle Erinnerungszeiten der realen Zimbra-Kalender.
 3. Talk-Bot-Zuordnungen und Signaturen gegen die tatsächlich installierte Nextcloud-/Talk-Version sowie die gepflegte Raum-Teilnehmer-Zuordnung.
-4. Geräte-Offboarding erfolgt in Authentik; die Bridge entfernt eine Kommunikationszuordnung, sobald Authentik das Device Token dauerhaft ablehnt. Für garantiertes Fernlöschen auf ausgeschalteten Geräten bleibt MDM/Android Work Profile notwendig.
+4. Mitarbeiter-Offboarding beginnt ausschließlich mit der Kontodeaktivierung in Authentik. Der fünfminütige Reconciler deaktiviert zugeordnete persönliche Geräte, entzieht Authentik-Sitzungen und -Tokens und ruft `mission-leben-bridge-offboard` für das stabile Subject auf. Die Bridge löscht Kommunikationsregistrierungen, Nonces, Benachrichtigungsinhalte, Anmeldeanfragen und Talk-Übergaben; nur ein inaktiver Subject-Tombstone ohne Name oder E-Mail bleibt als Sperre. Für garantiertes Fernlöschen auf ausgeschalteten Geräten bleibt MDM/Android Work Profile notwendig.
 5. SQLite ist für einen einzelnen Pilotcontainer vorgesehen. Vor horizontaler Skalierung muss der Store auf PostgreSQL und eine gemeinsame Job-Queue umgestellt werden.
 
 ## Start als Pilot
@@ -88,7 +88,7 @@ sudo chown 10001:10001 bridge/data
 
 Der Enrollment-Token wird in Authentik erzeugt und einer Device Access Group zugeordnet. Die Android-App enrollt direkt am Authentik Agent Connector. Das Bootstrap- und das Pilot-Token-Skript liegen unter `authentik/`; die genaue Konfiguration steht in `docs/AUTHENTIK_SETUP.md`.
 
-Beim Ausscheiden oder Geräteverlust wird das Gerät in Authentik unter **Endpoint Devices → Devices** ablaufen gelassen oder gelöscht. Die Bridge besitzt absichtlich keinen parallelen Freigabestatus.
+Beim Ausscheiden wird das Benutzerkonto in Authentik deaktiviert. Geräte- und Bindungsdatensätze bleiben für die Nachverfolgbarkeit bestehen und erhalten den Status `disabled`; sie werden nicht gelöscht. Beim reinen Geräteverlust wird nur das betroffene Gerät in Authentik gesperrt. Die Bridge besitzt weiterhin keinen eigenen Freigabestatus: Ihr inaktiver Subject-Tombstone verhindert lediglich das erneute Speichern nachlaufender Kommunikationsereignisse.
 
 ## Zimbra-Zuordnung
 

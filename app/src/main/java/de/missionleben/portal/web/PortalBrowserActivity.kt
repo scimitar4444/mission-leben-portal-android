@@ -1,10 +1,8 @@
 package de.missionleben.portal.web
 
-import android.Manifest
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -56,7 +54,6 @@ class PortalBrowserActivity : FragmentActivity() {
     private lateinit var titleView: TextView
     private lateinit var policy: WebNavigationPolicy
     private var fileCallback: ValueCallback<Array<Uri>>? = null
-    private var pendingPermissionRequest: PermissionRequest? = null
     private var logoutFinished = false
     private var endpointBridgeInstalled = false
     private var authorizationResultDelivered = false
@@ -88,21 +85,6 @@ class PortalBrowserActivity : FragmentActivity() {
             ?.filter { uri -> uri.scheme == "content" }
             ?.toTypedArray()
         callback.onReceiveValue(values)
-    }
-
-    private val permissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions(),
-    ) { grants ->
-        val request = pendingPermissionRequest ?: return@registerForActivityResult
-        pendingPermissionRequest = null
-        val allowed = request.resources.filter { resource ->
-            when (resource) {
-                PermissionRequest.RESOURCE_VIDEO_CAPTURE -> grants[Manifest.permission.CAMERA] == true
-                PermissionRequest.RESOURCE_AUDIO_CAPTURE -> grants[Manifest.permission.RECORD_AUDIO] == true
-                else -> false
-            }
-        }
-        if (allowed.isEmpty()) request.deny() else request.grant(allowed.toTypedArray())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -417,41 +399,13 @@ class PortalBrowserActivity : FragmentActivity() {
         }
 
         override fun onPermissionRequest(request: PermissionRequest) {
-            val origin = request.origin.toString()
-            if (!policy.isTrustedWebUrl(origin)) {
-                request.deny()
-                return
-            }
+            // Camera access is reserved for the native enrollment QR scanner.
+            // No website, including an otherwise trusted portal application,
+            // receives camera or microphone access from this WebView.
             if (TalkChatPolicy.isTalkPage(webView.url.orEmpty())) {
-                request.deny()
                 Toast.makeText(this@PortalBrowserActivity, R.string.talk_media_disabled, Toast.LENGTH_LONG).show()
-                return
             }
-            val requestedResources = request.resources.filter {
-                it == PermissionRequest.RESOURCE_VIDEO_CAPTURE || it == PermissionRequest.RESOURCE_AUDIO_CAPTURE
-            }
-            if (requestedResources.isEmpty()) {
-                request.deny()
-                return
-            }
-            val androidPermissions = buildList {
-                if (PermissionRequest.RESOURCE_VIDEO_CAPTURE in requestedResources) add(Manifest.permission.CAMERA)
-                if (PermissionRequest.RESOURCE_AUDIO_CAPTURE in requestedResources) add(Manifest.permission.RECORD_AUDIO)
-            }
-            val missing = androidPermissions.filter {
-                ContextCompat.checkSelfPermission(this@PortalBrowserActivity, it) != PackageManager.PERMISSION_GRANTED
-            }
-            if (missing.isEmpty()) {
-                request.grant(requestedResources.toTypedArray())
-            } else {
-                pendingPermissionRequest?.deny()
-                pendingPermissionRequest = request
-                permissionLauncher.launch(missing.toTypedArray())
-            }
-        }
-
-        override fun onPermissionRequestCanceled(request: PermissionRequest) {
-            if (pendingPermissionRequest == request) pendingPermissionRequest = null
+            request.deny()
         }
 
         override fun onGeolocationPermissionsShowPrompt(origin: String?, callback: GeolocationPermissions.Callback) {
@@ -518,7 +472,6 @@ class PortalBrowserActivity : FragmentActivity() {
 
     override fun onDestroy() {
         fileCallback?.onReceiveValue(null)
-        pendingPermissionRequest?.deny()
         if (::webView.isInitialized) {
             webView.stopLoading()
             if (endpointBridgeInstalled) {

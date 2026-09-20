@@ -69,7 +69,41 @@ class EnrollmentService:
         device = await self.authentik.device(device_uuid)
         if self._is_inactive(device):
             raise AuthentikError(403, "Das Gerät ist deaktiviert oder abgelaufen.")
+        access_group_uuid = str(device.get("access_group") or "")
+        if not access_group_uuid:
+            raise AuthentikError(403, "Das Gerät besitzt keine gültige Zugriffsgruppe.")
+        access_group = await self.authentik.access_group(access_group_uuid)
+        attributes = access_group.get("attributes") or {}
+        if attributes.get("mission-leben.de/purpose") != "android-portal":
+            raise AuthentikError(403, "Das Gerät gehört nicht zum mobilen Portal.")
+        mode = attributes.get("mission-leben.de/mode")
+        if mode == "personal":
+            await self._assert_active_personal_binding(access_group_uuid)
+        elif mode != "shared":
+            raise AuthentikError(403, "Die Gerätegruppe besitzt keinen gültigen Gerätetyp.")
         return {"device_id": device_uuid, "trusted": True}
+
+    async def _assert_active_personal_binding(self, access_group_uuid: str) -> None:
+        bindings = [
+            binding
+            for binding in await self.authentik.bindings(access_group_uuid)
+            if binding.get("enabled")
+            and not binding.get("negate")
+            and binding.get("policy") is None
+        ]
+        direct_users = [
+            binding
+            for binding in bindings
+            if binding.get("user") is not None and binding.get("group") is None
+        ]
+        if len(bindings) != 1 or len(direct_users) != 1:
+            raise AuthentikError(
+                403,
+                "Die persönliche Gerätebindung ist nicht eindeutig.",
+            )
+        user = await self.authentik.user_record(int(direct_users[0]["user"]))
+        if not user.get("is_active") or user.get("type") == "service_account":
+            raise AuthentikError(403, "Der zugeordnete Mitarbeiter ist deaktiviert.")
 
     async def organizations_for(self, actor: Actor) -> list[dict[str, Any]]:
         groups = await self.authentik.organization_groups(

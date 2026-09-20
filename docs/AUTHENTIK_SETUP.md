@@ -74,7 +74,7 @@ Zusätzlich zeigt der Android-Client ausschließlich Anwendungen mit der Authent
 
 Die Authentik-Anwendung `talk` startet über den bereits in Nextcloud eingerichteten zentralen `user_oidc`-Anbieter und gibt `/apps/spreed/` als Rücksprungziel mit. Dadurch entfällt auf der Nextcloud-Anmeldeseite der zusätzliche Klick auf „Mission Leben“; es entsteht weder ein zweiter Benutzerbestand noch eine parallele Authentifizierung. Nach dem OIDC-Rücksprung stellt der Android-WebView weiterhin den zuletzt verwendeten Talk-Raum aus seinem lokalen Speicher wieder her.
 
-Da Nextcloud Talk Android-WebViews für Audio- und Videoanrufe nicht als vollständig unterstützten Browser behandelt, betreibt der Client Talk bewusst nur als eingebetteten Chat. Auf den vertrauenswürdigen Talk-Seiten werden WebRTC-Anforderungen für Kamera und Mikrofon immer abgewiesen und der Benutzer erhält einen klaren Hinweis. Die installierte Talk-App wird nicht automatisch gestartet; Kontodaten oder WebView-Cookies werden nicht an eine Fremd-App übertragen.
+Da Nextcloud Talk Android-WebViews für Audio- und Videoanrufe nicht als vollständig unterstützten Browser behandelt, betreibt der Client Talk bewusst nur als eingebetteten Chat. Der gesamte WebView verweigert Kamera- und Mikrofonanforderungen; die Kamera-Berechtigung der App ist ausschließlich für den nativen QR-Scanner bestimmt. Auf Talk-Seiten erhält der Benutzer zusätzlich einen klaren Hinweis. Die installierte Talk-App wird nicht automatisch gestartet; Kontodaten oder WebView-Cookies werden nicht an eine Fremd-App übertragen.
 
 ## 3. Abmeldung
 
@@ -135,6 +135,8 @@ Der angezeigte QR-Code ist zehn Minuten gültig und enthält Token, Token-UUID u
 Die alten Skripte `create_enrollment_token.py`, `assign_device_access.py` und `generate_enrollment_qr.py` sind nur noch dokumentierter Notfall-/Migrationsbestand und kein Einrichtungsweg für neue Geräte. `create_pilot_enrollment_token.py` bleibt absichtlich deaktiviert. Eine frische App ab Version 0.8.0 verlangt den vollständigen Portal-QR; ein alter Token-only-Link wird nur noch akzeptiert, wenn auf dem Gerät bereits ein Modus gespeichert ist.
 
 Gerät sperren: Unter **Endpoint Devices → Devices** in den Attributen `mission-leben.de/status=disabled` setzen und Zeitpunkt sowie Grund dokumentieren. Die Android-Policies lehnen dieses Device anschließend serverseitig ab; die App löscht Sitzung und Webdaten, und die Kommunikations-Bridge verwirft die Push-Zuordnung bei ihrer nächsten Live-Prüfung. Löschen oder ein sofortiges Ablaufdatum sind für die normale Sperrung nicht zulässig, weil die Nachverfolgbarkeit erhalten bleiben muss.
+
+Mitarbeiter-Offboarding: Das Mitarbeiterkonto wird in Authentik deaktiviert. `authentik/reconcile_inactive_personal_devices.py` wird durch `mission-leben-device-offboarding.timer` alle fünf Minuten ausgeführt. Es verarbeitet ausschließlich direkte Benutzerbindungen an Device Access Groups mit `mission-leben.de/purpose=android-portal` und `mission-leben.de/mode=personal`, deaktiviert deren Geräte, entzieht Authentik-Sitzungen sowie Core-/OAuth-Tokens und übergibt das stabile Subject an die getrennte Bridge-Bereinigung. Der Nextcloud-OIDC-Provider verwendet zusätzlich `user_oidc`-Backchannel-Logout. Shared-Geräte werden nicht pauschal gesperrt, wenn ein einzelnes Mitglied der Einrichtungsgruppe ausscheidet. Zimbra verwendet derzeit SAML; das Beenden einer bereits bestehenden Zimbra-Mailboxsitzung benötigt noch einen eigenen, sicher authentifizierten Zimbra-Administrationsadapter.
 
 ## 6. App-Bestätigung als Authentik-Faktor
 

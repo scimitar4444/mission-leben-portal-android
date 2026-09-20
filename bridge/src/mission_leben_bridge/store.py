@@ -212,14 +212,99 @@ class Store:
             )
 
     def set_user_active(self, subject: str, active: bool) -> bool:
+        if not active:
+            self.offboard_subject(subject)
+            return True
         with self._connect() as connection:
             cursor = connection.execute(
                 "UPDATE users SET active = ?, verified_at = ? WHERE subject = ?",
                 (int(active), int(time.time()), subject),
             )
-            if not active:
-                connection.execute("DELETE FROM push_registrations WHERE subject = ?", (subject,))
             return cursor.rowcount == 1
+
+    def user_active_state(self, subject: str) -> bool | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT active FROM users WHERE subject = ?", (subject,)
+            ).fetchone()
+        return bool(row["active"]) if row is not None else None
+
+    def offboard_subject(self, subject: str, *, dry_run: bool = False) -> dict[str, Any]:
+        now = int(time.time())
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            counts = {
+                "registrations": connection.execute(
+                    "SELECT COUNT(*) FROM push_registrations WHERE subject = ?", (subject,)
+                ).fetchone()[0],
+                "nonces": connection.execute(
+                    """
+                    SELECT COUNT(*) FROM request_nonces
+                    WHERE device_id IN (
+                        SELECT device_id FROM push_registrations WHERE subject = ?
+                    )
+                    """,
+                    (subject,),
+                ).fetchone()[0],
+                "events": connection.execute(
+                    "SELECT COUNT(*) FROM notification_events WHERE subject = ?", (subject,)
+                ).fetchone()[0],
+                "deliveries": connection.execute(
+                    """
+                    SELECT COUNT(*) FROM event_deliveries
+                    WHERE event_id IN (
+                        SELECT event_id FROM notification_events WHERE subject = ?
+                    )
+                    """,
+                    (subject,),
+                ).fetchone()[0],
+                "handoffs": connection.execute(
+                    "SELECT COUNT(*) FROM handoffs WHERE subject = ?", (subject,)
+                ).fetchone()[0],
+                "auth_requests": connection.execute(
+                    "SELECT COUNT(*) FROM auth_requests WHERE subject = ?", (subject,)
+                ).fetchone()[0],
+            }
+            user_exists = connection.execute(
+                "SELECT 1 FROM users WHERE subject = ?", (subject,)
+            ).fetchone() is not None
+            if dry_run:
+                return {
+                    "subject_known": user_exists,
+                    "applied": False,
+                    **counts,
+                }
+
+            connection.execute(
+                """
+                DELETE FROM request_nonces
+                WHERE device_id IN (
+                    SELECT device_id FROM push_registrations WHERE subject = ?
+                )
+                """,
+                (subject,),
+            )
+            connection.execute("DELETE FROM push_registrations WHERE subject = ?", (subject,))
+            connection.execute("DELETE FROM notification_events WHERE subject = ?", (subject,))
+            connection.execute("DELETE FROM handoffs WHERE subject = ?", (subject,))
+            connection.execute("DELETE FROM auth_requests WHERE subject = ?", (subject,))
+            connection.execute(
+                """
+                INSERT INTO users(subject, email, display_name, active, verified_at)
+                VALUES (?, '', '', 0, ?)
+                ON CONFLICT(subject) DO UPDATE SET
+                    email='',
+                    display_name='',
+                    active=0,
+                    verified_at=excluded.verified_at
+                """,
+                (subject, now),
+            )
+            return {
+                "subject_known": user_exists,
+                "applied": True,
+                **counts,
+            }
 
     def register_push(
         self,

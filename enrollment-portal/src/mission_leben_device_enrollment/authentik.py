@@ -132,10 +132,13 @@ class AuthentikClient:
         return sorted(results.values(), key=lambda user: (user.get("name") or user["username"]).casefold())[:50]
 
     async def employee(self, user_pk: int) -> dict[str, Any]:
-        user = await self._request("GET", f"/core/users/{user_pk}/")
+        user = await self.user_record(user_pk)
         if not user.get("is_active") or user.get("type") == "service_account":
             raise AuthentikError(400, "Dieser Mitarbeiter kann nicht ausgewählt werden.")
         return user
+
+    async def user_record(self, user_pk: int) -> dict[str, Any]:
+        return await self._request("GET", f"/core/users/{user_pk}/")
 
     async def employee_by_username(self, username: str) -> dict[str, Any]:
         payload = await self._request(
@@ -177,6 +180,10 @@ class AuthentikClient:
             "/endpoints/device_access_groups/", {"search": name, "page_size": 100}
         )
         return next((item for item in results if item["name"] == name), None)
+
+    async def access_group(self, group_uuid: str) -> dict[str, Any]:
+        UUID(group_uuid)
+        return await self._request("GET", f"/endpoints/device_access_groups/{group_uuid}/")
 
     async def create_access_group(self, name: str, attributes: dict[str, Any]) -> dict[str, Any]:
         return await self._request(

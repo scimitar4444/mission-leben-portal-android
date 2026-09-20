@@ -14,6 +14,7 @@ dependencies = [
 
 [project.scripts]
 mission-leben-bridge = "mission_leben_bridge.__main__:main"
+mission-leben-bridge-offboard = "mission_leben_bridge.offboard:main"
 mission-leben-bridge-preflight = "mission_leben_bridge.preflight:main"
 mission-leben-zimbra-worker = "mission_leben_bridge.zimbra_worker:main"
 

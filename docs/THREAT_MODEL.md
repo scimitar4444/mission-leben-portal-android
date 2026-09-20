@@ -29,7 +29,7 @@
 | ausgeschiedener Mitarbeiter nutzt App weiter | Authentik-User und Anwendungssitzungen zentral sperren, Refresh Token widerrufen, Gerätebindung sperren und lokales Löschsignal auslösen |
 | verlorenes Shared Tablet dient als zweiter Faktor | Authentik-Device nachvollziehbar mit `mission-leben.de/status=disabled`, Zeitpunkt und Grund sperren; die serverseitige Policy verweigert es und die App verwirft daraufhin Sitzung und Webdaten. Zusätzlich muss der Benutzer Mitglied der exakt zugeordneten `ORG_*`-Einrichtungsgruppe sein und sein Passwort eingeben |
 | WebView lädt manipulierte Inhalte | nur HTTPS auf konfigurierten Domain-Endungen, kein Datei-/Content-Zugriff, kein Mixed Content, Safe Browsing und harte TLS-Fehlerbehandlung; die einzige JavaScript-Schnittstelle signiert nur Authentik-Endpoint-Challenges auf der exakten Authentik-Origin und gibt kein Token aus |
-| Webseite greift unbemerkt auf Kamera/Mikrofon zu | nur explizit bekannte WebRTC-Ressourcen, erlaubte HTTPS-Origin und Android-Laufzeitfreigabe |
+| Webseite greift unbemerkt auf Kamera/Mikrofon zu | der WebView verweigert jede Medienfreigabe unabhängig von Domain und Android-Berechtigung; `RECORD_AUDIO` ist nicht im Manifest, `CAMERA` ist ausschließlich für den nativen QR-Scanner vorhanden |
 | vorheriger Benutzer hinterlässt Browserdaten | Cookie-Speicher, DOM-/Webspeicher, HTTP-Zugangsdaten, Cache, Formulardaten und App-Downloads werden bei Abmeldung/Profilwechsel gelöscht |
 | veraltete Browserengine | Android System WebView wird separat aktualisiert; MDM muss Updates erzwingen und veraltete Geräte sperren |
 | FCM oder ein fremder Push schleust Text oder Schad-URL ein | FCM enthält nur Ereignis-ID, Typ und Revision; App ignoriert freie Texte/URLs und öffnet ausschließlich eine passende Authentik-App |
@@ -46,6 +46,7 @@
 | Android-Signierschlüssel wird entwendet | privater Schlüssel bleibt außerhalb von GitHub und der CI, liegt lokal nur zugriffsgeschützt vor und benötigt eine verschlüsselte Offline-Sicherung; bei Verdacht werden keine weiteren OTA-Releases veröffentlicht |
 | Sperrbildschirm verrät Fachdaten | Android-Notification ist `PRIVATE` und besitzt eine neutrale öffentliche Version; Shared Tablets erzwingen `minimal` |
 | Bridge-Datenbank wird kopiert | FCM-Installations-IDs und die für Live-Prüfungen benötigten Authentik-Device-Token sind mit AES-256-GCM verschlüsselt; Schlüssel liegt nur als Server-Secret vor |
+| ausgeschiedener Mitarbeiter behält ein noch gültiges Gerätetoken | der Live-Status prüft bei persönlichen Geräten zusätzlich die eindeutige Authentik-Benutzerbindung und `is_active`; ein fünfminütiger, idempotenter Reconciler deaktiviert das Gerät und bereinigt die Bridge |
 | Zimbra-Integrationskonto wird missbraucht | eigener Worker je Mailbox-Server, explizite Konto-ID-Liste, Secret-Datei, keine Benutzerkennwörter und begrenzte Suchabfragen; Rechte und Audit müssen vor Produktion geprüft werden |
 | FCM-Zuordnung bleibt nach Abmeldung aktiv | App löscht die Zuordnung bestmöglich am Device Service; Server sperrt sie zusätzlich bei Offboarding oder Gerätesperre |
 | Firebase-Dienstkonto wird kompromittiert | Dienstkonto nur im Server-Secret-Store, minimale Berechtigung, kein Schlüssel in Repository oder APK; Versand und Gerätezuordnung auditieren |

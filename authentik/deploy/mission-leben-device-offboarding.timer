@@ -1,0 +1,12 @@
+[Unit]
+Description=Check Authentik offboarding state every five minutes
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+RandomizedDelaySec=20s
+Persistent=true
+Unit=mission-leben-device-offboarding.service
+
+[Install]
+WantedBy=timers.target

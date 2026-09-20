@@ -204,6 +204,100 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual([], self.fcm.messages)
         self.assertEqual(0, self.service.dispatch_due_events())
 
+    def test_offboarding_removes_personal_data_and_blocks_new_events(self) -> None:
+        subject = "authentik-user-1"
+        device_id = "11111111-1111-1111-1111-111111111111"
+        self.store.upsert_user(subject, "user@example.invalid", "Test User")
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        numbers = private_key.public_key().public_numbers()
+        jwk = {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": base64url_encode(numbers.x.to_bytes(32, "big")),
+            "y": base64url_encode(numbers.y.to_bytes(32, "big")),
+        }
+        jwk["kid"] = device_key_id(jwk)
+        self.store.register_auth_channel(
+            device_id=device_id,
+            subject=subject,
+            agent_token="valid-agent-token",
+            key_id=jwk["kid"],
+            public_jwk=jwk,
+            mode="personal",
+            app_version="0.10.5",
+        )
+        event, _ = self.store.put_event(
+            {
+                "source": "zimbra",
+                "source_event_id": "offboarding-test",
+                "subject": subject,
+                "event_type": "open_mail",
+                "title": "Personal",
+                "summary": "Personal data",
+                "preview": "Personal data",
+                "display_at": None,
+                "expires_at": None,
+                "expires_epoch": int(time.time()) + 3600,
+                "deliver_epoch": int(time.time()),
+            }
+        )
+        self.store.record_delivery(event["event_id"], device_id)
+        self.store.consume_nonce(device_id, "offboarding-nonce-1234", int(time.time()) + 180)
+        self.store.create_handoff(subject, device_id, "room-display", "abcdef123456", 30)
+        self.store.create_auth_request(
+            subject=subject,
+            application="Zimbra",
+            domain="id.example.invalid",
+            display_username="test.user",
+            source_ip="192.0.2.10",
+            ttl=60,
+        )
+
+        preview = self.store.offboard_subject(subject, dry_run=True)
+        self.assertFalse(preview["applied"])
+        self.assertEqual(1, preview["registrations"])
+        self.assertEqual(1, preview["events"])
+        self.assertEqual(1, preview["auth_requests"])
+        self.assertIsNotNone(self.store.get_registration(device_id))
+
+        result = self.store.offboard_subject(subject)
+        self.assertTrue(result["applied"])
+        self.assertEqual(1, result["nonces"])
+        self.assertEqual(1, result["deliveries"])
+        self.assertEqual(1, result["handoffs"])
+        self.assertIsNone(self.store.get_registration(device_id))
+        self.assertFalse(self.store.user_active_state(subject))
+
+        with self.store._connect() as connection:
+            user = connection.execute(
+                "SELECT email, display_name, active FROM users WHERE subject = ?", (subject,)
+            ).fetchone()
+            self.assertEqual(("", "", 0), tuple(user))
+            for table in (
+                "push_registrations",
+                "request_nonces",
+                "notification_events",
+                "event_deliveries",
+                "handoffs",
+                "auth_requests",
+            ):
+                self.assertEqual(0, connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
+
+        with self.assertRaisesRegex(Exception, "user is inactive"):
+            self.service.ingest_event(
+                "zimbra",
+                {
+                    "source_event_id": "mail-after-offboarding",
+                    "user_subject": subject,
+                    "event_type": "open_mail",
+                },
+            )
+
+        repeated = self.store.offboard_subject(subject)
+        self.assertTrue(repeated["applied"])
+        self.assertEqual(0, repeated["registrations"])
+        self.assertEqual(0, repeated["events"])
+
     def test_foreground_login_approval_is_device_signed_and_one_time(self) -> None:
         private_key = ec.generate_private_key(ec.SECP256R1())
         numbers = private_key.public_key().public_numbers()
