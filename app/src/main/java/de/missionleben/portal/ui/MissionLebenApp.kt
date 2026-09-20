@@ -1,5 +1,6 @@
 package de.missionleben.portal.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -320,6 +321,10 @@ private fun Home(
 ) {
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
     var talkDialogOpen by rememberSaveable { mutableStateOf(false) }
+
+    BackHandler(enabled = settingsOpen) {
+        settingsOpen = false
+    }
 
     if (settingsOpen) {
         SettingsScreen(
