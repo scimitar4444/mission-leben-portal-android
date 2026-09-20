@@ -61,15 +61,15 @@ class AnnouncementsController extends Controller {
 
         $now = time();
         $query = $this->db->getQueryBuilder();
-        $query->selectDistinct(
+        $query->selectDistinct([
             'a.announcement_id',
             'a.announcement_time',
             'a.announcement_user',
             'a.announcement_subject',
             'a.announcement_message',
             'a.announcement_plain_message',
-            'a.announcement_delete_time'
-        )
+            'a.announcement_delete_time',
+        ])
             ->from('announcements', 'a')
             ->innerJoin(
                 'a',
