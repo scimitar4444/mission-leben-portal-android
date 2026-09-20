@@ -691,6 +691,38 @@ class ServiceTest(unittest.TestCase):
 
         self.assertEqual(1, result["events"])
 
+    def test_talk_call_events_do_not_create_notifications(self) -> None:
+        secret = b"talk-bot-secret"
+        adapter = NextcloudTalkWebhook(
+            self.service,
+            self.store,
+            secret,
+            "https://cloud.example.invalid",
+            {"room1": ("authentik-user-1",)},
+            {},
+        )
+        body = json.dumps(
+            {
+                "type": "Create",
+                "actor": {"type": "Person", "id": "users/alice", "name": "Alice"},
+                "object": {"type": "Call", "id": "call-42"},
+                "target": {"type": "Collection", "id": "room1", "name": "Team IT"},
+            },
+            separators=(",", ":"),
+        ).encode()
+        random_value = "B" * 64
+        signature = hmac.new(secret, random_value.encode() + body, hashlib.sha256).hexdigest()
+
+        result = adapter.receive(
+            body,
+            random_value,
+            signature,
+            "https://cloud.example.invalid",
+        )
+
+        self.assertEqual({"accepted": True, "events": 0}, result)
+        self.assertEqual([], self.ntfy.messages)
+
 
 if __name__ == "__main__":
     unittest.main()
