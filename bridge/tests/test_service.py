@@ -68,7 +68,7 @@ class FakeAnnouncements:
             {
                 "id": 12,
                 "subject": "Maintenance",
-                "message": "Sigma is temporarily unavailable.",
+                "message": "Sigma is temporarily unavailable.\r\nPlease try again later.\n\nThank you.",
                 "author": "IT",
                 "time": int(time.time()),
                 "delete_time": 0,
@@ -242,6 +242,10 @@ class ServiceTest(unittest.TestCase):
         live = service.announcements("valid-token")
         self.assertFalse(live["stale"])
         self.assertEqual("Maintenance", live["results"][0]["subject"])
+        self.assertEqual(
+            "Sigma is temporarily unavailable.\nPlease try again later.\n\nThank you.",
+            live["results"][0]["message"],
+        )
         client.fail = True
         cached = service.announcements("valid-token")
         self.assertTrue(cached["stale"])

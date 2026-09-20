@@ -37,6 +37,15 @@ def _text(value: Any, maximum: int, *, required: bool = False) -> str:
     return result
 
 
+def _multiline_text(value: Any, maximum: int) -> str:
+    result = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
+    result = re.sub(r"[\x00-\x09\x0b-\x1f\x7f]", " ", result)
+    result = "\n".join(
+        re.sub(r"[^\S\n]+", " ", line).strip() for line in result.split("\n")
+    ).strip()
+    return result[:maximum].rstrip()
+
+
 def _iso_epoch(value: Any) -> tuple[str | None, int | None]:
     if not value:
         return None, None
@@ -125,7 +134,7 @@ class BridgeService:
         return {
             "id": announcement_id,
             "subject": subject,
-            "message": _text(value.get("message"), 500),
+            "message": _multiline_text(value.get("message"), 500),
             "author": _text(value.get("author"), 120),
             "time": max(created_at, 0),
             "delete_time": max(delete_time, 0),
