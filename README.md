@@ -35,7 +35,7 @@ Offene Android-App für den sicheren Einstieg in die von Authentik freigegebenen
 - Authentik Device Access Groups und deren Benutzer-/Gruppenbindungen steuern die Gerätefreigabe
 - nicht exportierbare P-256-Kommunikationsidentität im Android Keystore für signierte Benachrichtigungsabrufe
 - Nextcloud-Talk-Handoff an freigegebene Konferenzgeräte; übertragen wird ausschließlich der Raumtoken. Oberfläche und Bridge verlangen dafür die kanonische Authentik-Berechtigung `ENT_TALK_RAUMUEBERGABE`
-- **Geräteprofil wechseln** erscheint ausschließlich mit der Authentik-Berechtigung `ENT_DEVICE_PROFILE_SWITCH`; im Pilot ist nur `pilot.user` Mitglied
+- **Geräteprofil wechseln** erscheint ausschließlich mit der Authentik-Berechtigung `ENT_DEVICE_PROFILE_SWITCH`; Pilotmitgliedschaften werden nur im produktiven Authentik gepflegt und nicht im öffentlichen Quellcode veröffentlicht
 - optionale FCM-Hinweise für Mail, Termine, Talk und Gerätesicherheit ab Android 13
 - FCM transportiert nur eine Ereignis-ID; Details holt ein freigegebenes Gerät signiert von der eigenen Bridge
 - Datenschutzstufen `Diskret`, `Standard` und `Ausführlich`; Shared Tablets erzwingen neutrale Hinweise

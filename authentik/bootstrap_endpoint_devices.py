@@ -5,6 +5,7 @@ No enrollment token or secret is printed or stored by this script.
 """
 
 import json
+import os
 
 from authentik.common.oauth.constants import SubModes
 from authentik.core.models import Application, Group, User
@@ -88,7 +89,9 @@ MOBILE_APPLICATION_SLUGS = (
 )
 TALK_HANDOFF_GROUP_NAME = "ENT_TALK_RAUMUEBERGABE"
 DEVICE_PROFILE_SWITCH_GROUP_NAME = "ENT_DEVICE_PROFILE_SWITCH"
-DEVICE_PROFILE_SWITCH_PILOT_USERNAME = "pilot.user"
+DEVICE_PROFILE_SWITCH_PILOT_USERNAME = os.environ.get(
+    "ML_DEVICE_PROFILE_SWITCH_PILOT_USERNAME", ""
+).strip()
 FEATURE_SCOPE_NAME = "ml_features"
 FEATURE_SCOPE_MAPPING_NAME = "Mission Leben Zentral Android - Funktionsberechtigungen"
 
@@ -348,17 +351,21 @@ provider, _ = OAuth2Provider.objects.update_or_create(
 )
 talk_handoff_group, _ = Group.objects.get_or_create(name=TALK_HANDOFF_GROUP_NAME)
 profile_switch_group, _ = Group.objects.get_or_create(name=DEVICE_PROFILE_SWITCH_GROUP_NAME)
-profile_switch_pilot = User.objects.filter(username=DEVICE_PROFILE_SWITCH_PILOT_USERNAME).first()
-if profile_switch_pilot is None:
-    raise RuntimeError(
-        f"Missing profile-switch pilot user: {DEVICE_PROFILE_SWITCH_PILOT_USERNAME}"
+profile_switch_pilot = None
+if DEVICE_PROFILE_SWITCH_PILOT_USERNAME:
+    profile_switch_pilot = User.objects.filter(
+        username=DEVICE_PROFILE_SWITCH_PILOT_USERNAME
+    ).first()
+    if profile_switch_pilot is None:
+        raise RuntimeError("Configured profile-switch pilot user does not exist")
+    unexpected_profile_switch_users = profile_switch_group.users.exclude(
+        pk=profile_switch_pilot.pk
     )
-unexpected_profile_switch_users = profile_switch_group.users.exclude(pk=profile_switch_pilot.pk)
-if unexpected_profile_switch_users.exists():
-    raise RuntimeError(
-        "ENT_DEVICE_PROFILE_SWITCH contains unexpected pilot members; review them manually"
-    )
-profile_switch_group.users.add(profile_switch_pilot)
+    if unexpected_profile_switch_users.exists():
+        raise RuntimeError(
+            "ENT_DEVICE_PROFILE_SWITCH contains unexpected pilot members; review them manually"
+        )
+    profile_switch_group.users.add(profile_switch_pilot)
 
 feature_scope, _ = ScopeMapping.objects.update_or_create(
     name=FEATURE_SCOPE_MAPPING_NAME,
@@ -725,7 +732,7 @@ print(
                 "open_talk": talk_handoff_group.name,
                 "device_profile_switch": profile_switch_group.name,
             },
-            "device_profile_switch_pilot": profile_switch_pilot.username,
+            "device_profile_switch_pilot_configured": profile_switch_pilot is not None,
             "application_access": "active endpoint-bound authentik users",
         },
         sort_keys=True,

@@ -45,7 +45,7 @@ Scopes:
 
 `offline_access` wird von der App nur im persönlichen Gerätemodus angefordert. Shared Tablets fordern diesen Scope nicht an. `goauthentik.io/api` wird benötigt, um die für die angemeldete Person sichtbaren Anwendungen über die Authentik-API abzurufen.
 
-Der kleine Scope `ml_features` liefert ausschließlich die Capabilities `open_talk` und `device_profile_switch`. Sie werden rekursiv aus den kanonischen Berechtigungsgruppen `ENT_TALK_RAUMUEBERGABE` und `ENT_DEVICE_PROFILE_SWITCH` abgeleitet. Die Bridge prüft `open_talk` nochmals serverseitig. `Mobil erreichbar`, normale Talk-/Nextcloud-Gruppen, Organisationsgruppen und Gerätebesitz erteilen diese Funktionsrechte ausdrücklich nicht. Im Pilot enthält `ENT_DEVICE_PROFILE_SWITCH` ausschließlich `pilot.user`; für `ENT_TALK_RAUMUEBERGABE` werden keine Mitglieder automatisch erraten.
+Der kleine Scope `ml_features` liefert ausschließlich die Capabilities `open_talk` und `device_profile_switch`. Sie werden rekursiv aus den kanonischen Berechtigungsgruppen `ENT_TALK_RAUMUEBERGABE` und `ENT_DEVICE_PROFILE_SWITCH` abgeleitet. Die Bridge prüft `open_talk` nochmals serverseitig. `Mobil erreichbar`, normale Talk-/Nextcloud-Gruppen, Organisationsgruppen und Gerätebesitz erteilen diese Funktionsrechte ausdrücklich nicht. Pilotmitgliedschaften werden ausschließlich im produktiven Authentik verwaltet und nicht im öffentlichen Repository dokumentiert; für `ENT_TALK_RAUMUEBERGABE` werden keine Mitglieder automatisch erraten.
 
 Die OIDC-Anwendung besitzt keine Administrator- oder Mitarbeitergruppenbindung mehr. Stattdessen verweigert der Android-Anmeldeflow jeden unbekannten, abgelaufenen oder falsch gebundenen Endpoint. Ein persönliches Device besitzt eine direkte `DeviceUserBinding` zu genau einem Benutzer; ein Shared Tablet liegt in einer eigenen Device Access Group, die an genau die vorhandene `ORG_*`-Einrichtungsgruppe gebunden ist. Die in der App angezeigten Fachanwendungen bleiben weiterhin durch ihre bestehenden `APP_*`-Policies eingeschränkt.
 
@@ -101,6 +101,8 @@ Top-Level-Navigationen innerhalb der App werden auf HTTPS und die Build-Einstell
 Authentik Endpoint Devices ist in 2026.8 Early Preview. Für diesen ausdrücklich so freigegebenen Pilot ist Authentik trotzdem die alleinige Gerätedatenbank.
 
 Das idempotente Skript `authentik/bootstrap_endpoint_devices.py` legt an. Für den OIDC-Provider verwendet es bewusst den eigenen Flow `mission-leben-android-authentication`; der zentrale Browser-Flow mit seinen internen/externen Netz- und SPNEGO-Policies bleibt unverändert:
+
+Eine optionale Pilotzuordnung für `ENT_DEVICE_PROFILE_SWITCH` wird nur zur Laufzeit über `ML_DEVICE_PROFILE_SWITCH_PILOT_USERNAME` übergeben. Ohne diese Variable verändert das öffentliche Bootstrap-Skript die bestehende Mitgliedschaft dieser Gruppe nicht. Reale Benutzernamen gehören weder in das Repository noch in Befehlsbeispiele oder Release-Notizen.
 
 1. den Agent Connector `Mission Leben Android` mit eigenem Challenge-Schlüssel,
 2. die bindungsfreie Device Access Group `Mission Leben Android - Personal` für persönliche Geräte sowie standortbezogene Gruppen `Mission Leben Android - Shared - ORG_*`,
