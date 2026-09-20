@@ -62,6 +62,7 @@
     <string name="announcements_cached">Zapisany stan – aktualizacja jest teraz niemożliwa</string>
     <string name="announcements_mark_read">Przeczytane</string>
     <string name="announcements_expand">Rozwiń</string>
+    <string name="announcements_collapse">Zwiń</string>
     <string name="birthday_greeting">Wszystkiego najlepszego z okazji urodzin, %1$s!</string>
     <string name="motivation_welcome">Dobrze, że jesteś.</string>
     <string name="motivation_together">Razem możemy wiele zmienić.</string>

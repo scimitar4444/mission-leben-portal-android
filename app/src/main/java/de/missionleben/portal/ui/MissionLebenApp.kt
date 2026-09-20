@@ -558,8 +558,21 @@ private fun AnnouncementsPanel(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End,
                         ) {
-                            TextButton(onClick = { onMarkRead(item.id) }) {
-                                Text(stringResource(R.string.announcements_mark_read))
+                            TextButton(
+                                onClick = {
+                                    expanded = false
+                                    if (!alreadyRead) onMarkRead(item.id)
+                                },
+                            ) {
+                                Text(
+                                    stringResource(
+                                        if (alreadyRead) {
+                                            R.string.announcements_collapse
+                                        } else {
+                                            R.string.announcements_mark_read
+                                        },
+                                    ),
+                                )
                             }
                         }
                     }
