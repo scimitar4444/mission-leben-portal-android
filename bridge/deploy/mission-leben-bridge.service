@@ -1,0 +1,21 @@
+[Unit]
+Description=Mission Leben communication bridge, push, mail and calendar services
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+RequiresMountsFor=/opt/mission-leben-bridge
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/mission-leben-bridge
+ExecStart=/usr/bin/docker compose --project-name mission-leben-device --file compose.device-pilot.yml up -d --remove-orphans --wait --wait-timeout 180
+ExecReload=/usr/bin/docker compose --project-name mission-leben-device --file compose.device-pilot.yml up -d --build --remove-orphans --wait --wait-timeout 180
+ExecStop=/usr/bin/docker compose --project-name mission-leben-device --file compose.device-pilot.yml stop --timeout 30
+TimeoutStartSec=240
+TimeoutStopSec=90
+Restart=on-failure
+RestartSec=30s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,17 @@
+[Unit]
+Description=Recover unhealthy Mission Leben communication containers
+Requires=docker.service mission-leben-bridge.service
+After=docker.service mission-leben-bridge.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mission-leben-bridge/deploy/watchdog.sh
+RuntimeDirectory=mission-leben-bridge-watchdog
+RuntimeDirectoryMode=0750
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/run/mission-leben-bridge-watchdog
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

@@ -62,6 +62,34 @@ docker compose --project-name mission-leben-device -f compose.device-pilot.yml -
 docker compose --project-name mission-leben-device -f compose.device-pilot.yml up -d --build bridge zimbra-worker
 ```
 
+## Automatischer Betrieb
+
+Für den produktionsnahen Betrieb werden Bridge, ntfy sowie der gemeinsame Zimbra-Mail-/Kalender-Worker durch systemd gestartet. Die vorhandene Docker-Richtlinie `restart: unless-stopped` behandelt Prozessabstürze und Docker-Neustarts. Zusätzlich prüft ein Watchdog jede Minute die drei Docker-Healthchecks. Einen beendeten Container startet er über Compose wieder; einen dauerhaft ungesunden Container startet er kontrolliert neu. Eine zehnminütige Sperrfrist verhindert Neustartschleifen.
+
+Talk benötigt keinen dauerhaften Abfrageprozess: Nextcloud ruft den signierten Webhook der Bridge bei neuen Chatnachrichten auf. Deshalb wird Talk über den Bridge-Healthcheck und zusätzlich alle sechs Stunden durch die geheimnisfreie Konfigurationsvorprüfung überwacht. Die Vorprüfung meldet einen Fehler über systemd, nimmt bei einer fehlerhaften Talk-Zuordnung aber nicht zugleich Mail und Termine außer Betrieb.
+
+Nach dem Übertragen der aktuellen Dateien nach `/opt/mission-leben-bridge` wird die Automatisierung einmalig eingerichtet:
+
+```bash
+sudo /opt/mission-leben-bridge/deploy/install-automatic-services.sh
+```
+
+Status und letzte Prüfungen:
+
+```bash
+systemctl status mission-leben-bridge.service
+systemctl status mission-leben-bridge-watchdog.timer
+systemctl status mission-leben-bridge-preflight.timer
+journalctl -u mission-leben-bridge-watchdog.service -u mission-leben-bridge-preflight.service
+```
+
+Ein absichtlicher Wartungsstopp erfolgt in dieser Reihenfolge, damit der Watchdog die Container nicht wieder einschaltet:
+
+```bash
+sudo systemctl stop mission-leben-bridge-watchdog.timer mission-leben-bridge-preflight.timer
+sudo systemctl stop mission-leben-bridge.service
+```
+
 Die Nginx-Locations aus `deploy/nginx-device-bridge-location.conf` veröffentlichen `/device-bridge/healthz`, `/device-bridge/v1/` sowie exakt die drei von Authentik signierten Routen `/auth/v2/ping`, `/auth/v2/check` und `/auth/v2/auth`. Admin-, interne und Quellendpunkte bleiben von außen gesperrt. Der tägliche konsistente SQLite-Backupjob wird mit den beiden mitgelieferten systemd-Units aktiviert.
 
 ## Nextcloud-Ankündigungen

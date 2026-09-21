@@ -1,0 +1,16 @@
+[Unit]
+Description=Validate Mission Leben communication configuration
+Requires=docker.service mission-leben-bridge.service
+After=docker.service mission-leben-bridge.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/mission-leben-bridge
+ExecStart=/usr/bin/docker compose --project-name mission-leben-device --file compose.device-pilot.yml --profile tools run --rm preflight
+TimeoutStartSec=120
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

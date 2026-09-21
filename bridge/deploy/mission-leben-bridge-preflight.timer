@@ -1,0 +1,12 @@
+[Unit]
+Description=Regularly validate Mission Leben communication configuration
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=6h
+RandomizedDelaySec=5min
+Persistent=true
+Unit=mission-leben-bridge-preflight.service
+
+[Install]
+WantedBy=timers.target
