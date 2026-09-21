@@ -90,11 +90,10 @@
 
     <string name="device_identity">Geräteidentität</string>
     <string name="device_key_format">Schlüssel %1$s…</string>
-    <string name="enrollment_instruction">Registriere dein persönliches Gerät mit TOTP oder Passkey oder scanne einen QR-Code der Leitung bzw. IT.</string>
-    <string name="scan_enrollment_qr">QR-Code scannen</string>
+    <string name="enrollment_instruction">Registriere dein persönliches Gerät mit TOTP oder Passkey. Ein vorbereitetes Gerät richtest du über den QR-Code der Leitung oder IT ein.</string>
     <string name="self_enrollment_action">Mit TOTP oder Passkey registrieren</string>
     <string name="self_enrollment_hint">Für dein persönliches Gerät. Du brauchst ein bereits eingerichtetes TOTP oder einen Passkey.</string>
-    <string name="enrollment_qr_alternative">Alternativ: QR-Code der Leitung oder IT</string>
+    <string name="enrollment_qr_alternative">Vorbereitetes Gerät: QR-Code mit der Kamera-App scannen.</string>
     <string name="manual_enrollment_fallback">Alternativ nur für den Support:</string>
     <string name="device_api_not_configured">Die Geräte-API ist im Build noch nicht konfiguriert. Details stehen in docs/AUTHENTIK_SETUP.md.</string>
     <string name="enrollment_code">Enrollment-Code</string>
@@ -143,7 +142,6 @@
     <string name="message_apps_load_failed">Apps konnten nicht geladen werden.</string>
     <string name="message_enter_enrollment">Bitte Enrollment-Code eingeben oder QR-Link öffnen.</string>
     <string name="message_qr_invalid">Dieser QR-Code ist kein gültiger Mission-Leben-Enrollment-Code.</string>
-    <string name="qr_scanner_unavailable">Der QR-Scanner konnte nicht geöffnet werden.</string>
     <string name="message_device_approved">Gerät wurde freigegeben.</string>
     <string name="message_device_waiting">Gerät wartet auf die Freigabe in der Geräteverwaltung.</string>
     <string name="message_talk_opened">Talk wird am Zielgerät geöffnet.</string>

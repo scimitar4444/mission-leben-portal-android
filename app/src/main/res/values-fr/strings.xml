@@ -74,11 +74,10 @@
     <string name="sign_in_with_authentik">Se connecter avec Authentik</string>
     <string name="device_identity">Identité de l’appareil</string>
     <string name="device_key_format">Clé %1$s…</string>
-    <string name="enrollment_instruction">Enregistrez votre appareil personnel avec TOTP ou une clé d’accès, ou scannez un code QR de la direction ou de l’informatique.</string>
-    <string name="scan_enrollment_qr">Scanner le code QR</string>
+    <string name="enrollment_instruction">Enregistrez votre appareil personnel avec TOTP ou une clé d’accès. Configurez un appareil préparé avec le code QR de la direction ou de l’informatique.</string>
     <string name="self_enrollment_action">S’enregistrer avec TOTP ou clé d’accès</string>
     <string name="self_enrollment_hint">Pour votre appareil personnel. Un TOTP ou une clé d’accès déjà configurés sont nécessaires.</string>
-    <string name="enrollment_qr_alternative">Autre possibilité : code QR de la direction ou de l’informatique</string>
+    <string name="enrollment_qr_alternative">Appareil préparé : scannez le code QR avec l’application Appareil photo.</string>
     <string name="manual_enrollment_fallback">Alternative réservée au support :</string>
     <string name="device_api_not_configured">L’API des appareils n’est pas encore configurée dans cette version. Voir docs/AUTHENTIK_SETUP.md.</string>
     <string name="enrollment_code">Code d’inscription</string>
@@ -124,7 +123,6 @@
     <string name="message_apps_load_failed">Impossible de charger les applications.</string>
     <string name="message_enter_enrollment">Saisissez un code d’inscription ou ouvrez le lien QR.</string>
     <string name="message_qr_invalid">Ce code QR n’est pas un code d’inscription Mission Leben valide.</string>
-    <string name="qr_scanner_unavailable">Le scanner QR n’a pas pu être ouvert.</string>
     <string name="message_device_approved">L’appareil a été approuvé.</string>
     <string name="message_device_waiting">L’appareil attend son approbation dans la gestion des appareils.</string>
     <string name="message_talk_opened">Talk s’ouvre sur l’appareil cible.</string>

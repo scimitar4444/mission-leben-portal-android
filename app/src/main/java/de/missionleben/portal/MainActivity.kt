@@ -10,7 +10,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.LocaleList
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -21,8 +20,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.NotificationPresenter
@@ -40,9 +37,6 @@ private const val AUTH_LOG_TAG = "MissionLebenAuth"
 
 class MainActivity : FragmentActivity() {
     private val viewModel: MainViewModel by viewModels()
-    private val enrollmentScanner = registerForActivityResult(ScanContract()) { result ->
-        result.contents?.let(viewModel::enrollDeviceFromQr)
-    }
 
     private val pushRegistrationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -168,7 +162,6 @@ class MainActivity : FragmentActivity() {
                     onOpenPublicUrl = ::openUrl,
                     onReloadApplications = viewModel::loadApplications,
                     onMarkAnnouncementRead = viewModel::markAnnouncementRead,
-                    onScanEnrollmentQr = ::scanEnrollmentQr,
                     onSelfEnrollment = {
                         selfEnrollmentLauncher.launch(
                             PortalBrowserActivity.selfEnrollmentIntent(this@MainActivity),
@@ -269,19 +262,6 @@ class MainActivity : FragmentActivity() {
     private fun openLogout(url: String) {
         val mode = viewModel.uiState.value.mode ?: return
         startActivity(PortalBrowserActivity.logoutIntent(this, url, mode))
-    }
-
-    private fun scanEnrollmentQr() {
-        val options = ScanOptions()
-            .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-            .setPrompt(getString(R.string.scan_enrollment_qr))
-            .setBeepEnabled(false)
-            .setBarcodeImageEnabled(false)
-            .setOrientationLocked(false)
-        runCatching { enrollmentScanner.launch(options) }
-            .onFailure {
-                Toast.makeText(this, R.string.qr_scanner_unavailable, Toast.LENGTH_LONG).show()
-            }
     }
 
     private fun installVerifiedUpdate() {

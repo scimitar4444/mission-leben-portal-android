@@ -74,11 +74,10 @@
     <string name="sign_in_with_authentik">Autentificare cu Authentik</string>
     <string name="device_identity">Identitatea dispozitivului</string>
     <string name="device_key_format">Cheie %1$s…</string>
-    <string name="enrollment_instruction">Înregistrează dispozitivul personal cu TOTP sau o cheie de acces ori scanează un cod QR de la conducere sau IT.</string>
-    <string name="scan_enrollment_qr">Scanează codul QR</string>
+    <string name="enrollment_instruction">Înregistrează dispozitivul personal cu TOTP sau o cheie de acces. Configurează un dispozitiv pregătit folosind codul QR de la conducere sau IT.</string>
     <string name="self_enrollment_action">Înregistrare cu TOTP sau cheie de acces</string>
     <string name="self_enrollment_hint">Pentru dispozitivul personal. Este necesar un TOTP sau o cheie de acces configurată deja.</string>
-    <string name="enrollment_qr_alternative">Alternativă: cod QR de la conducere sau IT</string>
+    <string name="enrollment_qr_alternative">Dispozitiv pregătit: scanează codul QR cu aplicația Cameră.</string>
     <string name="manual_enrollment_fallback">Alternativă doar pentru asistență:</string>
     <string name="device_api_not_configured">API-ul dispozitivelor nu este încă configurat în această versiune. Vezi docs/AUTHENTIK_SETUP.md.</string>
     <string name="enrollment_code">Cod de înrolare</string>
@@ -124,7 +123,6 @@
     <string name="message_apps_load_failed">Aplicațiile nu au putut fi încărcate.</string>
     <string name="message_enter_enrollment">Introdu un cod de înrolare sau deschide linkul QR.</string>
     <string name="message_qr_invalid">Acest cod QR nu este un cod de înrolare Mission Leben valid.</string>
-    <string name="qr_scanner_unavailable">Scanerul QR nu a putut fi deschis.</string>
     <string name="message_device_approved">Dispozitivul a fost aprobat.</string>
     <string name="message_device_waiting">Dispozitivul așteaptă aprobarea în administrarea dispozitivelor.</string>
     <string name="message_talk_opened">Talk se deschide pe dispozitivul țintă.</string>

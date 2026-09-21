@@ -90,7 +90,6 @@ fun MissionLebenApp(
     onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onMarkAnnouncementRead: (Long) -> Unit,
-    onScanEnrollmentQr: () -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
     onEnableQuickUnlock: () -> Unit,
@@ -120,7 +119,6 @@ fun MissionLebenApp(
         if (state.mode == null) {
             Onboarding(
                 state = state,
-                onScanEnrollmentQr = onScanEnrollmentQr,
                 onSelfEnrollment = onSelfEnrollment,
                 onDismissMessage = onDismissMessage,
                 onCheckForUpdates = onCheckForUpdates,
@@ -136,7 +134,6 @@ fun MissionLebenApp(
                 onOpenPublicUrl = onOpenPublicUrl,
                 onReloadApplications = onReloadApplications,
                 onMarkAnnouncementRead = onMarkAnnouncementRead,
-                onScanEnrollmentQr = onScanEnrollmentQr,
                 onSelfEnrollment = onSelfEnrollment,
                 onRefreshDeviceStatus = onRefreshDeviceStatus,
                 onEnableQuickUnlock = onEnableQuickUnlock,
@@ -258,7 +255,6 @@ fun MissionLebenApp(
 @Composable
 private fun Onboarding(
     state: UiState,
-    onScanEnrollmentQr: () -> Unit,
     onSelfEnrollment: () -> Unit,
     onDismissMessage: () -> Unit,
     onCheckForUpdates: () -> Unit,
@@ -301,11 +297,6 @@ private fun Onboarding(
             )
         }
         item {
-            Button(onClick = onScanEnrollmentQr, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                Text(stringResource(R.string.scan_enrollment_qr))
-            }
-        }
-        item {
             Text(
                 stringResource(R.string.android_requirement),
                 style = MaterialTheme.typography.labelMedium,
@@ -326,7 +317,6 @@ private fun Home(
     onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onMarkAnnouncementRead: (Long) -> Unit,
-    onScanEnrollmentQr: () -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
     onEnableQuickUnlock: () -> Unit,
@@ -355,7 +345,6 @@ private fun Home(
         SettingsScreen(
             state = state,
             onBack = { settingsOpen = false },
-            onScanEnrollmentQr = onScanEnrollmentQr,
             onSelfEnrollment = onSelfEnrollment,
             onRefreshDeviceStatus = onRefreshDeviceStatus,
             onNotificationPrivacyChange = onNotificationPrivacyChange,
@@ -416,7 +405,6 @@ private fun Home(
             item {
                 DeviceStatusSummary(
                     state,
-                    onScanEnrollmentQr,
                     onSelfEnrollment,
                     onRefreshDeviceStatus,
                 )
@@ -626,7 +614,6 @@ private fun AnnouncementsPanel(
 private fun SettingsScreen(
     state: UiState,
     onBack: () -> Unit,
-    onScanEnrollmentQr: () -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
@@ -662,7 +649,7 @@ private fun SettingsScreen(
             }
         }
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
-        item { DevicePanel(state, onScanEnrollmentQr, onSelfEnrollment, onRefreshDeviceStatus) }
+        item { DevicePanel(state, onSelfEnrollment, onRefreshDeviceStatus) }
         if (state.signedIn) {
             item {
                 NotificationPrivacyPanel(
@@ -964,12 +951,11 @@ private fun SessionValidityPill(remainingDays: Long) {
 @Composable
 private fun DeviceStatusSummary(
     state: UiState,
-    onScanEnrollmentQr: () -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
 ) {
     if (state.enrollmentState != EnrollmentState.TRUSTED) {
-        DevicePanel(state, onScanEnrollmentQr, onSelfEnrollment, onRefreshDeviceStatus)
+        DevicePanel(state, onSelfEnrollment, onRefreshDeviceStatus)
         return
     }
     Surface(
@@ -1004,7 +990,6 @@ private fun TrustedDeviceStatusRow(state: UiState, modifier: Modifier = Modifier
 @Composable
 private fun DevicePanel(
     state: UiState,
-    onScanEnrollmentQr: () -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
 ) {
@@ -1040,28 +1025,12 @@ private fun DevicePanel(
                             Text(stringResource(R.string.self_enrollment_action))
                         }
                         Spacer(Modifier.height(8.dp))
-                        Text(
-                            stringResource(R.string.enrollment_qr_alternative),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        OutlinedButton(
-                            onClick = onScanEnrollmentQr,
-                            enabled = !state.busy,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.scan_enrollment_qr))
-                        }
-                    } else {
-                        Button(
-                            onClick = onScanEnrollmentQr,
-                            enabled = !state.busy,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.scan_enrollment_qr))
-                        }
                     }
+                    Text(
+                        stringResource(R.string.enrollment_qr_alternative),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             } else if (state.deviceId != null) {
                 Spacer(Modifier.height(10.dp))

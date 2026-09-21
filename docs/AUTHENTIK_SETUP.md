@@ -74,7 +74,7 @@ Zusätzlich zeigt der Android-Client ausschließlich Anwendungen mit der Authent
 
 Die Authentik-Anwendung `talk` startet über den bereits in Nextcloud eingerichteten zentralen `user_oidc`-Anbieter und gibt `/apps/spreed/` als Rücksprungziel mit. Dadurch entfällt auf der Nextcloud-Anmeldeseite der zusätzliche Klick auf „Mission Leben“; es entsteht weder ein zweiter Benutzerbestand noch eine parallele Authentifizierung. Nach dem OIDC-Rücksprung stellt der Android-WebView weiterhin den zuletzt verwendeten Talk-Raum aus seinem lokalen Speicher wieder her.
 
-Da Nextcloud Talk Android-WebViews für Audio- und Videoanrufe nicht als vollständig unterstützten Browser behandelt, betreibt der Client Talk bewusst nur als eingebetteten Chat. Der gesamte WebView verweigert Kamera- und Mikrofonanforderungen; die Kamera-Berechtigung der App ist ausschließlich für den nativen QR-Scanner bestimmt. Auf Talk-Seiten erhält der Benutzer zusätzlich einen klaren Hinweis. Die installierte Talk-App wird nicht automatisch gestartet; Kontodaten oder WebView-Cookies werden nicht an eine Fremd-App übertragen.
+Da Nextcloud Talk Android-WebViews für Audio- und Videoanrufe nicht als vollständig unterstützten Browser behandelt, betreibt der Client Talk bewusst nur als eingebetteten Chat. Der gesamte WebView verweigert Kamera- und Mikrofonanforderungen; die App fordert weder Kamera- noch Mikrofonberechtigung an. Auf Talk-Seiten erhält der Benutzer zusätzlich einen klaren Hinweis. Die installierte Talk-App wird nicht automatisch gestartet; Kontodaten oder WebView-Cookies werden nicht an eine Fremd-App übertragen.
 
 ## 3. Abmeldung
 

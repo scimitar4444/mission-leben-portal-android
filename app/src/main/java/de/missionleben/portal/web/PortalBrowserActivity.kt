@@ -443,9 +443,9 @@ class PortalBrowserActivity : FragmentActivity() {
         }
 
         override fun onPermissionRequest(request: PermissionRequest) {
-            // Camera access is reserved for the native enrollment QR scanner.
-            // No website, including an otherwise trusted portal application,
-            // receives camera or microphone access from this WebView.
+            // The app declares no camera or microphone permission. No website,
+            // including an otherwise trusted portal application, receives
+            // media access from this WebView.
             if (TalkChatPolicy.isTalkPage(webView.url.orEmpty())) {
                 Toast.makeText(this@PortalBrowserActivity, R.string.talk_media_disabled, Toast.LENGTH_LONG).show()
             }

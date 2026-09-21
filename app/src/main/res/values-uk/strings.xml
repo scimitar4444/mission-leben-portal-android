@@ -74,11 +74,10 @@
     <string name="sign_in_with_authentik">Увійти через Authentik</string>
     <string name="device_identity">Ідентифікація пристрою</string>
     <string name="device_key_format">Ключ %1$s…</string>
-    <string name="enrollment_instruction">Зареєструйте особистий пристрій через TOTP або ключ доступу чи відскануйте QR-код від керівництва або ІТ.</string>
-    <string name="scan_enrollment_qr">Сканувати QR-код</string>
+    <string name="enrollment_instruction">Зареєструйте особистий пристрій через TOTP або ключ доступу. Підготовлений пристрій налаштуйте за QR-кодом від керівництва або ІТ.</string>
     <string name="self_enrollment_action">Зареєструватися через TOTP або ключ доступу</string>
     <string name="self_enrollment_hint">Для особистого пристрою. Потрібен уже налаштований TOTP або ключ доступу.</string>
-    <string name="enrollment_qr_alternative">Альтернатива: QR-код від керівництва або ІТ</string>
+    <string name="enrollment_qr_alternative">Підготовлений пристрій: відскануйте QR-код застосунком камери.</string>
     <string name="manual_enrollment_fallback">Альтернатива лише для служби підтримки:</string>
     <string name="device_api_not_configured">API пристроїв ще не налаштовано в цій збірці. Див. docs/AUTHENTIK_SETUP.md.</string>
     <string name="enrollment_code">Код реєстрації</string>
@@ -124,7 +123,6 @@
     <string name="message_apps_load_failed">Не вдалося завантажити програми.</string>
     <string name="message_enter_enrollment">Введіть код реєстрації або відкрийте QR-посилання.</string>
     <string name="message_qr_invalid">Цей QR-код не є дійсним кодом реєстрації Mission Leben.</string>
-    <string name="qr_scanner_unavailable">Не вдалося відкрити QR-сканер.</string>
     <string name="message_device_approved">Пристрій схвалено.</string>
     <string name="message_device_waiting">Пристрій очікує схвалення в керуванні пристроями.</string>
     <string name="message_talk_opened">Talk відкривається на цільовому пристрої.</string>
