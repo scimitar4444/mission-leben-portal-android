@@ -109,6 +109,13 @@
     <string name="calendar_reminder_title">Нагадування про зустріч</string>
     <string name="calendar_reminder_description">Виберіть, за скільки часу до зустрічі показувати сповіщення.</string>
     <string name="calendar_reminder_minutes">%1$d хв</string>
+    <string name="communication_notifications_title">Пошта, зустрічі та Talk</string>
+    <string name="communication_notifications_description">Показувати сповіщення від служб зв’язку.</string>
+    <string name="quiet_hours_title">Тихі години</string>
+    <string name="quiet_hours_description">У цей час сповіщення про пошту, зустрічі та Talk не показуються.</string>
+    <string name="quiet_hours_from">Від</string>
+    <string name="quiet_hours_until">До</string>
+    <string name="quiet_hours_security_exception">Системні сповіщення, блокування пристрою та запити на вхід надходять завжди.</string>
     <string name="message_auth_cancelled">Вхід скасовано.</string>
     <string name="message_session_expired">З міркувань безпеки термін дії сеансу завершився. Увійдіть знову.</string>
     <string name="message_session_reauth_required">Термін 90-денної авторизації завершився. Поновіть її наявним кодом TOTP або паролем.</string>

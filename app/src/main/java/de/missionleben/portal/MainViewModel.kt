@@ -37,6 +37,7 @@ import de.missionleben.portal.security.SecureSessionVault
 import de.missionleben.portal.update.UpdateRepository
 import de.missionleben.portal.update.UpdateStatus
 import java.io.File
+import java.time.ZoneId
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,6 +79,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             pushConfigured = PushManager.configured,
             notificationPrivacy = effectiveNotificationPrivacy(preferences.deviceMode),
             calendarReminderMinutes = effectiveCalendarReminderMinutes(preferences.deviceMode),
+            communicationNotificationsEnabled = effectiveCommunicationNotificationsEnabled(preferences.deviceMode),
+            quietHoursEnabled = effectiveQuietHoursEnabled(preferences.deviceMode),
+            quietStartMinutes = pushStore.quietStartMinutes,
+            quietEndMinutes = pushStore.quietEndMinutes,
             quickUnlockEnabled = vault.hasSession(),
             reauthenticationRequired = preferences.reauthenticationRequired,
             news = newsRepository.cached(),
@@ -133,6 +138,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 reauthenticationRequired = false,
                 notificationPrivacy = effectiveNotificationPrivacy(mode),
                 calendarReminderMinutes = effectiveCalendarReminderMinutes(mode),
+                communicationNotificationsEnabled = effectiveCommunicationNotificationsEnabled(mode),
+                quietHoursEnabled = effectiveQuietHoursEnabled(mode),
+                quietStartMinutes = pushStore.quietStartMinutes,
+                quietEndMinutes = pushStore.quietEndMinutes,
                 busy = false,
                 message = null,
                 loginApprovalRequest = null,
@@ -164,6 +173,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             pushConfigured = PushManager.configured,
             notificationPrivacy = NotificationPrivacy.MINIMAL,
             calendarReminderMinutes = PushRegistrationStore.DEFAULT_CALENDAR_REMINDER_MINUTES,
+            communicationNotificationsEnabled = true,
+            quietHoursEnabled = false,
+            quietStartMinutes = pushStore.quietStartMinutes,
+            quietEndMinutes = pushStore.quietEndMinutes,
             news = newsRepository.cached(),
         )
     }
@@ -941,6 +954,40 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         syncPushRegistration()
     }
 
+    fun setCommunicationNotificationsEnabled(value: Boolean) {
+        if (_uiState.value.mode != DeviceMode.PERSONAL) return
+        pushStore.communicationNotificationsEnabled = value
+        _uiState.update { it.copy(communicationNotificationsEnabled = value) }
+        if (!value) NotificationPresenter.cancelCommunication(getApplication())
+        syncPushRegistration()
+    }
+
+    fun setQuietHoursEnabled(value: Boolean) {
+        if (_uiState.value.mode != DeviceMode.PERSONAL) return
+        pushStore.quietHoursEnabled = value
+        _uiState.update { it.copy(quietHoursEnabled = value) }
+        if (value && !pushStore.communicationAllowed()) {
+            NotificationPresenter.cancelCommunication(getApplication())
+        }
+        syncPushRegistration()
+    }
+
+    fun setQuietStartMinutes(value: Int) {
+        if (_uiState.value.mode != DeviceMode.PERSONAL || value !in 0..1439) return
+        pushStore.quietStartMinutes = value
+        _uiState.update { it.copy(quietStartMinutes = value) }
+        if (!pushStore.communicationAllowed()) NotificationPresenter.cancelCommunication(getApplication())
+        syncPushRegistration()
+    }
+
+    fun setQuietEndMinutes(value: Int) {
+        if (_uiState.value.mode != DeviceMode.PERSONAL || value !in 0..1439) return
+        pushStore.quietEndMinutes = value
+        _uiState.update { it.copy(quietEndMinutes = value) }
+        if (!pushStore.communicationAllowed()) NotificationPresenter.cancelCommunication(getApplication())
+        syncPushRegistration()
+    }
+
     fun syncPushRegistration() {
         if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
@@ -997,6 +1044,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         val privacy = effectiveNotificationPrivacy(mode)
         val calendarReminderMinutes = effectiveCalendarReminderMinutes(mode)
+        val communicationNotificationsEnabled = effectiveCommunicationNotificationsEnabled(mode)
+        val quietHoursEnabled = effectiveQuietHoursEnabled(mode)
         viewModelScope.launch {
             runCatching {
                 deviceService.registerPush(
@@ -1005,6 +1054,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     mode,
                     privacy,
                     calendarReminderMinutes,
+                    communicationNotificationsEnabled,
+                    quietHoursEnabled,
+                    pushStore.quietStartMinutes,
+                    pushStore.quietEndMinutes,
+                    ZoneId.systemDefault().id,
                 )
             }
                 .onSuccess { subscription ->
@@ -1114,6 +1168,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             PushRegistrationStore.DEFAULT_CALENDAR_REMINDER_MINUTES
         }
+
+    private fun effectiveCommunicationNotificationsEnabled(mode: DeviceMode?): Boolean =
+        mode != DeviceMode.PERSONAL || pushStore.communicationNotificationsEnabled
+
+    private fun effectiveQuietHoursEnabled(mode: DeviceMode?): Boolean =
+        mode == DeviceMode.PERSONAL && pushStore.quietHoursEnabled
 
     private fun clearNotifications(preservePushConnection: Boolean = false) {
         val application = getApplication<Application>()

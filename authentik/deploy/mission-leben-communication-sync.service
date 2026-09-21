@@ -1,0 +1,16 @@
+[Unit]
+Description=Synchronize Authentik communication assignments with Zimbra and Talk
+Requires=docker.service
+After=docker.service mission-leben-device-offboarding.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mission-leben-communication-sync/sync-communication-assignments.sh
+User=root
+Group=root
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/run/lock /opt/mission-leben-bridge/secrets /opt/mission-leben-bridge/directory-data
+RestrictAddressFamilies=AF_UNIX

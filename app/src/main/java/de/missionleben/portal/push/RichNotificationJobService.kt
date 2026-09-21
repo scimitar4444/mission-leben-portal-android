@@ -72,6 +72,7 @@ class RichNotificationJobService : JobService() {
             action: PushAction,
         ): Boolean {
             val preferences = AppPreferences(context)
+            if (!PushRegistrationStore(context).communicationAllowed()) return false
             val privacy = NotificationPrivacy.effective(
                 preferences.deviceMode,
                 PushRegistrationStore(context).personalPrivacy,

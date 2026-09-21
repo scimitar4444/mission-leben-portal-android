@@ -48,6 +48,9 @@ class Settings:
     announcement_stale_ttl_seconds: int
     talk_recipients: dict[str, tuple[str, ...]]
     nextcloud_user_subjects: dict[str, str]
+    communication_directory_file: Path | None
+    nextcloud_talk_api_user: str
+    nextcloud_talk_api_password: str
     duo_integration_key: str
     duo_secret_key: bytes | None
     duo_api_hostname: str
@@ -144,6 +147,21 @@ class Settings:
         user_subjects_value = json.loads(os.getenv("BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON", "{}"))
         if not isinstance(recipients_value, dict) or not isinstance(user_subjects_value, dict):
             raise RuntimeError("Nextcloud mapping values must be JSON objects")
+        directory_file_value = os.getenv("BRIDGE_COMMUNICATION_DIRECTORY_FILE", "").strip()
+        talk_api_user = os.getenv("BRIDGE_NEXTCLOUD_TALK_API_USER", "").strip()
+        talk_api_password_file = os.getenv(
+            "BRIDGE_NEXTCLOUD_TALK_API_PASSWORD_FILE", ""
+        ).strip()
+        dynamic_talk_values = (directory_file_value, talk_api_user, talk_api_password_file)
+        if any(dynamic_talk_values) and not all(dynamic_talk_values):
+            raise RuntimeError(
+                "Communication directory and all Nextcloud Talk API values must be configured together"
+            )
+        talk_api_password = ""
+        if talk_api_password_file:
+            talk_api_password = Path(talk_api_password_file).read_text(encoding="utf-8").strip()
+            if not talk_api_password:
+                raise RuntimeError("Nextcloud Talk API password file is empty")
         duo_integration_key = os.getenv("BRIDGE_DUO_INTEGRATION_KEY", "").strip()
         duo_secret_value = os.getenv("BRIDGE_DUO_SECRET_KEY", "").strip()
         duo_api_hostname = os.getenv("BRIDGE_DUO_API_HOSTNAME", "").strip().lower()
@@ -197,6 +215,11 @@ class Settings:
                 if isinstance(subjects, list)
             },
             nextcloud_user_subjects={str(user): str(subject) for user, subject in user_subjects_value.items()},
+            communication_directory_file=(
+                Path(directory_file_value) if directory_file_value else None
+            ),
+            nextcloud_talk_api_user=talk_api_user,
+            nextcloud_talk_api_password=talk_api_password,
             duo_integration_key=duo_integration_key,
             duo_secret_key=duo_secret_value.encode() if duo_secret_value else None,
             duo_api_hostname=duo_api_hostname,

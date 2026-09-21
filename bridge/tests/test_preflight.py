@@ -147,6 +147,29 @@ class PreflightTest(unittest.TestCase):
         self.assertEqual("not_ready", result["status"])
         self.assertEqual("invalid", result["components"]["talk"]["status"])
 
+    def test_dynamic_talk_directory_replaces_static_recipient_maps(self) -> None:
+        talk_secret_path = self.root / "talk.secret"
+        talk_secret_path.write_text("talk-secret-do-not-print-0123456789", encoding="utf-8")
+        api_password_path = self.root / "talk-api.password"
+        api_password_path.write_text("app-password", encoding="utf-8")
+        directory_path = self.root / "communication-assignments.json"
+        directory_path.write_text(json.dumps({"assignments": []}), encoding="utf-8")
+        environment = {
+            **self.environment,
+            "BRIDGE_NEXTCLOUD_BACKEND_URL": "https://cloud.example.invalid",
+            "BRIDGE_NEXTCLOUD_TALK_SECRET_FILE": str(talk_secret_path),
+            "BRIDGE_TALK_RECIPIENTS_JSON": "{}",
+            "BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON": "{}",
+            "BRIDGE_COMMUNICATION_DIRECTORY_FILE": str(directory_path),
+            "BRIDGE_NEXTCLOUD_TALK_API_USER": "bridge-user",
+            "BRIDGE_NEXTCLOUD_TALK_API_PASSWORD_FILE": str(api_password_path),
+        }
+
+        result = evaluate(environment, {"talk"})
+
+        self.assertEqual("ready", result["status"])
+        self.assertEqual("ready", result["components"]["talk"]["status"])
+
     def test_complete_announcement_configuration_is_ready_without_secret_leak(self) -> None:
         secret = "announcement-secret-do-not-print-0123456789"
         secret_path = self.root / "announcements.secret"

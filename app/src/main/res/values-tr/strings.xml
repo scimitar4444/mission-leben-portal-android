@@ -109,6 +109,13 @@
     <string name="calendar_reminder_title">Randevu hatırlatıcısı</string>
     <string name="calendar_reminder_description">Bildirimin randevudan ne kadar önce gösterileceğini seçin.</string>
     <string name="calendar_reminder_minutes">%1$d dk.</string>
+    <string name="communication_notifications_title">E-posta, randevular ve Talk</string>
+    <string name="communication_notifications_description">İletişim hizmetlerinizden gelen bildirimleri gösterir.</string>
+    <string name="quiet_hours_title">Sessiz saatler</string>
+    <string name="quiet_hours_description">Bu süre boyunca e-posta, randevu ve Talk bildirimleri gösterilmez.</string>
+    <string name="quiet_hours_from">Başlangıç</string>
+    <string name="quiet_hours_until">Bitiş</string>
+    <string name="quiet_hours_security_exception">Sistem uyarıları, cihaz kilitleri ve oturum açma istekleri her zaman gelir.</string>
     <string name="message_auth_cancelled">Oturum açma iptal edildi.</string>
     <string name="message_session_expired">Güvenlik nedeniyle oturumunuzun süresi doldu. Lütfen yeniden giriş yapın.</string>
     <string name="message_session_reauth_required">90 günlük oturumunun süresi doldu. Mevcut TOTP kodunla veya parolanla yenile.</string>

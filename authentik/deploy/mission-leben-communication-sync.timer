@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh communication assignments every five minutes
+
+[Timer]
+OnBootSec=4min
+OnUnitActiveSec=5min
+RandomizedDelaySec=20s
+Persistent=true
+Unit=mission-leben-communication-sync.service
+
+[Install]
+WantedBy=timers.target

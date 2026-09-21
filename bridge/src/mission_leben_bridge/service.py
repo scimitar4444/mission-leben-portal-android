@@ -5,6 +5,7 @@ import threading
 import time
 from datetime import datetime, timezone
 from typing import Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .authentik import AuthenticationError, AuthentikClient, UserInfo
 from .nextcloud_announcements import AnnouncementFetchError, NextcloudAnnouncementClient
@@ -60,6 +61,12 @@ def _iso_epoch(value: Any) -> tuple[str | None, int | None]:
     if parsed.tzinfo is None:
         raise ApiError(400, "time values must contain a timezone")
     return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"), int(parsed.timestamp())
+
+
+def _boolean(value: Any, *, name: str) -> bool:
+    if isinstance(value, bool):
+        return value
+    raise ApiError(400, f"{name} must be a boolean")
 
 
 class BridgeService:
@@ -180,6 +187,26 @@ class BridgeService:
             raise ApiError(400, "invalid calendar reminder") from error
         if calendar_reminder_minutes not in CALENDAR_REMINDER_MINUTES:
             raise ApiError(400, "calendar reminder must be 5, 10, 15 or 30 minutes")
+        communication_enabled = _boolean(
+            payload.get("communication_notifications_enabled", True),
+            name="communication_notifications_enabled",
+        )
+        quiet_hours_enabled = _boolean(
+            payload.get("quiet_hours_enabled", False),
+            name="quiet_hours_enabled",
+        )
+        try:
+            quiet_start_minutes = int(payload.get("quiet_start_minutes", 22 * 60))
+            quiet_end_minutes = int(payload.get("quiet_end_minutes", 6 * 60))
+        except (TypeError, ValueError) as error:
+            raise ApiError(400, "quiet hour values must be minutes since midnight") from error
+        if quiet_start_minutes not in range(1440) or quiet_end_minutes not in range(1440):
+            raise ApiError(400, "quiet hour values must be between 0 and 1439")
+        timezone_name = _text(payload.get("timezone") or "Europe/Berlin", 64, required=True)
+        try:
+            ZoneInfo(timezone_name)
+        except (ValueError, ZoneInfoNotFoundError) as error:
+            raise ApiError(400, "unknown timezone") from error
         if payload.get("provider") != "ntfy":
             raise ApiError(400, "only the ntfy provider is supported")
         if not self.ntfy.configured:
@@ -247,6 +274,11 @@ class BridgeService:
                 privacy=privacy,
                 app_version=_text(payload.get("app_version"), 30),
                 calendar_reminder_minutes=calendar_reminder_minutes,
+                communication_enabled=communication_enabled,
+                quiet_hours_enabled=quiet_hours_enabled,
+                quiet_start_minutes=quiet_start_minutes,
+                quiet_end_minutes=quiet_end_minutes,
+                timezone_name=timezone_name,
             )
         except PermissionError as error:
             if created:
@@ -425,6 +457,13 @@ class BridgeService:
                         self._remove_registration(registration)
                         self.store.finish_event_without_targets(queued_event_id)
                         continue
+                    if not self.communication_allowed(registration):
+                        self.store.finish_queued_delivery(
+                            queued_event_id,
+                            device_id,
+                            delivered=False,
+                        )
+                        continue
                     self.ntfy.send(
                         registration["ntfy_topic"],
                         registration["publish_token"],
@@ -446,6 +485,29 @@ class BridgeService:
                         self._remove_registration(registration)
                         self.store.finish_event_without_targets(queued_event_id)
             return dispatches
+
+    @staticmethod
+    def communication_allowed(
+        registration: dict[str, Any], *, current_epoch: int | None = None
+    ) -> bool:
+        if not bool(registration.get("communication_enabled", 1)):
+            return False
+        if not bool(registration.get("quiet_hours_enabled", 0)):
+            return True
+        start = int(registration.get("quiet_start_minutes", 22 * 60))
+        end = int(registration.get("quiet_end_minutes", 6 * 60))
+        if start not in range(1440) or end not in range(1440) or start == end:
+            return True
+        try:
+            local = datetime.fromtimestamp(
+                current_epoch if current_epoch is not None else time.time(),
+                timezone.utc,
+            ).astimezone(ZoneInfo(str(registration.get("timezone") or "Europe/Berlin")))
+        except (ValueError, ZoneInfoNotFoundError):
+            return True
+        current = local.hour * 60 + local.minute
+        quiet = start <= current < end if start < end else current >= start or current < end
+        return not quiet
 
     def notification_detail(
         self,

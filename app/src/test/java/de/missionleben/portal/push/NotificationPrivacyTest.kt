@@ -42,4 +42,40 @@ class NotificationPrivacyTest {
         assertEquals(listOf(5, 10, 15, 30), PushRegistrationStore.SUPPORTED_CALENDAR_REMINDER_MINUTES)
         assertEquals(15, PushRegistrationStore.DEFAULT_CALENDAR_REMINDER_MINUTES)
     }
+
+    @Test
+    fun `disabled communication blocks delivery`() {
+        assertEquals(
+            false,
+            NotificationDeliveryPolicy.shouldDeliver(false, false, 22 * 60, 6 * 60, 12 * 60),
+        )
+    }
+
+    @Test
+    fun `overnight quiet hours block both sides of midnight`() {
+        assertEquals(
+            false,
+            NotificationDeliveryPolicy.shouldDeliver(true, true, 22 * 60, 6 * 60, 23 * 60),
+        )
+        assertEquals(
+            false,
+            NotificationDeliveryPolicy.shouldDeliver(true, true, 22 * 60, 6 * 60, 5 * 60),
+        )
+        assertEquals(
+            true,
+            NotificationDeliveryPolicy.shouldDeliver(true, true, 22 * 60, 6 * 60, 12 * 60),
+        )
+    }
+
+    @Test
+    fun `daytime quiet hours use an exclusive end time`() {
+        assertEquals(
+            false,
+            NotificationDeliveryPolicy.shouldDeliver(true, true, 8 * 60, 17 * 60, 8 * 60),
+        )
+        assertEquals(
+            true,
+            NotificationDeliveryPolicy.shouldDeliver(true, true, 8 * 60, 17 * 60, 17 * 60),
+        )
+    }
 }

@@ -12,6 +12,8 @@ from .authentik import AuthenticationError
 from .config import Settings
 from .duo_compat import DuoCompatApi, DuoProtocolError
 from .nextcloud_talk import NextcloudTalkWebhook
+from .communication_directory import CommunicationDirectory
+from .nextcloud_talk_participants import NextcloudTalkParticipants
 from .security import verify_source_request
 from .service import ApiError, BridgeService
 
@@ -33,6 +35,17 @@ class BridgeHttpServer(ThreadingHTTPServer):
         self.settings = settings
         self.service = service
         self.duo_api = duo_api
+        participant_client = None
+        communication_directory = None
+        if settings.communication_directory_file is not None:
+            participant_client = NextcloudTalkParticipants(
+                settings.nextcloud_backend_url,
+                settings.nextcloud_talk_api_user,
+                settings.nextcloud_talk_api_password,
+            )
+            communication_directory = CommunicationDirectory(
+                settings.communication_directory_file
+            )
         self.talk_webhook = NextcloudTalkWebhook(
             service,
             service.store,
@@ -40,6 +53,8 @@ class BridgeHttpServer(ThreadingHTTPServer):
             settings.nextcloud_backend_url,
             settings.talk_recipients,
             settings.nextcloud_user_subjects,
+            participant_client,
+            communication_directory,
         )
         super().__init__((settings.listen_host, settings.listen_port), BridgeRequestHandler)
 

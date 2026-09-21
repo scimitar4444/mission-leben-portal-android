@@ -75,6 +75,16 @@ class ZimbraSoapClient:
         response = self._post(self.admin_soap_url, request)
         return self._required_attribute(response, "waitSet"), response.attrib.get("seq", "0")
 
+    def account_id(self, email: str) -> str:
+        request = ET.Element(f"{{{ADMIN}}}GetAccountRequest", {"applyCos": "0"})
+        ET.SubElement(request, f"{{{ADMIN}}}account", {"by": "name"}).text = email
+        response = self._post(self.admin_soap_url, request)
+        account = next(
+            (node for node in response.iter() if _local_name(node.tag) == "account"),
+            response,
+        )
+        return self._required_attribute(account, "id")
+
     def wait(self, waitset_id: str, sequence: str, timeout_seconds: int = 60) -> tuple[str, list[str]]:
         request = ET.Element(
             f"{{{ADMIN}}}AdminWaitSetRequest",

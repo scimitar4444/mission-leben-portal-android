@@ -127,6 +127,13 @@
     <string name="calendar_reminder_title">Terminerinnerung</string>
     <string name="calendar_reminder_description">Wie lange vor einem Termin die Benachrichtigung erscheinen soll.</string>
     <string name="calendar_reminder_minutes">%1$d Min.</string>
+    <string name="communication_notifications_title">Mail, Termine und Talk</string>
+    <string name="communication_notifications_description">Benachrichtigungen aus deinen Kommunikationsdiensten anzeigen.</string>
+    <string name="quiet_hours_title">Ruhezeit</string>
+    <string name="quiet_hours_description">In diesem Zeitraum werden keine Mail-, Termin- oder Talk-Hinweise angezeigt.</string>
+    <string name="quiet_hours_from">Von</string>
+    <string name="quiet_hours_until">Bis</string>
+    <string name="quiet_hours_security_exception">Systemmeldungen, Gerätesperren und Anmeldeanfragen kommen immer an.</string>
 
     <string name="message_auth_cancelled">Anmeldung wurde abgebrochen.</string>
     <string name="message_session_expired">Deine Sitzung ist aus Sicherheitsgründen abgelaufen. Bitte melde dich erneut an.</string>

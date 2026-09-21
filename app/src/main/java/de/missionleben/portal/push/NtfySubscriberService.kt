@@ -181,6 +181,10 @@ class NtfySubscriberService : Service() {
     }
 
     private suspend fun displayNotification(command: PushCommand.Fetch) {
+        if (!PushRegistrationStore(this).communicationAllowed()) {
+            NotificationPresenter.cancel(this, command.eventId)
+            return
+        }
         var retryable = false
         val richDisplayed = try {
             RichNotificationJobService.fetchAndDisplay(this, command.eventId, command.eventType)

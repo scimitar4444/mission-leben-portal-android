@@ -59,6 +59,7 @@ services:
     volumes:
       - ./data:/data
       - ./ntfy-data:/ntfy
+      - ./directory-data:/run/mission-leben-directory:ro
       - ./secrets/nextcloud-talk-bot-secret:/run/secrets/nextcloud-talk-bot-secret:ro
       - ./secrets/nextcloud-announcements-secret:/run/secrets/nextcloud-announcements-secret:ro
     read_only: true

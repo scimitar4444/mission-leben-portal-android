@@ -109,6 +109,13 @@
     <string name="calendar_reminder_title">Rappel de rendez-vous</string>
     <string name="calendar_reminder_description">Choisissez combien de temps avant un rendez-vous la notification doit apparaître.</string>
     <string name="calendar_reminder_minutes">%1$d min</string>
+    <string name="communication_notifications_title">E-mails, rendez-vous et Talk</string>
+    <string name="communication_notifications_description">Afficher les notifications de vos services de communication.</string>
+    <string name="quiet_hours_title">Période silencieuse</string>
+    <string name="quiet_hours_description">Les alertes e-mail, rendez-vous et Talk sont masquées pendant cette période.</string>
+    <string name="quiet_hours_from">De</string>
+    <string name="quiet_hours_until">À</string>
+    <string name="quiet_hours_security_exception">Les alertes système, blocages d’appareil et demandes de connexion arrivent toujours.</string>
     <string name="message_auth_cancelled">La connexion a été annulée.</string>
     <string name="message_session_expired">Pour des raisons de sécurité, votre session a expiré. Veuillez vous reconnecter.</string>
     <string name="message_session_reauth_required">Votre connexion de 90 jours a expiré. Renouvelez-la avec votre code TOTP existant ou votre mot de passe.</string>

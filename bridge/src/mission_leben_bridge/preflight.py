@@ -142,12 +142,17 @@ def check_talk(environment: Mapping[str, str]) -> dict[str, Any]:
     inline_secret = _value(environment, "BRIDGE_NEXTCLOUD_TALK_SECRET")
     configured_recipients = _value(environment, "BRIDGE_TALK_RECIPIENTS_JSON")
     configured_users = _value(environment, "BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON")
+    directory_file = _value(environment, "BRIDGE_COMMUNICATION_DIRECTORY_FILE")
+    api_user = _value(environment, "BRIDGE_NEXTCLOUD_TALK_API_USER")
+    api_password_file = _value(environment, "BRIDGE_NEXTCLOUD_TALK_API_PASSWORD_FILE")
+    dynamic_values = (directory_file, api_user, api_password_file)
+    dynamic_configured = all(dynamic_values)
     recipients_raw = configured_recipients or "{}"
     users_raw = configured_users or "{}"
     recipients = _json_object(recipients_raw)
     users = _json_object(users_raw)
     mappings_configured = configured_recipients not in {"", "{}"} or configured_users not in {"", "{}"}
-    if not backend and not secret_file and not inline_secret and not mappings_configured:
+    if not backend and not secret_file and not inline_secret and not mappings_configured and not any(dynamic_values):
         return _report("disabled", [])
 
     issues: list[str] = []
@@ -167,9 +172,24 @@ def check_talk(environment: Mapping[str, str]) -> dict[str, Any]:
     if len(secret) < 32:
         issues.append("Nextcloud-Talk-Secret fehlt oder ist kürzer als 32 Zeichen")
 
+    if any(dynamic_values) and not dynamic_configured:
+        issues.append("Dynamische Talk-Zuordnung muss vollständig konfiguriert sein")
+    if dynamic_configured:
+        directory, directory_error = _read_json_object(directory_file)
+        if directory_error or directory is None or not isinstance(directory.get("assignments"), list):
+            issues.append("Kommunikationsverzeichnis fehlt oder ist ungültig")
+        password_path = Path(api_password_file)
+        if not password_path.is_file():
+            issues.append("Nextcloud-Talk-API-Kennwortdatei fehlt")
+        else:
+            try:
+                if not password_path.read_text(encoding="utf-8").strip():
+                    issues.append("Nextcloud-Talk-API-Kennwortdatei ist leer")
+            except (OSError, UnicodeError):
+                issues.append("Nextcloud-Talk-API-Kennwortdatei ist nicht lesbar")
     if recipients is None:
         issues.append("BRIDGE_TALK_RECIPIENTS_JSON ist kein gültiges JSON-Objekt")
-    elif not recipients:
+    elif not recipients and not dynamic_configured:
         issues.append("BRIDGE_TALK_RECIPIENTS_JSON enthält keine Räume")
     else:
         for room, subjects in recipients.items():
@@ -182,7 +202,7 @@ def check_talk(environment: Mapping[str, str]) -> dict[str, Any]:
 
     if users is None:
         issues.append("BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON ist kein gültiges JSON-Objekt")
-    elif not users or any(not str(user).strip() or not str(subject).strip() for user, subject in users.items()):
+    elif (not users and not dynamic_configured) or any(not str(user).strip() or not str(subject).strip() for user, subject in users.items()):
         issues.append("Nextcloud-Benutzer müssen Authentik-Subjects zugeordnet sein")
     return _report("invalid" if issues else "ready", issues)
 
@@ -261,7 +281,11 @@ def check_zimbra(environment: Mapping[str, str]) -> dict[str, Any]:
     if error:
         issues.append(f"Zimbra-Kontozuordnung: {error}")
     elif account_map is not None:
-        if not account_map:
+        if not account_map and _value(environment, "ZIMBRA_DYNAMIC_ACCOUNT_MAP").lower() not in {
+            "1",
+            "true",
+            "yes",
+        }:
             issues.append("Zimbra-Kontozuordnung enthält keine Konten")
         for account_id, mapping in account_map.items():
             if not str(account_id).strip() or not isinstance(mapping, dict) or not str(mapping.get("subject", "")).strip():

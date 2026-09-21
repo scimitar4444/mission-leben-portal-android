@@ -83,6 +83,13 @@ object NotificationPresenter {
         NotificationManagerCompat.from(context).cancel(loginApprovalNotificationId(requestId))
     }
 
+    fun cancelCommunication(context: Context) {
+        val manager = context.getSystemService(android.app.NotificationManager::class.java)
+        manager.activeNotifications
+            .filter { it.notification.channelId in COMMUNICATION_CHANNELS }
+            .forEach { manager.cancel(it.id) }
+    }
+
     private fun show(
         context: Context,
         action: PushAction,
@@ -158,4 +165,6 @@ object NotificationPresenter {
         PushAction.OPEN_CALENDAR -> NotificationCompat.CATEGORY_EVENT
         PushAction.REFRESH_SECURITY_STATE -> NotificationCompat.CATEGORY_STATUS
     }
+
+    private val COMMUNICATION_CHANNELS = setOf("mail", "calendar", "talk")
 }

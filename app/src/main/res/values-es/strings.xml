@@ -109,6 +109,13 @@
     <string name="calendar_reminder_title">Recordatorio de cita</string>
     <string name="calendar_reminder_description">Elige cuánto tiempo antes de una cita debe aparecer la notificación.</string>
     <string name="calendar_reminder_minutes">%1$d min</string>
+    <string name="communication_notifications_title">Correo, citas y Talk</string>
+    <string name="communication_notifications_description">Mostrar notificaciones de tus servicios de comunicación.</string>
+    <string name="quiet_hours_title">Horario de descanso</string>
+    <string name="quiet_hours_description">Durante este periodo no se muestran avisos de correo, citas ni Talk.</string>
+    <string name="quiet_hours_from">Desde</string>
+    <string name="quiet_hours_until">Hasta</string>
+    <string name="quiet_hours_security_exception">Los avisos del sistema, bloqueos del dispositivo y solicitudes de inicio de sesión siempre llegan.</string>
     <string name="message_auth_cancelled">Se canceló el inicio de sesión.</string>
     <string name="message_session_expired">Por motivos de seguridad, tu sesión ha caducado. Vuelve a iniciar sesión.</string>
     <string name="message_session_reauth_required">Tu acceso de 90 días ha caducado. Renuévalo con tu código TOTP existente o con tu contraseña.</string>

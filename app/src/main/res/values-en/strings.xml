@@ -109,6 +109,13 @@
     <string name="calendar_reminder_title">Appointment reminder</string>
     <string name="calendar_reminder_description">Choose how long before an appointment the notification appears.</string>
     <string name="calendar_reminder_minutes">%1$d min</string>
+    <string name="communication_notifications_title">Mail, appointments and Talk</string>
+    <string name="communication_notifications_description">Show notifications from your communication services.</string>
+    <string name="quiet_hours_title">Quiet hours</string>
+    <string name="quiet_hours_description">Mail, appointment and Talk alerts are muted during this period.</string>
+    <string name="quiet_hours_from">From</string>
+    <string name="quiet_hours_until">Until</string>
+    <string name="quiet_hours_security_exception">System alerts, device locks and login requests always arrive.</string>
     <string name="message_auth_cancelled">Sign-in was cancelled.</string>
     <string name="message_session_expired">For security reasons, your session has expired. Please sign in again.</string>
     <string name="message_session_reauth_required">Your 90-day sign-in has expired. Renew it with your existing TOTP code or your password.</string>

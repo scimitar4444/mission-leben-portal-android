@@ -178,6 +178,11 @@ class DeviceServiceRepository(context: Context? = null) {
         mode: DeviceMode,
         privacy: NotificationPrivacy,
         calendarReminderMinutes: Int,
+        communicationNotificationsEnabled: Boolean,
+        quietHoursEnabled: Boolean,
+        quietStartMinutes: Int,
+        quietEndMinutes: Int,
+        timezone: String,
     ): NtfySubscription = withContext(Dispatchers.IO) {
         require(communicationConfigured) { text(R.string.device_service_not_configured) }
         val credential = credentialVault?.load()
@@ -188,6 +193,11 @@ class DeviceServiceRepository(context: Context? = null) {
             .put("mode", mode.name.lowercase())
             .put("notification_privacy", privacy.wireName)
             .put("calendar_reminder_minutes", calendarReminderMinutes)
+            .put("communication_notifications_enabled", communicationNotificationsEnabled)
+            .put("quiet_hours_enabled", quietHoursEnabled)
+            .put("quiet_start_minutes", quietStartMinutes)
+            .put("quiet_end_minutes", quietEndMinutes)
+            .put("timezone", timezone)
             .put("app_version", BuildConfig.VERSION_NAME)
             .put("authentik_device_token", credential.token)
             .put("key_id", DeviceIdentity().keyId())

@@ -109,6 +109,13 @@
     <string name="calendar_reminder_title">Przypomnienie o spotkaniu</string>
     <string name="calendar_reminder_description">Wybierz, ile czasu przed spotkaniem ma się pojawić powiadomienie.</string>
     <string name="calendar_reminder_minutes">%1$d min</string>
+    <string name="communication_notifications_title">Poczta, spotkania i Talk</string>
+    <string name="communication_notifications_description">Wyświetlaj powiadomienia z usług komunikacyjnych.</string>
+    <string name="quiet_hours_title">Godziny ciszy</string>
+    <string name="quiet_hours_description">W tym czasie powiadomienia o poczcie, spotkaniach i Talk są wyciszone.</string>
+    <string name="quiet_hours_from">Od</string>
+    <string name="quiet_hours_until">Do</string>
+    <string name="quiet_hours_security_exception">Komunikaty systemowe, blokady urządzeń i prośby o logowanie zawsze są dostarczane.</string>
     <string name="message_auth_cancelled">Logowanie anulowano.</string>
     <string name="message_session_expired">Ze względów bezpieczeństwa sesja wygasła. Zaloguj się ponownie.</string>
     <string name="message_session_reauth_required">90-dniowe logowanie wygasło. Odnów je istniejącym kodem TOTP lub hasłem.</string>

@@ -10,11 +10,12 @@ object PushEventDispatcher {
             is PushCommand.Legacy -> {
                 if (command.action == PushAction.REFRESH_SECURITY_STATE) {
                     DeviceSecurityRefreshJobService.schedule(context)
-                } else {
+                } else if (PushRegistrationStore(context).communicationAllowed()) {
                     NotificationPresenter.showGeneric(context, command.action)
                 }
             }
             is PushCommand.Fetch -> {
+                if (!PushRegistrationStore(context).communicationAllowed()) return
                 NotificationPresenter.showGeneric(context, command.eventType, command.eventId)
                 RichNotificationJobService.schedule(context, command)
             }

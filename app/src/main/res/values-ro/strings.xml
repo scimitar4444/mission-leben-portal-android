@@ -109,6 +109,13 @@
     <string name="calendar_reminder_title">Memento pentru întâlnire</string>
     <string name="calendar_reminder_description">Alege cu cât timp înaintea unei întâlniri să apară notificarea.</string>
     <string name="calendar_reminder_minutes">%1$d min</string>
+    <string name="communication_notifications_title">E-mail, întâlniri și Talk</string>
+    <string name="communication_notifications_description">Afișează notificări din serviciile tale de comunicare.</string>
+    <string name="quiet_hours_title">Interval de liniște</string>
+    <string name="quiet_hours_description">În acest interval nu sunt afișate notificări pentru e-mail, întâlniri sau Talk.</string>
+    <string name="quiet_hours_from">De la</string>
+    <string name="quiet_hours_until">Până la</string>
+    <string name="quiet_hours_security_exception">Alertele de sistem, blocările dispozitivului și cererile de autentificare sosesc întotdeauna.</string>
     <string name="message_auth_cancelled">Autentificarea a fost anulată.</string>
     <string name="message_session_expired">Din motive de securitate, sesiunea a expirat. Autentifică-te din nou.</string>
     <string name="message_session_reauth_required">Autentificarea de 90 de zile a expirat. Reînnoiește-o cu codul TOTP existent sau cu parola.</string>

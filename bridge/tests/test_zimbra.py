@@ -17,6 +17,7 @@ from mission_leben_bridge.zimbra_waitset import (
     format_appointment_summary,
 )
 from mission_leben_bridge.zimbra_worker import ZimbraWorker
+from mission_leben_bridge.zimbra_mapping_sync import build_account_map
 
 
 class RecordingSoapClient(ZimbraSoapClient):
@@ -102,6 +103,43 @@ class ZimbraSoapClientTest(unittest.TestCase):
         )
         self.assertEqual("account-a", self.client.calls[0][3])
         self.assertEqual("account-a", self.client.calls[1][3])
+
+    def test_resolves_account_id_by_email(self) -> None:
+        self.client.auth_token = "admin-token"
+        self.client.responses = [
+            ET.fromstring(
+                f'<GetAccountResponse xmlns="{ADMIN}"><account id="account-a" name="user@example.invalid"/></GetAccountResponse>'
+            )
+        ]
+        self.assertEqual("account-a", self.client.account_id("user@example.invalid"))
+        account = next(node for node in self.client.calls[0][1] if node.tag.endswith("}account"))
+        self.assertEqual("name", account.attrib["by"])
+        self.assertEqual("user@example.invalid", account.text)
+
+    def test_mapping_sync_reuses_existing_ids_and_resolves_only_new_accounts(self) -> None:
+        self.client.responses = [
+            ET.fromstring(f'<AuthResponse xmlns="{ADMIN}"><authToken>admin-token</authToken></AuthResponse>'),
+            ET.fromstring(
+                f'<GetAccountResponse xmlns="{ADMIN}"><account id="account-b" name="new@example.invalid"/></GetAccountResponse>'
+            ),
+        ]
+        result = build_account_map(
+            [
+                {"subject": "subject-a", "email": "old@example.invalid", "zimbra": True},
+                {"subject": "subject-b", "email": "new@example.invalid", "zimbra": True},
+                {"subject": "subject-c", "email": "talk@example.invalid", "talk": True},
+            ],
+            {"account-a": {"subject": "previous-subject", "email": "old@example.invalid"}},
+            self.client,
+        )
+        self.assertEqual(
+            {
+                "account-a": {"subject": "subject-a", "email": "old@example.invalid"},
+                "account-b": {"subject": "subject-b", "email": "new@example.invalid"},
+            },
+            result,
+        )
+        self.assertEqual(2, len(self.client.calls))
 
 
 class ZimbraWorkerTest(unittest.TestCase):

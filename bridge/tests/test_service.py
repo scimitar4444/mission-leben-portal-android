@@ -233,6 +233,81 @@ class ServiceTest(unittest.TestCase):
         )
         self.assertEqual("Confidential preview", detail["preview"])
 
+    def test_communication_off_suppresses_content_but_not_login_approval(self) -> None:
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        numbers = private_key.public_key().public_numbers()
+        jwk = {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": base64url_encode(numbers.x.to_bytes(32, "big")),
+            "y": base64url_encode(numbers.y.to_bytes(32, "big")),
+        }
+        jwk["kid"] = device_key_id(jwk)
+        device_id = "11111111-1111-1111-1111-111111111111"
+        self.service.register_push(
+            device_id,
+            "valid-token",
+            {
+                "provider": "ntfy",
+                "authentik_device_token": "valid-agent-token",
+                "mode": "personal",
+                "notification_privacy": "standard",
+                "communication_notifications_enabled": False,
+                "app_version": "0.11.4",
+                "key_id": jwk["kid"],
+                "public_key_jwk": jwk,
+            },
+        )
+        event = self.service.ingest_event(
+            "zimbra",
+            {
+                "source_event_id": "mail:account:communication-off",
+                "user_subject": "authentik-user-1",
+                "event_type": "open_mail",
+                "title": "Sender",
+                "summary": "Subject",
+            },
+        )
+        self.assertEqual(0, event["dispatched"])
+        self.assertEqual([], self.ntfy.messages)
+
+        result: list[bool] = []
+        worker = threading.Thread(
+            target=lambda: result.append(
+                self.service.request_login_approval(
+                    subject="authentik-user-1",
+                    application="Zimbra",
+                    domain="id.example.invalid",
+                    display_username="test.user",
+                    source_ip="192.0.2.10",
+                    timeout_seconds=1,
+                )
+            )
+        )
+        worker.start()
+        for _ in range(50):
+            if self.ntfy.messages:
+                break
+            time.sleep(0.02)
+        self.assertEqual("fetch_login_approval", self.ntfy.messages[0][2]["action"])
+        worker.join(timeout=2)
+        self.assertEqual([False], result)
+
+    def test_quiet_hours_support_overnight_and_daytime_ranges(self) -> None:
+        berlin_noon = int(datetime(2026, 1, 15, 11, 0, tzinfo=timezone.utc).timestamp())
+        berlin_late = int(datetime(2026, 1, 15, 22, 0, tzinfo=timezone.utc).timestamp())
+        overnight = {
+            "communication_enabled": 1,
+            "quiet_hours_enabled": 1,
+            "quiet_start_minutes": 22 * 60,
+            "quiet_end_minutes": 6 * 60,
+            "timezone": "Europe/Berlin",
+        }
+        self.assertTrue(self.service.communication_allowed(overnight, current_epoch=berlin_noon))
+        self.assertFalse(self.service.communication_allowed(overnight, current_epoch=berlin_late))
+        disabled = {**overnight, "communication_enabled": 0, "quiet_hours_enabled": 0}
+        self.assertFalse(self.service.communication_allowed(disabled, current_epoch=berlin_noon))
+
     def test_shared_device_is_forced_to_minimal_privacy(self) -> None:
         private_key = ec.generate_private_key(ec.SECP256R1())
         numbers = private_key.public_key().public_numbers()
@@ -722,6 +797,49 @@ class ServiceTest(unittest.TestCase):
 
         self.assertEqual({"accepted": True, "events": 0}, result)
         self.assertEqual([], self.ntfy.messages)
+
+    def test_dynamic_talk_membership_excludes_the_sender(self) -> None:
+        class Participants:
+            def users(self, room_token: str) -> set[str]:
+                self.room_token = room_token
+                return {"alice", "bob"}
+
+        class Directory:
+            def talk_subjects(self, users: set[str]) -> tuple[str, ...]:
+                values = {"alice": "authentik-user-1", "bob": "authentik-user-2"}
+                return tuple(sorted(values[user] for user in users if user in values))
+
+        secret = b"talk-bot-secret"
+        adapter = NextcloudTalkWebhook(
+            self.service,
+            self.store,
+            secret,
+            "https://cloud.example.invalid",
+            {},
+            {},
+            Participants(),  # type: ignore[arg-type]
+            Directory(),  # type: ignore[arg-type]
+        )
+        body = json.dumps(
+            {
+                "type": "Create",
+                "actor": {"type": "Person", "id": "users/alice", "name": "Alice"},
+                "object": {"type": "Note", "id": "43", "content": "Hallo"},
+                "target": {"type": "Collection", "id": "room1", "name": "Team IT"},
+            },
+            separators=(",", ":"),
+        ).encode()
+        random_value = "C" * 64
+        signature = hmac.new(secret, random_value.encode() + body, hashlib.sha256).hexdigest()
+
+        result = adapter.receive(
+            body,
+            random_value,
+            signature,
+            "https://cloud.example.invalid",
+        )
+
+        self.assertEqual(1, result["events"])
 
 
 if __name__ == "__main__":

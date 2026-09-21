@@ -8,7 +8,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from .source_client import BridgeSourceClient
 from .zimbra_waitset import (
@@ -32,12 +32,14 @@ class ZimbraWorker:
         account_map: dict[str, dict[str, str]],
         timezone_name: str = "Europe/Berlin",
         heartbeat_path: Path | None = None,
+        account_map_loader: Callable[[], dict[str, dict[str, str]]] | None = None,
     ):
         self.soap = soap
         self.bridge = bridge
         self.account_map = account_map
         self.timezone_name = timezone_name
         self.heartbeat_path = heartbeat_path
+        self.account_map_loader = account_map_loader
         self.stop_event = threading.Event()
 
     def run(self) -> None:
@@ -45,6 +47,19 @@ class ZimbraWorker:
         while not self.stop_event.is_set():
             waitset_id = ""
             try:
+                if self.account_map_loader is not None:
+                    updated_map = self.account_map_loader()
+                    if updated_map != self.account_map:
+                        LOGGER.info(
+                            "Zimbra account mapping changed from %d to %d accounts",
+                            len(self.account_map),
+                            len(updated_map),
+                        )
+                        self.account_map = updated_map
+                if not self.account_map:
+                    self._touch_heartbeat()
+                    self.stop_event.wait(30)
+                    continue
                 self.soap.authenticate()
                 waitset_id, sequence = self.soap.create_waitset(list(self.account_map))
                 self._touch_heartbeat()
@@ -57,7 +72,13 @@ class ZimbraWorker:
                     for account_id in changed_accounts:
                         if account_id in self.account_map:
                             self._scan_account(account_id)
-            except ZimbraSoapError:
+                    if (
+                        self.account_map_loader is not None
+                        and self.account_map_loader() != self.account_map
+                    ):
+                        LOGGER.info("Zimbra account mapping update detected; recreating WaitSet")
+                        break
+            except (ZimbraSoapError, RuntimeError, OSError, ValueError):
                 LOGGER.exception("Zimbra WaitSet cycle failed; reconnecting")
                 self.stop_event.wait(backoff)
                 backoff = min(backoff * 2, 60)
@@ -149,10 +170,11 @@ def _password() -> str:
     return _required_env("ZIMBRA_ADMIN_PASSWORD")
 
 
-def _account_map() -> dict[str, dict[str, str]]:
-    value: Any = json.loads(Path(_required_env("ZIMBRA_ACCOUNT_MAP_FILE")).read_text(encoding="utf-8"))
-    if not isinstance(value, dict) or not value:
-        raise RuntimeError("ZIMBRA_ACCOUNT_MAP_FILE must contain a non-empty object")
+def _account_map(path: Path | None = None) -> dict[str, dict[str, str]]:
+    map_path = path or Path(_required_env("ZIMBRA_ACCOUNT_MAP_FILE"))
+    value: Any = json.loads(map_path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise RuntimeError("ZIMBRA_ACCOUNT_MAP_FILE must contain an object")
     result: dict[str, dict[str, str]] = {}
     for account_id, mapping in value.items():
         if not isinstance(mapping, dict) or not str(mapping.get("subject", "")).strip():
@@ -164,6 +186,15 @@ def _account_map() -> dict[str, dict[str, str]]:
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     admin_url = _required_env("ZIMBRA_ADMIN_SOAP_URL")
+    account_map_path = Path(_required_env("ZIMBRA_ACCOUNT_MAP_FILE"))
+    dynamic_mapping = os.getenv("ZIMBRA_DYNAMIC_ACCOUNT_MAP", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    initial_map = _account_map(account_map_path)
+    if not dynamic_mapping and not initial_map:
+        raise RuntimeError("ZIMBRA_ACCOUNT_MAP_FILE must contain a non-empty object")
     worker = ZimbraWorker(
         soap=ZimbraSoapClient(
             admin_soap_url=admin_url,
@@ -176,9 +207,10 @@ def main() -> None:
             "zimbra",
             _required_env("BRIDGE_INTERNAL_HMAC_SECRET").encode(),
         ),
-        account_map=_account_map(),
+        account_map=initial_map,
         timezone_name=os.getenv("ZIMBRA_TIMEZONE", "Europe/Berlin"),
         heartbeat_path=Path(os.getenv("ZIMBRA_HEARTBEAT_FILE", "/tmp/zimbra-worker-heartbeat")),
+        account_map_loader=(lambda: _account_map(account_map_path)) if dynamic_mapping else None,
     )
     signal.signal(signal.SIGTERM, lambda *_: worker.stop())
     signal.signal(signal.SIGINT, lambda *_: worker.stop())

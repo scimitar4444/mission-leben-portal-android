@@ -38,6 +38,11 @@ CREATE TABLE IF NOT EXISTS push_registrations (
     privacy TEXT NOT NULL CHECK (privacy IN ('minimal', 'standard', 'detailed')),
     calendar_reminder_minutes INTEGER NOT NULL DEFAULT 15
         CHECK (calendar_reminder_minutes IN (5, 10, 15, 30)),
+    communication_enabled INTEGER NOT NULL DEFAULT 1 CHECK (communication_enabled IN (0, 1)),
+    quiet_hours_enabled INTEGER NOT NULL DEFAULT 0 CHECK (quiet_hours_enabled IN (0, 1)),
+    quiet_start_minutes INTEGER NOT NULL DEFAULT 1320 CHECK (quiet_start_minutes BETWEEN 0 AND 1439),
+    quiet_end_minutes INTEGER NOT NULL DEFAULT 360 CHECK (quiet_end_minutes BETWEEN 0 AND 1439),
+    timezone TEXT NOT NULL DEFAULT 'Europe/Berlin',
     app_version TEXT NOT NULL,
     push_enabled INTEGER NOT NULL DEFAULT 1,
     updated_at INTEGER NOT NULL,
@@ -122,7 +127,7 @@ CREATE TABLE IF NOT EXISTS announcement_cache (
 CREATE INDEX IF NOT EXISTS auth_requests_subject_status
 ON auth_requests(subject, status, expires_at);
 
-PRAGMA user_version=6;
+PRAGMA user_version=7;
 """
 
 
@@ -158,6 +163,11 @@ class Store:
                 "ntfy_writer_username": "TEXT NOT NULL DEFAULT ''",
                 "ntfy_publish_token_ciphertext": "TEXT NOT NULL DEFAULT ''",
                 "calendar_reminder_minutes": "INTEGER NOT NULL DEFAULT 15 CHECK (calendar_reminder_minutes IN (5, 10, 15, 30))",
+                "communication_enabled": "INTEGER NOT NULL DEFAULT 1 CHECK (communication_enabled IN (0, 1))",
+                "quiet_hours_enabled": "INTEGER NOT NULL DEFAULT 0 CHECK (quiet_hours_enabled IN (0, 1))",
+                "quiet_start_minutes": "INTEGER NOT NULL DEFAULT 1320 CHECK (quiet_start_minutes BETWEEN 0 AND 1439)",
+                "quiet_end_minutes": "INTEGER NOT NULL DEFAULT 360 CHECK (quiet_end_minutes BETWEEN 0 AND 1439)",
+                "timezone": "TEXT NOT NULL DEFAULT 'Europe/Berlin'",
             }
             for name, definition in additions.items():
                 if name not in columns:
@@ -176,7 +186,7 @@ class Store:
                 """,
                 (int(time.time()),),
             )
-            connection.execute("PRAGMA user_version=6")
+            connection.execute("PRAGMA user_version=7")
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path, timeout=15, factory=ClosingConnection)
@@ -221,6 +231,11 @@ class Store:
                     privacy TEXT NOT NULL CHECK (privacy IN ('minimal', 'standard', 'detailed')),
                     calendar_reminder_minutes INTEGER NOT NULL DEFAULT 15
                         CHECK (calendar_reminder_minutes IN (5, 10, 15, 30)),
+                    communication_enabled INTEGER NOT NULL DEFAULT 1 CHECK (communication_enabled IN (0, 1)),
+                    quiet_hours_enabled INTEGER NOT NULL DEFAULT 0 CHECK (quiet_hours_enabled IN (0, 1)),
+                    quiet_start_minutes INTEGER NOT NULL DEFAULT 1320 CHECK (quiet_start_minutes BETWEEN 0 AND 1439),
+                    quiet_end_minutes INTEGER NOT NULL DEFAULT 360 CHECK (quiet_end_minutes BETWEEN 0 AND 1439),
+                    timezone TEXT NOT NULL DEFAULT 'Europe/Berlin',
                     app_version TEXT NOT NULL,
                     push_enabled INTEGER NOT NULL DEFAULT 1,
                     updated_at INTEGER NOT NULL,
@@ -414,14 +429,23 @@ class Store:
         privacy: str,
         app_version: str,
         calendar_reminder_minutes: int = 15,
+        communication_enabled: bool = True,
+        quiet_hours_enabled: bool = False,
+        quiet_start_minutes: int = 1320,
+        quiet_end_minutes: int = 360,
+        timezone_name: str = "Europe/Berlin",
     ) -> None:
         if mode not in {"personal", "shared"}:
             raise ValueError("invalid device mode")
         if mode == "shared":
             privacy = "minimal"
             calendar_reminder_minutes = 15
+            communication_enabled = True
+            quiet_hours_enabled = False
         if calendar_reminder_minutes not in {5, 10, 15, 30}:
             raise ValueError("invalid calendar reminder")
+        if quiet_start_minutes not in range(1440) or quiet_end_minutes not in range(1440):
+            raise ValueError("invalid quiet hours")
         now = int(time.time())
         with self._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
@@ -438,9 +462,11 @@ class Store:
                     ntfy_topic, ntfy_reader_username, ntfy_writer_username,
                     ntfy_publish_token_ciphertext, agent_token_ciphertext,
                     key_id, public_jwk, mode, privacy, calendar_reminder_minutes,
+                    communication_enabled, quiet_hours_enabled,
+                    quiet_start_minutes, quiet_end_minutes, timezone,
                     app_version, push_enabled,
                     updated_at, last_verified_at
-                ) VALUES (?, ?, ?, 'ntfy', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                ) VALUES (?, ?, ?, 'ntfy', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
                 ON CONFLICT(device_id) DO UPDATE SET
                     subject=excluded.subject,
                     installation_id_ciphertext=excluded.installation_id_ciphertext,
@@ -455,6 +481,11 @@ class Store:
                     mode=excluded.mode,
                     privacy=excluded.privacy,
                     calendar_reminder_minutes=excluded.calendar_reminder_minutes,
+                    communication_enabled=excluded.communication_enabled,
+                    quiet_hours_enabled=excluded.quiet_hours_enabled,
+                    quiet_start_minutes=excluded.quiet_start_minutes,
+                    quiet_end_minutes=excluded.quiet_end_minutes,
+                    timezone=excluded.timezone,
                     app_version=excluded.app_version,
                     push_enabled=1,
                     updated_at=excluded.updated_at,
@@ -474,6 +505,11 @@ class Store:
                     mode,
                     privacy,
                     calendar_reminder_minutes,
+                    int(communication_enabled),
+                    int(quiet_hours_enabled),
+                    quiet_start_minutes,
+                    quiet_end_minutes,
+                    timezone_name,
                     app_version,
                     now,
                     now,

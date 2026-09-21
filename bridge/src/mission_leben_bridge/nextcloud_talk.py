@@ -8,6 +8,8 @@ import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from .communication_directory import CommunicationDirectory
+from .nextcloud_talk_participants import NextcloudTalkParticipants, TalkParticipantError
 from .service import ApiError, BridgeService
 from .store import Store
 
@@ -25,6 +27,8 @@ class NextcloudTalkWebhook:
         expected_backend: str,
         recipients: dict[str, tuple[str, ...]],
         user_subjects: dict[str, str],
+        participant_client: NextcloudTalkParticipants | None = None,
+        communication_directory: CommunicationDirectory | None = None,
     ):
         self.service = service
         self.store = store
@@ -32,10 +36,19 @@ class NextcloudTalkWebhook:
         self.expected_backend = expected_backend.rstrip("/")
         self.recipients = recipients
         self.user_subjects = user_subjects
+        self.participant_client = participant_client
+        self.communication_directory = communication_directory
 
     @property
     def configured(self) -> bool:
-        return bool(self.secret and self.expected_backend and self.recipients)
+        return bool(
+            self.secret
+            and self.expected_backend
+            and (
+                self.recipients
+                or (self.participant_client is not None and self.communication_directory is not None)
+            )
+        )
 
     def receive(self, body: bytes, random_value: str, signature: str, backend: str) -> dict[str, Any]:
         if not self.configured or self.secret is None:
@@ -66,9 +79,20 @@ class NextcloudTalkWebhook:
         if not room_token or not message_id:
             raise ApiError(400, "Talk webhook has no room or message id")
         recipients = self.recipients.get(room_token, ())
+        if self.participant_client is not None and self.communication_directory is not None:
+            try:
+                recipients = self.communication_directory.talk_subjects(
+                    self.participant_client.users(room_token)
+                )
+            except (TalkParticipantError, RuntimeError) as error:
+                raise ApiError(503, "Talk participant assignment is temporarily unavailable") from error
         actor_id = str(actor.get("id", ""))
         nextcloud_user = actor_id.removeprefix("users/") if actor_id.startswith("users/") else ""
         actor_subject = self.user_subjects.get(nextcloud_user, "")
+        if self.communication_directory is not None and nextcloud_user:
+            dynamic_actor = self.communication_directory.talk_subjects({nextcloud_user})
+            if dynamic_actor:
+                actor_subject = dynamic_actor[0]
         preview = self._preview(note.get("content"))
         expires_at = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat().replace("+00:00", "Z")
         results = []

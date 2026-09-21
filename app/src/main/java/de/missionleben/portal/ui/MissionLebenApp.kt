@@ -1,5 +1,6 @@
 package de.missionleben.portal.ui
 
+import android.app.TimePickerDialog
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
@@ -35,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -75,6 +78,7 @@ import kotlinx.coroutines.delay
 import java.text.DateFormat
 import java.time.LocalDate
 import java.util.Date
+import java.util.Locale
 
 @Composable
 fun MissionLebenApp(
@@ -92,6 +96,10 @@ fun MissionLebenApp(
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onCalendarReminderChange: (Int) -> Unit,
+    onCommunicationNotificationsChange: (Boolean) -> Unit,
+    onQuietHoursChange: (Boolean) -> Unit,
+    onQuietStartChange: (Int) -> Unit,
+    onQuietEndChange: (Int) -> Unit,
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
@@ -134,6 +142,10 @@ fun MissionLebenApp(
                 onOpenTalk = onOpenTalk,
                 onNotificationPrivacyChange = onNotificationPrivacyChange,
                 onCalendarReminderChange = onCalendarReminderChange,
+                onCommunicationNotificationsChange = onCommunicationNotificationsChange,
+                onQuietHoursChange = onQuietHoursChange,
+                onQuietStartChange = onQuietStartChange,
+                onQuietEndChange = onQuietEndChange,
                 onLogout = onLogout,
                 onResetProfile = onResetProfile,
                 onDismissMessage = onDismissMessage,
@@ -320,6 +332,10 @@ private fun Home(
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onCalendarReminderChange: (Int) -> Unit,
+    onCommunicationNotificationsChange: (Boolean) -> Unit,
+    onQuietHoursChange: (Boolean) -> Unit,
+    onQuietStartChange: (Int) -> Unit,
+    onQuietEndChange: (Int) -> Unit,
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
@@ -343,6 +359,10 @@ private fun Home(
             onRefreshDeviceStatus = onRefreshDeviceStatus,
             onNotificationPrivacyChange = onNotificationPrivacyChange,
             onCalendarReminderChange = onCalendarReminderChange,
+            onCommunicationNotificationsChange = onCommunicationNotificationsChange,
+            onQuietHoursChange = onQuietHoursChange,
+            onQuietStartChange = onQuietStartChange,
+            onQuietEndChange = onQuietEndChange,
             onLogout = onLogout,
             onResetProfile = onResetProfile,
             onDismissMessage = onDismissMessage,
@@ -596,6 +616,10 @@ private fun SettingsScreen(
     onRefreshDeviceStatus: () -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onCalendarReminderChange: (Int) -> Unit,
+    onCommunicationNotificationsChange: (Boolean) -> Unit,
+    onQuietHoursChange: (Boolean) -> Unit,
+    onQuietStartChange: (Int) -> Unit,
+    onQuietEndChange: (Int) -> Unit,
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
@@ -630,6 +654,10 @@ private fun SettingsScreen(
                     state,
                     onNotificationPrivacyChange,
                     onCalendarReminderChange,
+                    onCommunicationNotificationsChange,
+                    onQuietHoursChange,
+                    onQuietStartChange,
+                    onQuietEndChange,
                 )
             }
         }
@@ -1244,6 +1272,10 @@ private fun NotificationPrivacyPanel(
     state: UiState,
     onChange: (NotificationPrivacy) -> Unit,
     onCalendarReminderChange: (Int) -> Unit,
+    onCommunicationNotificationsChange: (Boolean) -> Unit,
+    onQuietHoursChange: (Boolean) -> Unit,
+    onQuietStartChange: (Int) -> Unit,
+    onQuietEndChange: (Int) -> Unit,
 ) {
     if (!state.pushConfigured) return
     Card(
@@ -1263,6 +1295,31 @@ private fun NotificationPrivacyPanel(
                 Spacer(Modifier.height(10.dp))
                 StatusPillText(stringResource(R.string.privacy_minimal_label), MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        onCommunicationNotificationsChange(!state.communicationNotificationsEnabled)
+                    },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.communication_notifications_title),
+                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Text(
+                            stringResource(R.string.communication_notifications_description),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    Switch(
+                        checked = state.communicationNotificationsEnabled,
+                        onCheckedChange = null,
+                    )
+                }
+                Spacer(Modifier.height(14.dp))
+                if (state.communicationNotificationsEnabled) {
                 Text(
                     stringResource(R.string.notifications_lockscreen_description),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1317,8 +1374,91 @@ private fun NotificationPrivacyPanel(
                         }
                     }
                 }
+                Spacer(Modifier.height(18.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        onQuietHoursChange(!state.quietHoursEnabled)
+                    },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.quiet_hours_title),
+                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Text(
+                            stringResource(R.string.quiet_hours_description),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    Switch(
+                        checked = state.quietHoursEnabled,
+                        onCheckedChange = null,
+                    )
+                }
+                if (state.quietHoursEnabled) {
+                    Spacer(Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        QuietTimeButton(
+                            label = stringResource(R.string.quiet_hours_from),
+                            minutes = state.quietStartMinutes,
+                            onChange = onQuietStartChange,
+                            modifier = Modifier.weight(1f),
+                        )
+                        QuietTimeButton(
+                            label = stringResource(R.string.quiet_hours_until),
+                            minutes = state.quietEndMinutes,
+                            onChange = onQuietEndChange,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        stringResource(R.string.quiet_hours_security_exception),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                } else {
+                    Text(
+                        stringResource(R.string.quiet_hours_security_exception),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun QuietTimeButton(
+    label: String,
+    minutes: Int,
+    onChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val hour = minutes / 60
+    val minute = minutes % 60
+    OutlinedButton(
+        modifier = modifier,
+        onClick = {
+            TimePickerDialog(
+                context,
+                { _, selectedHour, selectedMinute -> onChange(selectedHour * 60 + selectedMinute) },
+                hour,
+                minute,
+                true,
+            ).show()
+        },
+    ) {
+        Text("$label ${String.format(Locale.getDefault(), "%02d:%02d", hour, minute)}")
     }
 }
 

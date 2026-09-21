@@ -142,7 +142,7 @@ Beim Ausscheiden wird das Benutzerkonto in Authentik deaktiviert. Geräte- und B
 
 ## Zimbra-Zuordnung
 
-Die Mapping-Datei enthält keine Kennwörter. Sie ordnet nur Zimbra-Konto-ID zu Authentik-Subject:
+Die Mapping-Datei enthält keine Kennwörter. Sie ordnet nur Zimbra-Konto-ID zu Authentik-Subject. Im produktiven Betrieb wird sie alle fünf Minuten automatisch aus drei Bedingungen aufgebaut: aktive Push-Registrierung, aktiver Authentik-Benutzer und wirksamer Zugriff auf `zimbra-mail` über die kanonische Gruppe `APP_ZIMBRA_USER`. Neu registrierte berechtigte Benutzer kommen hinzu; deaktivierte Benutzer, entfernte Berechtigungen und abgemeldete Geräte fallen heraus. Die vorhandene Zimbra-Konto-ID wird wiederverwendet, sodass nur neue E-Mail-Adressen per Admin-SOAP aufgelöst werden.
 
 ```json
 {
@@ -155,6 +155,16 @@ Die Mapping-Datei enthält keine Kennwörter. Sie ordnet nur Zimbra-Konto-ID zu 
 
 Das Zimbra-Kennwort wird als gemountete Secret-Datei gelesen. Es darf weder in `.env` noch in Git abgelegt werden.
 
+Die Automatik wird auf dem Authentik-/Bridge-Host installiert mit:
+
+```bash
+sudo authentik/deploy/install-communication-sync.sh
+systemctl start mission-leben-communication-sync.service
+systemctl status mission-leben-communication-sync.timer
+```
+
+`ZIMBRA_DYNAMIC_ACCOUNT_MAP=true` erlaubt dabei auch den korrekten Zustand mit null aktiven Mobilgeräten. Der Worker bleibt gesund und nimmt Konten nach der nächsten Synchronisation automatisch wieder auf.
+
 ## Nextcloud-Talk-Bot
 
 Der Container implementiert `POST /sources/nextcloud-talk` nach dem offiziellen Talk-Bot-Webhook-Vertrag. Er prüft:
@@ -164,7 +174,7 @@ Der Container implementiert `POST /sources/nextcloud-talk` nach dem offiziellen 
 - den exakt erwarteten `X-Nextcloud-Talk-Backend`,
 - Activity-Streams-Typ `Create` und Objekt-Typ `Note`.
 
-In `BRIDGE_TALK_RECIPIENTS_JSON` wird je Talk-Raumtoken die Liste der Authentik-Subjects gepflegt. `BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON` ordnet Nextcloud-Benutzer-IDs zu Authentik-Subjects, damit der Absender nicht selbst benachrichtigt wird. Der Bot muss in den relevanten Talk-Räumen mit Webhook-Funktion aktiviert sein. Damit ist keine Änderung am häufig aktualisierten Talk-JavaScript nötig.
+Die statischen Variablen `BRIDGE_TALK_RECIPIENTS_JSON` und `BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON` bleiben als Migrationsrückfall erhalten. Für die automatische Zuordnung liest die Bridge bei einer Nachricht die aktuellen Teilnehmer des betroffenen Raums über die Nextcloud-Talk-API. Gruppenräume werden über die Nextcloud-Gruppen-API aufgelöst. Anschließend werden ausschließlich aktive, mobil registrierte Benutzer mit wirksamem Talk-Zugriff (`APP_NEXTCLOUD_USER` oder `APP_NEXTCLOUD_NATIVE`) auf ihr Authentik-Subject abgebildet. Der Absender wird weiterhin ausgeschlossen.
 
 Beispiel:
 
@@ -173,7 +183,21 @@ BRIDGE_TALK_RECIPIENTS_JSON={"roomToken":["subject-a","subject-b"]}
 BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON={"nextcloud-user":"subject-a"}
 ```
 
+Automatische Raumzuordnung:
+
+```dotenv
+BRIDGE_COMMUNICATION_DIRECTORY_FILE=/run/mission-leben-directory/communication-assignments.json
+BRIDGE_NEXTCLOUD_TALK_API_USER=ml-push-bridge
+BRIDGE_NEXTCLOUD_TALK_API_PASSWORD_FILE=/run/mission-leben-directory/nextcloud-talk-api-password
+```
+
+Das Nextcloud-Konto benötigt nur Lesezugriff auf die Teilnehmer der Räume, in denen der Bot aktiv ist, sowie bei Gruppenräumen das Recht, deren Mitglieder zu lesen. Sein App-Passwort liegt ausschließlich in der gemounteten Secret-Datei. Ohne diese drei Werte bleibt die bisherige statische Zuordnung aktiv; eine teilweise Konfiguration wird beim Start und in der Vorprüfung abgelehnt.
+
 Die Talk-Bot-Secret-Datei wird nur in den Bridge-Container gemountet. Sie gehört nicht in `.env` oder Git.
+
+## Benachrichtigungseinstellungen
+
+Persönliche Geräte können Kommunikationshinweise vollständig ausschalten oder eine lokale Ruhezeit mit Zeitzone einstellen. Bridge und App prüfen beide dieselbe Regel für Mail, Termine und Talk. Während einer Ruhezeit werden Ereignisse ohne späteren Sammelversand verworfen. Der ntfy-Kanal selbst bleibt aktiv: Systemmeldungen, Gerätesperren, Offboarding und Anmeldeanfragen ignorieren diese Kommunikationspräferenz immer. Gemeinsame Tablets bleiben serverseitig auf den zentral vorgegebenen Einstellungen.
 
 ## Alternativer normalisierter Nextcloud-/Talk-Eingang
 

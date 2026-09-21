@@ -178,6 +178,10 @@ class MainActivity : FragmentActivity() {
                     onOpenTalk = viewModel::openTalkOn,
                     onNotificationPrivacyChange = viewModel::setNotificationPrivacy,
                     onCalendarReminderChange = viewModel::setCalendarReminderMinutes,
+                    onCommunicationNotificationsChange = viewModel::setCommunicationNotificationsEnabled,
+                    onQuietHoursChange = viewModel::setQuietHoursEnabled,
+                    onQuietStartChange = viewModel::setQuietStartMinutes,
+                    onQuietEndChange = viewModel::setQuietEndMinutes,
                     onLogout = { viewModel.logout(::openLogout) },
                     onResetProfile = {
                         PortalBrowserActivity.clearLocalWebData(this@MainActivity) {
