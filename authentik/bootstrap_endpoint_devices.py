@@ -47,7 +47,6 @@ from authentik.stages.user_login.models import UserLoginStage
 
 CONNECTOR_NAME = "Mission Leben Android"
 LEGACY_ACCESS_GROUP_NAME = "Mission Leben Android - Pilot"
-PERSONAL_ACCESS_GROUP_NAME = "Mission Leben Android - Personal"
 CERTIFICATE_NAME = "Mission Leben Android Endpoint Challenge"
 BASE_AUTHENTICATION_FLOW_SLUG = "mission-leben-browser-authentication"
 ANDROID_AUTHENTICATION_FLOW_SLUG = "mission-leben-android-authentication"
@@ -282,20 +281,6 @@ connector, _ = AgentConnector.objects.update_or_create(
         "challenge_trigger_check_in": False,
     },
 )
-
-personal_access_group, _ = DeviceAccessGroup.objects.update_or_create(
-    name=PERSONAL_ACCESS_GROUP_NAME,
-    defaults={
-        "attributes": {
-            "mission-leben.de/purpose": "android-portal",
-            "mission-leben.de/status": "pilot",
-            "mission-leben.de/mode": "personal",
-        }
-    },
-)
-# Personal devices receive a DeviceUserBinding after enrollment. With no
-# binding on this access group, an unassigned device fails closed.
-DeviceUserBinding.objects.filter(target=personal_access_group).delete()
 
 # The former pilot group allowed every pilot user on every pilot device. Remove
 # that broad binding; assign_device_access.py migrates devices to a user or a
@@ -738,7 +723,6 @@ print(
             "application": application.slug,
             "client_id": provider.client_id,
             "connector": str(connector.pk),
-            "personal_device_access_group": str(personal_access_group.pk),
             "endpoint_stage": str(endpoint_stage.pk),
             "authentication_flow": authentication_flow.slug,
             "authorization_flow": authorization_flow.slug,

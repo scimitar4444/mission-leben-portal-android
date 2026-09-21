@@ -109,7 +109,7 @@ Das idempotente Skript `authentik/bootstrap_endpoint_devices.py` legt an. Für d
 Eine optionale Pilotzuordnung für `ENT_DEVICE_PROFILE_SWITCH` wird nur zur Laufzeit über `ML_DEVICE_PROFILE_SWITCH_PILOT_USERNAME` übergeben. Ohne diese Variable verändert das öffentliche Bootstrap-Skript die bestehende Mitgliedschaft dieser Gruppe nicht. Reale Benutzernamen gehören weder in das Repository noch in Befehlsbeispiele oder Release-Notizen.
 
 1. den Agent Connector `Mission Leben Android` mit eigenem Challenge-Schlüssel,
-2. die bindungsfreie historische Basisgruppe `Mission Leben Android - Personal` sowie benutzerbezogene Gruppen `Mission Leben Android - Personal - <Benutzername>` und standortbezogene Gruppen `Mission Leben Android - Shared - ORG_*`; der aktuelle Portalweg verwendet ausschließlich die unmittelbar gebundenen Benutzer- beziehungsweise Standortgruppen,
+2. unmittelbar gebundene Benutzergruppen `Mission Leben Android - Personal - <Benutzername>` sowie standortbezogene Gruppen `Mission Leben Android - Shared - ORG_*`; eine leere gemeinsame persönliche Basisgruppe wird nicht angelegt,
 3. den Public-OIDC-Client `mission-leben-android`,
 4. eine erforderliche Endpoint Stage nach der Identifikation und vor dem Passwort,
 5. einen eigenen Authorization Flow, der die Endpoint-Challenge selbst bei vorhandener Authentik-Sitzung erneut ausführt,
