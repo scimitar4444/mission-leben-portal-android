@@ -47,7 +47,7 @@
     <string name="device_blocked_description">Cet appareil est bloqué. La connexion et la session enregistrée sont désactivées.</string>
     <string name="device_pending_description">Enregistrez d’abord cet appareil et faites-le approuver dans la gestion des appareils.</string>
     <string name="session_keystore_description">Votre session est protégée par Android Keystore.</string>
-    <string name="shared_session_description">Cette connexion n’est pas stockée sur la tablette. Déconnectez-vous ensuite.</string>
+    <string name="shared_session_description">Cette connexion n’est pas enregistrée. Éteindre l’écran met automatiquement fin à la session.</string>
     <string name="first_login_description">Première fois : identifiant et mot de passe. Ensuite, la biométrie ou le code de l’appareil suffit.</string>
     <string name="session_valid_days">Connexion valable encore %1$d jours</string>
     <string name="session_valid_one_day">Connexion valable encore 1 jour</string>

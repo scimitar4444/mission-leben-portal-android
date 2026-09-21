@@ -47,7 +47,7 @@
     <string name="device_blocked_description">Este dispositivo está bloqueado. El acceso y la sesión guardada están desactivados.</string>
     <string name="device_pending_description">Registra primero el dispositivo y solicita su aprobación en la gestión de dispositivos.</string>
     <string name="session_keystore_description">Tu sesión está protegida por Android Keystore.</string>
-    <string name="shared_session_description">Este acceso no se guarda en la tableta. Cierra la sesión al terminar.</string>
+    <string name="shared_session_description">Este acceso no se guarda. Al apagar la pantalla, la sesión finaliza automáticamente.</string>
     <string name="first_login_description">Primera vez: usuario y contraseña. Después basta la biometría o el código del dispositivo.</string>
     <string name="session_valid_days">Acceso válido durante %1$d días más</string>
     <string name="session_valid_one_day">Acceso válido durante 1 día más</string>

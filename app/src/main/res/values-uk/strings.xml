@@ -47,7 +47,7 @@
     <string name="device_blocked_description">Цей пристрій заблоковано. Вхід і збережений сеанс вимкнено.</string>
     <string name="device_pending_description">Спочатку зареєструйте пристрій і отримайте схвалення в керуванні пристроями.</string>
     <string name="session_keystore_description">Ваш сеанс захищено Android Keystore.</string>
-    <string name="shared_session_description">Цей вхід не зберігається на планшеті. Після завершення вийдіть із системи.</string>
+    <string name="shared_session_description">Цей вхід не зберігається. Вимкнення екрана автоматично завершує сеанс.</string>
     <string name="first_login_description">Уперше: ім’я користувача та пароль. Надалі достатньо біометрії або коду пристрою.</string>
     <string name="session_valid_days">Авторизація дійсна ще %1$d днів</string>
     <string name="session_valid_one_day">Авторизація дійсна ще 1 день</string>

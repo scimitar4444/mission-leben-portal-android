@@ -47,7 +47,7 @@
     <string name="device_blocked_description">To urządzenie jest zablokowane. Logowanie i zapisana sesja są wyłączone.</string>
     <string name="device_pending_description">Najpierw zarejestruj urządzenie i uzyskaj jego zatwierdzenie w zarządzaniu urządzeniami.</string>
     <string name="session_keystore_description">Twoja sesja jest chroniona przez Android Keystore.</string>
-    <string name="shared_session_description">To logowanie nie jest zapisywane na tablecie. Po zakończeniu wyloguj się.</string>
+    <string name="shared_session_description">To logowanie nie jest zapisywane. Wyłączenie ekranu automatycznie kończy sesję.</string>
     <string name="first_login_description">Za pierwszym razem: nazwa użytkownika i hasło. Później wystarczy biometria lub kod urządzenia.</string>
     <string name="session_valid_days">Logowanie ważne jeszcze przez %1$d dni</string>
     <string name="session_valid_one_day">Logowanie ważne jeszcze przez 1 dzień</string>

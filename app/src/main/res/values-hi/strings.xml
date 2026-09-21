@@ -47,7 +47,7 @@
     <string name="device_blocked_description">यह डिवाइस ब्लॉक है। साइन इन और सेव किया गया सत्र बंद हैं।</string>
     <string name="device_pending_description">पहले डिवाइस रजिस्टर करें और डिवाइस प्रबंधन में इसे स्वीकृत करवाएँ।</string>
     <string name="session_keystore_description">आपका सत्र Android Keystore से सुरक्षित है।</string>
-    <string name="shared_session_description">यह साइन इन टैबलेट पर सेव नहीं होता। काम के बाद साइन आउट करें।</string>
+    <string name="shared_session_description">यह साइन इन सेव नहीं होता। स्क्रीन बंद करने पर सत्र अपने आप समाप्त हो जाता है।</string>
     <string name="first_login_description">पहली बार: उपयोगकर्ता नाम और पासवर्ड। बाद में बायोमेट्रिक्स या डिवाइस पिन पर्याप्त है।</string>
     <string name="session_valid_days">साइन इन %1$d दिन और मान्य है</string>
     <string name="session_valid_one_day">साइन इन 1 दिन और मान्य है</string>

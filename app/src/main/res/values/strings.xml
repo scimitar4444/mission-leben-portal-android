@@ -62,7 +62,7 @@
     <string name="device_blocked_description">Dieses Gerät ist gesperrt. Anmeldung und gespeicherte Sitzung sind deaktiviert.</string>
     <string name="device_pending_description">Bitte das Gerät zuerst registrieren und durch die Geräteverwaltung freigeben lassen.</string>
     <string name="session_keystore_description">Deine Sitzung ist mit dem Android-Keystore geschützt.</string>
-    <string name="shared_session_description">Diese Anmeldung wird auf dem Tablet nicht gespeichert. Bitte danach abmelden.</string>
+    <string name="shared_session_description">Diese Anmeldung wird nicht gespeichert. Beim Ausschalten des Bildschirms beendet die App die Sitzung automatisch.</string>
     <string name="first_login_description">Beim ersten Mal: Benutzername und Passwort. Danach genügt Biometrie oder Gerätecode.</string>
     <string name="session_valid_days">Anmeldung noch %1$d Tage gültig</string>
     <string name="session_valid_one_day">Anmeldung noch 1 Tag gültig</string>

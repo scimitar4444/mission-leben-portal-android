@@ -74,6 +74,10 @@ class MainActivity : FragmentActivity() {
     private val authorizationLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
+        if (PortalBrowserActivity.sharedSessionEnded(result.data)) {
+            viewModel.endSharedSessionAfterScreenOff()
+            return@registerForActivityResult
+        }
         val redirectUri = if (result.resultCode == RESULT_OK) {
             PortalBrowserActivity.authorizationResponse(result.data)
         } else {
@@ -92,6 +96,9 @@ class MainActivity : FragmentActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             when {
+                PortalBrowserActivity.sharedSessionEnded(result.data) -> {
+                    viewModel.endSharedSessionAfterScreenOff()
+                }
                 PortalBrowserActivity.deviceBlocked(result.data) -> {
                     viewModel.acceptBackgroundDeviceStatus(de.missionleben.portal.model.EnrollmentState.BLOCKED.name)
                 }
@@ -202,6 +209,11 @@ class MainActivity : FragmentActivity() {
         viewModel.acceptEnrollmentLink(intent.data)
         viewModel.acceptPushAction(intent.getStringExtra(PushEventDispatcher.EXTRA_PUSH_ACTION))
         handleLoginApprovalWake(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.consumeSharedSessionScreenOffState()
     }
 
     override fun onStart() {

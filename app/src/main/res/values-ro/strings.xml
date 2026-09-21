@@ -47,7 +47,7 @@
     <string name="device_blocked_description">Acest dispozitiv este blocat. Autentificarea și sesiunea salvată sunt dezactivate.</string>
     <string name="device_pending_description">Înregistrează mai întâi dispozitivul și obține aprobarea lui în administrarea dispozitivelor.</string>
     <string name="session_keystore_description">Sesiunea ta este protejată de Android Keystore.</string>
-    <string name="shared_session_description">Această autentificare nu este salvată pe tabletă. Deconectează-te după utilizare.</string>
+    <string name="shared_session_description">Această autentificare nu este salvată. Oprirea ecranului încheie automat sesiunea.</string>
     <string name="first_login_description">Prima dată: nume de utilizator și parolă. Ulterior sunt suficiente biometria sau codul dispozitivului.</string>
     <string name="session_valid_days">Autentificarea mai este valabilă %1$d zile</string>
     <string name="session_valid_one_day">Autentificarea mai este valabilă 1 zi</string>

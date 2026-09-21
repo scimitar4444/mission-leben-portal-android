@@ -47,7 +47,7 @@
     <string name="device_blocked_description">This device is blocked. Sign-in and the stored session are disabled.</string>
     <string name="device_pending_description">Register this device first and have it approved in device management.</string>
     <string name="session_keystore_description">Your session is protected by the Android Keystore.</string>
-    <string name="shared_session_description">This sign-in is not stored on the tablet. Please sign out afterwards.</string>
+    <string name="shared_session_description">This sign-in is not saved. Turning off the screen ends the session automatically.</string>
     <string name="first_login_description">First time: username and password. Afterwards, biometrics or the device PIN is sufficient.</string>
     <string name="session_valid_days">Sign-in valid for %1$d more days</string>
     <string name="session_valid_one_day">Sign-in valid for 1 more day</string>

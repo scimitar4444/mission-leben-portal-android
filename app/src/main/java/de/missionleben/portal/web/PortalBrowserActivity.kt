@@ -9,6 +9,8 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -44,13 +46,16 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import de.missionleben.portal.BuildConfig
 import de.missionleben.portal.R
+import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.push.PushEventDispatcher
+import de.missionleben.portal.security.SharedSessionLifecyclePolicy
 import org.json.JSONObject
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 class PortalBrowserActivity : FragmentActivity() {
     private lateinit var webView: WebView
@@ -63,6 +68,7 @@ class PortalBrowserActivity : FragmentActivity() {
     private var authorizationResultDelivered = false
     private var selfEnrollmentResultDelivered = false
     private var sessionExpiredResultDelivered = false
+    private var sharedSessionResultDelivered = false
     private var talkChatNoticeShown = false
     private val deviceService by lazy { DeviceServiceRepository(applicationContext) }
     private val sessionPolicy by lazy {
@@ -146,6 +152,28 @@ class PortalBrowserActivity : FragmentActivity() {
             IntentFilter(PushEventDispatcher.ACTION_SECURITY_STATE_CHANGED),
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val screenTurnedOff = AppPreferences(this).consumeSharedSessionScreenTurnedOff()
+        if (
+            SharedSessionLifecyclePolicy.shouldInvalidate(
+                mode = deviceMode,
+                screenTurnedOff = screenTurnedOff,
+            ) &&
+            !sharedSessionResultDelivered
+        ) {
+            sharedSessionResultDelivered = true
+            if (::webView.isInitialized) {
+                webView.stopLoading()
+                webView.visibility = View.INVISIBLE
+            }
+            clearLocalWebData(this) {
+                setResult(RESULT_OK, Intent().putExtra(EXTRA_SHARED_SESSION_ENDED, true))
+                finish()
+            }
+        }
     }
 
     override fun onStop() {
@@ -334,6 +362,7 @@ class PortalBrowserActivity : FragmentActivity() {
             }
             if (intent.getBooleanExtra(EXTRA_LOGOUT, false) && !logoutFinished) {
                 logoutFinished = true
+                webView.visibility = View.INVISIBLE
                 clearLocalWebData(this@PortalBrowserActivity) { finish() }
             }
         }
@@ -536,6 +565,7 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_AUTHORIZATION_RESPONSE = "authorization_response"
         private const val EXTRA_SESSION_EXPIRED = "session_expired"
         private const val EXTRA_DEVICE_BLOCKED = "device_blocked"
+        private const val EXTRA_SHARED_SESSION_ENDED = "shared_session_ended"
         private const val EXTRA_DEVICE_MODE = "device_mode"
         private const val EXTRA_CLEAR_BEFORE_LOAD = "clear_before_load"
         private const val EXTRA_LOGOUT = "logout"
@@ -544,6 +574,7 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val DOWNLOAD_IDS = "download_ids"
         private const val ENDPOINT_BRIDGE_NAME = "MissionLebenEndpoint"
         private const val AUTH_LOG_TAG = "MissionLebenAuth"
+        private const val WEB_DATA_CLEAR_TIMEOUT_MILLIS = 2_000L
         private const val ENDPOINT_BRIDGE_SCRIPT = """
             (() => {
               if (window.__mlAuthentikEndpointInstalled) return;
@@ -604,6 +635,9 @@ class PortalBrowserActivity : FragmentActivity() {
         fun deviceBlocked(intent: Intent?): Boolean =
             intent?.getBooleanExtra(EXTRA_DEVICE_BLOCKED, false) == true
 
+        fun sharedSessionEnded(intent: Intent?): Boolean =
+            intent?.getBooleanExtra(EXTRA_SHARED_SESSION_ENDED, false) == true
+
         fun logoutIntent(context: Context, url: String, mode: DeviceMode): Intent =
             Intent(context, PortalBrowserActivity::class.java)
                 .putExtra(EXTRA_URL, url)
@@ -612,27 +646,35 @@ class PortalBrowserActivity : FragmentActivity() {
                 .putExtra(EXTRA_LOGOUT, true)
 
         fun clearLocalWebData(context: Context, onComplete: (() -> Unit)? = null) {
-            CookieManager.getInstance().removeAllCookies {
-                CookieManager.getInstance().flush()
-                WebStorage.getInstance().deleteAllData()
-                WebViewDatabase.getInstance(context).apply {
-                    clearHttpAuthUsernamePassword()
-                    clearFormData()
-                }
-                runCatching {
-                    WebView(context.applicationContext).apply {
-                        clearCache(true)
-                        clearHistory()
+            val completed = AtomicBoolean(false)
+            val completeClear: () -> Unit = {
+                if (completed.compareAndSet(false, true)) {
+                    CookieManager.getInstance().flush()
+                    WebStorage.getInstance().deleteAllData()
+                    WebViewDatabase.getInstance(context).apply {
+                        clearHttpAuthUsernamePassword()
                         clearFormData()
-                        destroy()
                     }
+                    runCatching {
+                        WebView(context.applicationContext).apply {
+                            clearCache(true)
+                            clearHistory()
+                            clearFormData()
+                            destroy()
+                        }
+                    }
+                    cancelDownloads(context)
+                    context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                        ?.takeIf(File::exists)
+                        ?.deleteRecursively()
+                    onComplete?.invoke()
                 }
-                cancelDownloads(context)
-                context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                    ?.takeIf(File::exists)
-                    ?.deleteRecursively()
-                onComplete?.invoke()
             }
+            CookieManager.getInstance().removeAllCookies { completeClear() }
+            Handler(Looper.getMainLooper()).postDelayed(
+                { completeClear() },
+                WEB_DATA_CLEAR_TIMEOUT_MILLIS,
+            )
         }
 
         private fun recordDownload(context: Context, id: Long) {

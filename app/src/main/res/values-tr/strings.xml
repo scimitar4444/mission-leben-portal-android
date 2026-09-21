@@ -47,7 +47,7 @@
     <string name="device_blocked_description">Bu cihaz engellendi. Oturum açma ve kayıtlı oturum devre dışı.</string>
     <string name="device_pending_description">Önce bu cihazı kaydedin ve cihaz yönetiminden onaylatın.</string>
     <string name="session_keystore_description">Oturumunuz Android Keystore ile korunuyor.</string>
-    <string name="shared_session_description">Bu oturum tablette saklanmaz. İşiniz bitince çıkış yapın.</string>
+    <string name="shared_session_description">Bu oturum kaydedilmez. Ekran kapatıldığında oturum otomatik olarak sonlandırılır.</string>
     <string name="first_login_description">İlk seferde: kullanıcı adı ve parola. Sonrasında biyometri veya cihaz kodu yeterlidir.</string>
     <string name="session_valid_days">Oturum %1$d gün daha geçerli</string>
     <string name="session_valid_one_day">Oturum 1 gün daha geçerli</string>

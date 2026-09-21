@@ -13,6 +13,9 @@ class AppPreferences(context: Context) {
         set(value) {
             preferences.edit().apply {
                 if (value == null) remove(KEY_DEVICE_MODE) else putString(KEY_DEVICE_MODE, value.name)
+                if (value != DeviceMode.SHARED) {
+                    remove(KEY_SHARED_SESSION_SCREEN_TURNED_OFF)
+                }
             }.apply()
         }
 
@@ -42,6 +45,18 @@ class AppPreferences(context: Context) {
     var reauthenticationRequired: Boolean
         get() = preferences.getBoolean(KEY_REAUTHENTICATION_REQUIRED, false)
         set(value) = preferences.edit().putBoolean(KEY_REAUTHENTICATION_REQUIRED, value).apply()
+
+    fun markSharedSessionScreenTurnedOff() {
+        preferences.edit().putBoolean(KEY_SHARED_SESSION_SCREEN_TURNED_OFF, true).apply()
+    }
+
+    fun consumeSharedSessionScreenTurnedOff(): Boolean {
+        val screenTurnedOff = preferences.getBoolean(KEY_SHARED_SESSION_SCREEN_TURNED_OFF, false)
+        preferences.edit()
+            .remove(KEY_SHARED_SESSION_SCREEN_TURNED_OFF)
+            .apply()
+        return screenTurnedOff
+    }
 
     fun clearReauthentication() {
         preferences.edit()
@@ -83,6 +98,7 @@ class AppPreferences(context: Context) {
             .remove(KEY_ENROLLMENT_STATE)
             .remove(KEY_REAUTHENTICATION_HINT)
             .remove(KEY_REAUTHENTICATION_REQUIRED)
+            .remove(KEY_SHARED_SESSION_SCREEN_TURNED_OFF)
             .apply()
         clearAnnouncementReadState()
     }
@@ -99,6 +115,7 @@ class AppPreferences(context: Context) {
         const val KEY_ENROLLMENT_STATE = "enrollment_state"
         const val KEY_REAUTHENTICATION_HINT = "reauthentication_hint"
         const val KEY_REAUTHENTICATION_REQUIRED = "reauthentication_required"
+        const val KEY_SHARED_SESSION_SCREEN_TURNED_OFF = "shared_session_screen_turned_off"
         const val KEY_ANNOUNCEMENTS_READ_PREFIX = "announcements_read_"
         const val MAX_READ_ANNOUNCEMENTS = 100
     }

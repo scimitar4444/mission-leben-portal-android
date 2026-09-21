@@ -36,6 +36,7 @@ import de.missionleben.portal.push.UnreadNotificationStore
 import de.missionleben.portal.security.DeviceIdentity
 import de.missionleben.portal.security.DeviceSecurityLock
 import de.missionleben.portal.security.SecureSessionVault
+import de.missionleben.portal.security.SharedSessionLifecyclePolicy
 import de.missionleben.portal.update.UpdateRepository
 import de.missionleben.portal.update.UpdateStatus
 import java.io.File
@@ -633,6 +634,63 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
         onBrowserLogout(authRepository.endSessionUrl())
+    }
+
+    fun endSharedSessionAfterScreenOff() {
+        if (!SharedSessionLifecyclePolicy.shouldTrack(preferences.deviceMode)) return
+        clearSharedSessionAfterScreenOff()
+    }
+
+    fun consumeSharedSessionScreenOffState() {
+        val screenTurnedOff = preferences.consumeSharedSessionScreenTurnedOff()
+        if (
+            !SharedSessionLifecyclePolicy.shouldInvalidate(
+                mode = preferences.deviceMode,
+                screenTurnedOff = screenTurnedOff,
+            )
+        ) {
+            return
+        }
+        clearSharedSessionAfterScreenOff()
+    }
+
+    private fun clearSharedSessionAfterScreenOff() {
+        val oldState = serializedAuthState
+        if (oldState != null) disconnectPushAndRevoke(oldState)
+        serializedAuthState = null
+        pendingVaultState = null
+        pendingPushAction = null
+        dataEncryptionKey?.fill(0)
+        dataEncryptionKey = null
+        vault.clear()
+        preferences.clearReauthentication()
+        unreadNotificationStore.clearAll()
+        clearNotifications()
+        PushManager.stop(getApplication())
+        _uiState.update {
+            it.copy(
+                busy = true,
+                signedIn = false,
+                user = null,
+                reauthenticationRequired = false,
+                applications = emptyList(),
+                applicationsLoading = false,
+                announcements = emptyList(),
+                announcementsLoading = false,
+                announcementsStale = false,
+                readAnnouncementIds = emptySet(),
+                linkTargets = emptyList(),
+                capabilities = emptySet(),
+                quickUnlockEnabled = false,
+                vaultRequest = VaultRequest.NONE,
+                requestedUrl = null,
+                clearWebDataRequested = true,
+                message = string(R.string.message_shared_session_deleted),
+                loginApprovalRequest = null,
+                loginApprovalSubmitting = false,
+                unreadNotificationBadges = unreadNotificationStore.counts(),
+            )
+        }
     }
 
     fun clearMessage() = _uiState.update { it.copy(message = null) }
