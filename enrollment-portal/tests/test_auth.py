@@ -131,6 +131,15 @@ def test_normal_employee_is_authenticated_only_for_self_service(settings):
     assert error.value.status_code == 403
 
 
+def test_display_name_decodes_utf8_from_authentik_proxy_header(settings):
+    headers = authentik_headers("Mitarbeitende|ORG_ML_H042")
+    headers["x-authentik-name"] = "Umlaut Ää Öö Üü ß"
+
+    actor = authenticated_actor_from_request(request(headers), settings)
+
+    assert actor.display_name == "Umlaut Ää Öö Üü ß"
+
+
 def test_proxy_app_header_is_mandatory(settings):
     headers = authentik_headers("BR_IT_MANAGEMENT")
     headers["x-authentik-meta-app"] = "another-app"

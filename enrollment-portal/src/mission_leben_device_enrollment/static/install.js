@@ -1,11 +1,28 @@
 (() => {
   "use strict";
 
+  const samsung = document.getElementById("platform-samsung");
+  const brands = navigator.userAgentData && Array.isArray(navigator.userAgentData.brands)
+    ? navigator.userAgentData.brands.map((entry) => entry.brand).join(" ")
+    : "";
+  if (samsung && /SamsungBrowser|\bSM-[A-Z0-9-]+|Samsung/i.test(`${navigator.userAgent} ${brands}`)) {
+    samsung.checked = true;
+  }
+
   const button = document.getElementById("continue-enrollment");
   const status = document.getElementById("enrollment-status");
-  if (!button || !status) return;
+  const enrollmentFinish = document.getElementById("enrollment-finish");
+  const manualFinish = document.getElementById("manual-finish");
+  if (!button || !status || !enrollmentFinish || !manualFinish) return;
 
-  const parameters = new URLSearchParams(window.location.hash.slice(1));
+  const fragment = window.location.hash.slice(1);
+  if (!fragment) {
+    enrollmentFinish.hidden = true;
+    manualFinish.hidden = false;
+    return;
+  }
+
+  const parameters = new URLSearchParams(fragment);
   const allowed = new Set(["token", "token_id", "mode"]);
   const keys = Array.from(parameters.keys());
   const token = parameters.getAll("token");

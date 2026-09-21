@@ -132,12 +132,45 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .install-step {
   display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: 1rem; align-items: start;
 }
+.install-step[hidden] { display: none; }
 .install-step h2 { margin: 0 0 .4rem; }
 .install-number {
   display: grid; width: 2.6rem; height: 2.6rem; place-items: center;
   border-radius: 50%; color: #fff; background: var(--berry); font-size: 1.2rem; font-weight: 800;
 }
+.platform-selector { margin: 1.25rem 0 0 3.6rem; }
+.platform-radio {
+  position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+.platform-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.platform-options label {
+  min-height: 48px; margin: 0; padding: .7rem 1rem; display: grid; place-items: center;
+  border: 2px solid var(--line); border-radius: 12px; background: var(--paper);
+  color: var(--ink); text-align: center; cursor: pointer;
+}
+#platform-android:focus-visible ~ .platform-options label[for="platform-android"],
+#platform-samsung:focus-visible ~ .platform-options label[for="platform-samsung"] {
+  outline: 3px solid rgb(233 104 120 / .3); outline-offset: 2px;
+}
+#platform-android:checked ~ .platform-options label[for="platform-android"],
+#platform-samsung:checked ~ .platform-options label[for="platform-samsung"] {
+  border-color: var(--berry); background: #f1e7ec; color: var(--berry);
+}
+.platform-guide { margin-top: 1rem; padding: 1rem; border-radius: 14px; background: var(--wash); }
+.platform-guide h3 { margin: 0 0 .75rem; font-size: 1.08rem; }
+#platform-android:not(:checked) ~ #guide-android,
+#platform-samsung:not(:checked) ~ #guide-samsung { display: none; }
+.install-list { margin: 0; padding-left: 1.35rem; line-height: 1.5; }
+.install-list li + li { margin-top: .55rem; }
+.platform-guide .primary { margin-top: 1rem; }
+.security-hint {
+  margin: 1rem 0 0; padding: .8rem .9rem; border-left: 4px solid var(--success);
+  border-radius: 8px; background: #e4f5ef; line-height: 1.45;
+}
 .install-divider { height: 1px; margin: 1.5rem 0; background: var(--line); }
+.install-home-link { margin-top: 1.5rem; text-align: center; }
+.install-home-link a { color: var(--berry); font-weight: 800; }
 .button.disabled { pointer-events: none; opacity: .5; }
 .error-text { color: #a11e2b; }
 .error-notice { max-width: 720px; margin: 1rem auto; }
@@ -152,4 +185,6 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   .search-row { grid-template-columns: 1fr; }
   .person-row { align-items: stretch; flex-direction: column; }
   .person-row button { width: 100%; }
+  .platform-selector { margin-left: 0; }
+  .platform-options { grid-template-columns: 1fr; }
 }

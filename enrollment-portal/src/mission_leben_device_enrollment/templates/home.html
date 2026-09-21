@@ -24,11 +24,11 @@
   <div class="download-copy">
     <span class="download-kicker">Mission Leben Zentral</span>
     <h2 id="app-download-title">App noch nicht installiert?</h2>
-    <p>QR-Code mit dem Android-Gerät scannen oder die App direkt herunterladen.</p>
-    <a class="download-link" href="{{ apk_download_url }}" rel="noreferrer">App herunterladen →</a>
+    <p>QR-Code mit dem Android-Gerät scannen oder die passende Installationsanleitung öffnen.</p>
+    <a class="download-link" href="{{ install_url }}">Installationsanleitung öffnen →</a>
   </div>
-  <a class="download-qr" href="{{ apk_download_url }}" rel="noreferrer" aria-label="App herunterladen">
-    {{ apk_qr_svg | safe }}
+  <a class="download-qr" href="{{ install_url }}" aria-label="Installationsanleitung öffnen">
+    {{ install_qr_svg | safe }}
   </a>
 </section>
 {% endblock %}

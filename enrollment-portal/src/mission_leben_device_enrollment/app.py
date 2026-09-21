@@ -98,8 +98,11 @@ def create_app(
         qr = segno.make(enrollment.install_link(settings.public_origin), error="m")
         return qr.svg_inline(scale=5, border=2, dark="#5b1438", light="#ffffff")
 
-    def download_qr_svg() -> str:
-        qr = segno.make(settings.apk_download_url, error="m")
+    def install_url() -> str:
+        return settings.public_origin.rstrip("/") + "/install"
+
+    def install_qr_svg() -> str:
+        qr = segno.make(install_url(), error="m")
         return qr.svg_inline(scale=3, border=2, dark="#5b1438", light="#ffffff")
 
     @app.exception_handler(AuthentikError)
@@ -152,8 +155,8 @@ def create_app(
         current = actor(request)
         return html(
             "home.html",
-            apk_download_url=settings.apk_download_url,
-            apk_qr_svg=download_qr_svg(),
+            install_url=install_url(),
+            install_qr_svg=install_qr_svg(),
             **page_context(current),
         )
 

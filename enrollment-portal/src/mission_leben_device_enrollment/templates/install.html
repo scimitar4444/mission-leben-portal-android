@@ -4,23 +4,54 @@
 <section class="intro centered install-intro">
   <span class="step">Sichere Geräte-Einrichtung</span>
   <h1>Mission Leben Zentral</h1>
-  <p>Installieren Sie zuerst die App. Kehren Sie danach auf diese Seite zurück und setzen Sie die Einrichtung fort.</p>
+  <p>Wählen Sie Ihr Android-Gerät aus. Wir führen Sie sicher durch die Installation.</p>
 </section>
 
 <section class="install-card" aria-labelledby="install-heading">
   <div class="install-step">
     <span class="install-number" aria-hidden="true">1</span>
     <div>
-      <h2 id="install-heading">App installieren</h2>
-      <p>Laden Sie die offizielle App herunter und bestätigen Sie die Installation in Android.</p>
-      <a class="button primary" href="{{ apk_download_url }}" rel="noreferrer">App herunterladen</a>
-      <p class="hint">Beim ersten Mal kann Android nach <strong>„Apps aus dieser Quelle zulassen“</strong> fragen.</p>
+      <h2 id="install-heading">Gerät auswählen</h2>
+      <p>Bei Samsung ist vor der Installation ein zusätzlicher Sicherheitsschritt notwendig.</p>
     </div>
+  </div>
+
+  <div class="platform-selector">
+    <input class="platform-radio" type="radio" name="platform" id="platform-android" checked>
+    <input class="platform-radio" type="radio" name="platform" id="platform-samsung">
+    <div class="platform-options" role="radiogroup" aria-label="Android-Gerät auswählen">
+      <label for="platform-android">Android</label>
+      <label for="platform-samsung">Samsung Android</label>
+    </div>
+
+    <section id="guide-android" class="platform-guide" aria-labelledby="platform-android-title">
+      <h3 id="platform-android-title">Installation auf Android</h3>
+      <ol class="install-list">
+        <li>Tippen Sie auf <strong>App herunterladen</strong>.</li>
+        <li>Falls Android nachfragt, öffnen Sie die Einstellungen und erlauben Sie für Ihren Browser <strong>„Apps aus dieser Quelle zulassen“</strong>.</li>
+        <li>Kehren Sie zurück und bestätigen Sie <strong>Installieren</strong>.</li>
+      </ol>
+      <a class="button primary" href="{{ apk_download_url }}" rel="noreferrer">App herunterladen</a>
+      <p class="security-hint">Installieren Sie auf diesem Weg ausschließlich <strong>Mission Leben Zentral</strong> und die von der App angebotenen Updates.</p>
+    </section>
+
+    <section id="guide-samsung" class="platform-guide" aria-labelledby="platform-samsung-title">
+      <h3 id="platform-samsung-title">Installation auf Samsung Android</h3>
+      <ol class="install-list">
+        <li>Öffnen Sie <strong>Einstellungen → Sicherheit und Datenschutz → Automatische Sperre</strong> und schalten Sie diese aus. Gemeint ist nicht die Bildschirmsperre.</li>
+        <li>Wenn Samsung anbietet, die Automatische Sperre nach 30 Minuten wieder einzuschalten, lehnen Sie dies ab. Die Sperre muss für App-Updates ausgeschaltet bleiben.</li>
+        <li>Tippen Sie anschließend auf <strong>App herunterladen</strong>.</li>
+        <li>Falls Samsung nachfragt, erlauben Sie unter <strong>Weitere Sicherheitseinstellungen → Unbekannte Apps installieren</strong> die Installation für Samsung Internet oder Chrome.</li>
+        <li>Kehren Sie zurück und bestätigen Sie <strong>Installieren</strong>.</li>
+      </ol>
+      <a class="button primary" href="{{ apk_download_url }}" rel="noreferrer">App herunterladen</a>
+      <p class="security-hint">Installieren Sie auf diesem Weg ausschließlich <strong>Mission Leben Zentral</strong> und die von der App angebotenen Updates.</p>
+    </section>
   </div>
 
   <div class="install-divider" aria-hidden="true"></div>
 
-  <div class="install-step">
+  <div id="enrollment-finish" class="install-step">
     <span class="install-number" aria-hidden="true">2</span>
     <div>
       <h2>Gerät einrichten</h2>
@@ -29,10 +60,23 @@
       <p id="enrollment-status" class="hint" role="status">Einrichtungslink wird geprüft …</p>
     </div>
   </div>
+
+  <div id="manual-finish" class="install-step" hidden>
+    <span class="install-number" aria-hidden="true">2</span>
+    <div>
+      <h2>App öffnen</h2>
+      <p>Öffnen Sie nach der Installation <strong>Mission Leben Zentral</strong> über das App-Symbol.</p>
+      <p>Mitarbeitende mit TOTP können sich direkt in der App anmelden und ihr persönliches Gerät registrieren. Wurde das Gerät bereits durch eine berechtigte Person vorbereitet, übernimmt die App stattdessen die vorbereitete Registrierung.</p>
+    </div>
+  </div>
+
+  <div class="install-home-link">
+    <a href="/">Zur Startseite</a>
+  </div>
 </section>
 
 <noscript>
-  <section class="notice error-notice">Für die sichere Übergabe des einmaligen Einrichtungscodes muss JavaScript im Browser aktiviert sein.</section>
+  <section class="notice error-notice">Wenn Sie diese Seite über einen Einrichtungs-QR-Code geöffnet haben, muss JavaScript für die sichere Übergabe des einmaligen Codes aktiviert sein.</section>
 </noscript>
 <script src="/static/install.js" defer></script>
 {% endblock %}

@@ -570,7 +570,8 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
         assert home.status_code == 200
         assert "Mitarbeiter-Handy" in home.text
         assert "App noch nicht installiert?" in home.text
-        assert settings.apk_download_url in home.text
+        assert f'href="{settings.public_origin}/install"' in home.text
+        assert settings.apk_download_url not in home.text
         assert "<svg" in home.text
         assert "default-src 'none'" in home.headers["content-security-policy"]
         assert home.headers["referrer-policy"] == "same-origin"
@@ -588,6 +589,15 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
         installer = client.get("/install#fragment-is-not-sent")
         assert installer.status_code == 200
         assert "App herunterladen" in installer.text
+        assert "Samsung Android" in installer.text
+        assert "Automatische Sperre" in installer.text
+        assert "nach 30 Minuten" in installer.text
+        assert "muss für App-Updates ausgeschaltet bleiben" in installer.text
+        assert "vorübergehend aus" not in installer.text
+        assert "Browser wieder aus" not in installer.text
+        assert 'href="/">Zur Startseite</a>' in installer.text
+        assert "Mitarbeitende mit TOTP können sich direkt in der App anmelden" in installer.text
+        assert 'id="manual-finish"' in installer.text
         assert settings.apk_download_url in installer.text
         assert "script-src 'self'" in installer.headers["content-security-policy"]
         assert "script-src" not in home.headers["content-security-policy"]

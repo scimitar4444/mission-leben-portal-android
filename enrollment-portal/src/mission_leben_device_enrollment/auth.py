@@ -55,6 +55,14 @@ class Actor:
         return " / ".join(ordered) if ordered else "Mitarbeiter"
 
 
+def _decode_utf8_proxy_header(value: str) -> str:
+    """Restore UTF-8 text exposed through ASGI's Latin-1 header mapping."""
+    try:
+        return value.encode("latin-1").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return value
+
+
 def authenticated_actor_from_request(request: Request, settings: Settings) -> Actor:
     if request.headers.get("x-authentik-meta-app", "") != settings.proxy_app_slug:
         raise HTTPException(401, "Authentik-Schutz fehlt oder ist falsch konfiguriert.")
@@ -92,7 +100,10 @@ def authenticated_actor_from_request(request: Request, settings: Settings) -> Ac
     return Actor(
         uid=uid,
         username=username,
-        display_name=request.headers.get("x-authentik-name", "").strip() or username,
+        display_name=_decode_utf8_proxy_header(
+            request.headers.get("x-authentik-name", "").strip()
+        )
+        or username,
         roles=roles,
         organization_names=frozenset(organizations),
     )
