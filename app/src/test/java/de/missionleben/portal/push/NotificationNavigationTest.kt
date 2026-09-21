@@ -1,6 +1,7 @@
 package de.missionleben.portal.push
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class NotificationNavigationTest {
@@ -41,6 +42,33 @@ class NotificationNavigationTest {
                 targetId = "c92a7e31-0ac3-41ce-8953-aed18ee2774b:200207",
                 applicationLaunchUrl = "https://id.mission-leben.de/application/saml/zimbra-mail/init/",
                 zimbraWebBaseUrl = "https://mail.mission-leben.de",
+            ),
+        )
+    }
+
+    @Test
+    fun `direct zimbra message gets inbox as browser history parent`() {
+        assertEquals(
+            "https://mail.mission-leben.de/modern/email/Inbox",
+            NotificationNavigation.zimbraMailOverviewUrl(
+                "https://mail.mission-leben.de/modern/email/Inbox/message/200207",
+                "https://mail.mission-leben.de",
+            ),
+        )
+    }
+
+    @Test
+    fun `non zimbra targets never get a synthetic browser history parent`() {
+        assertNull(
+            NotificationNavigation.zimbraMailOverviewUrl(
+                "https://evil.example/modern/email/Inbox/message/200207",
+                "https://mail.mission-leben.de",
+            ),
+        )
+        assertNull(
+            NotificationNavigation.zimbraMailOverviewUrl(
+                "https://mail.mission-leben.de/modern/email/Inbox/conversation/42",
+                "https://mail.mission-leben.de",
             ),
         )
     }

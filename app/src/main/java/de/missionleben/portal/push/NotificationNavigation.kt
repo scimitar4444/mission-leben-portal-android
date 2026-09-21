@@ -21,6 +21,21 @@ object NotificationNavigation {
         }
     }
 
+    internal fun zimbraMailOverviewUrl(targetUrl: String, zimbraWebBaseUrl: String): String? {
+        val target = runCatching { URI(targetUrl) }.getOrNull() ?: return null
+        val base = runCatching { URI(zimbraWebBaseUrl) }.getOrNull() ?: return null
+        if (!target.scheme.equals("https", ignoreCase = true) || !base.scheme.equals("https", ignoreCase = true)) {
+            return null
+        }
+        if (!target.host.equals(base.host, ignoreCase = true) || effectivePort(target) != effectivePort(base)) {
+            return null
+        }
+        if (!target.rawPath.orEmpty().matches(Regex("/modern/email/Inbox/message/[0-9]{1,20}/?"))) {
+            return null
+        }
+        return URI("https", base.rawAuthority, "/modern/email/Inbox", null, null).toASCIIString()
+    }
+
     private fun zimbraMessageUrl(baseUrl: String, messageId: String): String {
         val base = runCatching { URI(baseUrl) }.getOrNull() ?: return baseUrl
         if (!base.scheme.equals("https", ignoreCase = true) || base.host.isNullOrBlank()) return baseUrl
@@ -74,4 +89,10 @@ object NotificationNavigation {
     private fun decode(value: String): String = runCatching {
         URLDecoder.decode(value, StandardCharsets.UTF_8)
     }.getOrDefault(value)
+
+    private fun effectivePort(uri: URI): Int = when {
+        uri.port >= 0 -> uri.port
+        uri.scheme.equals("https", ignoreCase = true) -> 443
+        else -> -1
+    }
 }

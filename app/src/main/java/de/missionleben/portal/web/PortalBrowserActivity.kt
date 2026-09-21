@@ -51,6 +51,7 @@ import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
+import de.missionleben.portal.push.NotificationNavigation
 import de.missionleben.portal.push.PushEventDispatcher
 import de.missionleben.portal.security.SharedSessionLifecyclePolicy
 import org.json.JSONObject
@@ -70,6 +71,8 @@ class PortalBrowserActivity : FragmentActivity() {
     private var sessionExpiredResultDelivered = false
     private var sharedSessionResultDelivered = false
     private var talkChatNoticeShown = false
+    private var pendingInitialTargetUrl: String? = null
+    private var initialHistoryUrl: String? = null
     private val deviceService by lazy { DeviceServiceRepository(applicationContext) }
     private val sessionPolicy by lazy {
         WebSessionPolicy(
@@ -138,9 +141,9 @@ class PortalBrowserActivity : FragmentActivity() {
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState)
         } else if (intent.getBooleanExtra(EXTRA_CLEAR_BEFORE_LOAD, false)) {
-            clearLocalWebData(this) { webView.loadUrl(startUrl) }
+            clearLocalWebData(this) { loadInitialUrl(startUrl) }
         } else {
-            webView.loadUrl(startUrl)
+            loadInitialUrl(startUrl)
         }
     }
 
@@ -203,7 +206,7 @@ class PortalBrowserActivity : FragmentActivity() {
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
             setPadding(dp(8), 0, dp(12), 0)
-            setOnClickListener { finish() }
+            setOnClickListener { onBackPressedDispatcher.onBackPressed() }
         }
         titleView = TextView(this).apply {
             text = initialTitle.ifBlank { getString(R.string.browser_protected_area) }
@@ -326,6 +329,30 @@ class PortalBrowserActivity : FragmentActivity() {
         })
     }
 
+    private fun loadInitialUrl(startUrl: String) {
+        val historyUrl = intent.getStringExtra(EXTRA_INITIAL_HISTORY_URL)
+            ?.takeIf(policy::isTrustedWebUrl)
+            ?.takeIf { sameWebOrigin(it, startUrl) }
+        if (historyUrl == null || historyUrl == startUrl) {
+            webView.loadUrl(startUrl)
+            return
+        }
+        initialHistoryUrl = historyUrl
+        pendingInitialTargetUrl = startUrl
+        webView.loadUrl(historyUrl)
+    }
+
+    private fun loadPendingInitialTarget(view: WebView, currentUrl: String) {
+        val targetUrl = pendingInitialTargetUrl ?: return
+        val historyUrl = initialHistoryUrl ?: return
+        if (!sameWebOrigin(currentUrl, historyUrl)) return
+        pendingInitialTargetUrl = null
+        initialHistoryUrl = null
+        view.post {
+            if (!isFinishing && !isDestroyed) view.loadUrl(targetUrl)
+        }
+    }
+
     private inner class BrowserClient : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
             handleNavigation(request.url.toString(), request.isForMainFrame)
@@ -341,6 +368,7 @@ class PortalBrowserActivity : FragmentActivity() {
         override fun onPageFinished(view: WebView, url: String) {
             super.onPageFinished(view, url)
             if (interceptExpiredSession(url)) return
+            loadPendingInitialTarget(view, url)
             titleView.text = view.title?.takeIf { it.isNotBlank() } ?: titleView.text
             if (isAuthentikOrigin(url)) view.evaluateJavascript(ENDPOINT_BRIDGE_SCRIPT, null)
             if (TalkChatPolicy.isTalkPage(url)) {
@@ -402,6 +430,15 @@ class PortalBrowserActivity : FragmentActivity() {
         uri.scheme == "https" &&
             uri.host.equals(configured.host, ignoreCase = true) &&
             uri.port == configured.port
+    }.getOrDefault(false)
+
+    private fun sameWebOrigin(first: String, second: String): Boolean = runCatching {
+        val firstUri = Uri.parse(first)
+        val secondUri = Uri.parse(second)
+        firstUri.scheme.equals("https", ignoreCase = true) &&
+            secondUri.scheme.equals("https", ignoreCase = true) &&
+            firstUri.host.equals(secondUri.host, ignoreCase = true) &&
+            firstUri.port == secondUri.port
     }.getOrDefault(false)
 
     private fun handleNavigation(url: String, isMainFrame: Boolean): Boolean {
@@ -570,6 +607,7 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_CLEAR_BEFORE_LOAD = "clear_before_load"
         private const val EXTRA_LOGOUT = "logout"
         private const val EXTRA_SELF_ENROLLMENT = "self_enrollment"
+        private const val EXTRA_INITIAL_HISTORY_URL = "initial_history_url"
         private const val DOWNLOAD_PREFERENCES = "protected_web_downloads"
         private const val DOWNLOAD_IDS = "download_ids"
         private const val ENDPOINT_BRIDGE_NAME = "MissionLebenEndpoint"
@@ -599,6 +637,11 @@ class PortalBrowserActivity : FragmentActivity() {
                 .putExtra(EXTRA_URL, url)
                 .putExtra(EXTRA_DEVICE_MODE, mode.name)
                 .putExtra(EXTRA_TITLE, title ?: context.getString(R.string.browser_web_application))
+                .apply {
+                    NotificationNavigation.zimbraMailOverviewUrl(url, BuildConfig.ZIMBRA_WEB_BASE_URL)?.let {
+                        putExtra(EXTRA_INITIAL_HISTORY_URL, it)
+                    }
+                }
 
         fun authorizationIntent(context: Context, url: String, mode: DeviceMode): Intent =
             Intent(context, PortalBrowserActivity::class.java)
