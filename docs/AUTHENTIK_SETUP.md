@@ -109,7 +109,7 @@ Das idempotente Skript `authentik/bootstrap_endpoint_devices.py` legt an. Für d
 Eine optionale Pilotzuordnung für `ENT_DEVICE_PROFILE_SWITCH` wird nur zur Laufzeit über `ML_DEVICE_PROFILE_SWITCH_PILOT_USERNAME` übergeben. Ohne diese Variable verändert das öffentliche Bootstrap-Skript die bestehende Mitgliedschaft dieser Gruppe nicht. Reale Benutzernamen gehören weder in das Repository noch in Befehlsbeispiele oder Release-Notizen.
 
 1. den Agent Connector `Mission Leben Android` mit eigenem Challenge-Schlüssel,
-2. die bindungsfreie Device Access Group `Mission Leben Android - Personal` für persönliche Geräte sowie standortbezogene Gruppen `Mission Leben Android - Shared - ORG_*`,
+2. die bindungsfreie historische Basisgruppe `Mission Leben Android - Personal` sowie benutzerbezogene Gruppen `Mission Leben Android - Personal - <Benutzername>` und standortbezogene Gruppen `Mission Leben Android - Shared - ORG_*`; der aktuelle Portalweg verwendet ausschließlich die unmittelbar gebundenen Benutzer- beziehungsweise Standortgruppen,
 3. den Public-OIDC-Client `mission-leben-android`,
 4. eine erforderliche Endpoint Stage nach der Identifikation und vor dem Passwort,
 5. einen eigenen Authorization Flow, der die Endpoint-Challenge selbst bei vorhandener Authentik-Sitzung erneut ausführt,
@@ -121,6 +121,8 @@ Eine optionale Pilotzuordnung für `ENT_DEVICE_PROFILE_SWITCH` wird nur zur Lauf
 11. eine eng begrenzte Wiederanmeldung, bei der `login_hint` den bekannten Benutzer übernimmt und Authentik vorhandenes TOTP verwendet, andernfalls das Passwort.
 
 Die App löst neue, vom Geräte-Einrichtungsportal erzeugte QR-Codes einmalig über dessen Redeem-Endpunkt ein. Der zustandslose Container prüft den kurzlebigen Authentik-Enrollment-Token und ruft anschließend `/api/v3/endpoints/agents/connectors/enroll/` auf. Die App liest ihre Authentik-Geräte-ID aus `agent_config`, meldet Android-Fakten über `check_in` und beantwortet die Endpoint-Stage-Challenge mit dem im Android Keystore verschlüsselten Device Token. Authentik speichert Device, Connection, Token, Fakten, Ablauf, Device Access Group und Benutzer- beziehungsweise Einrichtungsbindung. Der separate Container besitzt dafür keine eigene Datenbank. Damit Geräte in **Endpoint-Management → Geräte** unmittelbar auffindbar sind, ergänzt das Portal den sichtbaren Gerätenamen um den gebundenen Benutzernamen beziehungsweise die `ORG_*`-Einrichtung und schreibt dieselbe Zuordnung als `mission-leben.de/assigned-*`-Attribute an den Device-Datensatz. Diese Felder dienen ausschließlich Anzeige, Suche und Nachvollziehbarkeit; autorisiert wird weiterhin nur über die kanonische `DeviceUserBinding` der Device Access Group.
+
+Persönliche Device Access Groups zeigen im Namen den Authentik-Benutzernamen statt der technischen UUID. Die unveränderliche Zuordnung bleibt in `mission-leben.de/user-uuid` gespeichert; das Portal sucht über dieses Attribut und aktualisiert den sichtbaren Gruppennamen bei einer späteren Umbenennung des Kontos. Dadurch entstehen weder eine zweite Gruppe noch eine neue Gerätefreigabe.
 
 Vor jeder Anmeldung auf einem Shared Tablet löscht der Webcontainer Cookies, Webspeicher, Cache, Formulardaten und Downloads. Deshalb setzt die OIDC-Anfrage dort bewusst kein `prompt=login`: Nach dem gerade abgeschlossenen Authentik-Flow würde dieser Parameter erneut in denselben Identifikationsschritt führen. Die lokale Bereinigung verhindert trotzdem, dass die Sitzung des vorherigen Mitarbeiters übernommen wird.
 

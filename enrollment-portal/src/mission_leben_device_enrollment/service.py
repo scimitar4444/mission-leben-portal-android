@@ -147,15 +147,20 @@ class EnrollmentService:
     ) -> IssuedEnrollment:
         user_uuid = str(user["uuid"])
         user_pk = int(user["pk"])
-        group_name = PERSONAL_PREFIX + user_uuid
+        username = str(user["username"]).strip()
+        group_name = PERSONAL_PREFIX + username
         attributes = {
             "mission-leben.de/purpose": "android-portal",
             "mission-leben.de/status": "active",
             "mission-leben.de/mode": "personal",
             "mission-leben.de/user-uuid": user_uuid,
-            "mission-leben.de/username": user["username"],
+            "mission-leben.de/username": username,
         }
-        access_group = await self._access_group(group_name, attributes)
+        access_group = await self._personal_access_group(
+            group_name,
+            user_uuid,
+            attributes,
+        )
         await self._ensure_binding(access_group["pbm_uuid"], user_pk=user_pk)
         replaced_devices = await self._active_devices(access_group["pbm_uuid"])
         subject = str(user.get("uid", "")).strip()
@@ -174,6 +179,45 @@ class EnrollmentService:
                 "self_service": self_service,
             },
             replaced_devices=replaced_devices,
+        )
+
+    async def _personal_access_group(
+        self,
+        name: str,
+        user_uuid: str,
+        attributes: dict[str, Any],
+    ) -> dict[str, Any]:
+        matches = [
+            group
+            for group in await self.authentik.access_groups()
+            if group.get("attributes", {}).get("mission-leben.de/purpose")
+            == "android-portal"
+            and group.get("attributes", {}).get("mission-leben.de/mode") == "personal"
+            and str(
+                group.get("attributes", {}).get("mission-leben.de/user-uuid", "")
+            )
+            == user_uuid
+        ]
+        if len(matches) > 1:
+            raise AuthentikError(
+                409,
+                "Für diesen Mitarbeiter existieren mehrere Gerätegruppen. Bitte wenden Sie sich an die IT.",
+            )
+        if not matches:
+            return await self._access_group(name, attributes)
+
+        group = matches[0]
+        same_name = await self.authentik.access_group_by_name(name)
+        if same_name is not None and same_name["pbm_uuid"] != group["pbm_uuid"]:
+            raise AuthentikError(
+                409,
+                "Der lesbare Gerätegruppenname ist bereits anderweitig vergeben. Bitte wenden Sie sich an die IT.",
+            )
+        existing = group.get("attributes", {})
+        return await self.authentik.update_access_group(
+            group["pbm_uuid"],
+            name,
+            {**existing, **attributes},
         )
 
     async def issue_shared(

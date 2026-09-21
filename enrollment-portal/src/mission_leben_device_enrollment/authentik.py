@@ -181,6 +181,11 @@ class AuthentikClient:
         )
         return next((item for item in results if item["name"] == name), None)
 
+    async def access_groups(self) -> list[dict[str, Any]]:
+        return await self._all_results(
+            "/endpoints/device_access_groups/", {"page_size": 100}
+        )
+
     async def access_group(self, group_uuid: str) -> dict[str, Any]:
         UUID(group_uuid)
         return await self._request("GET", f"/endpoints/device_access_groups/{group_uuid}/")

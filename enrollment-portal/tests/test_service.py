@@ -88,6 +88,9 @@ class FakeAuthentik:
     async def access_group_by_name(self, _):
         return self.existing_group
 
+    async def access_groups(self):
+        return [self.existing_group] if self.existing_group is not None else []
+
     async def access_group(self, group_uuid):
         assert group_uuid == self.token_record["device_group"]
         return self.token_record["device_group_obj"]
@@ -238,6 +241,9 @@ async def test_personal_enrollment_is_bound_before_qr_is_issued(settings):
 
     issued = await service.issue_personal(actor(), 42)
 
+    assert authentik.created_groups[0]["name"] == (
+        "Mission Leben Android - Personal - m.beispiel"
+    )
     assert authentik.created_groups[0]["attributes"]["mission-leben.de/user-uuid"] == authentik.user["uuid"]
     assert authentik.created_bindings == [
         ("user", "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee", 42)
@@ -254,6 +260,29 @@ async def test_personal_enrollment_is_bound_before_qr_is_issued(settings):
     assert split_install_link.query == ""
     assert "token=abcdefghijklmnopqrstuvwxyz0123456789_-" in split_install_link.fragment
     assert authentik.audit_events[0][0] == "model_created"
+
+
+@pytest.mark.asyncio
+async def test_personal_enrollment_renames_uuid_group_without_creating_a_duplicate(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.existing_group = {
+        "pbm_uuid": "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee",
+        "name": "Mission Leben Android - Personal - " + authentik.user["uuid"],
+        "attributes": {
+            "mission-leben.de/purpose": "android-portal",
+            "mission-leben.de/status": "active",
+            "mission-leben.de/mode": "personal",
+            "mission-leben.de/user-uuid": authentik.user["uuid"],
+            "mission-leben.de/username": authentik.user["username"],
+        },
+    }
+
+    await EnrollmentService(settings, authentik).issue_personal(actor(), 42)
+
+    assert authentik.created_groups == []
+    assert authentik.existing_group["name"] == (
+        "Mission Leben Android - Personal - m.beispiel"
+    )
 
 
 @pytest.mark.asyncio

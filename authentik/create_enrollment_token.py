@@ -33,6 +33,39 @@ def required(name: str) -> str:
     return value
 
 
+def personal_access_group(user: User) -> DeviceAccessGroup:
+    user_uuid = str(user.uuid)
+    desired_name = PERSONAL_ACCESS_GROUP_PREFIX + user.username
+    matches = [
+        group
+        for group in DeviceAccessGroup.objects.all()
+        if (group.attributes or {}).get("mission-leben.de/purpose") == "android-portal"
+        and (group.attributes or {}).get("mission-leben.de/mode") == "personal"
+        and str((group.attributes or {}).get("mission-leben.de/user-uuid", ""))
+        == user_uuid
+    ]
+    if len(matches) > 1:
+        raise RuntimeError("The selected Authentik user has multiple device access groups")
+    access_group = matches[0] if matches else None
+    name_owner = DeviceAccessGroup.objects.filter(name=desired_name).first()
+    if name_owner is not None and name_owner != access_group:
+        raise RuntimeError("The readable personal device access group name is already in use")
+    attributes = {
+        **((access_group.attributes or {}) if access_group else {}),
+        "mission-leben.de/purpose": "android-portal",
+        "mission-leben.de/status": "active",
+        "mission-leben.de/mode": "personal",
+        "mission-leben.de/user-uuid": user_uuid,
+        "mission-leben.de/username": user.username,
+    }
+    if access_group is None:
+        return DeviceAccessGroup.objects.create(name=desired_name, attributes=attributes)
+    access_group.name = desired_name
+    access_group.attributes = attributes
+    access_group.save(update_fields=["name", "attributes"])
+    return access_group
+
+
 mode = required("ML_DEVICE_MODE").lower()
 if mode not in {"personal", "shared"}:
     raise RuntimeError("ML_DEVICE_MODE must be personal or shared")
@@ -43,18 +76,7 @@ if mode == "personal":
     user = User.objects.get(username=username)
     if not user.is_active:
         raise RuntimeError("The selected Authentik user is inactive")
-    access_group, _ = DeviceAccessGroup.objects.update_or_create(
-        name=PERSONAL_ACCESS_GROUP_PREFIX + str(user.uuid),
-        defaults={
-            "attributes": {
-                "mission-leben.de/purpose": "android-portal",
-                "mission-leben.de/status": "active",
-                "mission-leben.de/mode": "personal",
-                "mission-leben.de/user-uuid": str(user.uuid),
-                "mission-leben.de/username": user.username,
-            }
-        },
-    )
+    access_group = personal_access_group(user)
     DeviceUserBinding.objects.filter(target=access_group).delete()
     DeviceUserBinding.objects.create(
         target=access_group,

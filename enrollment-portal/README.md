@@ -19,6 +19,8 @@ Die Android-App übernimmt den Gerätemodus aus dem QR-Code. Der öffentliche Re
 
 Pro Mitarbeiter bleibt genau ein persönliches Handy aktiv. Zeigt Authentik bereits ein aktives persönliches Gerät, kennzeichnet die Oberfläche den Vorgang als Austausch. Das bisherige Gerät bleibt bis zum erfolgreichen Enrollment des neuen Handys verwendbar und erhält unmittelbar danach den dauerhaften Authentik-Status `disabled`. Die Historie bleibt dadurch in Authentik erhalten. Shared Tablets sind von dieser Austauschregel ausdrücklich ausgenommen.
 
+Die persönliche Device Access Group trägt den lesbaren Namen `Mission Leben Android - Personal - <Benutzername>`. Das Portal findet sie unabhängig vom sichtbaren Namen über das unveränderliche Attribut `mission-leben.de/user-uuid` wieder. Wird ein Benutzername geändert, benennt das Portal dieselbe Gruppe um, statt eine zweite Gruppe oder Freigabe anzulegen.
+
 ## Rollen
 
 | Portalrolle | Bestehende Authentik-Gruppe | Bereich |
