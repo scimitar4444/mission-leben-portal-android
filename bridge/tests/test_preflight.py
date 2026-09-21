@@ -150,8 +150,11 @@ class PreflightTest(unittest.TestCase):
     def test_dynamic_talk_directory_replaces_static_recipient_maps(self) -> None:
         talk_secret_path = self.root / "talk.secret"
         talk_secret_path.write_text("talk-secret-do-not-print-0123456789", encoding="utf-8")
-        api_password_path = self.root / "talk-api.password"
-        api_password_path.write_text("app-password", encoding="utf-8")
+        announcements_secret_path = self.root / "announcements.secret"
+        announcements_secret_path.write_text(
+            "announcement-secret-do-not-print-0123456789",
+            encoding="utf-8",
+        )
         directory_path = self.root / "communication-assignments.json"
         directory_path.write_text(json.dumps({"assignments": []}), encoding="utf-8")
         environment = {
@@ -161,8 +164,8 @@ class PreflightTest(unittest.TestCase):
             "BRIDGE_TALK_RECIPIENTS_JSON": "{}",
             "BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON": "{}",
             "BRIDGE_COMMUNICATION_DIRECTORY_FILE": str(directory_path),
-            "BRIDGE_NEXTCLOUD_TALK_API_USER": "bridge-user",
-            "BRIDGE_NEXTCLOUD_TALK_API_PASSWORD_FILE": str(api_password_path),
+            "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL": "https://cloud.example.invalid",
+            "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET_FILE": str(announcements_secret_path),
         }
 
         result = evaluate(environment, {"talk"})

@@ -173,6 +173,11 @@ class NtfySubscriberService : Service() {
         // scheduling failure must never reconnect the stream and replay the same alert.
         vault.rememberMessage(id)
         if (command is PushCommand.Fetch) {
+            if (!PushRegistrationStore(this).communicationAllowed()) {
+                NotificationPresenter.cancel(this, command.eventId)
+                return
+            }
+            PushEventDispatcher.recordUnread(this, command.eventType, command.eventId)
             scope.launch { displayNotification(command) }
         } else {
             runCatching { PushEventDispatcher.dispatch(this, command) }

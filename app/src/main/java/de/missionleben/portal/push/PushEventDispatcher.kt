@@ -11,15 +11,20 @@ object PushEventDispatcher {
                 if (command.action == PushAction.REFRESH_SECURITY_STATE) {
                     DeviceSecurityRefreshJobService.schedule(context)
                 } else if (PushRegistrationStore(context).communicationAllowed()) {
+                    recordUnread(context, command.action, "legacy-${command.action.wireName}-${System.nanoTime()}")
                     NotificationPresenter.showGeneric(context, command.action)
                 }
             }
             is PushCommand.Fetch -> {
                 if (!PushRegistrationStore(context).communicationAllowed()) return
+                recordUnread(context, command.eventType, command.eventId)
                 NotificationPresenter.showGeneric(context, command.eventType, command.eventId)
                 RichNotificationJobService.schedule(context, command)
             }
-            is PushCommand.Cancel -> NotificationPresenter.cancel(context, command.eventId)
+            is PushCommand.Cancel -> {
+                NotificationPresenter.cancel(context, command.eventId)
+                if (UnreadNotificationStore(context).cancel(command.eventId)) notifyUnreadChanged(context)
+            }
             is PushCommand.LoginApproval -> {
                 if (!MissionLebenApplication.portalVisible) {
                     NotificationPresenter.showLoginApproval(context, command.requestId)
@@ -33,6 +38,14 @@ object PushEventDispatcher {
         }
     }
 
+    fun recordUnread(context: Context, action: PushAction, eventId: String) {
+        if (UnreadNotificationStore(context).record(action, eventId)) notifyUnreadChanged(context)
+    }
+
+    private fun notifyUnreadChanged(context: Context) {
+        context.sendBroadcast(Intent(ACTION_UNREAD_CHANGED).setPackage(context.packageName))
+    }
+
     const val EXTRA_PUSH_ACTION = "de.missionleben.portal.PUSH_ACTION"
     const val EXTRA_EVENT_ID = "de.missionleben.portal.EVENT_ID"
     const val EXTRA_LOGIN_APPROVAL_REQUEST_ID = "de.missionleben.portal.LOGIN_APPROVAL_REQUEST_ID"
@@ -40,4 +53,5 @@ object PushEventDispatcher {
     const val ACTION_REGISTRATION_CHANGED = "de.missionleben.portal.PUSH_REGISTRATION_CHANGED"
     const val ACTION_LOGIN_APPROVAL_CHANGED = "de.missionleben.portal.LOGIN_APPROVAL_CHANGED"
     const val ACTION_SECURITY_STATE_CHANGED = "de.missionleben.portal.SECURITY_STATE_CHANGED"
+    const val ACTION_UNREAD_CHANGED = "de.missionleben.portal.UNREAD_CHANGED"
 }

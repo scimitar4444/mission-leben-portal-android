@@ -56,6 +56,7 @@ class MainActivity : FragmentActivity() {
                         intent.getStringExtra(PushEventDispatcher.EXTRA_ENROLLMENT_STATE),
                     )
                 }
+                PushEventDispatcher.ACTION_UNREAD_CHANGED -> viewModel.refreshUnreadNotificationBadges()
             }
         }
     }
@@ -215,6 +216,7 @@ class MainActivity : FragmentActivity() {
         viewModel.checkForUpdates()
         viewModel.refreshDeviceStatus()
         viewModel.refreshAnnouncements()
+        viewModel.refreshUnreadNotificationBadges()
         viewModel.startLoginApprovalPolling()
         ContextCompat.registerReceiver(
             this,
@@ -223,6 +225,7 @@ class MainActivity : FragmentActivity() {
                 addAction(PushEventDispatcher.ACTION_REGISTRATION_CHANGED)
                 addAction(PushEventDispatcher.ACTION_LOGIN_APPROVAL_CHANGED)
                 addAction(PushEventDispatcher.ACTION_SECURITY_STATE_CHANGED)
+                addAction(PushEventDispatcher.ACTION_UNREAD_CHANGED)
             },
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )

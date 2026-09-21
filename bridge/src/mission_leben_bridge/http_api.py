@@ -38,11 +38,20 @@ class BridgeHttpServer(ThreadingHTTPServer):
         participant_client = None
         communication_directory = None
         if settings.communication_directory_file is not None:
-            participant_client = NextcloudTalkParticipants(
-                settings.nextcloud_backend_url,
-                settings.nextcloud_talk_api_user,
-                settings.nextcloud_talk_api_password,
-            )
+            if (
+                settings.nextcloud_announcements_url
+                and settings.nextcloud_announcements_secret is not None
+            ):
+                participant_client = NextcloudTalkParticipants(
+                    settings.nextcloud_announcements_url,
+                    signed_secret=settings.nextcloud_announcements_secret,
+                )
+            else:
+                participant_client = NextcloudTalkParticipants(
+                    settings.nextcloud_backend_url,
+                    settings.nextcloud_talk_api_user,
+                    settings.nextcloud_talk_api_password,
+                )
             communication_directory = CommunicationDirectory(
                 settings.communication_directory_file
             )

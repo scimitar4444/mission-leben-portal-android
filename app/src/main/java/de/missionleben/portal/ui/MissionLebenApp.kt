@@ -27,6 +27,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Badge
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -443,8 +444,22 @@ private fun Home(
                     val first = state.applications[rowIndex * 2]
                     val second = state.applications.getOrNull(rowIndex * 2 + 1)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        AppTile(first, Modifier.weight(1f), onOpenUrl)
-                        if (second != null) AppTile(second, Modifier.weight(1f), onOpenUrl) else Spacer(Modifier.weight(1f))
+                        AppTile(
+                            first,
+                            state.unreadNotificationBadges.countFor(first),
+                            Modifier.weight(1f),
+                            onOpenUrl,
+                        )
+                        if (second != null) {
+                            AppTile(
+                                second,
+                                state.unreadNotificationBadges.countFor(second),
+                                Modifier.weight(1f),
+                                onOpenUrl,
+                            )
+                        } else {
+                            Spacer(Modifier.weight(1f))
+                        }
                     }
                 }
             }
@@ -1148,26 +1163,40 @@ private fun SectionTitle(title: String, action: String, onAction: () -> Unit) {
 }
 
 @Composable
-private fun AppTile(application: PortalApplication, modifier: Modifier, onOpenUrl: (String) -> Unit) {
+private fun AppTile(
+    application: PortalApplication,
+    unreadCount: Int,
+    modifier: Modifier,
+    onOpenUrl: (String) -> Unit,
+) {
     Card(
         modifier = modifier.height(106.dp).clickable { onOpenUrl(application.launchUrl) },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
-        Column(Modifier.padding(14.dp)) {
-            Box(
-                Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    application.name.take(1).uppercase(),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontWeight = FontWeight.Black,
-                )
+        Box(Modifier.fillMaxSize()) {
+            Column(Modifier.padding(14.dp)) {
+                Box(
+                    Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        application.name.take(1).uppercase(),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Black,
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(application.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
-            Spacer(Modifier.height(8.dp))
-            Text(application.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (unreadCount > 0) {
+                Badge(
+                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 10.dp, end = 10.dp),
+                ) {
+                    Text(if (unreadCount > 99) "99+" else unreadCount.toString())
+                }
+            }
         }
     }
 }

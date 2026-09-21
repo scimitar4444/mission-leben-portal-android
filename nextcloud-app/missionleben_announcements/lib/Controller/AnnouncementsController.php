@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\MissionLebenAnnouncements\Controller;
 
+use OCA\MissionLebenAnnouncements\Service\SignedRequestVerifier;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -11,7 +12,6 @@ use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\DB\QueryBuilder\IQueryBuilder;
-use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\IGroupManager;
 use OCP\IRequest;
@@ -21,12 +21,11 @@ use OCP\IUserManager;
 #[OpenAPI(scope: OpenAPI::SCOPE_IGNORE)]
 class AnnouncementsController extends Controller {
     private const SIGNATURE_PATH = '/apps/missionleben_announcements/api/v1/announcements';
-    private const MAX_CLOCK_SKEW = 60;
 
     public function __construct(
         string $appName,
         IRequest $request,
-        private IConfig $config,
+        private SignedRequestVerifier $signatureVerifier,
         private IDBConnection $db,
         private IGroupManager $groupManager,
         private IUserManager $userManager,
@@ -41,7 +40,7 @@ class AnnouncementsController extends Controller {
         if (!is_string($rawBody)) {
             return new JSONResponse(['error' => 'invalid request'], Http::STATUS_BAD_REQUEST);
         }
-        if (!$this->validSignature($rawBody)) {
+        if (!$this->signatureVerifier->valid('POST', self::SIGNATURE_PATH, $rawBody)) {
             return new JSONResponse(['error' => 'authentication failed'], Http::STATUS_UNAUTHORIZED);
         }
         $payload = json_decode($rawBody, true);
@@ -136,24 +135,4 @@ class AnnouncementsController extends Controller {
         return count($matches) === 1 ? $matches[0] : null;
     }
 
-    private function validSignature(string $rawBody): bool {
-        $settings = $this->config->getSystemValue('missionleben_announcements', []);
-        $secret = is_array($settings) ? (string)($settings['secret'] ?? '') : '';
-        $timestamp = $this->request->getHeader('X-ML-Timestamp');
-        $nonce = $this->request->getHeader('X-ML-Nonce');
-        $signature = $this->request->getHeader('X-ML-Signature');
-        if (
-            strlen($secret) < 32
-            || !preg_match('/^[0-9]{10}$/', $timestamp)
-            || abs(time() - (int)$timestamp) > self::MAX_CLOCK_SKEW
-            || !preg_match('/^[A-Za-z0-9_-]{16,64}$/', $nonce)
-            || !preg_match('/^[A-Za-z0-9_-]{43}$/', $signature)
-        ) {
-            return false;
-        }
-        $canonical = "POST\n" . self::SIGNATURE_PATH . "\n" . $timestamp . "\n" . $nonce . "\n"
-            . hash('sha256', $rawBody);
-        $expected = rtrim(strtr(base64_encode(hash_hmac('sha256', $canonical, $secret, true)), '+/', '-_'), '=');
-        return hash_equals($expected, $signature);
-    }
 }

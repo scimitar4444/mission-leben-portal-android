@@ -3,6 +3,7 @@ package de.missionleben.portal.model
 import androidx.annotation.StringRes
 import de.missionleben.portal.R
 import de.missionleben.portal.push.NotificationPrivacy
+import de.missionleben.portal.push.NotificationBadgeCounts
 import de.missionleben.portal.update.AppUpdate
 import de.missionleben.portal.update.UpdateStatus
 
@@ -117,6 +118,7 @@ data class UiState(
     val quietHoursEnabled: Boolean = false,
     val quietStartMinutes: Int = 22 * 60,
     val quietEndMinutes: Int = 6 * 60,
+    val unreadNotificationBadges: NotificationBadgeCounts = NotificationBadgeCounts(),
     val capabilities: Set<PortalCapability> = emptySet(),
     val linkTargets: List<LinkTarget> = emptyList(),
     val loginApprovalRequest: LoginApprovalRequest? = null,

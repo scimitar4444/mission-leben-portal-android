@@ -5,6 +5,7 @@ import androidx.core.app.NotificationManagerCompat
 import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.push.PushManager
+import de.missionleben.portal.push.UnreadNotificationStore
 import de.missionleben.portal.web.PortalBrowserActivity
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,7 @@ object DeviceSecurityLock {
             clearReauthentication()
         }
         SecureSessionVault(applicationContext).clear()
+        UnreadNotificationStore(applicationContext).clearAll()
         NotificationManagerCompat.from(applicationContext).cancelAll()
         PushManager.stop(applicationContext)
     }

@@ -13,8 +13,20 @@ fi
 command -v docker >/dev/null
 command -v python3 >/dev/null
 
-install -d -m 0750 "$deploy_dir/data" "$deploy_dir/backups" "$deploy_dir/secrets" "$deploy_dir/ntfy-data"
+install -d -m 0750 \
+    "$deploy_dir/data" \
+    "$deploy_dir/backups" \
+    "$deploy_dir/secrets" \
+    "$deploy_dir/ntfy-data" \
+    "$deploy_dir/directory-data"
 chown 10001:10001 "$deploy_dir/data" "$deploy_dir/ntfy-data"
+chown 0:10001 "$deploy_dir/directory-data"
+if [[ ! -f "$deploy_dir/directory-data/communication-assignments.json" ]]; then
+    printf '%s\n' '{"assignments":[]}' \
+        > "$deploy_dir/directory-data/communication-assignments.json"
+fi
+chmod 0640 "$deploy_dir/directory-data/communication-assignments.json"
+chown 0:10001 "$deploy_dir/directory-data/communication-assignments.json"
 
 if [[ ! -f "$deploy_dir/secrets/nextcloud-talk-bot-secret" ]]; then
     umask 077
@@ -50,6 +62,7 @@ if [[ ! -f "$env_file" ]]; then
         'BRIDGE_NEXTCLOUD_TALK_SECRET_FILE=' \
         'BRIDGE_TALK_RECIPIENTS_JSON={}' \
         'BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON={}' \
+        'BRIDGE_COMMUNICATION_DIRECTORY_FILE=/run/mission-leben-directory/communication-assignments.json' \
         'BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL=' \
         'BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET_FILE=/run/secrets/nextcloud-announcements-secret' \
         'BRIDGE_ANNOUNCEMENT_CACHE_TTL_SECONDS=300' \
@@ -71,6 +84,7 @@ ensure_env_value BRIDGE_NTFY_INTERNAL_BASE_URL http://ntfy:2586
 ensure_env_value BRIDGE_NTFY_AUTH_FILE /ntfy/user.db
 ensure_env_value BRIDGE_NTFY_BINARY /usr/local/bin/ntfy
 ensure_env_value BRIDGE_NEXTCLOUD_TALK_SECRET_FILE ''
+ensure_env_value BRIDGE_COMMUNICATION_DIRECTORY_FILE /run/mission-leben-directory/communication-assignments.json
 chmod 0600 "$env_file"
 
 docker compose --project-name mission-leben-device -f "$compose_file" up -d --build ntfy bridge

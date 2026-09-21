@@ -239,6 +239,7 @@ class PortalBrowserActivity : FragmentActivity() {
         webView.setDownloadListener(SecureDownloadListener())
         installEndpointChallengeBridge()
         installTalkChatGuard()
+        installAnnouncementCenterGuard()
     }
 
     private fun installTalkChatGuard() {
@@ -247,6 +248,15 @@ class PortalBrowserActivity : FragmentActivity() {
             webView,
             TalkChatPolicy.CHAT_ONLY_SCRIPT,
             setOf(TalkChatPolicy.NEXTCLOUD_ORIGIN),
+        )
+    }
+
+    private fun installAnnouncementCenterGuard() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        WebViewCompat.addDocumentStartJavaScript(
+            webView,
+            AnnouncementCenterPolicy.EMBEDDED_SCRIPT,
+            setOf(AnnouncementCenterPolicy.NEXTCLOUD_ORIGIN),
         )
     }
 
@@ -317,6 +327,10 @@ class PortalBrowserActivity : FragmentActivity() {
                         Toast.LENGTH_LONG,
                     ).show()
                 }
+            }
+            if (AnnouncementCenterPolicy.isAnnouncementPage(url)) {
+                // Fallback for older WebView providers without document-start script support.
+                view.evaluateJavascript(AnnouncementCenterPolicy.EMBEDDED_SCRIPT, null)
             }
             if (intent.getBooleanExtra(EXTRA_LOGOUT, false) && !logoutFinished) {
                 logoutFinished = true

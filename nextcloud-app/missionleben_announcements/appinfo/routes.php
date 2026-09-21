@@ -9,5 +9,10 @@ return [
             'url' => '/api/v1/announcements',
             'verb' => 'POST',
         ],
+        [
+            'name' => 'talkParticipants#list',
+            'url' => '/api/v1/talk-participants',
+            'verb' => 'POST',
+        ],
     ],
 ];

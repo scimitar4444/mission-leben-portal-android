@@ -126,6 +126,7 @@ services:
     env_file: .env
     volumes:
       - ./ntfy-data:/ntfy
+      - ./directory-data:/run/mission-leben-directory:ro
       - ./secrets/nextcloud-talk-bot-secret:/run/secrets/nextcloud-talk-bot-secret:ro
       - ./secrets/nextcloud-announcements-secret:/run/secrets/nextcloud-announcements-secret:ro
       - ./secrets/zimbra-admin-password:/run/secrets/zimbra-admin-password:ro

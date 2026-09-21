@@ -30,7 +30,9 @@ import de.missionleben.portal.push.PushManager
 import de.missionleben.portal.push.NtfyCredentialVault
 import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.push.NotificationPresenter
+import de.missionleben.portal.push.NotificationBadgeTarget
 import de.missionleben.portal.push.PushRegistrationStore
+import de.missionleben.portal.push.UnreadNotificationStore
 import de.missionleben.portal.security.DeviceIdentity
 import de.missionleben.portal.security.DeviceSecurityLock
 import de.missionleben.portal.security.SecureSessionVault
@@ -59,6 +61,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val pushStore = PushRegistrationStore(application)
     private val ntfyVault = NtfyCredentialVault(application)
     private val updateRepository = UpdateRepository(application)
+    private val unreadNotificationStore = UnreadNotificationStore(application)
 
     private var serializedAuthState: String? = null
     private var dataEncryptionKey: ByteArray? = null
@@ -85,6 +88,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             quietEndMinutes = pushStore.quietEndMinutes,
             quickUnlockEnabled = vault.hasSession(),
             reauthenticationRequired = preferences.reauthenticationRequired,
+            unreadNotificationBadges = unreadNotificationStore.counts(),
             news = newsRepository.cached(),
         ),
     )
@@ -96,6 +100,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             preferences.deviceId = null
             preferences.enrollmentState = EnrollmentState.NOT_ENROLLED
             vault.clear()
+            unreadNotificationStore.clearAll()
             clearNotifications()
             PushManager.stop(getApplication())
             _uiState.update {
@@ -120,6 +125,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             vault.clear()
             preferences.clearReauthentication()
             preferences.clearAnnouncementReadState()
+            unreadNotificationStore.clearAll()
             clearNotifications()
             PushManager.stop(getApplication())
         }
@@ -148,6 +154,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 loginApprovalSubmitting = false,
                 capabilities = emptySet(),
                 linkTargets = emptyList(),
+                unreadNotificationBadges = unreadNotificationStore.counts(),
             )
         }
     }
@@ -161,6 +168,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         vault.clear()
         preferences.clearReauthentication()
         preferences.clearAnnouncementReadState()
+        unreadNotificationStore.clearAll()
         clearNotifications()
         PushManager.stop(getApplication())
         preferences.deviceMode = null
@@ -177,6 +185,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             quietHoursEnabled = false,
             quietStartMinutes = pushStore.quietStartMinutes,
             quietEndMinutes = pushStore.quietEndMinutes,
+            unreadNotificationBadges = unreadNotificationStore.counts(),
             news = newsRepository.cached(),
         )
     }
@@ -430,6 +439,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.update { it.copy(message = string(R.string.message_sign_in_to_open)) }
             return
         }
+        val badgeTarget = _uiState.value.applications
+            .firstOrNull { it.launchUrl == url }
+            ?.let(NotificationBadgeTarget::fromApplication)
         _uiState.update { it.copy(busy = true, message = null) }
         viewModelScope.launch {
             if (!verifyDeviceBeforeProtectedAction()) return@launch
@@ -437,13 +449,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 serializedState = state,
                 onSuccess = { _, updatedState ->
                     updateSerializedState(updatedState)
-                    _uiState.update { it.copy(busy = false, requestedUrl = url) }
+                    if (badgeTarget != null) unreadNotificationStore.clear(badgeTarget)
+                    _uiState.update {
+                        it.copy(
+                            busy = false,
+                            requestedUrl = url,
+                            unreadNotificationBadges = unreadNotificationStore.counts(),
+                        )
+                    }
                 },
                 onError = { failure ->
                     handleAccessTokenFailure(failure) { it.copy(busy = false) }
                 },
             )
         }
+    }
+
+    fun refreshUnreadNotificationBadges() {
+        _uiState.update { it.copy(unreadNotificationBadges = unreadNotificationStore.counts()) }
     }
 
     private fun enrollDevice(enrollment: EnrollmentQrPayload, onSuccess: (() -> Unit)? = null) {
@@ -583,6 +606,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         dataEncryptionKey = null
         vault.clear()
         preferences.clearReauthentication()
+        unreadNotificationStore.clearAll()
         clearNotifications()
         PushManager.stop(getApplication())
         _uiState.update {
@@ -605,6 +629,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 },
                 loginApprovalRequest = null,
                 loginApprovalSubmitting = false,
+                unreadNotificationBadges = unreadNotificationStore.counts(),
             )
         }
         onBrowserLogout(authRepository.endSessionUrl())
@@ -912,6 +937,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             dataEncryptionKey?.fill(0)
             dataEncryptionKey = null
             DeviceSecurityLock.clearPersistentSession(getApplication())
+            unreadNotificationStore.clearAll()
             clearNotifications()
             PushManager.stop(getApplication())
             _uiState.update {
@@ -929,6 +955,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     message = string(R.string.message_device_blocked_clearing),
                     loginApprovalRequest = null,
                     loginApprovalSubmitting = false,
+                    unreadNotificationBadges = unreadNotificationStore.counts(),
                 )
             }
         } else {

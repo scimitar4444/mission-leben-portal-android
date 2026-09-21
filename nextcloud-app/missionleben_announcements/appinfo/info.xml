@@ -3,9 +3,9 @@
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
     <id>missionleben_announcements</id>
     <name>Mission Leben announcement bridge</name>
-    <summary>Provides a narrow, signed API for user-filtered Announcement Center entries.</summary>
-    <description>The Mission Leben communication bridge can read only those announcements that Nextcloud exposes to a resolved user and their groups.</description>
-    <version>0.1.0</version>
+    <summary>Provides narrow, signed APIs for announcements and Talk participant resolution.</summary>
+    <description>The Mission Leben communication bridge can read user-filtered announcements and the enabled user IDs of a specific Talk room without receiving a general Nextcloud session.</description>
+    <version>0.2.0</version>
     <licence>agpl</licence>
     <author>Mission Leben</author>
     <namespace>MissionLebenAnnouncements</namespace>

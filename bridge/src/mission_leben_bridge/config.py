@@ -152,10 +152,17 @@ class Settings:
         talk_api_password_file = os.getenv(
             "BRIDGE_NEXTCLOUD_TALK_API_PASSWORD_FILE", ""
         ).strip()
-        dynamic_talk_values = (directory_file_value, talk_api_user, talk_api_password_file)
-        if any(dynamic_talk_values) and not all(dynamic_talk_values):
+        legacy_talk_api_values = (talk_api_user, talk_api_password_file)
+        if any(legacy_talk_api_values) and not all(legacy_talk_api_values):
             raise RuntimeError(
-                "Communication directory and all Nextcloud Talk API values must be configured together"
+                "All legacy Nextcloud Talk API values must be configured together"
+            )
+        if any(legacy_talk_api_values) and not directory_file_value:
+            raise RuntimeError("Nextcloud Talk API values require the communication directory")
+        signed_participant_lookup = bool(announcements_url and announcements_secret_value)
+        if directory_file_value and not (signed_participant_lookup or all(legacy_talk_api_values)):
+            raise RuntimeError(
+                "Communication directory requires the signed Nextcloud integration or all legacy Talk API values"
             )
         talk_api_password = ""
         if talk_api_password_file:

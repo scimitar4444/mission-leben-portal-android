@@ -145,14 +145,30 @@ def check_talk(environment: Mapping[str, str]) -> dict[str, Any]:
     directory_file = _value(environment, "BRIDGE_COMMUNICATION_DIRECTORY_FILE")
     api_user = _value(environment, "BRIDGE_NEXTCLOUD_TALK_API_USER")
     api_password_file = _value(environment, "BRIDGE_NEXTCLOUD_TALK_API_PASSWORD_FILE")
-    dynamic_values = (directory_file, api_user, api_password_file)
-    dynamic_configured = all(dynamic_values)
+    announcements_url = _value(environment, "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL").rstrip("/")
+    announcements_secret_file = _value(environment, "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET_FILE")
+    announcements_inline_secret = _value(environment, "BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET")
+    announcements_secret = announcements_inline_secret
+    if announcements_secret_file:
+        path = Path(announcements_secret_file)
+        if path.is_file():
+            try:
+                announcements_secret = path.read_text(encoding="utf-8").strip()
+            except (OSError, UnicodeError):
+                announcements_secret = ""
+    signed_lookup_configured = bool(
+        _valid_url(announcements_url, https_only=True) and len(announcements_secret) >= 32
+    )
+    legacy_values = (api_user, api_password_file)
+    legacy_configured = all(legacy_values)
+    dynamic_requested = bool(directory_file or any(legacy_values))
+    dynamic_configured = bool(directory_file and (signed_lookup_configured or legacy_configured))
     recipients_raw = configured_recipients or "{}"
     users_raw = configured_users or "{}"
     recipients = _json_object(recipients_raw)
     users = _json_object(users_raw)
     mappings_configured = configured_recipients not in {"", "{}"} or configured_users not in {"", "{}"}
-    if not backend and not secret_file and not inline_secret and not mappings_configured and not any(dynamic_values):
+    if not backend and not secret_file and not inline_secret and not mappings_configured and not dynamic_requested:
         return _report("disabled", [])
 
     issues: list[str] = []
@@ -172,12 +188,17 @@ def check_talk(environment: Mapping[str, str]) -> dict[str, Any]:
     if len(secret) < 32:
         issues.append("Nextcloud-Talk-Secret fehlt oder ist kürzer als 32 Zeichen")
 
-    if any(dynamic_values) and not dynamic_configured:
-        issues.append("Dynamische Talk-Zuordnung muss vollständig konfiguriert sein")
-    if dynamic_configured:
+    if any(legacy_values) and not legacy_configured:
+        issues.append("Alte Talk-API-Zugangsdaten müssen vollständig konfiguriert sein")
+    if any(legacy_values) and not directory_file:
+        issues.append("Talk-API-Zugangsdaten benötigen das Kommunikationsverzeichnis")
+    if directory_file and not (signed_lookup_configured or legacy_configured):
+        issues.append("Dynamische Talk-Zuordnung benötigt die signierte Nextcloud-Integration")
+    if directory_file:
         directory, directory_error = _read_json_object(directory_file)
         if directory_error or directory is None or not isinstance(directory.get("assignments"), list):
             issues.append("Kommunikationsverzeichnis fehlt oder ist ungültig")
+    if legacy_configured:
         password_path = Path(api_password_file)
         if not password_path.is_file():
             issues.append("Nextcloud-Talk-API-Kennwortdatei fehlt")

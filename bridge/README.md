@@ -174,7 +174,7 @@ Der Container implementiert `POST /sources/nextcloud-talk` nach dem offiziellen 
 - den exakt erwarteten `X-Nextcloud-Talk-Backend`,
 - Activity-Streams-Typ `Create` und Objekt-Typ `Note`.
 
-Die statischen Variablen `BRIDGE_TALK_RECIPIENTS_JSON` und `BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON` bleiben als Migrationsrückfall erhalten. Für die automatische Zuordnung liest die Bridge bei einer Nachricht die aktuellen Teilnehmer des betroffenen Raums über die Nextcloud-Talk-API. Gruppenräume werden über die Nextcloud-Gruppen-API aufgelöst. Anschließend werden ausschließlich aktive, mobil registrierte Benutzer mit wirksamem Talk-Zugriff (`APP_NEXTCLOUD_USER` oder `APP_NEXTCLOUD_NATIVE`) auf ihr Authentik-Subject abgebildet. Der Absender wird weiterhin ausgeschlossen.
+Die statischen Variablen `BRIDGE_TALK_RECIPIENTS_JSON` und `BRIDGE_NEXTCLOUD_USER_SUBJECTS_JSON` bleiben als Migrationsrückfall erhalten. Für die automatische Zuordnung fragt die Bridge bei einer Nachricht über den schmalen HMAC-signierten Endpunkt der Mission-Leben-Nextcloud-App ausschließlich die aktiven Benutzerkennungen des betroffenen Raums ab. Das funktioniert auch für private Zweiergespräche und benötigt weder ein allgemeines Nextcloud-Konto noch ein App-Passwort. Anschließend werden ausschließlich aktive, mobil registrierte Benutzer mit wirksamem Talk-Zugriff (`APP_NEXTCLOUD_USER` oder `APP_NEXTCLOUD_NATIVE`) anhand des automatisch erzeugten Kommunikationsverzeichnisses ihrem Authentik-Subject zugeordnet. Der Absender wird weiterhin ausgeschlossen.
 
 Beispiel:
 
@@ -187,11 +187,11 @@ Automatische Raumzuordnung:
 
 ```dotenv
 BRIDGE_COMMUNICATION_DIRECTORY_FILE=/run/mission-leben-directory/communication-assignments.json
-BRIDGE_NEXTCLOUD_TALK_API_USER=ml-push-bridge
-BRIDGE_NEXTCLOUD_TALK_API_PASSWORD_FILE=/run/mission-leben-directory/nextcloud-talk-api-password
+BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_URL=https://nextcloud.mission-leben.de
+BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET_FILE=/run/secrets/nextcloud-announcements-secret
 ```
 
-Das Nextcloud-Konto benötigt nur Lesezugriff auf die Teilnehmer der Räume, in denen der Bot aktiv ist, sowie bei Gruppenräumen das Recht, deren Mitglieder zu lesen. Sein App-Passwort liegt ausschließlich in der gemounteten Secret-Datei. Ohne diese drei Werte bleibt die bisherige statische Zuordnung aktiv; eine teilweise Konfiguration wird beim Start und in der Vorprüfung abgelehnt.
+Die Nextcloud-App liefert dabei keine Räume, Nachrichten, Gruppen oder Profile, sondern nur die aktiven Benutzerkennungen des explizit signiert angefragten Raums. Ohne Kommunikationsverzeichnis bleibt die bisherige statische Zuordnung aktiv; eine teilweise Konfiguration wird beim Start und in der Vorprüfung abgelehnt. Die früher unterstützten Variablen `BRIDGE_NEXTCLOUD_TALK_API_USER` und `BRIDGE_NEXTCLOUD_TALK_API_PASSWORD_FILE` bleiben lediglich als Übergangs-Fallback erhalten.
 
 Die Talk-Bot-Secret-Datei wird nur in den Bridge-Container gemountet. Sie gehört nicht in `.env` oder Git.
 
