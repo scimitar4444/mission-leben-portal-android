@@ -21,14 +21,14 @@ Pro Mitarbeiter bleibt genau ein persönliches Handy aktiv. Zeigt Authentik bere
 
 ## Rollen
 
-| Authentik-Gruppe | Bereich |
-|---|---|
-| `ML_DEVICE_INIT_IT` | organisationsweit sowie Support |
-| `ML_DEVICE_INIT_ZENTRALE` | explizit über `ORG_*` zugewiesene Bereiche |
-| `ML_DEVICE_INIT_EL` | eigene, über `ORG_*` zugewiesene Einrichtung |
-| `ML_DEVICE_INIT_PDL` | eigene, über `ORG_*` zugewiesene Einrichtung |
+| Portalrolle | Bestehende Authentik-Gruppe | Bereich |
+|---|---|---|
+| IT | `BR_IT_MANAGEMENT` | organisationsweit sowie Support |
+| Einrichtungsleitung | `BR_EINRICHTUNGSLEITUNG` | eigene `ORG_ML_H*`-Einrichtung |
+| PDL | `BR_PFLEGEDIENSTLEITUNG` | eigene `ORG_ML_H*`-Einrichtung |
+| Leitung Zentrale | `BR_GESCHAEFTSBEREICHSLEITUNG`, `BR_GESCHAEFTSEINHEITSLEITUNG` oder `BR_ABTEILUNGSLEITUNG` | ausschließlich zusammen mit `ORG_ML_H001` |
 
-Es gibt bewusst keine GF-Rolle. Ohne eine der vier Rollen verweigert der Container die Mitarbeitersuche und Shared-Tablet-Einrichtung. Die persönliche Selbstregistrierung bleibt für aktive Mitarbeiter mit vorhandenem TOTP, Passkey oder registrierter App-Bestätigung erreichbar. Außer IT benötigt jede berechtigte Leitung mindestens eine gültige `ORG_*`-Mitgliedschaft mit `iam_group_type=organization_house` oder `organization_unit`.
+Es gibt bewusst keine GF-Rolle und keine parallelen `ML_DEVICE_INIT_*`- oder `ENT_DEVICE_INITIALIZE_*`-Gruppen. Ohne eine der aufgeführten BR-Rollen verweigert der Container die Mitarbeitersuche und Shared-Tablet-Einrichtung. Die persönliche Selbstregistrierung bleibt für aktive Mitarbeiter mit vorhandenem TOTP, Passkey oder registrierter App-Bestätigung erreichbar. Außer IT benötigt jede berechtigte Leitung den passenden `ORG_ML_H*`-Kontext. Sind mehrere Rollen oder Häuser zugewiesen, vereinigt das Portal die erlaubten Bereiche; eine zentrale Leitungsrolle allein erweitert den Zugriff niemals über `ORG_ML_H001` hinaus.
 
 Eine reine Benutzername-/Kennwort-Sitzung reicht nicht aus. Der Bootstrap legt einen anwendungsbezogenen Authentication Flow für Benutzername, Kennwort und ein bereits eingerichtetes TOTP, einen Passkey oder die registrierte App-Bestätigung sowie einen eigenen Authorization Flow mit derselben Faktor-Stufe an. Ein zwei Minuten gültiger, stufen- und gerätegebundener Authentik-Cookie verhindert nur direkt nach der frischen Anmeldung eine doppelte Abfrage. Eine ältere Authentik-Sitzung überspringt die Faktorprüfung nicht. Personen ohne kompatiblen vorhandenen Faktor werden abgewiesen; die Seite bietet keine MFA-Ersteinrichtung an.
 
@@ -45,13 +45,14 @@ podman exec -i authentik-server ak shell \
 
 Das Skript ist idempotent und erstellt:
 
-- die vier Operatorgruppen,
 - die Anwendung `Gerät einrichten`,
 - einen Forward-Auth-Proxy-Provider,
 - einen eigenen Authentication Flow für Benutzername, Kennwort und vorhandenes TOTP, Passkey oder registrierte App-Bestätigung,
 - einen anwendungsbezogenen Authorization Flow mit verpflichtendem, bereits vorhandenem starken Faktor,
 - die Bindung an den eingebetteten Proxy-Outpost,
 - ein Servicekonto mit ausschließlich den benötigten API-Rechten.
+
+Die oben genannten BR-Gruppen müssen bereits als kanonische, nicht privilegierte `business_role`-Gruppen existieren. Das Skript legt sie weder an noch verändert es ihre Attribute oder Mitgliedschaften.
 
 Zusätzlich setzt es beim eingebetteten Outpost `authentik_host` und, sofern
 noch leer, `authentik_host_browser` auf `https://id.mission-leben.de`. Beim
@@ -69,7 +70,7 @@ Der API-Schlüssel ist absichtlich nicht automatisch ablaufend, weil Authentik e
 
 Für die App-Bestätigung legt `authentik/bootstrap_app_approval.py` vorher die Authentik-Duo-Stufe an. Deren ausgegebene `duo_stage_uuid` wird als `ML_ENROLL_APP_APPROVAL_STAGE_UUID` gesetzt. Das Portal legt bei jeder persönlichen Geräteinitialisierung idempotent ein bestätigtes Authentik-DuoDevice an: sowohl bei der Selbstregistrierung mit einem vorhandenen starken Faktor als auch bei der Einrichtung durch EL, PDL, zentrale Leitung oder IT. Dessen `duo_user_id` entspricht exakt dem stabilen OIDC-Subject des Benutzers. Shared Tablets erhalten kein solches Gerät. Die zusätzlichen globalen Servicekonto-Rechte sind ausschließlich `view_authenticatorduostage` und `add_duodevice`. Authentik 2026.8.3 prüft beim manuellen Import außerdem `add_authenticatorduostage`; das Bootstrap-Skript vergibt dieses Recht nicht global, sondern nur objektbezogen auf die eine bestehende App-Bestätigungsstufe.
 
-Anschließend EL, PDL, zentrale Leitungen und IT ihren jeweiligen Rollengruppen hinzufügen. Zentrale Leitungen, EL und PDL benötigen zusätzlich die zugehörigen bestehenden `ORG_*`-Gruppen. IT benötigt keine `ORG_*`-Mitgliedschaft.
+Die Rollen- und Organisationsmitgliedschaften werden ausschließlich aus der vorhandenen BR-/ORG-Struktur übernommen. Zentrale Leitungen benötigen zusätzlich `ORG_ML_H001`; EL und PDL benötigen ihre bestehenden `ORG_ML_H*`-Gruppen. IT benötigt keine ORG-Mitgliedschaft. Das Geräteportal pflegt keine dieser Mitgliedschaften selbst.
 
 ## Container starten
 

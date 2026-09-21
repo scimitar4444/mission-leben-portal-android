@@ -2,8 +2,9 @@
 
 Run this script inside the authentik server container with ``ak shell`` after a
 database backup. Redirect stdout to the root-only API-token secret file. The
-script creates no device data; it creates the proxy application, four operator
-groups and a least-privilege service account used by the stateless portal.
+script creates no device data or role groups; it connects the proxy application
+to the existing canonical BR/ORG structure and creates a least-privilege
+service account used by the stateless portal.
 """
 
 import os
@@ -46,12 +47,14 @@ LOGIN_STAGE_NAME = "Mission Leben Geräte-Einrichtung - Browsersitzung"
 PASSWORD_STAGE_NAME = "default-authentication-password"
 AUTHORIZATION_MFA_STAGE_NAME = "Mission Leben Geräte-Einrichtung - Starke Anmeldung"
 APP_APPROVAL_STAGE_NAME = "Mission Leben Zentral - App-Bestätigung"
-ROLE_GROUPS = {
-    "ML_DEVICE_INIT_IT": "it",
-    "ML_DEVICE_INIT_ZENTRALE": "central",
-    "ML_DEVICE_INIT_EL": "el",
-    "ML_DEVICE_INIT_PDL": "pdl",
-}
+ROLE_GROUPS = (
+    "BR_IT_MANAGEMENT",
+    "BR_GESCHAEFTSBEREICHSLEITUNG",
+    "BR_GESCHAEFTSEINHEITSLEITUNG",
+    "BR_ABTEILUNGSLEITUNG",
+    "BR_EINRICHTUNGSLEITUNG",
+    "BR_PFLEGEDIENSTLEITUNG",
+)
 PERMISSIONS = (
     "authentik_core.view_user",
     "authentik_core.view_group",
@@ -228,22 +231,17 @@ application, _ = Application.objects.update_or_create(
 )
 
 operator_groups = []
-for name, role in ROLE_GROUPS.items():
-    group, _ = Group.objects.get_or_create(name=name)
-    group.is_superuser = False
-    group.attributes = {
-        **group.attributes,
-        "mission-leben.de/purpose": "device-initialization",
-        "mission-leben.de/device-initializer-role": role,
-    }
-    group.save(update_fields=["is_superuser", "attributes"])
+for name in ROLE_GROUPS:
+    group = Group.objects.get(name=name)
+    if group.is_superuser or group.attributes.get("iam_group_type") != "business_role":
+        raise RuntimeError(f"{name} is not a canonical non-superuser business role")
     operator_groups.append(group)
 
 # Every active user with an existing TOTP authenticator or passkey may enter
-# the self-service page. The portal itself still checks the four operator roles
-# before exposing employee search or shared-device initialization. Remove only
-# bindings managed by the previous role-gated version and fail closed on every
-# unknown binding.
+# the self-service page. The portal itself combines the canonical BR roles with
+# the allowed ORG scope before exposing employee search or shared-device
+# initialization. Remove only bindings managed by the previous role-gated
+# version and fail closed on every unknown binding.
 unexpected_bindings = PolicyBinding.objects.filter(target=application).exclude(
     group__in=operator_groups
 )

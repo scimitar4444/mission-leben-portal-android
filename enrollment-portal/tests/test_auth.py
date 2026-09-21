@@ -36,41 +36,95 @@ def authentik_headers(groups: str) -> dict[str, str]:
 @pytest.mark.parametrize(
     ("role_group", "expected_role"),
     [
-        ("ML_DEVICE_INIT_IT", Role.IT),
-        ("ML_DEVICE_INIT_ZENTRALE", Role.CENTRAL),
-        ("ML_DEVICE_INIT_EL", Role.EL),
-        ("ML_DEVICE_INIT_PDL", Role.PDL),
+        ("BR_EINRICHTUNGSLEITUNG", Role.EL),
+        ("BR_PFLEGEDIENSTLEITUNG", Role.PDL),
     ],
 )
 def test_recognizes_only_configured_operational_roles(settings, role_group, expected_role):
-    actor = actor_from_request(request(authentik_headers(f"{role_group}|ORG_HAUS_1")), settings)
-    assert actor.role is expected_role
-    assert actor.organization_names == frozenset({"ORG_HAUS_1"})
+    actor = actor_from_request(request(authentik_headers(f"{role_group}|ORG_ML_H042")), settings)
+    assert actor.roles == frozenset({expected_role})
+    assert actor.organization_names == frozenset({"ORG_ML_H042"})
+
+
+@pytest.mark.parametrize(
+    "role_group",
+    [
+        "BR_GESCHAEFTSBEREICHSLEITUNG",
+        "BR_GESCHAEFTSEINHEITSLEITUNG",
+        "BR_ABTEILUNGSLEITUNG",
+    ],
+)
+def test_central_leadership_requires_the_central_organization(settings, role_group):
+    actor = actor_from_request(
+        request(authentik_headers(f"{role_group}|ORG_ML_H001|ORG_ML_ZD_IT")), settings
+    )
+    assert actor.roles == frozenset({Role.CENTRAL})
+    assert actor.organization_names == frozenset({"ORG_ML_H001"})
 
 
 def test_it_has_global_scope_without_organization(settings):
-    actor = actor_from_request(request(authentik_headers("ML_DEVICE_INIT_IT")), settings)
+    actor = actor_from_request(request(authentik_headers("BR_IT_MANAGEMENT")), settings)
     assert actor.has_global_scope
 
 
-def test_pdl_el_and_central_require_an_explicit_organization(settings):
-    for role_group in ("ML_DEVICE_INIT_PDL", "ML_DEVICE_INIT_EL", "ML_DEVICE_INIT_ZENTRALE"):
+def test_scoped_roles_require_an_explicit_managed_organization(settings):
+    for role_group in (
+        "BR_PFLEGEDIENSTLEITUNG",
+        "BR_EINRICHTUNGSLEITUNG",
+        "BR_ABTEILUNGSLEITUNG",
+    ):
         with pytest.raises(HTTPException) as error:
             actor_from_request(request(authentik_headers(role_group)), settings)
         assert error.value.status_code == 403
 
 
-def test_unrelated_or_gf_group_has_no_permission(settings):
-    for groups in ("Mitarbeitende|ORG_HAUS_1", "ML_DEVICE_INIT_GF|ORG_HAUS_1"):
+def test_central_role_does_not_authorize_another_house(settings):
+    with pytest.raises(HTTPException) as error:
+        actor_from_request(
+            request(authentik_headers("BR_ABTEILUNGSLEITUNG|ORG_ML_H042")), settings
+        )
+    assert error.value.status_code == 403
+
+
+def test_unrelated_legacy_or_gf_group_has_no_permission(settings):
+    for groups in (
+        "Mitarbeitende|ORG_ML_H042",
+        "ML_DEVICE_INIT_EL|ORG_ML_H042",
+        "ENT_DEVICE_INITIALIZE_EL|ORG_ML_H042",
+        "BR_GESCHAEFTSFUEHRUNG|ORG_ML_H001",
+    ):
         with pytest.raises(HTTPException) as error:
             actor_from_request(request(authentik_headers(groups)), settings)
         assert error.value.status_code == 403
 
 
+def test_multiple_roles_unite_only_their_authorized_scopes(settings):
+    actor = actor_from_request(
+        request(
+            authentik_headers(
+                "BR_ABTEILUNGSLEITUNG|BR_EINRICHTUNGSLEITUNG|"
+                "ORG_ML_H001|ORG_ML_H042|ORG_OTHER"
+            )
+        ),
+        settings,
+    )
+    assert actor.roles == frozenset({Role.CENTRAL, Role.EL})
+    assert actor.organization_names == frozenset({"ORG_ML_H001", "ORG_ML_H042"})
+    assert actor.role_label == "Leitung Zentrale / EL"
+
+
+def test_similarly_named_noncanonical_org_group_is_not_a_scope(settings):
+    with pytest.raises(HTTPException) as error:
+        actor_from_request(
+            request(authentik_headers("BR_EINRICHTUNGSLEITUNG|ORG_ML_HACKER")), settings
+        )
+    assert error.value.status_code == 403
+
+
 def test_normal_employee_is_authenticated_only_for_self_service(settings):
-    headers = authentik_headers("Mitarbeitende|ORG_HAUS_1")
+    headers = authentik_headers("Mitarbeitende|ORG_ML_H042")
     self_actor = authenticated_actor_from_request(request(headers), settings)
-    assert self_actor.role is None
+    assert not self_actor.roles
     assert not self_actor.can_manage_devices
     with pytest.raises(HTTPException) as error:
         actor_from_request(request(headers), settings)
@@ -78,7 +132,7 @@ def test_normal_employee_is_authenticated_only_for_self_service(settings):
 
 
 def test_proxy_app_header_is_mandatory(settings):
-    headers = authentik_headers("ML_DEVICE_INIT_IT")
+    headers = authentik_headers("BR_IT_MANAGEMENT")
     headers["x-authentik-meta-app"] = "another-app"
     with pytest.raises(HTTPException) as error:
         actor_from_request(request(headers), settings)
@@ -86,7 +140,9 @@ def test_proxy_app_header_is_mandatory(settings):
 
 
 def test_csrf_is_actor_action_and_origin_bound(settings):
-    actor = actor_from_request(request(authentik_headers("ML_DEVICE_INIT_EL|ORG_HAUS_1")), settings)
+    actor = actor_from_request(
+        request(authentik_headers("BR_EINRICHTUNGSLEITUNG|ORG_ML_H042")), settings
+    )
     csrf = CsrfProtector(settings.csrf_secret, settings.public_origin)
     token = csrf.issue(actor, "issue-personal", now=1_800_000_000)
     valid_request = request({"origin": settings.public_origin})

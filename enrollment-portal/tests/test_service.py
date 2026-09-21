@@ -40,7 +40,7 @@ class FakeAuthentik:
             "groups_obj": [
                 {
                     "pk": "bbbbbbbb-bbbb-cccc-dddd-eeeeeeeeeeee",
-                    "name": "ORG_HAUS_1",
+                    "name": "ORG_ML_H042",
                     "attributes": {"iam_group_type": "organization_house"},
                 }
             ],
@@ -203,8 +203,9 @@ class FakeAuthentik:
         raise AssertionError("delete should work")
 
 
-def actor(role=Role.EL, organizations=frozenset({"ORG_HAUS_1"})):
-    return Actor("actor-id", "leitung.test", "Leitung Test", role, organizations)
+def actor(role=Role.EL, organizations=frozenset({"ORG_ML_H042"})):
+    roles = frozenset() if role is None else frozenset({role})
+    return Actor("actor-id", "leitung.test", "Leitung Test", roles, organizations)
 
 
 @pytest.mark.asyncio
@@ -238,7 +239,7 @@ async def test_personal_enrollment_fails_outside_el_scope(settings):
     service = EnrollmentService(settings, authentik)
 
     with pytest.raises(AuthentikError) as error:
-        await service.issue_personal(actor(organizations=frozenset({"ORG_HAUS_2"})), 42)
+        await service.issue_personal(actor(organizations=frozenset({"ORG_ML_H043"})), 42)
     assert error.value.status == 403
     assert not authentik.created_groups
 
@@ -251,7 +252,7 @@ async def test_totp_self_enrollment_binds_only_authenticated_employee(settings):
         "self-id",
         authentik.user["username"],
         authentik.user["name"],
-        None,
+        frozenset(),
         frozenset(),
     )
 
@@ -462,7 +463,7 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
         "x-authentik-uid": "actor-id",
         "x-authentik-username": "leitung.test",
         "x-authentik-name": "Leitung Test",
-        "x-authentik-groups": "ML_DEVICE_INIT_EL|ORG_HAUS_1",
+        "x-authentik-groups": "BR_EINRICHTUNGSLEITUNG|ORG_ML_H042",
     }
     csrf_token = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(
         actor(), "issue-personal"
@@ -673,7 +674,7 @@ def test_normal_employee_can_only_create_own_enrollment(settings):
         "self-id",
         authentik.user["username"],
         authentik.user["name"],
-        None,
+        frozenset(),
         frozenset(),
     )
     csrf_token = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(

@@ -519,4 +519,6 @@ class EnrollmentService:
             "name": actor.display_name,
             "uid": actor.uid,
             "role": actor.role.value if actor.role is not None else "self_totp",
+            "roles": sorted(role.value for role in actor.roles),
+            "organization_scopes": sorted(actor.organization_names),
         }

@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import re
 import time
 from dataclasses import dataclass
 from enum import Enum
@@ -24,26 +25,34 @@ class Actor:
     uid: str
     username: str
     display_name: str
-    role: Role | None
+    roles: frozenset[Role]
     organization_names: frozenset[str]
 
     @property
     def has_global_scope(self) -> bool:
-        return self.role is Role.IT
+        return Role.IT in self.roles
 
     @property
     def can_manage_devices(self) -> bool:
-        return self.role is Role.IT or (self.role is not None and bool(self.organization_names))
+        return self.has_global_scope or bool(self.roles and self.organization_names)
+
+    @property
+    def role(self) -> Role | None:
+        for candidate in (Role.IT, Role.CENTRAL, Role.EL, Role.PDL):
+            if candidate in self.roles:
+                return candidate
+        return None
 
     @property
     def role_label(self) -> str:
-        return {
+        labels = {
             Role.IT: "IT",
             Role.CENTRAL: "Leitung Zentrale",
             Role.EL: "EL",
             Role.PDL: "PDL",
-            None: "Mitarbeiter",
-        }[self.role]
+        }
+        ordered = [labels[role] for role in Role if role in self.roles]
+        return " / ".join(ordered) if ordered else "Mitarbeiter"
 
 
 def authenticated_actor_from_request(request: Request, settings: Settings) -> Actor:
@@ -59,34 +68,39 @@ def authenticated_actor_from_request(request: Request, settings: Settings) -> Ac
         for value in request.headers.get("x-authentik-groups", "").split("|")
         if value.strip()
     )
-    role = next(
-        (
-            candidate
-            for group_name, candidate in (
-                (settings.role_it_group, Role.IT),
-                (settings.role_central_group, Role.CENTRAL),
-                (settings.role_el_group, Role.EL),
-                (settings.role_pdl_group, Role.PDL),
-            )
-            if group_name in groups
-        ),
-        None,
+    role_groups = (
+        (settings.role_it_groups, Role.IT),
+        (settings.role_central_groups, Role.CENTRAL),
+        (settings.role_el_groups, Role.EL),
+        (settings.role_pdl_groups, Role.PDL),
     )
-    organizations = frozenset(
-        name for name in groups if name.startswith(settings.organization_group_prefix)
+    roles = frozenset(
+        role for configured_groups, role in role_groups if groups.intersection(configured_groups)
     )
+    scope_pattern = re.compile(
+        rf"^{re.escape(settings.organization_scope_prefix)}[0-9]{{3}}(?:_[A-Z0-9]+)*$"
+    )
+    scoped_organizations = {name for name in groups if scope_pattern.fullmatch(name)}
+    organizations: set[str] = set()
+    if Role.EL in roles or Role.PDL in roles:
+        organizations.update(scoped_organizations)
+    if (
+        Role.CENTRAL in roles
+        and settings.central_organization_group in scoped_organizations
+    ):
+        organizations.add(settings.central_organization_group)
     return Actor(
         uid=uid,
         username=username,
         display_name=request.headers.get("x-authentik-name", "").strip() or username,
-        role=role,
-        organization_names=organizations,
+        roles=roles,
+        organization_names=frozenset(organizations),
     )
 
 
 def actor_from_request(request: Request, settings: Settings) -> Actor:
     actor = authenticated_actor_from_request(request, settings)
-    if actor.role is None:
+    if not actor.roles:
         raise HTTPException(403, "Sie dürfen keine Geräte für andere Personen initialisieren.")
     if not actor.can_manage_devices:
         raise HTTPException(403, "Ihrem Konto ist keine Einrichtung zugeordnet.")

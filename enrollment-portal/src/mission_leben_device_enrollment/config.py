@@ -13,6 +13,22 @@ DEFAULT_APK_DOWNLOAD_URL = (
     "releases/latest/download/mission-leben-zentral.apk"
 )
 
+DEFAULT_ROLE_IT_GROUPS = ("BR_IT_MANAGEMENT",)
+DEFAULT_ROLE_CENTRAL_GROUPS = (
+    "BR_GESCHAEFTSBEREICHSLEITUNG",
+    "BR_GESCHAEFTSEINHEITSLEITUNG",
+    "BR_ABTEILUNGSLEITUNG",
+)
+DEFAULT_ROLE_EL_GROUPS = ("BR_EINRICHTUNGSLEITUNG",)
+DEFAULT_ROLE_PDL_GROUPS = ("BR_PFLEGEDIENSTLEITUNG",)
+
+
+def _group_names(name: str, defaults: tuple[str, ...]) -> tuple[str, ...]:
+    raw = os.environ.get(name)
+    if raw is None:
+        return defaults
+    return tuple(group.strip() for group in raw.split(",") if group.strip())
+
 
 def _required(name: str) -> str:
     value = os.environ.get(name, "").strip()
@@ -38,11 +54,13 @@ class Settings:
     proxy_app_slug: str
     csrf_secret: str
     app_approval_stage_uuid: str | None = None
-    role_it_group: str = "ML_DEVICE_INIT_IT"
-    role_central_group: str = "ML_DEVICE_INIT_ZENTRALE"
-    role_el_group: str = "ML_DEVICE_INIT_EL"
-    role_pdl_group: str = "ML_DEVICE_INIT_PDL"
+    role_it_groups: tuple[str, ...] = DEFAULT_ROLE_IT_GROUPS
+    role_central_groups: tuple[str, ...] = DEFAULT_ROLE_CENTRAL_GROUPS
+    role_el_groups: tuple[str, ...] = DEFAULT_ROLE_EL_GROUPS
+    role_pdl_groups: tuple[str, ...] = DEFAULT_ROLE_PDL_GROUPS
     organization_group_prefix: str = "ORG_"
+    organization_scope_prefix: str = "ORG_ML_H"
+    central_organization_group: str = "ORG_ML_H001"
     token_ttl_seconds: int = 600
     display_timezone: str = "Europe/Berlin"
     apk_download_url: str = DEFAULT_APK_DOWNLOAD_URL
@@ -62,13 +80,21 @@ class Settings:
             app_approval_stage_uuid=(
                 os.environ.get("ML_ENROLL_APP_APPROVAL_STAGE_UUID", "").strip() or None
             ),
-            role_it_group=os.environ.get("ML_ENROLL_ROLE_IT_GROUP", "ML_DEVICE_INIT_IT").strip(),
-            role_central_group=os.environ.get(
-                "ML_ENROLL_ROLE_CENTRAL_GROUP", "ML_DEVICE_INIT_ZENTRALE"
-            ).strip(),
-            role_el_group=os.environ.get("ML_ENROLL_ROLE_EL_GROUP", "ML_DEVICE_INIT_EL").strip(),
-            role_pdl_group=os.environ.get("ML_ENROLL_ROLE_PDL_GROUP", "ML_DEVICE_INIT_PDL").strip(),
+            role_it_groups=_group_names("ML_ENROLL_ROLE_IT_GROUPS", DEFAULT_ROLE_IT_GROUPS),
+            role_central_groups=_group_names(
+                "ML_ENROLL_ROLE_CENTRAL_GROUPS", DEFAULT_ROLE_CENTRAL_GROUPS
+            ),
+            role_el_groups=_group_names("ML_ENROLL_ROLE_EL_GROUPS", DEFAULT_ROLE_EL_GROUPS),
+            role_pdl_groups=_group_names(
+                "ML_ENROLL_ROLE_PDL_GROUPS", DEFAULT_ROLE_PDL_GROUPS
+            ),
             organization_group_prefix=os.environ.get("ML_ENROLL_ORG_PREFIX", "ORG_").strip(),
+            organization_scope_prefix=os.environ.get(
+                "ML_ENROLL_ORG_SCOPE_PREFIX", "ORG_ML_H"
+            ).strip(),
+            central_organization_group=os.environ.get(
+                "ML_ENROLL_CENTRAL_ORG_GROUP", "ORG_ML_H001"
+            ).strip(),
             token_ttl_seconds=int(os.environ.get("ML_ENROLL_TOKEN_TTL_SECONDS", "600")),
             display_timezone=os.environ.get("ML_ENROLL_DISPLAY_TIMEZONE", "Europe/Berlin").strip(),
             apk_download_url=os.environ.get(
@@ -128,11 +154,20 @@ class Settings:
             ZoneInfo(self.display_timezone)
         except ZoneInfoNotFoundError as error:
             raise RuntimeError("ML_ENROLL_DISPLAY_TIMEZONE is invalid") from error
-        role_groups = {
-            self.role_it_group,
-            self.role_central_group,
-            self.role_el_group,
-            self.role_pdl_group,
-        }
-        if "" in role_groups or len(role_groups) != 4:
-            raise RuntimeError("Enrollment role group names must be non-empty and unique")
+        configured_role_groups = (
+            self.role_it_groups,
+            self.role_central_groups,
+            self.role_el_groups,
+            self.role_pdl_groups,
+        )
+        if any(not groups for groups in configured_role_groups):
+            raise RuntimeError("Enrollment role group lists must not be empty")
+        role_groups = [group for groups in configured_role_groups for group in groups]
+        if any(not group.startswith("BR_") for group in role_groups):
+            raise RuntimeError("Enrollment role groups must use the BR_ namespace")
+        if len(role_groups) != len(set(role_groups)):
+            raise RuntimeError("Enrollment role group names must be unique")
+        if not self.organization_scope_prefix.startswith(self.organization_group_prefix):
+            raise RuntimeError("The organization scope prefix must be inside the ORG namespace")
+        if not self.central_organization_group.startswith(self.organization_scope_prefix):
+            raise RuntimeError("The central organization must be inside the managed ORG scope")
