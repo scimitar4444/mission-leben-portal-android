@@ -33,6 +33,7 @@ object NotificationPresenter {
         val id = notificationId(eventId)
         context.getSystemService(JobScheduler::class.java).cancel(id)
         NotificationManagerCompat.from(context).cancel(id)
+        NotificationTargetStore(context).remove(eventId)
     }
 
     fun showLoginApproval(context: Context, requestId: String) {
@@ -105,7 +106,19 @@ object NotificationPresenter {
         val genericTitle = context.getString(action.titleRes)
         val genericBody = context.getString(action.bodyRes)
         val title = if (rich) detail.title.ifBlank { genericTitle } else genericTitle
-        val summary = if (rich) detail.summary.ifBlank { genericBody } else genericBody
+        val contextSummary = if (rich) detail.summary.ifBlank { genericBody } else genericBody
+        val summary = if (
+            rich &&
+            action == PushAction.OPEN_TALK &&
+            detail.preview.isNotBlank()
+        ) {
+            listOf(contextSummary, detail.preview).filter(String::isNotBlank).joinToString(" · ")
+        } else {
+            contextSummary
+        }
+        if (eventId != null && detail?.targetId?.isNotBlank() == true) {
+            NotificationTargetStore(context).put(eventId, action, detail.targetId)
+        }
         val intent = Intent(context, MainActivity::class.java).apply {
             setAction(Intent.ACTION_VIEW)
             data = Uri.Builder()
@@ -145,8 +158,12 @@ object NotificationPresenter {
         detail?.displayAtMillis?.let {
             builder.setWhen(it).setShowWhen(true)
         }
-        if (rich && privacy == NotificationPrivacy.DETAILED && detail.preview.isNotBlank()) {
-            builder.setStyle(NotificationCompat.BigTextStyle().bigText(listOf(summary, detail.preview).filter(String::isNotBlank).joinToString("\n")))
+        if (rich && detail.preview.isNotBlank()) {
+            builder.setStyle(
+                NotificationCompat.BigTextStyle().bigText(
+                    listOf(contextSummary, detail.preview).filter(String::isNotBlank).joinToString("\n"),
+                ),
+            )
         }
 
         NotificationManagerCompat.from(context).notify(

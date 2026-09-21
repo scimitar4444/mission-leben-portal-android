@@ -19,6 +19,8 @@ EVENT_ID = re.compile(r"^[A-Za-z0-9_-]{16,128}$")
 AUTH_REQUEST_ID = re.compile(r"^[A-Za-z0-9_-]{24,128}$")
 KEY_ID = re.compile(r"^[a-f0-9]{24}$")
 ROOM_TOKEN = re.compile(r"^[A-Za-z0-9_-]{6,128}$")
+TALK_NOTIFICATION_TARGET = re.compile(r"^[A-Za-z0-9_-]{4,128}$")
+ZIMBRA_ITEM_ID = re.compile(r"^(?:[A-Za-z0-9_-]{1,64}:)?[0-9]{1,20}$")
 EVENT_TYPES = {"open_mail", "open_calendar", "open_talk"}
 PRIVACY_LEVELS = {"minimal", "standard", "detailed"}
 CALENDAR_REMINDER_MINUTES = {5, 10, 15, 30}
@@ -67,6 +69,21 @@ def _boolean(value: Any, *, name: str) -> bool:
     if isinstance(value, bool):
         return value
     raise ApiError(400, f"{name} must be a boolean")
+
+
+def _notification_target(event_type: str, value: Any) -> str:
+    target_id = str(value or "").strip()
+    if not target_id:
+        return ""
+    pattern = {
+        "open_mail": ZIMBRA_ITEM_ID,
+        "open_talk": TALK_NOTIFICATION_TARGET,
+    }.get(event_type)
+    if pattern is None:
+        return ""
+    if not pattern.fullmatch(target_id):
+        raise ApiError(400, "invalid notification target")
+    return target_id
 
 
 class BridgeService:
@@ -399,6 +416,7 @@ class BridgeService:
                 "title": _text(payload.get("title"), 80),
                 "summary": _text(payload.get("summary"), 160),
                 "preview": _text(payload.get("preview"), 280),
+                "target_id": _notification_target(event_type, payload.get("target_id")),
                 "display_at": display_at,
                 "expires_at": expires_at,
                 "expires_epoch": expires_epoch,
@@ -545,7 +563,14 @@ class BridgeService:
             "event_type": event["event_type"],
             "title": event["title"],
             "summary": event["summary"],
-            "preview": event["preview"] if privacy == "detailed" else "",
+            "preview": (
+                event["preview"]
+                if privacy == "detailed"
+                else event["preview"][:120]
+                if privacy == "standard" and event["event_type"] == "open_talk"
+                else ""
+            ),
+            "target_id": event["target_id"],
             "display_at": event["display_at"],
             "expires_at": event["expires_at"],
             "revision": str(event["revision"]),

@@ -36,6 +36,8 @@ val authentikAuthenticationFlowSlugs = providers.gradleProperty("ML_AUTHENTIK_AU
     )
 val ntfyPublicBaseUrl = providers.gradleProperty("ML_NTFY_PUBLIC_BASE_URL")
     .orElse("https://push.mission-leben.de")
+val zimbraWebBaseUrl = providers.gradleProperty("ML_ZIMBRA_WEB_BASE_URL")
+    .orElse("https://mail.mission-leben.de")
 val updateManifestUrl =
     "https://github.com/scimitar4444/mission-leben-portal-android/" +
         "releases/latest/download/update.json"
@@ -63,8 +65,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 52
-        versionName = "0.11.8"
+        versionCode = 53
+        versionName = "0.11.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
@@ -98,6 +100,7 @@ android {
             authentikAuthenticationFlowSlugs.get().asBuildConfigString(),
         )
         buildConfigField("String", "NTFY_PUBLIC_BASE_URL", ntfyPublicBaseUrl.get().asBuildConfigString())
+        buildConfigField("String", "ZIMBRA_WEB_BASE_URL", zimbraWebBaseUrl.get().asBuildConfigString())
         buildConfigField("String", "UPDATE_MANIFEST_URL", updateManifestUrl.asBuildConfigString())
     }
 

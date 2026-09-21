@@ -12,4 +12,13 @@ class NotificationDetailTest {
         assertEquals(32, sanitized.length)
         assertEquals("Team IT Besprechung " + "x".repeat(12), sanitized)
     }
+
+    @Test
+    fun `accepts only action specific notification targets`() {
+        assertEquals("42", NotificationDetail.notificationTarget(PushAction.OPEN_MAIL, "42"))
+        assertEquals("account_1:42", NotificationDetail.notificationTarget(PushAction.OPEN_MAIL, "account_1:42"))
+        assertEquals("room_1", NotificationDetail.notificationTarget(PushAction.OPEN_TALK, "room_1"))
+        assertEquals("", NotificationDetail.notificationTarget(PushAction.OPEN_MAIL, "../../42"))
+        assertEquals("", NotificationDetail.notificationTarget(PushAction.OPEN_TALK, "https://evil.invalid"))
+    }
 }

@@ -102,9 +102,9 @@
     <string name="privacy_minimal_label">Dyskretne</string>
     <string name="privacy_minimal_description">Pokazuj tylko typ: poczta, spotkanie lub Talk.</string>
     <string name="privacy_standard_label">Standardowe</string>
-    <string name="privacy_standard_description">Pokazuj nadawcę i temat albo czas i miejsce spotkania.</string>
+    <string name="privacy_standard_description">Pokazuj nadawcę i temat, czas i miejsce spotkania oraz krótki podgląd Talk.</string>
     <string name="privacy_detailed_label">Szczegółowe</string>
-    <string name="privacy_detailed_description">Pokazuj także krótki podgląd wiadomości lub Talk.</string>
+    <string name="privacy_detailed_description">Pokazuj także krótki podgląd poczty i dłuższy podgląd Talk.</string>
     <string name="calendar_reminder_title">Przypomnienie o spotkaniu</string>
     <string name="calendar_reminder_description">Wybierz, ile czasu przed spotkaniem ma się pojawić powiadomienie.</string>
     <string name="calendar_reminder_minutes">%1$d min</string>

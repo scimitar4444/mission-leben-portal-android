@@ -81,7 +81,7 @@ Content-Type: application/json
 
 Vor dem Speichern prueft die Bridge das Benutzer-Access-Token ueber Authentik UserInfo und das Device Token live ueber den Statusendpunkt des Geräteportals. Dieser liest den Datensatz einschließlich Ablauf- und Deaktivierungsstatus direkt aus Authentik. Die von Authentik gelieferte Device-UUID muss mit der URL uebereinstimmen.
 
-Die Antwort enthält `provider=ntfy`, die fest erwartete öffentliche Basis, ein zufälliges Topic und ausschließlich das Lesetoken. Das getrennte Schreibtoken bleibt AES-256-GCM-verschlüsselt in der Bridge. Auch das Authentik-Device-Token wird verschlüsselt gespeichert. Der P-256-Schluessel dient nur der Kommunikationssignatur; sein privater Teil verlaesst den Android Keystore nie. `standard` liefert Titel und Zusammenfassung, `detailed` zusaetzlich eine kurze Vorschau, `minimal` nur einen neutralen lokalen Hinweis. Shared Tablets werden server- und clientseitig immer auf `minimal` reduziert.
+Die Antwort enthält `provider=ntfy`, die fest erwartete öffentliche Basis, ein zufälliges Topic und ausschließlich das Lesetoken. Das getrennte Schreibtoken bleibt AES-256-GCM-verschlüsselt in der Bridge. Auch das Authentik-Device-Token wird verschlüsselt gespeichert. Der P-256-Schluessel dient nur der Kommunikationssignatur; sein privater Teil verlaesst den Android Keystore nie. `standard` liefert Titel und Zusammenfassung sowie bei Talk eine auf 120 Zeichen begrenzte Vorschau. `detailed` liefert zusätzlich die Mailvorschau und bei Talk bis zu 280 Zeichen. `minimal` zeigt nur einen neutralen lokalen Hinweis. Shared Tablets werden server- und clientseitig immer auf `minimal` reduziert.
 
 `calendar_reminder_minutes` akzeptiert ausschließlich `5`, `10`, `15` oder `30`; Standard sind 15 Minuten. Der Wert gilt pro persönlichem Gerät und wird auch auf bereits vorgemerkte, noch nicht zugestellte Termine angewendet. Shared Tablets verwenden serverseitig immer den zentralen Standard von 15 Minuten.
 
@@ -141,6 +141,7 @@ Content-Type: application/json
   "title": "Absender",
   "summary": "Betreff",
   "preview": "Kurze Vorschau",
+  "target_id": "42",
   "display_at": "2026-09-18T10:00:00Z",
   "expires_at": "2026-09-25T10:00:00Z"
 }
@@ -220,6 +221,8 @@ Die Bridge prueft zusaetzlich:
 - Ereignis ist noch nicht abgelaufen.
 
 Der Sperrbildschirm erhaelt immer eine neutrale oeffentliche Version. Die Detailantwort wird mit `Cache-Control: no-store` ausgeliefert.
+
+`target_id` wird nie über ntfy transportiert. Die Bridge gibt die streng typgeprüfte Zimbra-Nachrichten-ID oder den Talk-Raum-Token erst im signierten Detailabruf an das zugeordnete Gerät aus. Die App speichert das Ziel in ihrem privaten Anwendungsspeicher und baut daraus ausschließlich feste HTTPS-Ziele für Zimbra beziehungsweise Nextcloud; beliebige URLs werden nicht akzeptiert.
 
 ## Talk oeffnen
 

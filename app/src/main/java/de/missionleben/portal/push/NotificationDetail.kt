@@ -10,6 +10,7 @@ data class NotificationDetail(
     val title: String,
     val summary: String,
     val preview: String,
+    val targetId: String,
     val displayAtMillis: Long?,
     val expiresAtMillis: Long?,
 ) {
@@ -29,6 +30,7 @@ data class NotificationDetail(
                 title = sanitize(value.optString("title"), 80),
                 summary = sanitize(value.optString("summary"), 160),
                 preview = sanitize(value.optString("preview"), 280),
+                targetId = notificationTarget(action, value.optString("target_id")),
                 displayAtMillis = parseTime(value.optString("display_at")),
                 expiresAtMillis = parseTime(value.optString("expires_at")),
             )
@@ -39,6 +41,16 @@ data class NotificationDetail(
             .replace(Regex("\\s+"), " ")
             .trim()
             .take(maximumLength)
+
+        internal fun notificationTarget(action: PushAction, value: String): String {
+            val target = value.trim()
+            val valid = when (action) {
+                PushAction.OPEN_MAIL -> target.matches(Regex("(?:[A-Za-z0-9_-]{1,64}:)?[0-9]{1,20}"))
+                PushAction.OPEN_TALK -> target.matches(Regex("[A-Za-z0-9_-]{4,128}"))
+                PushAction.OPEN_CALENDAR, PushAction.REFRESH_SECURITY_STATE -> false
+            }
+            return target.takeIf { valid }.orEmpty()
+        }
 
         private fun parseTime(value: String): Long? {
             if (value.isBlank()) return null

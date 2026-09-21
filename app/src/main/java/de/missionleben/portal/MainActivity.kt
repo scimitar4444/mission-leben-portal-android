@@ -125,7 +125,10 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         PushManager.initialize(this)
         viewModel.acceptEnrollmentLink(intent?.data)
-        viewModel.acceptPushAction(intent?.getStringExtra(PushEventDispatcher.EXTRA_PUSH_ACTION))
+        viewModel.acceptPushAction(
+            intent?.getStringExtra(PushEventDispatcher.EXTRA_PUSH_ACTION),
+            intent?.getStringExtra(PushEventDispatcher.EXTRA_EVENT_ID),
+        )
         handleLoginApprovalWake(intent)
 
         setContent {
@@ -207,7 +210,10 @@ class MainActivity : FragmentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         viewModel.acceptEnrollmentLink(intent.data)
-        viewModel.acceptPushAction(intent.getStringExtra(PushEventDispatcher.EXTRA_PUSH_ACTION))
+        viewModel.acceptPushAction(
+            intent.getStringExtra(PushEventDispatcher.EXTRA_PUSH_ACTION),
+            intent.getStringExtra(PushEventDispatcher.EXTRA_EVENT_ID),
+        )
         handleLoginApprovalWake(intent)
     }
 

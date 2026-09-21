@@ -102,9 +102,9 @@
     <string name="privacy_minimal_label">गोपनीय</string>
     <string name="privacy_minimal_description">केवल मेल, अपॉइंटमेंट या Talk दिखाएँ।</string>
     <string name="privacy_standard_label">मानक</string>
-    <string name="privacy_standard_description">भेजने वाला और विषय, या अपॉइंटमेंट का समय और स्थान दिखाएँ।</string>
+    <string name="privacy_standard_description">भेजने वाला और विषय, अपॉइंटमेंट का समय और स्थान तथा Talk का छोटा पूर्वावलोकन दिखाएँ।</string>
     <string name="privacy_detailed_label">विस्तृत</string>
-    <string name="privacy_detailed_description">मेल या Talk का छोटा पूर्वावलोकन भी दिखाएँ।</string>
+    <string name="privacy_detailed_description">मेल का छोटा और Talk का लंबा पूर्वावलोकन भी दिखाएँ।</string>
     <string name="calendar_reminder_title">अपॉइंटमेंट रिमाइंडर</string>
     <string name="calendar_reminder_description">चुनें कि अपॉइंटमेंट से कितनी देर पहले सूचना दिखाई जाए।</string>
     <string name="calendar_reminder_minutes">%1$d मिनट</string>

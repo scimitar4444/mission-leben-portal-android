@@ -102,9 +102,9 @@
     <string name="privacy_minimal_label">Private</string>
     <string name="privacy_minimal_description">Only show mail, appointment or Talk.</string>
     <string name="privacy_standard_label">Standard</string>
-    <string name="privacy_standard_description">Show sender and subject, or appointment time and location.</string>
+    <string name="privacy_standard_description">Show sender and subject, appointment time and location, and a short Talk preview.</string>
     <string name="privacy_detailed_label">Detailed</string>
-    <string name="privacy_detailed_description">Also show a short mail or Talk preview.</string>
+    <string name="privacy_detailed_description">Also show a short mail preview and a longer Talk preview.</string>
     <string name="calendar_reminder_title">Appointment reminder</string>
     <string name="calendar_reminder_description">Choose how long before an appointment the notification appears.</string>
     <string name="calendar_reminder_minutes">%1$d min</string>

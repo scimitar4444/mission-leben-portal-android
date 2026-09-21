@@ -1,0 +1,73 @@
+package de.missionleben.portal.push
+
+import java.net.URI
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+
+object NotificationNavigation {
+    fun resolve(
+        action: PushAction,
+        targetId: String,
+        applicationLaunchUrl: String,
+        zimbraWebBaseUrl: String,
+    ): String {
+        val validated = NotificationDetail.notificationTarget(action, targetId)
+        if (validated.isBlank()) return applicationLaunchUrl
+        return when (action) {
+            PushAction.OPEN_MAIL -> zimbraMessageUrl(zimbraWebBaseUrl, validated)
+            PushAction.OPEN_TALK -> talkRoomUrl(applicationLaunchUrl, validated)
+            PushAction.OPEN_CALENDAR, PushAction.REFRESH_SECURITY_STATE -> applicationLaunchUrl
+        }
+    }
+
+    private fun zimbraMessageUrl(baseUrl: String, messageId: String): String {
+        val base = runCatching { URI(baseUrl) }.getOrNull() ?: return baseUrl
+        if (!base.scheme.equals("https", ignoreCase = true) || base.host.isNullOrBlank()) return baseUrl
+        return URI(
+            "https",
+            base.rawAuthority,
+            "/modern/email/Inbox/message/$messageId",
+            null,
+            null,
+        ).toASCIIString()
+    }
+
+    private fun talkRoomUrl(launchUrl: String, roomToken: String): String {
+        val launch = runCatching { URI(launchUrl) }.getOrNull() ?: return launchUrl
+        if (!launch.scheme.equals("https", ignoreCase = true) || launch.host.isNullOrBlank()) return launchUrl
+        val redirectPath = if (
+            launch.path.orEmpty().contains("/index.php/") ||
+            decodedQuery(launch.rawQuery).any { it.first == "redirectUrl" && it.second.contains("/index.php/") }
+        ) {
+            "/index.php/call/$roomToken"
+        } else {
+            "/call/$roomToken"
+        }
+        val directRoom = URI("https", launch.rawAuthority, redirectPath, null, null).toASCIIString()
+        if (!launch.path.orEmpty().contains("/apps/user_oidc/login/")) return directRoom
+
+        val parameters = decodedQuery(launch.rawQuery)
+            .filterNot { it.first == "redirectUrl" }
+            .plus("redirectUrl" to directRoom)
+            .joinToString("&") { (name, value) -> "${encode(name)}=${encode(value)}" }
+        val endpoint = URI("https", launch.rawAuthority, launch.rawPath, null, null).toASCIIString()
+        return "$endpoint?$parameters"
+    }
+
+    private fun decodedQuery(query: String?): List<Pair<String, String>> = query
+        .orEmpty()
+        .split('&')
+        .filter(String::isNotBlank)
+        .map { parameter ->
+            val parts = parameter.split('=', limit = 2)
+            decode(parts[0]) to decode(parts.getOrElse(1) { "" })
+        }
+
+    private fun encode(value: String): String = URLEncoder.encode(value, StandardCharsets.UTF_8)
+        .replace("+", "%20")
+
+    private fun decode(value: String): String = runCatching {
+        URLDecoder.decode(value, StandardCharsets.UTF_8)
+    }.getOrDefault(value)
+}

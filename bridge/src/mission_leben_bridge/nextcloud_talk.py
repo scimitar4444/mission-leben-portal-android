@@ -111,6 +111,7 @@ class NextcloudTalkWebhook:
                         "title": str(actor.get("name") or "Talk"),
                         "summary": self._room_label(target.get("name")),
                         "preview": preview,
+                        "target_id": room_token,
                         "expires_at": expires_at,
                     },
                 )

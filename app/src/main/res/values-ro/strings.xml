@@ -102,9 +102,9 @@
     <string name="privacy_minimal_label">Discret</string>
     <string name="privacy_minimal_description">Afișează doar tipul: e-mail, programare sau Talk.</string>
     <string name="privacy_standard_label">Standard</string>
-    <string name="privacy_standard_description">Afișează expeditorul și subiectul sau ora și locul programării.</string>
+    <string name="privacy_standard_description">Afișează expeditorul și subiectul, ora și locul programării și o scurtă previzualizare Talk.</string>
     <string name="privacy_detailed_label">Detaliat</string>
-    <string name="privacy_detailed_description">Afișează și o scurtă previzualizare a e-mailului sau Talk.</string>
+    <string name="privacy_detailed_description">Afișează și o scurtă previzualizare a e-mailului și o previzualizare Talk mai lungă.</string>
     <string name="calendar_reminder_title">Memento pentru întâlnire</string>
     <string name="calendar_reminder_description">Alege cu cât timp înaintea unei întâlniri să apară notificarea.</string>
     <string name="calendar_reminder_minutes">%1$d min</string>

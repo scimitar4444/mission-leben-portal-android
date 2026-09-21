@@ -120,9 +120,9 @@
     <string name="privacy_minimal_label">Diskret</string>
     <string name="privacy_minimal_description">Nur Mail, Termin oder Talk anzeigen.</string>
     <string name="privacy_standard_label">Standard</string>
-    <string name="privacy_standard_description">Absender und Betreff beziehungsweise Terminzeit und Ort anzeigen.</string>
+    <string name="privacy_standard_description">Absender und Betreff beziehungsweise Terminzeit und Ort sowie eine kurze Talk-Vorschau anzeigen.</string>
     <string name="privacy_detailed_label">Ausführlich</string>
-    <string name="privacy_detailed_description">Zusätzlich eine kurze Mail- oder Talk-Vorschau anzeigen.</string>
+    <string name="privacy_detailed_description">Zusätzlich eine kurze Mail- und eine längere Talk-Vorschau anzeigen.</string>
     <string name="calendar_reminder_title">Terminerinnerung</string>
     <string name="calendar_reminder_description">Wie lange vor einem Termin die Benachrichtigung erscheinen soll.</string>
     <string name="calendar_reminder_minutes">%1$d Min.</string>

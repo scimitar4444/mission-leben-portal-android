@@ -31,6 +31,9 @@ import de.missionleben.portal.push.NtfyCredentialVault
 import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.push.NotificationPresenter
 import de.missionleben.portal.push.NotificationBadgeTarget
+import de.missionleben.portal.push.NotificationNavigation
+import de.missionleben.portal.push.NotificationTargetStore
+import de.missionleben.portal.push.PushCommand
 import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.push.UnreadNotificationStore
 import de.missionleben.portal.security.DeviceIdentity
@@ -67,7 +70,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var serializedAuthState: String? = null
     private var dataEncryptionKey: ByteArray? = null
     private var pendingVaultState: String? = null
-    private var pendingPushAction: PushAction? = null
+    private var pendingPushAction: PendingPushAction? = null
     private var downloadedUpdateFile: File? = null
     private var automaticUpdateCheckStarted = false
     private var loginApprovalPollingJob: Job? = null
@@ -433,7 +436,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun openApplication(url: String) {
+    fun openApplication(url: String) = openApplication(url, notificationEventId = null)
+
+    private fun openApplication(url: String, notificationEventId: String?) {
         if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState
         if (!_uiState.value.signedIn || state == null) {
@@ -450,7 +455,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 serializedState = state,
                 onSuccess = { _, updatedState ->
                     updateSerializedState(updatedState)
-                    if (badgeTarget != null) unreadNotificationStore.clear(badgeTarget)
+                    if (notificationEventId != null) {
+                        unreadNotificationStore.cancel(notificationEventId)
+                        NotificationTargetStore(getApplication()).remove(notificationEventId)
+                    } else if (badgeTarget != null) {
+                        unreadNotificationStore.clear(badgeTarget)
+                    }
                     _uiState.update {
                         it.copy(
                             busy = false,
@@ -793,9 +803,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(availableUpdate = null, updateStatus = UpdateStatus.IDLE) }
     }
 
-    fun acceptPushAction(value: String?) {
+    fun acceptPushAction(value: String?, eventId: String?) {
         val action = PushAction.fromWireName(value) ?: return
-        pendingPushAction = action
+        pendingPushAction = PendingPushAction(
+            action = action,
+            eventId = eventId?.takeIf(PushCommand::validEventId),
+        )
         resolvePendingPushAction()
     }
 
@@ -1178,7 +1191,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun resolvePendingPushAction() {
-        val action = pendingPushAction ?: return
+        val pending = pendingPushAction ?: return
+        val action = pending.action
         if (action == PushAction.REFRESH_SECURITY_STATE) {
             pendingPushAction = null
             refreshDeviceStatus()
@@ -1212,9 +1226,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (application == null) {
             _uiState.update { it.copy(message = string(R.string.message_app_not_approved)) }
         } else {
-            openApplication(application.launchUrl)
+            val targetId = NotificationTargetStore(getApplication()).get(pending.eventId, action)
+            val targetUrl = NotificationNavigation.resolve(
+                action = action,
+                targetId = targetId,
+                applicationLaunchUrl = application.launchUrl,
+                zimbraWebBaseUrl = BuildConfig.ZIMBRA_WEB_BASE_URL,
+            )
+            openApplication(targetUrl, pending.eventId)
         }
     }
+
+    private data class PendingPushAction(
+        val action: PushAction,
+        val eventId: String?,
+    )
 
     private fun handleAccessTokenFailure(
         failure: AccessTokenFailure,

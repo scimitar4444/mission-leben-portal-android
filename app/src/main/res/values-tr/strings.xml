@@ -102,9 +102,9 @@
     <string name="privacy_minimal_label">Gizli</string>
     <string name="privacy_minimal_description">Yalnızca posta, randevu veya Talk türünü göster.</string>
     <string name="privacy_standard_label">Standart</string>
-    <string name="privacy_standard_description">Gönderen ve konu ya da randevu saati ve konumunu göster.</string>
+    <string name="privacy_standard_description">Göndereni ve konuyu, randevu saatini ve konumunu ve kısa bir Talk önizlemesini göster.</string>
     <string name="privacy_detailed_label">Ayrıntılı</string>
-    <string name="privacy_detailed_description">Ayrıca kısa posta veya Talk önizlemesi göster.</string>
+    <string name="privacy_detailed_description">Ayrıca kısa bir posta ve daha uzun bir Talk önizlemesi göster.</string>
     <string name="calendar_reminder_title">Randevu hatırlatıcısı</string>
     <string name="calendar_reminder_description">Bildirimin randevudan ne kadar önce gösterileceğini seçin.</string>
     <string name="calendar_reminder_minutes">%1$d dk.</string>

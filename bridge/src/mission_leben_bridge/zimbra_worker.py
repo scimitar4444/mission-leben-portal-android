@@ -126,6 +126,7 @@ class ZimbraWorker:
                     "title": message.sender or "Neue Mail",
                     "summary": message.subject or "Ohne Betreff",
                     "preview": message.fragment,
+                    "target_id": message.message_id,
                     "display_at": received.isoformat().replace("+00:00", "Z"),
                     "expires_at": (received + timedelta(days=7)).isoformat().replace("+00:00", "Z"),
                 }

@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS notification_events (
     title TEXT NOT NULL,
     summary TEXT NOT NULL,
     preview TEXT NOT NULL,
+    target_id TEXT NOT NULL DEFAULT '',
     display_at TEXT,
     expires_at TEXT,
     expires_epoch INTEGER,
@@ -127,7 +128,7 @@ CREATE TABLE IF NOT EXISTS announcement_cache (
 CREATE INDEX IF NOT EXISTS auth_requests_subject_status
 ON auth_requests(subject, status, expires_at);
 
-PRAGMA user_version=7;
+PRAGMA user_version=8;
 """
 
 
@@ -174,6 +175,14 @@ class Store:
                     connection.execute(
                         f"ALTER TABLE push_registrations ADD COLUMN {name} {definition}"
                     )
+            event_columns = {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(notification_events)").fetchall()
+            }
+            if "target_id" not in event_columns:
+                connection.execute(
+                    "ALTER TABLE notification_events ADD COLUMN target_id TEXT NOT NULL DEFAULT ''"
+                )
             connection.execute(
                 """
                 INSERT OR IGNORE INTO event_delivery_queue(event_id, device_id, deliver_epoch, created_at)
@@ -186,7 +195,7 @@ class Store:
                 """,
                 (int(time.time()),),
             )
-            connection.execute("PRAGMA user_version=7")
+            connection.execute("PRAGMA user_version=8")
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path, timeout=15, factory=ClosingConnection)
@@ -792,9 +801,9 @@ class Store:
                 """
                 INSERT INTO notification_events(
                     event_id, source, source_event_id, subject, event_type, title,
-                    summary, preview, display_at, expires_at, expires_epoch,
+                    summary, preview, target_id, display_at, expires_at, expires_epoch,
                     deliver_epoch, delivered_at, revision, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 1, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 1, ?)
                 """,
                 (
                     event_id,
@@ -805,6 +814,7 @@ class Store:
                     event["title"],
                     event["summary"],
                     event["preview"],
+                    event.get("target_id", ""),
                     event.get("display_at"),
                     event.get("expires_at"),
                     event.get("expires_epoch"),

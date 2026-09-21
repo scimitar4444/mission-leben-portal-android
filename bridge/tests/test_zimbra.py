@@ -167,6 +167,7 @@ class ZimbraWorkerTest(unittest.TestCase):
         self.assertEqual("Absender", event["title"])
         self.assertEqual("Betreff", event["summary"])
         self.assertEqual("Vorschau", event["preview"])
+        self.assertEqual("41", event["target_id"])
         self.assertNotIn("email", event)
 
     def test_worker_heartbeat_is_updated_without_exposing_account_data(self) -> None:

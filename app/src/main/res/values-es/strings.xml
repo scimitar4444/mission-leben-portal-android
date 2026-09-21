@@ -102,9 +102,9 @@
     <string name="privacy_minimal_label">Discreto</string>
     <string name="privacy_minimal_description">Mostrar únicamente correo, cita o Talk.</string>
     <string name="privacy_standard_label">Estándar</string>
-    <string name="privacy_standard_description">Mostrar remitente y asunto, o la hora y el lugar de la cita.</string>
+    <string name="privacy_standard_description">Mostrar remitente y asunto, hora y lugar de la cita y una vista previa breve de Talk.</string>
     <string name="privacy_detailed_label">Detallado</string>
-    <string name="privacy_detailed_description">Mostrar también una vista previa breve del correo o de Talk.</string>
+    <string name="privacy_detailed_description">Mostrar también una vista previa breve del correo y una vista previa más larga de Talk.</string>
     <string name="calendar_reminder_title">Recordatorio de cita</string>
     <string name="calendar_reminder_description">Elige cuánto tiempo antes de una cita debe aparecer la notificación.</string>
     <string name="calendar_reminder_minutes">%1$d min</string>

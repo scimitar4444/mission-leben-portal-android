@@ -142,6 +142,7 @@ class ServiceTest(unittest.TestCase):
                 "title": "Sender Name",
                 "summary": "Confidential subject",
                 "preview": "Confidential preview",
+                "target_id": "42",
             },
         )
 
@@ -175,6 +176,40 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual("Sender Name", detail["title"])
         self.assertEqual("Confidential subject", detail["summary"])
         self.assertEqual("", detail["preview"])
+        self.assertEqual("42", detail["target_id"])
+
+        talk_preview = "Short Talk preview " + "x" * 160
+        talk_result = self.service.ingest_event(
+            "nextcloud",
+            {
+                "source_event_id": "talk:room1:message-43:authentik-user-1",
+                "user_subject": "authentik-user-1",
+                "event_type": "open_talk",
+                "title": "Talk Sender",
+                "summary": "Direktnachricht",
+                "preview": talk_preview,
+                "target_id": "room1",
+            },
+        )
+        talk_path = f"/v1/notifications/{talk_result['event_id']}"
+        talk_nonce = "talk-detail-nonce-0123456789"
+        talk_canonical = canonical_device_request(
+            "GET", talk_path, device_id, jwk["kid"], timestamp, talk_nonce
+        )
+        talk_signature = base64url_encode(
+            private_key.sign(talk_canonical, ec.ECDSA(hashes.SHA256()))
+        )
+        talk_detail = self.service.notification_detail(
+            talk_result["event_id"],
+            device_id,
+            jwk["kid"],
+            timestamp,
+            talk_nonce,
+            talk_signature,
+            talk_path,
+        )
+        self.assertEqual(talk_preview[:120], talk_detail["preview"])
+        self.assertEqual("room1", talk_detail["target_id"])
 
     def test_detailed_privacy_releases_preview_only_after_signed_fetch(self) -> None:
         private_key = ec.generate_private_key(ec.SECP256R1())

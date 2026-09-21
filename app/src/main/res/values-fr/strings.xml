@@ -102,9 +102,9 @@
     <string name="privacy_minimal_label">Discret</string>
     <string name="privacy_minimal_description">Afficher uniquement e-mail, rendez-vous ou Talk.</string>
     <string name="privacy_standard_label">Standard</string>
-    <string name="privacy_standard_description">Afficher l’expéditeur et l’objet, ou l’heure et le lieu du rendez-vous.</string>
+    <string name="privacy_standard_description">Afficher l’expéditeur et l’objet, l’heure et le lieu du rendez-vous, ainsi qu’un court aperçu de Talk.</string>
     <string name="privacy_detailed_label">Détaillé</string>
-    <string name="privacy_detailed_description">Afficher aussi un court aperçu de l’e-mail ou de Talk.</string>
+    <string name="privacy_detailed_description">Afficher aussi un court aperçu de l’e-mail et un aperçu plus long de Talk.</string>
     <string name="calendar_reminder_title">Rappel de rendez-vous</string>
     <string name="calendar_reminder_description">Choisissez combien de temps avant un rendez-vous la notification doit apparaître.</string>
     <string name="calendar_reminder_minutes">%1$d min</string>

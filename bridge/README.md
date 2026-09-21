@@ -213,6 +213,7 @@ Ein anderer interner Adapter kann weiterhin nach HMAC-Prüfung beispielsweise se
   "title": "Max Mustermann",
   "summary": "Team IT",
   "preview": "Kurze optionale Vorschau",
+  "target_id": "room-token",
   "expires_at": "2026-09-19T10:00:00Z"
 }
 ```

@@ -102,9 +102,9 @@
     <string name="privacy_minimal_label">Непомітно</string>
     <string name="privacy_minimal_description">Показувати лише тип: пошта, зустріч або Talk.</string>
     <string name="privacy_standard_label">Стандартно</string>
-    <string name="privacy_standard_description">Показувати відправника й тему або час і місце зустрічі.</string>
+    <string name="privacy_standard_description">Показувати відправника й тему, час і місце зустрічі та короткий попередній перегляд Talk.</string>
     <string name="privacy_detailed_label">Докладно</string>
-    <string name="privacy_detailed_description">Також показувати короткий попередній перегляд пошти або Talk.</string>
+    <string name="privacy_detailed_description">Також показувати короткий попередній перегляд пошти та довший попередній перегляд Talk.</string>
     <string name="calendar_reminder_title">Нагадування про зустріч</string>
     <string name="calendar_reminder_description">Виберіть, за скільки часу до зустрічі показувати сповіщення.</string>
     <string name="calendar_reminder_minutes">%1$d хв</string>
