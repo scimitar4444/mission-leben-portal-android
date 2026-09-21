@@ -6,6 +6,7 @@ import android.app.job.JobScheduler
 import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
+import android.util.Log
 import android.os.PersistableBundle
 import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.device.DeviceServiceRepository
@@ -33,7 +34,7 @@ class RichNotificationJobService : JobService() {
             ?: return false
         val job = scope.launch {
             val shouldRetry = try {
-                fetchAndDisplay(eventId, action)
+                fetchAndDisplay(this@RichNotificationJobService, eventId, action)
                 false
             } catch (error: NotificationFetchException) {
                 error.retryable
@@ -59,26 +60,37 @@ class RichNotificationJobService : JobService() {
         super.onDestroy()
     }
 
-    private suspend fun fetchAndDisplay(eventId: String, action: PushAction) {
-        val preferences = AppPreferences(this)
-        val privacy = NotificationPrivacy.effective(
-            preferences.deviceMode,
-            PushRegistrationStore(this).personalPrivacy,
-        )
-        if (privacy == NotificationPrivacy.MINIMAL || preferences.enrollmentState != EnrollmentState.TRUSTED) return
-        val deviceId = preferences.deviceId ?: return
-        val repository = DeviceServiceRepository(this)
-        if (!repository.communicationConfigured) return
-        val detail = repository.notificationDetail(eventId, action, deviceId, DeviceIdentity())
-        NotificationPresenter.showRich(this, action, eventId, detail, privacy)
-    }
-
     companion object {
+        private const val TAG = "PortalPush"
         private const val KEY_EVENT_ID = "event_id"
         private const val KEY_EVENT_TYPE = "event_type"
         private const val KEY_REVISION = "revision"
 
-        fun schedule(context: Context, command: PushCommand.Fetch) {
+        internal suspend fun fetchAndDisplay(
+            context: Context,
+            eventId: String,
+            action: PushAction,
+        ): Boolean {
+            val preferences = AppPreferences(context)
+            val privacy = NotificationPrivacy.effective(
+                preferences.deviceMode,
+                PushRegistrationStore(context).personalPrivacy,
+            )
+            if (
+                privacy == NotificationPrivacy.MINIMAL ||
+                preferences.enrollmentState != EnrollmentState.TRUSTED
+            ) {
+                return false
+            }
+            val deviceId = preferences.deviceId ?: return false
+            val repository = DeviceServiceRepository(context)
+            if (!repository.communicationConfigured) return false
+            val detail = repository.notificationDetail(eventId, action, deviceId, DeviceIdentity())
+            NotificationPresenter.showRich(context, action, eventId, detail, privacy)
+            return true
+        }
+
+        fun schedule(context: Context, command: PushCommand.Fetch): Boolean {
             val extras = PersistableBundle().apply {
                 putString(KEY_EVENT_ID, command.eventId)
                 putString(KEY_EVENT_TYPE, command.eventType.wireName)
@@ -90,9 +102,13 @@ class RichNotificationJobService : JobService() {
             )
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
                 .setExtras(extras)
-                .setExpedited(true)
                 .build()
-            context.getSystemService(JobScheduler::class.java).schedule(info)
+            return runCatching {
+                context.getSystemService(JobScheduler::class.java).schedule(info) ==
+                    JobScheduler.RESULT_SUCCESS
+            }.onFailure {
+                Log.w(TAG, "notification detail retry could not be scheduled", it)
+            }.getOrDefault(false)
         }
     }
 }

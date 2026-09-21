@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import de.missionleben.portal.BuildConfig
 import de.missionleben.portal.MainActivity
 import de.missionleben.portal.R
+import de.missionleben.portal.device.NotificationFetchException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -161,13 +162,44 @@ class NtfySubscriberService : Service() {
         val envelope = runCatching { JSONObject(line) }.getOrNull() ?: return
         if (envelope.optString("event") != "message") return
         val id = envelope.optString("id")
+        val lastMessageId = vault.load()?.lastMessageId.orEmpty()
+        if (!NtfySubscriptionPolicy.shouldProcessMessage(id, lastMessageId)) return
         val message = runCatching { JSONObject(envelope.optString("message")) }.getOrNull() ?: return
         val data = buildMap {
             message.keys().forEach { key -> put(key, message.optString(key)) }
         }
         val command = PushCommand.parse(data) ?: return
-        PushEventDispatcher.dispatch(this, command)
+        // Persist the transport cursor before handing the command to Android. A runtime
+        // scheduling failure must never reconnect the stream and replay the same alert.
         vault.rememberMessage(id)
+        if (command is PushCommand.Fetch) {
+            scope.launch { displayNotification(command) }
+        } else {
+            runCatching { PushEventDispatcher.dispatch(this, command) }
+                .onFailure { Log.w(TAG, "push command could not be dispatched", it) }
+        }
+    }
+
+    private suspend fun displayNotification(command: PushCommand.Fetch) {
+        var retryable = false
+        val richDisplayed = try {
+            RichNotificationJobService.fetchAndDisplay(this, command.eventId, command.eventType)
+        } catch (error: NotificationFetchException) {
+            retryable = error.retryable
+            Log.w(TAG, "notification details were unavailable; retry=$retryable")
+            false
+        } catch (error: IOException) {
+            retryable = true
+            Log.w(TAG, "notification detail connection failed; retrying", error)
+            false
+        } catch (error: Exception) {
+            Log.w(TAG, "notification details could not be displayed", error)
+            false
+        }
+        if (!richDisplayed) {
+            NotificationPresenter.showGeneric(this, command.eventType, command.eventId)
+        }
+        if (retryable) RichNotificationJobService.schedule(this, command)
     }
 
     private fun validSubscription(value: NtfySubscription): Boolean {

@@ -44,4 +44,11 @@ class NtfySubscriptionPolicyTest {
         assertTrue(NtfySubscriptionPolicy.validMessageId("iQeOlR9rCfai"))
         assertFalse(NtfySubscriptionPolicy.validMessageId("short"))
     }
+
+    @Test
+    fun skipsTheLastTransportMessageWhenNtfyResumesAStream() {
+        assertFalse(NtfySubscriptionPolicy.shouldProcessMessage("iQeOlR9rCfai", "iQeOlR9rCfai"))
+        assertTrue(NtfySubscriptionPolicy.shouldProcessMessage("TzaRGPp2e5ue", "iQeOlR9rCfai"))
+        assertFalse(NtfySubscriptionPolicy.shouldProcessMessage("short", ""))
+    }
 }

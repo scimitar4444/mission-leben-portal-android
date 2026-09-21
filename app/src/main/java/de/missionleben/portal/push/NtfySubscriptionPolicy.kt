@@ -6,6 +6,9 @@ object NtfySubscriptionPolicy {
     fun validMessageId(value: String): Boolean =
         value.matches(Regex("[A-Za-z0-9_-]{8,64}"))
 
+    fun shouldProcessMessage(messageId: String, lastMessageId: String): Boolean =
+        validMessageId(messageId) && messageId != lastMessageId
+
     fun accepts(
         baseUrl: String,
         topic: String,
