@@ -80,7 +80,7 @@ class ZimbraSoapClientTest(unittest.TestCase):
         self.client.auth_token = "admin-token"
         self.client.responses = [
             ET.fromstring(
-                f'<SearchResponse xmlns="{MAIL}"><m id="41" d="1700000000000">'
+                f'<SearchResponse xmlns="{MAIL}"><m id="account-a:41" d="1700000000000">'
                 '<e t="f" a="sender@example.invalid" p="Absender"/><su>Betreff</su><fr>Vorschau</fr>'
                 '</m></SearchResponse>'
             ),

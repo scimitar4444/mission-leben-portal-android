@@ -24,10 +24,14 @@ object NotificationNavigation {
     private fun zimbraMessageUrl(baseUrl: String, messageId: String): String {
         val base = runCatching { URI(baseUrl) }.getOrNull() ?: return baseUrl
         if (!base.scheme.equals("https", ignoreCase = true) || base.host.isNullOrBlank()) return baseUrl
+        // Delegated Zimbra admin searches qualify an item as
+        // "<account-uuid>:<message-id>".  The authenticated user's Modern UI
+        // expects the mailbox-local numeric ID in its route.
+        val localMessageId = messageId.substringAfterLast(':')
         return URI(
             "https",
             base.rawAuthority,
-            "/modern/email/Inbox/message/$messageId",
+            "/modern/email/Inbox/message/$localMessageId",
             null,
             null,
         ).toASCIIString()

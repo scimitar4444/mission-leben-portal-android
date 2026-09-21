@@ -33,6 +33,19 @@ class NotificationNavigationTest {
     }
 
     @Test
+    fun `mail notification removes delegated zimbra account qualifier`() {
+        assertEquals(
+            "https://mail.mission-leben.de/modern/email/Inbox/message/200207",
+            NotificationNavigation.resolve(
+                action = PushAction.OPEN_MAIL,
+                targetId = "c92a7e31-0ac3-41ce-8953-aed18ee2774b:200207",
+                applicationLaunchUrl = "https://id.mission-leben.de/application/saml/zimbra-mail/init/",
+                zimbraWebBaseUrl = "https://mail.mission-leben.de",
+            ),
+        )
+    }
+
+    @Test
     fun `invalid target falls back to approved application launch url`() {
         val launch = "https://id.mission-leben.de/application/saml/zimbra-mail/init/"
         assertEquals(

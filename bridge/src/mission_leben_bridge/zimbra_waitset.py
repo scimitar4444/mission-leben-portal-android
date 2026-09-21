@@ -29,6 +29,17 @@ def _child_text(element: ET.Element, name: str) -> str:
     return (child.text or "").strip() if child is not None else ""
 
 
+def _local_item_id(value: str, account_id: str) -> str:
+    """Remove the account qualifier returned during delegated admin access.
+
+    Zimbra returns IDs such as ``<account-uuid>:200207`` when the worker uses
+    an admin token with an account context.  The user's Modern UI addresses
+    that same item as ``200207`` inside the user's own mailbox.
+    """
+    prefix = f"{account_id}:"
+    return value[len(prefix):] if value.startswith(prefix) else value
+
+
 @dataclass(frozen=True)
 class ZimbraMessage:
     message_id: str
@@ -127,7 +138,7 @@ class ZimbraSoapClient:
                 sender = sender_node.attrib.get("p") or sender_node.attrib.get("a", "")
             messages.append(
                 ZimbraMessage(
-                    message_id=node.attrib["id"],
+                    message_id=_local_item_id(node.attrib["id"], account_id),
                     received_millis=int(node.attrib.get("d", "0")),
                     sender=sender,
                     subject=_child_text(node, "su"),
