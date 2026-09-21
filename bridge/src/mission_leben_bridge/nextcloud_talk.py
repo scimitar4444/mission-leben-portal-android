@@ -107,13 +107,33 @@ class NextcloudTalkWebhook:
                         "user_subject": subject,
                         "event_type": "open_talk",
                         "title": str(actor.get("name") or "Talk"),
-                        "summary": str(target.get("name") or "Neue Talk-Nachricht"),
+                        "summary": self._room_label(target.get("name")),
                         "preview": preview,
                         "expires_at": expires_at,
                     },
                 )
             )
         return {"accepted": True, "events": len(results)}
+
+    @staticmethod
+    def _room_label(value: object) -> str:
+        """Return a user-facing room label without exposing technical user IDs."""
+        if not isinstance(value, str) or not value.strip():
+            return "Neue Talk-Nachricht"
+        label = value.strip()
+        try:
+            participants = json.loads(label)
+        except json.JSONDecodeError:
+            return label
+        if not isinstance(participants, list) or not all(
+            isinstance(participant, str) for participant in participants
+        ):
+            return label
+        if len(participants) == 2:
+            return "Direktnachricht"
+        if participants:
+            return "Gruppenchat"
+        return "Neue Talk-Nachricht"
 
     @staticmethod
     def _preview(content: object) -> str:

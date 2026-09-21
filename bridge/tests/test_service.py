@@ -765,6 +765,58 @@ class ServiceTest(unittest.TestCase):
         )
 
         self.assertEqual(1, result["events"])
+        self.assertEqual("Team IT", adapter._room_label("Team IT"))
+
+    def test_talk_direct_room_ids_are_replaced_with_a_human_label(self) -> None:
+        class RecordingService:
+            def __init__(self) -> None:
+                self.events: list[tuple[str, dict[str, object]]] = []
+
+            def ingest_event(self, source: str, event: dict[str, object]) -> dict[str, object]:
+                self.events.append((source, event))
+                return {"created": True}
+
+        secret = b"talk-bot-secret"
+        recording_service = RecordingService()
+        adapter = NextcloudTalkWebhook(
+            recording_service,  # type: ignore[arg-type]
+            self.store,
+            secret,
+            "https://cloud.example.invalid",
+            {"room1": ("authentik-user-1",)},
+            {},
+        )
+        body = json.dumps(
+            {
+                "type": "Create",
+                "actor": {"type": "Person", "id": "users/alice", "name": "Alice"},
+                "object": {"type": "Note", "id": "direct-42", "content": "Hallo"},
+                "target": {
+                    "type": "Collection",
+                    "id": "room1",
+                    "name": json.dumps(
+                        [
+                            "3818C49A-A82B-41BC-886C-9C6D7DEEFE89",
+                            "84D54352-FD8B-4F7A-9B74-75FDE2B023C8",
+                        ],
+                        separators=(",", ":"),
+                    ),
+                },
+            },
+            separators=(",", ":"),
+        ).encode()
+        random_value = "C" * 64
+        signature = hmac.new(secret, random_value.encode() + body, hashlib.sha256).hexdigest()
+
+        result = adapter.receive(
+            body,
+            random_value,
+            signature,
+            "https://cloud.example.invalid",
+        )
+
+        self.assertEqual(1, result["events"])
+        self.assertEqual("Direktnachricht", recording_service.events[0][1]["summary"])
 
     def test_talk_call_events_do_not_create_notifications(self) -> None:
         secret = b"talk-bot-secret"
