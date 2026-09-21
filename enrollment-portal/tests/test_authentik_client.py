@@ -80,3 +80,49 @@ async def test_disable_device_preserves_record_and_existing_attributes(settings)
         ]
     finally:
         await client.close()
+
+
+@pytest.mark.asyncio
+async def test_device_assignment_is_searchable_and_preserves_existing_attributes(settings):
+    device_uuid = "eeeeeeee-bbbb-cccc-dddd-eeeeeeeeeeee"
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append((request.method, request.url.path))
+        if request.method == "GET":
+            return httpx.Response(
+                200,
+                json={
+                    "device_uuid": device_uuid,
+                    "name": "TCL T807D (12345678)",
+                    "attributes": {"serial": "ml-android-1234567890abcdef"},
+                },
+            )
+        payload = json.loads(request.content)
+        assert payload == {
+            "name": "TCL T807D (12345678) · m.beispiel",
+            "attributes": {
+                "serial": "ml-android-1234567890abcdef",
+                "mission-leben.de/purpose": "android-portal",
+                "mission-leben.de/mode": "personal",
+                "mission-leben.de/assigned-kind": "user",
+                "mission-leben.de/assigned-to": "m.beispiel",
+            },
+        }
+        return httpx.Response(200, json={"device_uuid": device_uuid, **payload})
+
+    client = AuthentikClient(settings, httpx.MockTransport(handler))
+    try:
+        result = await client.update_device_assignment(
+            device_uuid,
+            "TCL T807D (12345678) · m.beispiel",
+            "personal",
+            "m.beispiel",
+        )
+        assert result["name"].endswith("· m.beispiel")
+        assert calls == [
+            ("GET", f"/api/v3/endpoints/devices/{device_uuid}/"),
+            ("PATCH", f"/api/v3/endpoints/devices/{device_uuid}/"),
+        ]
+    finally:
+        await client.close()

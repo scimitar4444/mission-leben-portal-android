@@ -22,6 +22,7 @@ class FakeAuthentik:
         self.deleted_tokens = []
         self.enrolled = []
         self.disabled_devices = []
+        self.updated_device_assignments = []
         self.login_approval_devices = []
         self._bindings = []
         self.existing_group = None
@@ -52,7 +53,12 @@ class FakeAuthentik:
             "device_group_obj": {
                 "pbm_uuid": "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee",
                 "name": "Mission Leben Android - Personal",
-                "attributes": {"mission-leben.de/mode": "personal"},
+                "attributes": {
+                    "mission-leben.de/purpose": "android-portal",
+                    "mission-leben.de/mode": "personal",
+                    "mission-leben.de/user-uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                    "mission-leben.de/username": "m.beispiel",
+                },
             },
             "name": "test",
             "expiring": True,
@@ -139,6 +145,23 @@ class FakeAuthentik:
             "mission-leben.de/disabled-reason": reason,
         }
         self.disabled_devices.append(device_uuid)
+        return device
+
+    async def update_device_assignment(self, device_uuid, display_name, mode, assigned_to):
+        device = await self.device(device_uuid)
+        device["name"] = display_name
+        device["attributes"] = {
+            **device.get("attributes", {}),
+            "mission-leben.de/purpose": "android-portal",
+            "mission-leben.de/mode": mode,
+            "mission-leben.de/assigned-kind": (
+                "user" if mode == "personal" else "organization"
+            ),
+            "mission-leben.de/assigned-to": assigned_to,
+        }
+        self.updated_device_assignments.append(
+            (device_uuid, display_name, mode, assigned_to)
+        )
         return device
 
     async def ensure_login_approval_device(self, username, subject):
@@ -296,7 +319,52 @@ async def test_redeem_enrolls_in_authentik_and_deletes_token(settings):
     assert result == {"token": "agent-device-token"}
     assert authentik.deleted_tokens == [authentik.token_record["token_uuid"]]
     assert authentik.enrolled[0][1]["device_serial"] == "ml-android-1234567890abcdef"
+    assert authentik.enrolled[0][1]["device_name"] == "TCL T807D (12345678) · m.beispiel"
+    assert authentik.updated_device_assignments == [
+        (
+            authentik.device_uuid,
+            "TCL T807D (12345678) · m.beispiel",
+            "personal",
+            "m.beispiel",
+        )
+    ]
+    assert authentik.device_records[-1]["attributes"]["mission-leben.de/assigned-to"] == "m.beispiel"
     assert authentik.audit_events[-1][0] == "model_updated"
+
+
+@pytest.mark.asyncio
+async def test_shared_redeem_is_labeled_with_its_organization(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.token_record["device_group_obj"]["attributes"] = {
+        "mission-leben.de/purpose": "android-portal",
+        "mission-leben.de/mode": "shared",
+        "mission-leben.de/facility-group": "ORG_ML_H042",
+    }
+    service = EnrollmentService(settings, authentik)
+
+    result = await service.redeem(
+        authentik.token_record["token_uuid"],
+        "abcdefghijklmnopqrstuvwxyz0123456789_-",
+        "shared",
+        "ml-android-1234567890abcdef",
+        "Samsung Tablet (12345678)",
+    )
+
+    assert result == {"token": "agent-device-token"}
+    assert authentik.enrolled[0][1]["device_name"] == (
+        "Samsung Tablet (12345678) · ORG_ML_H042"
+    )
+    assert authentik.updated_device_assignments == [
+        (
+            authentik.device_uuid,
+            "Samsung Tablet (12345678) · ORG_ML_H042",
+            "shared",
+            "ORG_ML_H042",
+        )
+    ]
+    assert authentik.device_records[-1]["attributes"]["mission-leben.de/assigned-kind"] == (
+        "organization"
+    )
 
 
 @pytest.mark.asyncio

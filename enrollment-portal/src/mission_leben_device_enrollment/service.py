@@ -323,8 +323,24 @@ class EnrollmentService:
             if not await self.authentik.token_matches(token_uuid, presented_token):
                 raise AuthentikError(401, "Der Registrierungscode ist ungültig.")
             access_group = token_record.get("device_group_obj") or {}
-            if access_group.get("attributes", {}).get("mission-leben.de/mode") != mode:
+            access_group_attributes = access_group.get("attributes", {})
+            if access_group_attributes.get("mission-leben.de/mode") != mode:
                 raise AuthentikError(403, "Der Registrierungscode passt nicht zum Gerätemodus.")
+
+            if mode == "personal":
+                assigned_to = str(
+                    access_group_attributes.get("mission-leben.de/username") or ""
+                ).strip()
+            else:
+                assigned_to = str(
+                    access_group_attributes.get("mission-leben.de/facility-group") or ""
+                ).strip()
+            if not assigned_to:
+                raise AuthentikError(
+                    502,
+                    "Die Gerätezuordnung in Authentik ist unvollständig.",
+                )
+            display_name = f"{clean_name} · {assigned_to}"
 
             access_group_uuid = str(
                 access_group.get("pbm_uuid") or token_record.get("device_group") or ""
@@ -341,7 +357,7 @@ class EnrollmentService:
 
             response = await self.authentik.enroll_agent(
                 presented_token,
-                {"device_serial": device_serial, "device_name": clean_name},
+                {"device_serial": device_serial, "device_name": display_name},
             )
             try:
                 await self.authentik.delete_enrollment_token(token_uuid)
@@ -349,11 +365,32 @@ class EnrollmentService:
                 LOGGER.exception("token deletion failed; forcing expiry for %s", token_uuid)
                 await self.authentik.expire_enrollment_token(token_record)
 
+            new_device_uuid = await self._enrolled_device_uuid(
+                response,
+                access_group_uuid,
+            )
+            try:
+                await self.authentik.update_device_assignment(
+                    new_device_uuid,
+                    display_name,
+                    mode,
+                    assigned_to,
+                )
+            except Exception as error:
+                await self._disable_device_after_failed_enrollment(
+                    new_device_uuid,
+                    "assignment-metadata-failed",
+                )
+                raise AuthentikError(
+                    502,
+                    "Die sichtbare Gerätezuordnung konnte nicht sicher gespeichert werden. "
+                    "Das neue Gerät wurde vorsorglich gesperrt; bitte erzeugen Sie einen neuen QR-Code.",
+                ) from error
+
             replaced_devices: list[RegisteredDevice] = []
             if mode == "personal":
-                new_device_uuid = await self._replace_personal_devices(
-                    response,
-                    access_group_uuid,
+                await self._replace_personal_devices(
+                    new_device_uuid,
                     previous_devices,
                 )
                 replaced_devices = [
@@ -371,7 +408,8 @@ class EnrollmentService:
                         "token_uuid": token_uuid,
                         "mode": mode,
                         "device_serial": device_serial,
-                        "device_name": clean_name,
+                        "device_name": display_name,
+                        "assigned_to": assigned_to,
                         "access_group": access_group.get("name"),
                         "replaced_device_uuids": [
                             device.device_uuid for device in replaced_devices
@@ -382,11 +420,10 @@ class EnrollmentService:
                 LOGGER.exception("failed to audit redeemed enrollment token %s", token_uuid)
             return response
 
-    async def _replace_personal_devices(
+    async def _enrolled_device_uuid(
         self,
         enrollment_response: dict[str, Any],
         access_group_uuid: str,
-        previous_devices: tuple[RegisteredDevice, ...],
     ) -> str:
         agent_token = str(enrollment_response.get("token", ""))
         if not agent_token:
@@ -399,12 +436,19 @@ class EnrollmentService:
                 502,
                 "Das neue Gerät wurde nicht der erwarteten Gerätegruppe zugeordnet.",
             )
+        return new_device_uuid
+
+    async def _replace_personal_devices(
+        self,
+        new_device_uuid: str,
+        previous_devices: tuple[RegisteredDevice, ...],
+    ) -> None:
 
         to_disable = [
             device for device in previous_devices if device.device_uuid != new_device_uuid
         ]
         if not to_disable:
-            return new_device_uuid
+            return
 
         disabled_at = datetime.now(UTC)
         try:
@@ -419,12 +463,15 @@ class EnrollmentService:
                 "Der sichere Geräteaustausch konnte nicht abgeschlossen werden. "
                 "Das neue Gerät wurde vorsorglich gesperrt; bitte erzeugen Sie einen neuen QR-Code.",
             ) from error
-        return new_device_uuid
 
-    async def _disable_new_device_after_failed_replacement(self, device_uuid: str) -> None:
+    async def _disable_device_after_failed_enrollment(
+        self,
+        device_uuid: str,
+        reason: str,
+    ) -> None:
         try:
             await self.authentik.disable_device(
-                device_uuid, datetime.now(UTC), "replacement-failed"
+                device_uuid, datetime.now(UTC), reason
             )
         except Exception:
             LOGGER.critical(
@@ -432,6 +479,12 @@ class EnrollmentService:
                 device_uuid,
                 exc_info=True,
             )
+
+    async def _disable_new_device_after_failed_replacement(self, device_uuid: str) -> None:
+        await self._disable_device_after_failed_enrollment(
+            device_uuid,
+            "replacement-failed",
+        )
 
     async def _active_personal_devices_by_user(
         self,

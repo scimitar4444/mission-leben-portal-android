@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mission-leben-device-enrollment"
-version = "0.2.2"
+version = "0.2.3"
 description = "Stateless, Authentik-backed device initialization portal for Mission Leben Zentral"
 requires-python = ">=3.12"
 license = { text = "Apache-2.0" }

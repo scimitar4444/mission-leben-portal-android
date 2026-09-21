@@ -255,6 +255,32 @@ class AuthentikClient:
         UUID(device_uuid)
         return await self._request("GET", f"/endpoints/devices/{device_uuid}/")
 
+    async def update_device_assignment(
+        self,
+        device_uuid: str,
+        display_name: str,
+        mode: str,
+        assigned_to: str,
+    ) -> dict[str, Any]:
+        UUID(device_uuid)
+        if mode not in {"personal", "shared"}:
+            raise ValueError("invalid device mode")
+        device = await self.device(device_uuid)
+        attributes = {
+            **(device.get("attributes") or {}),
+            "mission-leben.de/purpose": "android-portal",
+            "mission-leben.de/mode": mode,
+            "mission-leben.de/assigned-kind": (
+                "user" if mode == "personal" else "organization"
+            ),
+            "mission-leben.de/assigned-to": assigned_to,
+        }
+        return await self._request(
+            "PATCH",
+            f"/endpoints/devices/{device_uuid}/",
+            json={"name": display_name, "attributes": attributes},
+        )
+
     async def disable_device(
         self, device_uuid: str, disabled_at: datetime, reason: str
     ) -> dict[str, Any]:
