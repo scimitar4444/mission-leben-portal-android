@@ -193,6 +193,8 @@ BRIDGE_NEXTCLOUD_ANNOUNCEMENTS_SECRET_FILE=/run/secrets/nextcloud-announcements-
 
 Die Nextcloud-App liefert dabei keine Räume, Nachrichten, Gruppen oder Profile, sondern nur die aktiven Benutzerkennungen des explizit signiert angefragten Raums. Ohne Kommunikationsverzeichnis bleibt die bisherige statische Zuordnung aktiv; eine teilweise Konfiguration wird beim Start und in der Vorprüfung abgelehnt. Die früher unterstützten Variablen `BRIDGE_NEXTCLOUD_TALK_API_USER` und `BRIDGE_NEXTCLOUD_TALK_API_PASSWORD_FILE` bleiben lediglich als Übergangs-Fallback erhalten.
 
+Der fünfminütige Authentik-Kommunikationsabgleich übergibt zusätzlich ausschließlich die Talk-freigegebenen Nextcloud-Benutzerkennungen an den signierten Endpunkt `/apps/missionleben_announcements/api/v1/talk-bot-sync`. Die Nextcloud-App richtet den dedizierten Bot automatisch in den aktiven 1:1- und geschlossenen Gruppenchats dieser Konten ein und entfernt ihn wieder, sobald kein mobil freigegebenes Konto mehr im Raum vorhanden ist. Öffentliche Besprechungs-, archivierte und Sonderräume bleiben ausgeschlossen; Anrufereignisse ignoriert die Bridge. Neue Benutzer, neue persönliche oder geschlossene Gruppenchats und Offboarding benötigen damit keine manuelle Bot-Pflege.
+
 Die Talk-Bot-Secret-Datei wird nur in den Bridge-Container gemountet. Sie gehört nicht in `.env` oder Git.
 
 ## Benachrichtigungseinstellungen

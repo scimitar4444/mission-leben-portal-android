@@ -40,9 +40,13 @@ object TalkChatPolicy {
           const styleId = 'ml-talk-chat-only-style';
           const lastRoomStorageKey = 'ml-talk-last-room-path';
           const roomPathPattern = /^\/(?:index\.php\/)?call\/[A-Za-z0-9_-]{4,128}$/;
+          const roomTokenPattern = /\/call\/([A-Za-z0-9_-]{4,128})(?:\/|${'$'})/;
           let navigationOpenedForRoot = false;
           let restoreAttempted = false;
           let observerStarted = false;
+          let allowedRoomTokens = null;
+          let roomFilterRequested = false;
+          let roomFilterFailed = false;
 
           const normalizedPath = () => window.location.pathname.replace(/\/+$/, '');
 
@@ -59,10 +63,59 @@ object TalkChatPolicy {
             ? '/index.php/apps/spreed/'
             : '/apps/spreed/';
 
+          const roomTokenFromPath = (path) => {
+            const match = path.match(roomTokenPattern);
+            return match ? match[1] : null;
+          };
+
+          const loadAllowedRooms = () => {
+            if (roomFilterRequested || !isTalkPath()) return;
+            roomFilterRequested = true;
+            const prefix = normalizedPath().startsWith('/index.php/') ? '/index.php' : '';
+            fetch(window.location.origin + prefix
+              + '/apps/missionleben_announcements/api/v1/my-talk-rooms', {
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json' },
+              })
+              .then((response) => {
+                if (!response.ok) throw new Error('room filter unavailable');
+                return response.json();
+              })
+              .then((payload) => {
+                if (!payload || !Array.isArray(payload.room_tokens)) {
+                  throw new Error('invalid room filter');
+                }
+                allowedRoomTokens = new Set(payload.room_tokens);
+                updateMode();
+              })
+              .catch(() => {
+                roomFilterFailed = true;
+                updateMode();
+              });
+          };
+
+          const filterConversationList = () => {
+            if (!isTalkPath() || allowedRoomTokens === null) return;
+            document.querySelectorAll('.conversation[data-nav-id^="conversation_"]').forEach((element) => {
+              const token = (element.getAttribute('data-nav-id') || '').replace(/^conversation_/, '');
+              if (allowedRoomTokens.has(token)) {
+                element.removeAttribute('data-ml-talk-hidden-room');
+              } else {
+                element.setAttribute('data-ml-talk-hidden-room', '');
+              }
+            });
+          };
+
           const rememberOrRestoreLastRoom = () => {
             const path = normalizedPath();
             try {
               if (roomPathPattern.test(path)) {
+                const currentToken = roomTokenFromPath(path);
+                if (allowedRoomTokens !== null && !allowedRoomTokens.has(currentToken)) {
+                  window.localStorage.removeItem(lastRoomStorageKey);
+                  window.location.replace(window.location.origin + talkRootPath());
+                  return true;
+                }
                 window.localStorage.setItem(lastRoomStorageKey, path);
                 restoreAttempted = true;
                 return false;
@@ -78,10 +131,16 @@ object TalkChatPolicy {
               }
 
               if (!isTalkRoot() || restoreAttempted) return false;
+              if (allowedRoomTokens === null && !roomFilterFailed) return false;
               restoreAttempted = true;
               const lastRoomPath = window.localStorage.getItem(lastRoomStorageKey);
               if (!lastRoomPath) return false;
               if (!roomPathPattern.test(lastRoomPath)) {
+                window.localStorage.removeItem(lastRoomStorageKey);
+                return false;
+              }
+              const lastRoomToken = roomTokenFromPath(lastRoomPath);
+              if (allowedRoomTokens !== null && !allowedRoomTokens.has(lastRoomToken)) {
                 window.localStorage.removeItem(lastRoomStorageKey);
                 return false;
               }
@@ -125,6 +184,9 @@ object TalkChatPolicy {
               + 'top:0 !important;'
               + 'bottom:0 !important;'
               + 'height:100% !important;'
+              + '}'
+              + 'html[data-ml-talk-chat-only] [data-ml-talk-hidden-room] {'
+              + 'display:none !important;'
               + '}';
             (document.head || document.documentElement).appendChild(style);
           };
@@ -163,6 +225,8 @@ object TalkChatPolicy {
             }
             lockRestrictedControls();
             dismissUnsupportedBrowserWarning();
+            loadAllowedRooms();
+            filterConversationList();
             if (rememberOrRestoreLastRoom()) return;
             openConversationNavigation();
           };
@@ -174,10 +238,23 @@ object TalkChatPolicy {
             event.stopImmediatePropagation();
           };
 
+          const blockHiddenConversation = (event) => {
+            if (!isTalkPath() || allowedRoomTokens === null || !(event.target instanceof Element)) return;
+            const conversation = event.target.closest('.conversation[data-nav-id^="conversation_"]');
+            if (!conversation) return;
+            const token = (conversation.getAttribute('data-nav-id') || '').replace(/^conversation_/, '');
+            if (allowedRoomTokens.has(token)) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          };
+
           document.addEventListener('pointerdown', blockCallControl, true);
           document.addEventListener('touchstart', blockCallControl, true);
           document.addEventListener('mousedown', blockCallControl, true);
           document.addEventListener('click', blockCallControl, true);
+          document.addEventListener('pointerdown', blockHiddenConversation, true);
+          document.addEventListener('touchstart', blockHiddenConversation, true);
+          document.addEventListener('click', blockHiddenConversation, true);
           window.addEventListener('popstate', updateMode);
           window.addEventListener('hashchange', updateMode);
 

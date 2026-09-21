@@ -45,6 +45,25 @@ h1 { margin: 8px 0; font-size: clamp(1.65rem, 4vw, 2.45rem); line-height: 1.1; }
 .choice-card span:not(.choice-icon) { color: var(--muted); line-height: 1.4; }
 .choice-card b { margin-top: auto; color: var(--berry); }
 .choice-icon { font-size: 2.2rem; }
+.download-card {
+  margin-top: 16px; padding: 18px 20px; display: flex; align-items: center;
+  justify-content: space-between; gap: 24px; border: 1px solid var(--line);
+  border-radius: 18px; background: var(--paper); box-shadow: 0 8px 24px rgb(54 20 41 / .05);
+}
+.download-copy { min-width: 0; }
+.download-kicker {
+  color: var(--berry); font-size: .78rem; font-weight: 800; letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.download-card h2 { margin: 5px 0 6px; font-size: 1.2rem; }
+.download-card p { margin: 0 0 10px; color: var(--muted); line-height: 1.4; }
+.download-link { color: var(--berry); font-weight: 800; text-decoration: none; }
+.download-link:hover, .download-link:focus-visible { text-decoration: underline; }
+.download-qr {
+  flex: 0 0 116px; width: 116px; height: 116px; padding: 5px; display: grid;
+  place-items: center; border: 1px solid var(--line); border-radius: 12px; background: #fff;
+}
+.download-qr svg { display: block; width: 100%; height: 100%; }
 .back { display: inline-block; margin-bottom: 18px; color: var(--berry); font-weight: 700; text-decoration: none; }
 .search, .card-form, .qr-card, .error-card, .results {
   background: var(--paper); border-radius: 18px; padding: 20px;
@@ -128,6 +147,8 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   .shell { padding: 20px 16px 36px; }
   .choice-grid { grid-template-columns: 1fr; }
   .choice-card { min-height: 138px; padding: 18px; }
+  .download-card { align-items: flex-start; gap: 14px; padding: 16px; }
+  .download-qr { flex-basis: 96px; width: 96px; height: 96px; }
   .search-row { grid-template-columns: 1fr; }
   .person-row { align-items: stretch; flex-direction: column; }
   .person-row button { width: 100%; }

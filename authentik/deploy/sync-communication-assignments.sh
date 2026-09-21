@@ -79,6 +79,15 @@ fi
 rm -f "${directory_candidate}"
 trap - EXIT
 
+talk_sync_status="$(
+    printf '%s' "${assignments_json}" \
+        | docker exec -i "${ML_BRIDGE_CONTAINER:-mission-leben-device-bridge}" \
+            python -m mission_leben_bridge.nextcloud_talk_bot_sync
+)" || {
+    echo "ML_COMMUNICATION_SYNC_STATUS=talk-room-sync-failed" >&2
+    exit 1
+}
+
 candidate_map="$(
     printf '%s' "${assignments_json}" \
         | docker exec -i "${zimbra_container}" \
@@ -105,7 +114,7 @@ raise SystemExit(0 if old == new else 1)
 PY
 then
     count="$(python3 -c 'import json,sys; print(len(json.load(sys.stdin)))' <<< "${candidate_map}")"
-    echo "ML_COMMUNICATION_SYNC_STATUS=unchanged accounts=${count} directory=${directory_status}"
+    echo "ML_COMMUNICATION_SYNC_STATUS=unchanged accounts=${count} directory=${directory_status} ${talk_sync_status}"
     exit 0
 fi
 
@@ -127,4 +136,4 @@ docker compose --project-name mission-leben-device \
     up -d --no-deps --force-recreate zimbra-worker >/dev/null
 
 count="$(python3 -c 'import json,sys; print(len(json.load(sys.stdin)))' <<< "${candidate_map}")"
-echo "ML_COMMUNICATION_SYNC_STATUS=updated accounts=${count} directory=${directory_status}"
+echo "ML_COMMUNICATION_SYNC_STATUS=updated accounts=${count} directory=${directory_status} ${talk_sync_status}"

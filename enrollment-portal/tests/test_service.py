@@ -471,6 +471,9 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
         home = client.get("/", headers=headers)
         assert home.status_code == 200
         assert "Mitarbeiter-Handy" in home.text
+        assert "App noch nicht installiert?" in home.text
+        assert settings.apk_download_url in home.text
+        assert "<svg" in home.text
         assert "default-src 'none'" in home.headers["content-security-policy"]
         assert home.headers["referrer-policy"] == "same-origin"
 

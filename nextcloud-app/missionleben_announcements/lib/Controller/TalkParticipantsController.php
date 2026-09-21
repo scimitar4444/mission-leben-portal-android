@@ -7,6 +7,7 @@ namespace OCA\MissionLebenAnnouncements\Controller;
 use OCA\MissionLebenAnnouncements\Service\SignedRequestVerifier;
 use OCA\Talk\Exceptions\RoomNotFoundException;
 use OCA\Talk\Manager;
+use OCA\Talk\Room;
 use OCA\Talk\Service\ParticipantService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -53,6 +54,9 @@ class TalkParticipantsController extends Controller {
             $room = $this->talkManager->getRoomByToken($roomToken);
         } catch (RoomNotFoundException) {
             return new JSONResponse(['error' => 'room not found'], Http::STATUS_NOT_FOUND);
+        }
+        if (!in_array($room->getType(), [Room::TYPE_ONE_TO_ONE, Room::TYPE_GROUP], true)) {
+            return new JSONResponse(['users' => []]);
         }
 
         $users = [];

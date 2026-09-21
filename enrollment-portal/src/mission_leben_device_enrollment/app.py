@@ -98,6 +98,10 @@ def create_app(
         qr = segno.make(enrollment.install_link(settings.public_origin), error="m")
         return qr.svg_inline(scale=5, border=2, dark="#5b1438", light="#ffffff")
 
+    def download_qr_svg() -> str:
+        qr = segno.make(settings.apk_download_url, error="m")
+        return qr.svg_inline(scale=3, border=2, dark="#5b1438", light="#ffffff")
+
     @app.exception_handler(AuthentikError)
     async def authentik_error(request: Request, error: AuthentikError):
         status = error.status if 400 <= error.status < 500 else 502
@@ -146,7 +150,12 @@ def create_app(
     @app.get("/", response_class=HTMLResponse)
     async def home(request: Request):
         current = actor(request)
-        return html("home.html", **page_context(current))
+        return html(
+            "home.html",
+            apk_download_url=settings.apk_download_url,
+            apk_qr_svg=download_qr_svg(),
+            **page_context(current),
+        )
 
     @app.get("/self", response_class=HTMLResponse)
     async def self_enrollment(request: Request):
