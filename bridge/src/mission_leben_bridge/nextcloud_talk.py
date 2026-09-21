@@ -14,7 +14,9 @@ from .service import ApiError, BridgeService
 from .store import Store
 
 
-RANDOM_VALUE = re.compile(r"^[A-Za-z0-9+]{32,128}$")
+# Nextcloud ISecureRandom.generate() uses the complete base64 alphabet by
+# default. The value is not padded, but '/' is a valid character.
+RANDOM_VALUE = re.compile(r"^[A-Za-z0-9+/]{32,128}$")
 HEX_SIGNATURE = re.compile(r"^[a-fA-F0-9]{64}$")
 
 

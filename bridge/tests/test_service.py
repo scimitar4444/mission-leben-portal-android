@@ -805,7 +805,7 @@ class ServiceTest(unittest.TestCase):
             },
             separators=(",", ":"),
         ).encode()
-        random_value = "C" * 64
+        random_value = "C" * 63 + "/"
         signature = hmac.new(secret, random_value.encode() + body, hashlib.sha256).hexdigest()
 
         result = adapter.receive(
