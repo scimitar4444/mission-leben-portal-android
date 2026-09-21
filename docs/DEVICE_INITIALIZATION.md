@@ -4,13 +4,13 @@
 
 Die Verwaltungsoberfläche ist eine durch Authentik Forward Auth geschützte Anwendung. Nur der Reverse Proxy darf `X-Authentik-*`-Header zum Container senden. Der Proxy entfernt eingehende Identitätsheader und setzt sie ausschließlich aus der Authentik-Unteranfrage neu.
 
-Die Authentik-Anwendung besitzt einen eigenen Authentication Flow aus Benutzername, Passwort und vorhandenem TOTP oder Passkey sowie einen eigenen Authorization Flow mit derselben Faktor-Stufe. Ein kurzlebiger, genau an diese Stufe und das verwendete Authentikator-Gerät gebundener Authentik-Cookie verhindert bei einer frischen Anmeldung die doppelte Abfrage. Existiert dagegen nur eine ältere normale Authentik-Browsersitzung, bleibt die Faktorprüfung zwingend. Ohne eingerichtetes TOTP oder Passkey wird der Zugang abgewiesen; die Geräte-Einrichtung richtet keinen Faktor ein.
+Die Authentik-Anwendung besitzt einen eigenen Authentication Flow aus Benutzername, Passwort und vorhandenem TOTP, Passkey oder registrierter App-Bestätigung sowie einen eigenen Authorization Flow mit derselben Faktor-Stufe. Ein kurzlebiger, genau an diese Stufe und das verwendete Authentikator-Gerät gebundener Authentik-Cookie verhindert bei einer frischen Anmeldung die doppelte Abfrage. Existiert dagegen nur eine ältere normale Authentik-Browsersitzung, bleibt die Faktorprüfung zwingend. Ohne eingerichteten starken Faktor wird der Zugang abgewiesen; die Geräte-Einrichtung richtet keinen Faktor ein. Für das allererste persönliche Gerät bleibt TOTP oder Passkey erforderlich.
 
-## Selbstregistrierung mit TOTP oder Passkey
+## Selbstregistrierung mit vorhandenem starken Faktor
 
-- Ein aktiver Mitarbeiter wählt in der App „Mit TOTP oder Passkey registrieren“.
+- Ein aktiver Mitarbeiter öffnet in der App die persönliche Registrierung.
 - Vor dem Laden löscht die App ihre alten Web-Sitzungen, damit kein vorheriger Benutzer übernommen wird.
-- Authentik verlangt Benutzername, Passwort und ein bereits vorhandenes TOTP oder einen Passkey.
+- Authentik verlangt Benutzername, Passwort und ein bereits vorhandenes TOTP, einen Passkey oder die Bestätigung in einem schon registrierten persönlichen Gerät.
 - Der Container ermittelt den Mitarbeiter ausschließlich aus den vom Authentik-Proxy gesetzten Identitätsheadern. Es gibt weder Benutzerauswahl noch Shared-Modus.
 - Die persönliche Device Access Group wird vor Ausgabe des Einmal-Links direkt an genau dieses Konto gebunden.
 - Nach der Bestätigung leitet der Container über den vollständigen Enrollment-Deep-Link zur App zurück. Die App registriert das Gerät, speichert den Device Token und startet automatisch die normale App-Anmeldung in derselben WebView-Sitzung.
@@ -52,7 +52,7 @@ Der Container verifiziert UUID, Tokenwert, Connector, Ablaufzeit, Gerätemodus u
 - Leitungen in der Zentrale: ausdrücklich zugewiesene `ORG_*`-Bereiche.
 - EL: eigene Einrichtung.
 - PDL: eigene Einrichtung.
-- Keine GF-Sonderrolle. Normale Mitarbeiter dürfen ausschließlich ihr eigenes persönliches Gerät per vorhandenem TOTP oder Passkey registrieren.
+- Keine GF-Sonderrolle. Normale Mitarbeiter dürfen ausschließlich ihr eigenes persönliches Gerät mit einem vorhandenen starken Faktor registrieren; beim ersten Gerät ist das TOTP oder Passkey.
 
 ## Betriebsregeln
 

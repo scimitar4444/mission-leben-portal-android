@@ -180,6 +180,8 @@ Beim Offboarding sendet die Bridge vor dem Loeschen der Kommunikationszuordnung 
 
 Die App leitet daraus keine Sperre ab, sondern prueft den gebundenen Endpoint live bei Authentik. Nur ein dort nicht mehr gueltiges oder gesperrtes Geraet loescht die lokale Sitzung und die Webdaten.
 
+Bei einer einzelnen Geraetesperre verwendet der Server denselben Weckimpuls, aber adressiert ausschliesslich die Registrierung der betroffenen Authentik-Geraete-UUID. Benutzerstatus, Benachrichtigungsdaten des Subjects und andere Geraete bleiben erhalten. Der serverseitige Abgleich merkt sich den dokumentierten Sperrstand, damit er nicht bei jedem Lauf erneut gesendet wird.
+
 Die App ruft den Inhalt anschliessend signiert ab. Eine Zustimmung oder Ablehnung wird nie als Pushaktion angeboten.
 
 ## Signierter Detailabruf

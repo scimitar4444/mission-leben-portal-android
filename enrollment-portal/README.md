@@ -4,7 +4,7 @@ Der Container stellt die bewusst einfache Oberfläche **Gerät einrichten** bere
 
 ## Bedienung
 
-Für Mitarbeiter mit vorhandenem TOTP oder Passkey öffnet die App direkt `/self`. Nach Benutzername, Passwort und dem gewählten Faktor bestätigt die Person nur noch „Gerät jetzt registrieren“. Der Container bindet das Gerät an genau dieses angemeldete Konto und leitet automatisch zur App zurück.
+Für Mitarbeiter mit vorhandenem TOTP, Passkey oder bereits registrierter App-Bestätigung öffnet die App direkt `/self`. Nach Benutzername, Passwort und dem gewählten Faktor bestätigt die Person nur noch „Gerät jetzt registrieren“. Der Container bindet das Gerät an genau dieses angemeldete Konto und leitet automatisch zur App zurück. Beim allerersten persönlichen Gerät steht noch keine App-Bestätigung zur Verfügung; dafür bleibt TOTP oder Passkey erforderlich.
 
 Für eine Einrichtung im Auftrag:
 
@@ -17,7 +17,7 @@ Der QR-Code verwendet einen verifizierten HTTPS-App-Link. Ist Mission Leben Zent
 
 Die Android-App übernimmt den Gerätemodus aus dem QR-Code. Der öffentliche Redeem-Endpunkt registriert das Gerät direkt bei Authentik und löscht den Enrollment-Token vor der Antwort. Der Container läuft absichtlich mit genau einem Worker; mehrere Replikate benötigen zuerst eine gemeinsam genutzte Sperre.
 
-Pro Mitarbeiter bleibt genau ein persönliches Handy aktiv. Zeigt Authentik bereits ein aktives persönliches Gerät, kennzeichnet die Oberfläche den Vorgang als Austausch. Das bisherige Gerät bleibt bis zum erfolgreichen Enrollment des neuen Handys verwendbar und wird unmittelbar danach über Authentiks Endpoint-Ablaufdatum gesperrt. Die Historie bleibt dadurch in Authentik erhalten. Shared Tablets sind von dieser Austauschregel ausdrücklich ausgenommen.
+Pro Mitarbeiter bleibt genau ein persönliches Handy aktiv. Zeigt Authentik bereits ein aktives persönliches Gerät, kennzeichnet die Oberfläche den Vorgang als Austausch. Das bisherige Gerät bleibt bis zum erfolgreichen Enrollment des neuen Handys verwendbar und erhält unmittelbar danach den dauerhaften Authentik-Status `disabled`. Die Historie bleibt dadurch in Authentik erhalten. Shared Tablets sind von dieser Austauschregel ausdrücklich ausgenommen.
 
 ## Rollen
 
@@ -28,9 +28,9 @@ Pro Mitarbeiter bleibt genau ein persönliches Handy aktiv. Zeigt Authentik bere
 | `ML_DEVICE_INIT_EL` | eigene, über `ORG_*` zugewiesene Einrichtung |
 | `ML_DEVICE_INIT_PDL` | eigene, über `ORG_*` zugewiesene Einrichtung |
 
-Es gibt bewusst keine GF-Rolle. Ohne eine der vier Rollen verweigert der Container die Mitarbeitersuche und Shared-Tablet-Einrichtung. Die persönliche Selbstregistrierung bleibt für aktive Mitarbeiter mit vorhandenem TOTP oder Passkey erreichbar. Außer IT benötigt jede berechtigte Leitung mindestens eine gültige `ORG_*`-Mitgliedschaft mit `iam_group_type=organization_house` oder `organization_unit`.
+Es gibt bewusst keine GF-Rolle. Ohne eine der vier Rollen verweigert der Container die Mitarbeitersuche und Shared-Tablet-Einrichtung. Die persönliche Selbstregistrierung bleibt für aktive Mitarbeiter mit vorhandenem TOTP, Passkey oder registrierter App-Bestätigung erreichbar. Außer IT benötigt jede berechtigte Leitung mindestens eine gültige `ORG_*`-Mitgliedschaft mit `iam_group_type=organization_house` oder `organization_unit`.
 
-Eine reine Benutzername-/Kennwort-Sitzung reicht nicht aus. Der Bootstrap legt einen anwendungsbezogenen Authentication Flow für Benutzername, Kennwort und ein bereits eingerichtetes TOTP oder einen Passkey sowie einen eigenen Authorization Flow mit derselben Faktor-Stufe an. Ein zwei Minuten gültiger, stufen- und gerätegebundener Authentik-Cookie verhindert nur direkt nach der frischen Anmeldung eine doppelte Abfrage. Eine ältere Authentik-Sitzung überspringt die Faktorprüfung nicht. Personen ohne kompatiblen vorhandenen Faktor werden abgewiesen; die Seite bietet keine MFA-Ersteinrichtung an.
+Eine reine Benutzername-/Kennwort-Sitzung reicht nicht aus. Der Bootstrap legt einen anwendungsbezogenen Authentication Flow für Benutzername, Kennwort und ein bereits eingerichtetes TOTP, einen Passkey oder die registrierte App-Bestätigung sowie einen eigenen Authorization Flow mit derselben Faktor-Stufe an. Ein zwei Minuten gültiger, stufen- und gerätegebundener Authentik-Cookie verhindert nur direkt nach der frischen Anmeldung eine doppelte Abfrage. Eine ältere Authentik-Sitzung überspringt die Faktorprüfung nicht. Personen ohne kompatiblen vorhandenen Faktor werden abgewiesen; die Seite bietet keine MFA-Ersteinrichtung an.
 
 ## Authentik vorbereiten
 
@@ -48,8 +48,8 @@ Das Skript ist idempotent und erstellt:
 - die vier Operatorgruppen,
 - die Anwendung `Gerät einrichten`,
 - einen Forward-Auth-Proxy-Provider,
-- einen eigenen Authentication Flow für Benutzername, Kennwort und vorhandenes TOTP oder Passkey,
-- einen anwendungsbezogenen Authorization Flow mit verpflichtendem, bereits vorhandenem TOTP oder Passkey,
+- einen eigenen Authentication Flow für Benutzername, Kennwort und vorhandenes TOTP, Passkey oder registrierte App-Bestätigung,
+- einen anwendungsbezogenen Authorization Flow mit verpflichtendem, bereits vorhandenem starken Faktor,
 - die Bindung an den eingebetteten Proxy-Outpost,
 - ein Servicekonto mit ausschließlich den benötigten API-Rechten.
 
@@ -67,7 +67,7 @@ Der API-Schlüssel ist absichtlich nicht automatisch ablaufend, weil Authentik e
 
 `GET /api/v1/devices/status` nimmt ausschließlich einen Authentik-Device-Token im Schema `Bearer+Agent` an. Der Endpunkt validiert den Token über den Authentik-Agent-Connector, liest anschließend Endpoint, Device Access Group und Bindung direkt aus Authentik und verweigert deaktivierte oder abgelaufene Geräte. Bei einem persönlichen Gerät muss genau eine direkte Benutzerbindung existieren und dieser Benutzer weiterhin aktiv sein. Shared-Geräte bleiben an ihre Einrichtungsgruppe gebunden. App und Kommunikations-Bridge verwenden diese Live-Prüfung; es entsteht keine parallele Freigabedatenbank.
 
-Für die App-Bestätigung legt `authentik/bootstrap_app_approval.py` vorher die Authentik-Duo-Stufe an. Deren ausgegebene `duo_stage_uuid` wird als `ML_ENROLL_APP_APPROVAL_STAGE_UUID` gesetzt. Das Portal legt bei jeder persönlichen Geräteinitialisierung idempotent ein bestätigtes Authentik-DuoDevice an: sowohl bei der Selbstregistrierung mit TOTP oder Passkey als auch bei der Einrichtung durch EL, PDL, zentrale Leitung oder IT. Dessen `duo_user_id` entspricht exakt dem stabilen OIDC-Subject des Benutzers. Shared Tablets erhalten kein solches Gerät. Die zusätzlichen globalen Servicekonto-Rechte sind ausschließlich `view_authenticatorduostage` und `add_duodevice`. Authentik 2026.8.3 prüft beim manuellen Import außerdem `add_authenticatorduostage`; das Bootstrap-Skript vergibt dieses Recht nicht global, sondern nur objektbezogen auf die eine bestehende App-Bestätigungsstufe.
+Für die App-Bestätigung legt `authentik/bootstrap_app_approval.py` vorher die Authentik-Duo-Stufe an. Deren ausgegebene `duo_stage_uuid` wird als `ML_ENROLL_APP_APPROVAL_STAGE_UUID` gesetzt. Das Portal legt bei jeder persönlichen Geräteinitialisierung idempotent ein bestätigtes Authentik-DuoDevice an: sowohl bei der Selbstregistrierung mit einem vorhandenen starken Faktor als auch bei der Einrichtung durch EL, PDL, zentrale Leitung oder IT. Dessen `duo_user_id` entspricht exakt dem stabilen OIDC-Subject des Benutzers. Shared Tablets erhalten kein solches Gerät. Die zusätzlichen globalen Servicekonto-Rechte sind ausschließlich `view_authenticatorduostage` und `add_duodevice`. Authentik 2026.8.3 prüft beim manuellen Import außerdem `add_authenticatorduostage`; das Bootstrap-Skript vergibt dieses Recht nicht global, sondern nur objektbezogen auf die eine bestehende App-Bestätigungsstufe.
 
 Anschließend EL, PDL, zentrale Leitungen und IT ihren jeweiligen Rollengruppen hinzufügen. Zentrale Leitungen, EL und PDL benötigen zusätzlich die zugehörigen bestehenden `ORG_*`-Gruppen. IT benötigt keine `ORG_*`-Mitgliedschaft.
 

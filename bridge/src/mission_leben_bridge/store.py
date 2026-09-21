@@ -662,6 +662,57 @@ class Store:
         with self._connect() as connection:
             connection.execute("DELETE FROM push_registrations WHERE device_id = ?", (device_id,))
 
+    def registration_for_security_lock(self, device_id: str) -> dict[str, Any] | None:
+        """Return a device even if its local user was already marked inactive."""
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM push_registrations WHERE device_id = ?",
+                (device_id,),
+            ).fetchone()
+        return self._decode_registration(row)
+
+    def lock_device(self, device_id: str, *, dry_run: bool = False) -> dict[str, Any]:
+        """Remove only one device's communication state, preserving its user and peers."""
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            counts = {
+                "registrations": connection.execute(
+                    "SELECT COUNT(*) FROM push_registrations WHERE device_id = ?",
+                    (device_id,),
+                ).fetchone()[0],
+                "nonces": connection.execute(
+                    "SELECT COUNT(*) FROM request_nonces WHERE device_id = ?",
+                    (device_id,),
+                ).fetchone()[0],
+                "queued_deliveries": connection.execute(
+                    "SELECT COUNT(*) FROM event_delivery_queue WHERE device_id = ?",
+                    (device_id,),
+                ).fetchone()[0],
+                "delivery_history": connection.execute(
+                    "SELECT COUNT(*) FROM event_deliveries WHERE device_id = ?",
+                    (device_id,),
+                ).fetchone()[0],
+                "handoffs": connection.execute(
+                    """
+                    SELECT COUNT(*) FROM handoffs
+                    WHERE source_device_id = ? OR target_device_id = ?
+                    """,
+                    (device_id, device_id),
+                ).fetchone()[0],
+            }
+            if dry_run:
+                return {"applied": False, **counts}
+
+            connection.execute("DELETE FROM request_nonces WHERE device_id = ?", (device_id,))
+            connection.execute("DELETE FROM event_delivery_queue WHERE device_id = ?", (device_id,))
+            connection.execute("DELETE FROM event_deliveries WHERE device_id = ?", (device_id,))
+            connection.execute(
+                "DELETE FROM handoffs WHERE source_device_id = ? OR target_device_id = ?",
+                (device_id, device_id),
+            )
+            connection.execute("DELETE FROM push_registrations WHERE device_id = ?", (device_id,))
+            return {"applied": True, **counts}
+
     def get_registration(self, device_id: str) -> dict[str, Any] | None:
         with self._connect() as connection:
             row = connection.execute(

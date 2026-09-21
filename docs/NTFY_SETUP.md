@@ -47,7 +47,7 @@ Bei HTTP 401/403 verwirft die App das ntfy-Lesetoken. Eine geöffnete und angeme
 5. Mail-, Termin- oder Talk-Testereignis einspeisen und prüfen, dass ntfy nur ID, Typ und Revision sieht.
 6. Detailanzeige und Öffnen ausschließlich der passenden Authentik-App prüfen.
 7. Eine Anmeldeanfrage auslösen: ntfy enthält nur `action` und `request_id`; Bestätigen/Ablehnen erfolgt erst in der entsperrten App.
-8. Testgerät in Authentik sperren: `refresh_security_state` weckt die App, die negative Authentik-Prüfung löscht Sitzung und Webdaten; ntfy-Reader und -Writer werden anschließend widerrufen.
+8. Testgerät in Authentik sperren: Der automatische Abgleich ruft gerätegenau `mission-leben-bridge-lock-device` auf. `refresh_security_state` weckt die App, die negative Authentik-Prüfung löscht Sitzung und Webdaten; ausschließlich die ntfy-Reader- und -Writer-Identitäten dieses Geräts werden anschließend widerrufen. Für einen sofortigen Test den Abgleich einmal manuell starten.
 9. Abmelden und prüfen, dass die Bridge beide ntfy-Benutzer und die lokale App das Lesetoken entfernt.
 
 Für ein ausgeschaltetes oder dauerhaft offline befindliches Privatgerät ist ein garantiertes Remote-Wipe weiterhin Aufgabe von MDM beziehungsweise Android Work Profile.

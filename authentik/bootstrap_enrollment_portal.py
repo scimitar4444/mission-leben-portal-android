@@ -114,7 +114,15 @@ authorization_mfa, _ = AuthenticatorValidateStage.objects.update_or_create(
     name=AUTHORIZATION_MFA_STAGE_NAME,
     defaults={
         "not_configured_action": NotConfiguredAction.DENY,
-        "device_classes": [DeviceClasses.TOTP, DeviceClasses.WEBAUTHN],
+        # App approval is an additional option for users who already have a
+        # personal device. TOTP and WebAuthn remain available for first-device
+        # enrollment and recovery. The Android app's own authentication flow
+        # deliberately keeps Duo disabled to avoid a circular login.
+        "device_classes": [
+            DeviceClasses.TOTP,
+            DeviceClasses.WEBAUTHN,
+            DeviceClasses.DUO,
+        ],
         # The same stage is present in both flows. A fresh login validates an
         # enrolled TOTP authenticator or passkey in the authentication flow;
         # the short-lived stage cookie prevents a duplicate prompt in

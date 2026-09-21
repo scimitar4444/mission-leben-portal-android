@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import uuid
 
 from .config import Settings
 from .ntfy import NtfyError, NtfyManager, NullNtfyManager
@@ -68,6 +69,60 @@ def offboard_subject(
     return result
 
 
+def lock_device(
+    store: Store,
+    ntfy: NtfyManager | NullNtfyManager,
+    device_id: str,
+    *,
+    dry_run: bool = False,
+) -> dict[str, object]:
+    """Signal and remove exactly one disabled Authentik device."""
+    registration = store.registration_for_security_lock(device_id)
+    is_ntfy_target = bool(
+        registration
+        and registration.get("push_provider") == "ntfy"
+        and registration.get("ntfy_topic")
+        and registration.get("publish_token")
+    )
+    sent = 0
+    failed = 0
+    revoked = 0
+    if not dry_run and ntfy.configured and is_ntfy_target and registration is not None:
+        try:
+            ntfy.send(
+                registration["ntfy_topic"],
+                registration["publish_token"],
+                {"action": "refresh_security_state"},
+            )
+            sent = 1
+        except NtfyError:
+            failed = 1
+            LOGGER.warning("device security refresh signal could not be delivered")
+        except Exception:
+            failed = 1
+            LOGGER.exception("unexpected device security refresh delivery failure")
+        try:
+            ntfy.revoke(
+                registration.get("ntfy_reader_username", ""),
+                registration.get("ntfy_writer_username", ""),
+            )
+            revoked = 1
+        except NtfyError:
+            LOGGER.warning("ntfy identities for the locked device could not be revoked")
+
+    result = store.lock_device(device_id, dry_run=dry_run)
+    result.update(
+        {
+            "security_signal_configured": ntfy.configured,
+            "security_signal_target": is_ntfy_target,
+            "security_signal_sent": sent,
+            "security_signal_failed": failed,
+            "ntfy_identity_revoked": revoked,
+        }
+    )
+    return result
+
+
 def _ntfy_manager(settings: Settings) -> NtfyManager | NullNtfyManager:
     if not settings.ntfy_configured or settings.ntfy_auth_file is None:
         return NullNtfyManager()
@@ -102,6 +157,29 @@ def main() -> None:
         SecretBox(settings.data_key),
     )
     result = offboard_subject(store, _ntfy_manager(settings), subject, dry_run=args.dry_run)
+    print(json.dumps(result, separators=(",", ":"), sort_keys=True))
+
+
+def device_lock_main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    parser = argparse.ArgumentParser(
+        description="Remove communication data for one disabled Authentik device."
+    )
+    parser.add_argument("--device-id", required=True)
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+    try:
+        device_id = str(uuid.UUID(args.device_id.strip()))
+    except (AttributeError, ValueError):
+        parser.error("device-id must be a valid UUID")
+
+    settings = Settings.from_env()
+    store = Store(
+        settings.database_path,
+        settings.internal_hmac_secret,
+        SecretBox(settings.data_key),
+    )
+    result = lock_device(store, _ntfy_manager(settings), device_id, dry_run=args.dry_run)
     print(json.dumps(result, separators=(",", ":"), sort_keys=True))
 
 

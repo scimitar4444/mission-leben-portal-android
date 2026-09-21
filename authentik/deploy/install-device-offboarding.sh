@@ -8,8 +8,10 @@ fi
 
 source_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 install_dir="/opt/mission-leben-device-offboarding"
+state_dir="/var/lib/mission-leben-device-offboarding"
 
 install -d -m 0750 "${install_dir}"
+install -d -m 0700 "${state_dir}"
 install -m 0640 \
     "${source_dir}/reconcile_inactive_personal_devices.py" \
     "${install_dir}/reconcile_inactive_personal_devices.py"

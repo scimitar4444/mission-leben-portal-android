@@ -1,5 +1,5 @@
 [Unit]
-Description=Reconcile inactive Authentik users and Mission Leben mobile devices
+Description=Reconcile inactive Authentik users and blocked Mission Leben mobile devices
 Requires=docker.service
 After=docker.service
 
@@ -13,5 +13,5 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=true
 ProtectSystem=strict
-ReadWritePaths=/run/lock
+ReadWritePaths=/run/lock /var/lib/mission-leben-device-offboarding
 RestrictAddressFamilies=AF_UNIX

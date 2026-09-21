@@ -8,6 +8,7 @@ tokens are revoked.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from typing import Any
@@ -56,12 +57,14 @@ result: dict[str, Any] = {
     "oauth_tokens_revoked": 0,
     "subjects_missing": 0,
     "inactive_subjects": [],
+    "disabled_devices": 0,
+    "disabled_device_ids": [],
+    "disabled_device_locks": [],
 }
 
 bindings = DeviceUserBinding.objects.filter(
     negate=False,
     user__isnull=False,
-    user__is_active=False,
 ).select_related("user")
 
 users: dict[int, Any] = {}
@@ -75,20 +78,51 @@ for binding in bindings:
     groups_by_user.setdefault(user_pk, {})[str(group.pbm_uuid)] = group
     result["matching_bindings"] += 1
 
-result["inactive_users"] = len(users)
+result["inactive_users"] = sum(1 for user in users.values() if not user.is_active)
 
 with transaction.atomic():
     for user_pk, user in users.items():
+        user_devices: dict[str, Device] = {}
+        for group in groups_by_user[user_pk].values():
+            for device in Device.objects.filter(access_group=group):
+                user_devices[str(device.device_uuid)] = device
+
+        if user.is_active:
+            for device_id, device in user_devices.items():
+                attributes = device.attributes or {}
+                explicitly_disabled = attributes.get("mission-leben.de/status") == "disabled"
+                expired = bool(
+                    device.expiring
+                    and device.expires is not None
+                    and device.expires <= timezone.now()
+                )
+                if explicitly_disabled or expired:
+                    result["disabled_device_ids"].append(device_id)
+                    lock_state = json.dumps(
+                        {
+                            "disabled_at": attributes.get("mission-leben.de/disabled-at", ""),
+                            "expires": device.expires.isoformat() if device.expires else "",
+                            "status": attributes.get("mission-leben.de/status", ""),
+                        },
+                        separators=(",", ":"),
+                        sort_keys=True,
+                    )
+                    result["disabled_device_locks"].append(
+                        {
+                            "device_id": device_id,
+                            "lock_key": hashlib.sha256(
+                                f"{device_id}\n{lock_state}".encode()
+                            ).hexdigest(),
+                        }
+                    )
+            continue
+
         subject = str(user.uid or "").strip()
         if subject:
             result["inactive_subjects"].append(subject)
         else:
             result["subjects_missing"] += 1
 
-        user_devices: dict[str, Device] = {}
-        for group in groups_by_user[user_pk].values():
-            for device in Device.objects.filter(access_group=group):
-                user_devices[str(device.device_uuid)] = device
         result["devices_found"] += len(user_devices)
 
         if APPLY:
@@ -119,4 +153,10 @@ with transaction.atomic():
             )
 
 result["inactive_subjects"].sort()
+result["disabled_device_ids"] = sorted(set(result["disabled_device_ids"]))
+result["disabled_device_locks"] = sorted(
+    {item["device_id"]: item for item in result["disabled_device_locks"]}.values(),
+    key=lambda item: item["device_id"],
+)
+result["disabled_devices"] = len(result["disabled_device_ids"])
 print("ML_OFFBOARD_RECONCILE=" + json.dumps(result, separators=(",", ":"), sort_keys=True))
