@@ -51,6 +51,7 @@ import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
+import de.missionleben.portal.push.NotificationBadgeTarget
 import de.missionleben.portal.push.NotificationNavigation
 import de.missionleben.portal.push.PushEventDispatcher
 import de.missionleben.portal.security.SharedSessionLifecyclePolicy
@@ -324,9 +325,25 @@ class PortalBrowserActivity : FragmentActivity() {
     private fun installBackNavigation() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (webView.canGoBack()) webView.goBack() else finish()
+                if (webView.canGoBack()) {
+                    webView.goBack()
+                } else {
+                    finishApplicationBrowserFromBack()
+                }
             }
         })
+    }
+
+    private fun finishApplicationBrowserFromBack() {
+        intent.getStringExtra(EXTRA_NOTIFICATION_BADGE_TARGET)
+            ?.let(NotificationBadgeTarget::fromSerialized)
+            ?.let { target ->
+                setResult(
+                    RESULT_OK,
+                    Intent().putExtra(EXTRA_VISITED_NOTIFICATION_BADGE_TARGET, target.name),
+                )
+            }
+        finish()
     }
 
     private fun loadInitialUrl(startUrl: String) {
@@ -608,6 +625,8 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_LOGOUT = "logout"
         private const val EXTRA_SELF_ENROLLMENT = "self_enrollment"
         private const val EXTRA_INITIAL_HISTORY_URL = "initial_history_url"
+        private const val EXTRA_NOTIFICATION_BADGE_TARGET = "notification_badge_target"
+        private const val EXTRA_VISITED_NOTIFICATION_BADGE_TARGET = "visited_notification_badge_target"
         private const val DOWNLOAD_PREFERENCES = "protected_web_downloads"
         private const val DOWNLOAD_IDS = "download_ids"
         private const val ENDPOINT_BRIDGE_NAME = "MissionLebenEndpoint"
@@ -632,12 +651,21 @@ class PortalBrowserActivity : FragmentActivity() {
             })();
         """
 
-        fun appIntent(context: Context, url: String, mode: DeviceMode, title: String? = null): Intent =
+        fun appIntent(
+            context: Context,
+            url: String,
+            mode: DeviceMode,
+            title: String? = null,
+            notificationBadgeTarget: NotificationBadgeTarget? = null,
+        ): Intent =
             Intent(context, PortalBrowserActivity::class.java)
                 .putExtra(EXTRA_URL, url)
                 .putExtra(EXTRA_DEVICE_MODE, mode.name)
                 .putExtra(EXTRA_TITLE, title ?: context.getString(R.string.browser_web_application))
                 .apply {
+                    notificationBadgeTarget?.let {
+                        putExtra(EXTRA_NOTIFICATION_BADGE_TARGET, it.name)
+                    }
                     NotificationNavigation.zimbraMailOverviewUrl(url, BuildConfig.ZIMBRA_WEB_BASE_URL)?.let {
                         putExtra(EXTRA_INITIAL_HISTORY_URL, it)
                     }
@@ -680,6 +708,11 @@ class PortalBrowserActivity : FragmentActivity() {
 
         fun sharedSessionEnded(intent: Intent?): Boolean =
             intent?.getBooleanExtra(EXTRA_SHARED_SESSION_ENDED, false) == true
+
+        fun visitedNotificationTarget(intent: Intent?): NotificationBadgeTarget? =
+            NotificationBadgeTarget.fromSerialized(
+                intent?.getStringExtra(EXTRA_VISITED_NOTIFICATION_BADGE_TARGET),
+            )
 
         fun logoutIntent(context: Context, url: String, mode: DeviceMode): Intent =
             Intent(context, PortalBrowserActivity::class.java)

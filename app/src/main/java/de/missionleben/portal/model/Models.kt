@@ -2,6 +2,7 @@ package de.missionleben.portal.model
 
 import androidx.annotation.StringRes
 import de.missionleben.portal.R
+import de.missionleben.portal.push.NotificationBadgeTarget
 import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.push.NotificationBadgeCounts
 import de.missionleben.portal.update.AppUpdate
@@ -124,6 +125,7 @@ data class UiState(
     val loginApprovalRequest: LoginApprovalRequest? = null,
     val loginApprovalSubmitting: Boolean = false,
     val requestedUrl: String? = null,
+    val requestedNotificationBadgeTarget: NotificationBadgeTarget? = null,
     val clearWebDataRequested: Boolean = false,
     val availableUpdate: AppUpdate? = null,
     val updateStatus: UpdateStatus = UpdateStatus.IDLE,

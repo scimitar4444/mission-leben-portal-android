@@ -26,6 +26,13 @@ class NotificationBadgeTargetTest {
     }
 
     @Test
+    fun serializedTargetsAreClassifiedSafely() {
+        assertEquals(NotificationBadgeTarget.TALK, NotificationBadgeTarget.fromSerialized("TALK"))
+        assertNull(NotificationBadgeTarget.fromSerialized("talk"))
+        assertNull(NotificationBadgeTarget.fromSerialized("UNKNOWN"))
+    }
+
+    @Test
     fun countsAreAggregatedForMailAndCalendarOnZimbra() {
         val counts = NotificationBadgeCounts(zimbra = 4, talk = 2)
         val zimbra = PortalApplication("Zimbra", "zimbra-mail", "https://mail.example.invalid/")

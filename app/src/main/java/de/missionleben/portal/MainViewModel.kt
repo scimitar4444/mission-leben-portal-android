@@ -436,16 +436,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun openApplication(url: String) = openApplication(url, notificationEventId = null)
+    fun openApplication(url: String) = openApplication(
+        url = url,
+        notificationEventId = null,
+        notificationBadgeTarget = null,
+    )
 
-    private fun openApplication(url: String, notificationEventId: String?) {
+    private fun openApplication(
+        url: String,
+        notificationEventId: String?,
+        notificationBadgeTarget: NotificationBadgeTarget?,
+    ) {
         if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState
         if (!_uiState.value.signedIn || state == null) {
             _uiState.update { it.copy(message = string(R.string.message_sign_in_to_open)) }
             return
         }
-        val badgeTarget = _uiState.value.applications
+        val badgeTarget = notificationBadgeTarget ?: _uiState.value.applications
             .firstOrNull { it.launchUrl == url }
             ?.let(NotificationBadgeTarget::fromApplication)
         _uiState.update { it.copy(busy = true, message = null) }
@@ -465,6 +473,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         it.copy(
                             busy = false,
                             requestedUrl = url,
+                            requestedNotificationBadgeTarget = badgeTarget,
                             unreadNotificationBadges = unreadNotificationStore.counts(),
                         )
                     }
@@ -478,6 +487,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun refreshUnreadNotificationBadges() {
         _uiState.update { it.copy(unreadNotificationBadges = unreadNotificationStore.counts()) }
+    }
+
+    fun markApplicationVisited(target: NotificationBadgeTarget) {
+        unreadNotificationStore.clear(target)
+        refreshUnreadNotificationBadges()
     }
 
     private fun enrollDevice(enrollment: EnrollmentQrPayload, onSuccess: (() -> Unit)? = null) {
@@ -597,6 +611,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 linkTargets = emptyList(),
                 capabilities = emptySet(),
                 requestedUrl = null,
+                requestedNotificationBadgeTarget = null,
                 clearWebDataRequested = true,
                 loginApprovalRequest = null,
                 loginApprovalSubmitting = false,
@@ -694,6 +709,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 quickUnlockEnabled = false,
                 vaultRequest = VaultRequest.NONE,
                 requestedUrl = null,
+                requestedNotificationBadgeTarget = null,
                 clearWebDataRequested = true,
                 message = string(R.string.message_shared_session_deleted),
                 loginApprovalRequest = null,
@@ -812,7 +828,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         resolvePendingPushAction()
     }
 
-    fun consumeRequestedUrl() = _uiState.update { it.copy(requestedUrl = null) }
+    fun consumeRequestedUrl() = _uiState.update {
+        it.copy(
+            requestedUrl = null,
+            requestedNotificationBadgeTarget = null,
+        )
+    }
 
     fun consumeWebDataClearRequest() = _uiState.update {
         it.copy(clearWebDataRequested = false, busy = false)
@@ -1233,7 +1254,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 applicationLaunchUrl = application.launchUrl,
                 zimbraWebBaseUrl = BuildConfig.ZIMBRA_WEB_BASE_URL,
             )
-            openApplication(targetUrl, pending.eventId)
+            openApplication(
+                url = targetUrl,
+                notificationEventId = pending.eventId,
+                notificationBadgeTarget = NotificationBadgeTarget.fromAction(action),
+            )
         }
     }
 

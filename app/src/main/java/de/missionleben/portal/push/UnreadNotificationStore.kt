@@ -20,6 +20,13 @@ enum class NotificationBadgeTarget {
                 application.name,
                 application.launchUrl,
             ).joinToString(" ").lowercase()
+            return fromMarker(marker)
+        }
+
+        fun fromSerialized(value: String?): NotificationBadgeTarget? =
+            value?.let { serialized -> entries.firstOrNull { it.name == serialized } }
+
+        private fun fromMarker(marker: String): NotificationBadgeTarget? {
             return when {
                 "zimbra" in marker -> ZIMBRA
                 "talk" in marker || "/apps/spreed" in marker -> TALK

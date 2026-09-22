@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.VaultRequest
+import de.missionleben.portal.push.NotificationBadgeTarget
 import de.missionleben.portal.push.NotificationPresenter
 import de.missionleben.portal.push.PushCommand
 import de.missionleben.portal.push.PushEventDispatcher
@@ -95,6 +96,8 @@ class MainActivity : FragmentActivity() {
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
         if (result.resultCode == RESULT_OK) {
+            PortalBrowserActivity.visitedNotificationTarget(result.data)
+                ?.let(viewModel::markApplicationVisited)
             when {
                 PortalBrowserActivity.sharedSessionEnded(result.data) -> {
                     viewModel.endSharedSessionAfterScreenOff()
@@ -142,8 +145,9 @@ class MainActivity : FragmentActivity() {
                 }
                 LaunchedEffect(state.requestedUrl) {
                     state.requestedUrl?.let {
+                        val notificationBadgeTarget = state.requestedNotificationBadgeTarget
                         viewModel.consumeRequestedUrl()
-                        openUrl(it)
+                        openUrl(it, notificationBadgeTarget)
                     }
                 }
                 LaunchedEffect(state.clearWebDataRequested) {
@@ -273,8 +277,22 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun openUrl(url: String) {
+        openUrl(url, notificationBadgeTarget = null)
+    }
+
+    private fun openUrl(
+        url: String,
+        notificationBadgeTarget: NotificationBadgeTarget?,
+    ) {
         val mode = viewModel.uiState.value.mode ?: return
-        appBrowserLauncher.launch(PortalBrowserActivity.appIntent(this, url, mode))
+        appBrowserLauncher.launch(
+            PortalBrowserActivity.appIntent(
+                context = this,
+                url = url,
+                mode = mode,
+                notificationBadgeTarget = notificationBadgeTarget,
+            ),
+        )
     }
 
     private fun openLogout(url: String) {
