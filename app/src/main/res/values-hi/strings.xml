@@ -216,4 +216,5 @@
     <string name="login_approval_failed">लॉगिन अनुरोध का उत्तर नहीं दिया जा सका।</string>
     <string name="login_approval_personal_only">लॉगिन अनुरोध केवल निजी डिवाइस पर स्वीकार किए जा सकते हैं।</string>
     <string name="login_approval_invalid">अमान्य लॉगिन अनुरोध।</string>
+    <string name="announcements_unread">नया</string>
 </resources>

@@ -32,6 +32,15 @@ Der read-only Export verwendet dieselbe `real_facility`-Definition wie das
 abgestimmte Geräteportal: verwaltete `ORG_ML_Hxxx[_xx]`, organization_unit,
 AKTIV/UMGESETZT_UEBERGANG, Einrichtung oder Einrichtung/Verbund; H001 zusätzlich
 Geschäftseinheit/Standort. Abteilungen/Teilbereiche sind keine Standorte.
+Zusätzlich gibt es drei **reine Adressbuchfilter**: Akademie Bad Homburg,
+Akademie Darmstadt und Akademie Wiesbaden. Darmstadt vereinigt die bestehenden
+APS-/HEP-/IFW-Gruppen, dedupliziert über die effektive Mitgliedschaft. Der Export
+prüft die fünf kanonischen Gruppen anhand Name/UUID, Managed-/Typ-/Status-/Level-
+Attributen und der realen ORG_AKA-Elternbeziehung. ORG_AKA_ZENTRAL wird keinem Ort
+zugeordnet; seine zulässigen Personen bleiben unter „Alle“ sichtbar. Die
+Anzeigeoptionen sind keine neuen ORG-Gruppen, haben keine erfundenen Hausnummern
+und ändern weder Einrichterrechte noch die 30 möglichen Tabletstandorte.
+Für Shared-Gerätebindungen bleibt ausschließlich `real_facility` maßgeblich.
 `all_groups()` vermittelt Eltern-Einrichtungen aus Untergruppen. Persönliche
 Konten können mehrere Einrichtungen im Filter haben; gemeinsame Tablets
 verwenden ausschließlich ihr einzelnes gebundenes Haus für „Meine Einrichtung“.
@@ -90,6 +99,7 @@ seine Anzeige; Login-Namen, Mailadressen, Gruppen und Flows bleiben unverändert
 - `facility_options`: nach Hausnummer sortierte `{id, name}`-Liste aus dem kanonischen
   Standortexport, unabhängig vom Suchtext. Ab Bridge 0.10.2 mit Nummer vor dem
   Namen, z. B. `01 – Zentrale`; eigene Teilnummern bleiben eindeutig (`15.01`).
+  Dahinter stehen die drei Akademie-Ortsfilter alphabetisch.
   Keine Abteilungen, keine Rohgruppen-
   oder Mitgliedschaftsliste. IDs sind SHA-256-Filterkennungen, keine Credentials.
   Alte Apps können die zusätzlichen Felder ignorieren; die neue App blendet bei

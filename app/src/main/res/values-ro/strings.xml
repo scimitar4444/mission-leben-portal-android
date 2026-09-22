@@ -217,4 +217,5 @@
     <string name="login_approval_failed">Nu s-a putut răspunde la solicitarea de autentificare.</string>
     <string name="login_approval_personal_only">Solicitările de autentificare pot fi confirmate numai pe dispozitive personale.</string>
     <string name="login_approval_invalid">Solicitare de autentificare nevalidă.</string>
+    <string name="announcements_unread">Nou</string>
 </resources>

@@ -216,4 +216,5 @@
     <string name="login_approval_failed">No se pudo responder a la solicitud de inicio de sesión.</string>
     <string name="login_approval_personal_only">Las solicitudes de inicio de sesión solo pueden confirmarse en dispositivos personales.</string>
     <string name="login_approval_invalid">Solicitud de inicio de sesión no válida.</string>
+    <string name="announcements_unread">Nuevo</string>
 </resources>

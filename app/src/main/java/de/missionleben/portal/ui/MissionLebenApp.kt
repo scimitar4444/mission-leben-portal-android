@@ -8,14 +8,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -33,6 +38,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -53,9 +60,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -382,10 +393,57 @@ private fun Home(
         return
     }
 
+    HomeOverview(
+        state = state,
+        onSettings = { settingsOpen = true },
+        onContacts = { contactsOpen = true },
+        onStartLogin = onStartLogin,
+        onRetryQuickUnlock = onRetryQuickUnlock,
+        onOpenUrl = onOpenUrl,
+        onOpenPublicUrl = onOpenPublicUrl,
+        onReloadApplications = onReloadApplications,
+        onMarkAnnouncementRead = onMarkAnnouncementRead,
+        onSelfEnrollment = onSelfEnrollment,
+        onRefreshDeviceStatus = onRefreshDeviceStatus,
+        onEnableQuickUnlock = onEnableQuickUnlock,
+        onTalkHandoff = { talkDialogOpen = true },
+        onDismissMessage = onDismissMessage,
+    )
+
+    if (talkDialogOpen) {
+        TalkHandoffDialog(
+            state = state,
+            onOpenTalk = { target, url ->
+                talkDialogOpen = false
+                onOpenTalk(target, url)
+            },
+            onDismiss = { talkDialogOpen = false },
+        )
+    }
+}
+
+/** Pure overview: the same layout is exercised with synthetic multi-app states in UI tests. */
+@Composable
+internal fun HomeOverview(
+    state: UiState,
+    onSettings: () -> Unit,
+    onContacts: () -> Unit,
+    onStartLogin: () -> Unit,
+    onRetryQuickUnlock: () -> Unit,
+    onOpenUrl: (String) -> Unit,
+    onOpenPublicUrl: (String) -> Unit,
+    onReloadApplications: () -> Unit,
+    onMarkAnnouncementRead: (Long) -> Unit,
+    onSelfEnrollment: () -> Unit,
+    onRefreshDeviceStatus: () -> Unit,
+    onEnableQuickUnlock: () -> Unit,
+    onTalkHandoff: () -> Unit,
+    onDismissMessage: () -> Unit,
+) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().testTag("home-overview"),
         contentPadding = PaddingValues(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
             Row(
@@ -393,9 +451,9 @@ private fun Home(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                BrandHeader()
-                TextButton(onClick = { settingsOpen = true }) {
-                    Text(stringResource(R.string.settings_title))
+                Box(Modifier.weight(1f)) { BrandHeader() }
+                IconButton(onClick = onSettings) {
+                    Icon(painterResource(R.drawable.ic_settings), stringResource(R.string.settings_title))
                 }
             }
         }
@@ -414,9 +472,6 @@ private fun Home(
                     )
                 }
             }
-            if (state.newsLoading || state.news.isNotEmpty()) {
-                item { NewsPanel(state.news, state.newsLoading, onOpenPublicUrl) }
-            }
         } else {
             item { SignInSummary(state, onStartLogin, onRetryQuickUnlock) }
         }
@@ -432,18 +487,21 @@ private fun Home(
 
         if (state.signedIn) {
             item {
-                Card(onClick = { contactsOpen = true }, modifier = Modifier.fillMaxWidth()) {
+                Card(
+                    onClick = onContacts,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                ) {
                     Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.contacts_title), style = MaterialTheme.typography.titleMedium)
-                            Text(stringResource(R.string.contacts_subtitle), style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        Text("›", style = MaterialTheme.typography.headlineSmall)
+                        Icon(painterResource(R.drawable.ic_contacts), null, Modifier.size(20.dp))
+                        Text(stringResource(R.string.contacts_title), Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                        Icon(painterResource(R.drawable.ic_chevron_right), null, Modifier.size(18.dp))
                     }
                 }
             }
@@ -466,7 +524,7 @@ private fun Home(
                 items((state.applications.size + 1) / 2) { rowIndex ->
                     val first = state.applications[rowIndex * 2]
                     val second = state.applications.getOrNull(rowIndex * 2 + 1)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         AppTile(
                             first,
                             state.unreadNotificationBadges.countFor(first),
@@ -487,22 +545,15 @@ private fun Home(
                 }
             }
             if (PortalCapability.OPEN_TALK in state.capabilities) {
-                item { TalkToolCard { talkDialogOpen = true } }
+                item { TalkToolCard(onTalkHandoff) }
             }
-            item { AccountDeviceSummary(state, onEnableQuickUnlock) }
+            if (state.newsLoading || state.news.isNotEmpty()) {
+                item { NewsPanel(state.news, state.newsLoading, onOpenPublicUrl) }
+            }
+            item { AccountDeviceSummary(state, onEnableQuickUnlock, onSettings) }
         }
     }
 
-    if (talkDialogOpen) {
-        TalkHandoffDialog(
-            state = state,
-            onOpenTalk = { target, url ->
-                talkDialogOpen = false
-                onOpenTalk(target, url)
-            },
-            onDismiss = { talkDialogOpen = false },
-        )
-    }
 }
 
 @Composable
@@ -516,127 +567,90 @@ private fun AnnouncementsPanel(
 ) {
     val latest = announcements.firstOrNull()
     val alreadyRead = latest?.id in readAnnouncementIds
-    var expanded by rememberSaveable(latest?.id, alreadyRead) {
-        mutableStateOf(latest != null && !alreadyRead)
-    }
+    // Collapsing is not an acknowledgement. Only the explicit "Read" action marks it read.
+    var expanded by rememberSaveable(latest?.id) { mutableStateOf(false) }
+    val toggleLabel = stringResource(
+        if (expanded) R.string.announcements_collapse else R.string.announcements_expand,
+    )
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp)) {
-            if (latest != null && !expanded) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { expanded = true }
-                        .padding(vertical = 3.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.announcements_title),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            latest.subject,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+        if (latest == null && loading) {
+            Box(Modifier.fillMaxWidth().heightIn(min = 48.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+            }
+        } else if (latest != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .clickable(role = Role.Button, onClickLabel = toggleLabel) { expanded = !expanded }
+                    .testTag("announcement-toggle")
+                    .heightIn(min = 60.dp)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Icon(painterResource(R.drawable.ic_info_outline), null, Modifier.size(20.dp))
+                Column(Modifier.weight(1f)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(stringResource(R.string.announcements_title),
+                            style = MaterialTheme.typography.labelSmall)
+                        if (!alreadyRead) {
+                            Badge {
+                                Text(stringResource(R.string.announcements_unread),
+                                    style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
                     }
-                    Spacer(Modifier.width(8.dp))
                     Text(
-                        stringResource(R.string.announcements_expand),
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.labelMedium,
+                        latest.subject,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = if (expanded) Int.MAX_VALUE else 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
-            } else if (loading && announcements.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
-                }
-            } else {
-                latest?.let { item ->
-                    Column(
+                Icon(
+                    painterResource(if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more),
+                    toggleLabel,
+                    Modifier.size(20.dp),
+                )
+            }
+            // Keep the cache warning visible even when collapsed.
+            if (stale) {
+                Text(stringResource(R.string.announcements_cached),
+                    modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
+                    style = MaterialTheme.typography.labelSmall)
+            }
+            if (expanded) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+                    if (latest.publishedAtEpochSeconds > 0L) {
+                        Text(DateFormat.getDateInstance(DateFormat.MEDIUM)
+                            .format(Date(latest.publishedAtEpochSeconds * 1_000L)),
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(bottom = 4.dp))
+                    }
+                    if (latest.message.isNotBlank()) {
+                        Text(latest.message, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    // Wrap actions instead of squeezing them at large font sizes.
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                stringResource(R.string.announcements_title),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            TextButton(onClick = { onOpenUrl(BuildConfig.ANNOUNCEMENTS_PAGE_URL) }) {
-                                Text(stringResource(R.string.announcements_all))
-                            }
+                        TextButton(onClick = { onOpenUrl(BuildConfig.ANNOUNCEMENTS_PAGE_URL) }) {
+                            Text(stringResource(R.string.announcements_all))
                         }
-                        if (item.publishedAtEpochSeconds > 0L) {
-                            Text(
-                                DateFormat.getDateInstance(DateFormat.MEDIUM)
-                                    .format(Date(item.publishedAtEpochSeconds * 1_000L)),
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                            Spacer(Modifier.height(2.dp))
-                        }
-                        Text(
-                            item.subject,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        if (item.message.isNotBlank()) {
-                            Spacer(Modifier.height(3.dp))
-                            Text(
-                                item.message,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                style = MaterialTheme.typography.bodySmall,
-                                maxLines = 3,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        if (stale) {
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                stringResource(R.string.announcements_cached),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                        ) {
-                            TextButton(
-                                onClick = {
-                                    expanded = false
-                                    if (!alreadyRead) onMarkRead(item.id)
-                                },
-                            ) {
-                                Text(
-                                    stringResource(
-                                        if (alreadyRead) {
-                                            R.string.announcements_collapse
-                                        } else {
-                                            R.string.announcements_mark_read
-                                        },
-                                    ),
-                                )
-                            }
+                        TextButton(onClick = {
+                            expanded = false
+                            if (!alreadyRead) onMarkRead(latest.id)
+                        }) {
+                            Text(stringResource(
+                                if (alreadyRead) R.string.announcements_collapse else R.string.announcements_mark_read,
+                            ))
                         }
                     }
                 }
@@ -914,49 +928,52 @@ private fun SignInSummary(
 }
 
 @Composable
-private fun AccountDeviceSummary(state: UiState, onEnableQuickUnlock: () -> Unit) {
-    Card(
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(Modifier.fillMaxWidth().padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    state.mode?.let { stringResource(it.labelRes) }.orEmpty(),
-                    modifier = Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (state.mode == DeviceMode.PERSONAL) {
-                    val remainingDays = state.user?.let {
-                        ReauthenticationPolicy.remainingDays(it.authenticatedAtEpochSeconds)
-                    } ?: 0L
-                    Spacer(Modifier.width(10.dp))
-                    SessionValidityPill(remainingDays)
-                }
+private fun AccountDeviceSummary(
+    state: UiState,
+    onEnableQuickUnlock: () -> Unit,
+    onSettings: () -> Unit,
+) {
+    Column(Modifier.fillMaxWidth()) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .clickable(role = Role.Button, onClickLabel = stringResource(R.string.settings_title),
+                    onClick = onSettings)
+                .testTag("account-summary")
+                .heightIn(min = 48.dp)
+                .padding(vertical = 6.dp, horizontal = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                painterResource(
+                    if (state.enrollmentState == EnrollmentState.TRUSTED) R.drawable.ic_shield_check
+                    else R.drawable.ic_info_outline,
+                ),
+                stringResource(
+                    if (state.enrollmentState == EnrollmentState.TRUSTED) R.string.status_trusted
+                    else R.string.device_identity,
+                ),
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                state.mode?.let { stringResource(it.labelRes) }.orEmpty(),
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (state.mode == DeviceMode.PERSONAL) {
+                val remainingDays = state.user?.let {
+                    ReauthenticationPolicy.remainingDays(it.authenticatedAtEpochSeconds)
+                } ?: 0L
+                SessionValidityPill(remainingDays)
             }
-            if (state.mode == DeviceMode.PERSONAL && !state.quickUnlockEnabled) {
-                Spacer(Modifier.height(12.dp))
-                OutlinedButton(
-                    onClick = onEnableQuickUnlock,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(R.string.quick_access_enable_title))
-                }
-            }
-            if (state.enrollmentState == EnrollmentState.TRUSTED) {
-                Spacer(Modifier.height(10.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Spacer(Modifier.height(10.dp))
-                TrustedDeviceStatusRow(state)
+            Icon(painterResource(R.drawable.ic_chevron_right), null, Modifier.size(16.dp))
+        }
+        if (state.mode == DeviceMode.PERSONAL && !state.quickUnlockEnabled) {
+            OutlinedButton(onClick = onEnableQuickUnlock, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.quick_access_enable_title))
             }
         }
     }
@@ -969,18 +986,17 @@ private fun SessionValidityPill(remainingDays: Long) {
         1L -> stringResource(R.string.session_valid_one_day_short)
         else -> stringResource(R.string.session_valid_days_short, remainingDays)
     }
-    Surface(
-        color = MaterialTheme.colorScheme.primaryContainer,
-        shape = CircleShape,
-    ) {
-        Text(
-            label,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-        )
+    val description = when (remainingDays) {
+        0L -> stringResource(R.string.session_valid_today)
+        1L -> stringResource(R.string.session_valid_one_day)
+        else -> stringResource(R.string.session_valid_days, remainingDays)
     }
+    Text(
+        label,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.semantics { stateDescription = description },
+    )
 }
 
 @Composable
@@ -1099,58 +1115,34 @@ private fun StatusPill(state: EnrollmentState) {
 
 @Composable
 private fun NewsPanel(news: List<NewsItem>, loading: Boolean, onOpenUrl: (String) -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-    ) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    stringResource(R.string.news_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                TextButton(onClick = { onOpenUrl(BuildConfig.NEWS_PAGE_URL) }) {
-                    Text(stringResource(R.string.news_all))
-                }
+    Column(Modifier.fillMaxWidth()) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.news_title), Modifier.weight(1f),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TextButton(onClick = { onOpenUrl(BuildConfig.NEWS_PAGE_URL) }) {
+                Text(stringResource(R.string.news_all), style = MaterialTheme.typography.labelMedium)
             }
-            if (loading && news.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp),
-                    contentAlignment = Alignment.Center,
+        }
+        if (loading && news.isEmpty()) {
+            Box(Modifier.fillMaxWidth().padding(8.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+            }
+        } else {
+            news.firstOrNull()?.let { item ->
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .clickable(role = Role.Button) { onOpenUrl(item.link) }
+                        .heightIn(min = 48.dp)
+                        .padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
-                }
-            } else {
-                news.firstOrNull()?.let { item ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onOpenUrl(item.link) }
-                            .padding(vertical = 9.dp),
-                    ) {
-                        if (item.publishedAtEpochSeconds > 0L) {
-                            Text(
-                                DateFormat.getDateInstance(DateFormat.MEDIUM)
-                                    .format(Date(item.publishedAtEpochSeconds * 1_000L)),
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                            Spacer(Modifier.height(2.dp))
-                        }
-                        Text(
-                            item.title,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
+                    Text(item.title, Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Icon(painterResource(R.drawable.ic_chevron_right), null, Modifier.size(18.dp))
                 }
             }
         }
@@ -1159,10 +1151,12 @@ private fun NewsPanel(news: List<NewsItem>, loading: Boolean, onOpenUrl: (String
 
 @Composable
 private fun SectionTitle(title: String, action: String, onAction: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.width(8.dp))
-        TextButton(onClick = onAction) { Text(action, maxLines = 1) }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold)
+        IconButton(onClick = onAction) {
+            Icon(painterResource(R.drawable.ic_refresh), action, Modifier.size(20.dp))
+        }
     }
 }
 
@@ -1174,33 +1168,35 @@ private fun AppTile(
     onOpenUrl: (String) -> Unit,
 ) {
     Card(
-        modifier = modifier.height(106.dp).clickable { onOpenUrl(application.launchUrl) },
-        shape = RoundedCornerShape(16.dp),
+        onClick = { onOpenUrl(application.launchUrl) },
+        modifier = modifier.heightIn(min = 72.dp).fillMaxHeight().testTag("app-" + application.slug),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
-        Box(Modifier.fillMaxSize()) {
-            Column(Modifier.padding(14.dp)) {
+        Row(
+            Modifier.fillMaxWidth().weight(1f).padding(horizontal = 10.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box {
                 Box(
-                    Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.primaryContainer),
+                    Modifier.size(32.dp).clip(RoundedCornerShape(9.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        application.name.take(1).uppercase(),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.Black,
-                    )
+                    Text(application.name.take(1).uppercase(),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Bold)
                 }
-                Spacer(Modifier.height(8.dp))
-                Text(application.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
-            if (unreadCount > 0) {
-                Badge(
-                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 10.dp, end = 10.dp),
-                ) {
-                    Text(if (unreadCount > 99) "99+" else unreadCount.toString())
+                if (unreadCount > 0) {
+                    Badge(Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-6).dp)) {
+                        Text(if (unreadCount > 99) "99+" else unreadCount.toString())
+                    }
                 }
             }
+            Text(application.name, Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+                maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
 }

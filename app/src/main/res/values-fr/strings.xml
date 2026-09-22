@@ -216,4 +216,5 @@
     <string name="login_approval_failed">Impossible de répondre à la demande de connexion.</string>
     <string name="login_approval_personal_only">Les demandes de connexion ne peuvent être confirmées que sur les appareils personnels.</string>
     <string name="login_approval_invalid">Demande de connexion non valide.</string>
+    <string name="announcements_unread">Nouveau</string>
 </resources>

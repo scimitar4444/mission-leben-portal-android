@@ -65,6 +65,20 @@ class DirectoryTest(unittest.TestCase):
         self.assertEqual(self.directory.search("shared", "tablet")["total"], 2)
         self.assertEqual(self.directory.search("shared", "tablet", mine=True)["my_facilities"], ["Zentrale"])
 
+    def test_academy_filter_is_not_a_numbered_house_or_a_device_right(self):
+        academy = "directory:academy:darmstadt"
+        self.data["facilities"][academy] = "Akademie Darmstadt"
+        self.data["entries"][1]["facilities"] = [academy]
+        self.write()
+        result = self.directory.search("one", "personal")
+        option = next(o for o in result["facility_options"] if o["name"] == "Akademie Darmstadt")
+        filtered = self.directory.search("one", "personal", facility=option["id"])
+        self.assertEqual(filtered["total"], 1)
+        self.assertEqual(filtered["results"][0]["id"], "two")
+        self.assertEqual(self.directory.search("one", "tablet", mine=True)["total"], 1)
+        with self.assertRaises(DirectoryDenied):
+            self.directory.search("two", "tablet")
+
     def test_missing_house_never_means_all_for_mine(self):
         self.data["audience"]["one"]["facilities"] = []
         self.write()
@@ -260,6 +274,49 @@ class DirectoryTest(unittest.TestCase):
 
 
 class ExportContractTest(unittest.TestCase):
+    def academy_group(self, name, **attrs):
+        expected = {name: pk for _, groups in CONTRACT["ACADEMY_DIRECTORY_SITES"].values()
+                    for name, pk in groups.items()}
+        return SimpleNamespace(name=name, pk=expected.get(name, "not-canonical"), attributes={
+            "iam_group_type": "organization_unit", "iam_managed": True,
+            "iam_plan_status": "UMGESETZT_UEBERGANG", "iam_org_level": "Fachbereich/Standort",
+            "iam_parent_group": "ORG_AKA", **attrs,
+        }, parents=SimpleNamespace(all=lambda: [SimpleNamespace(name="ORG_AKA")]))
+
+    def test_three_academy_places_from_five_canonical_groups(self):
+        groups = [self.academy_group(name) for _, names in CONTRACT["ACADEMY_DIRECTORY_SITES"].values()
+                  for name in names]
+        facilities, memberships = CONTRACT["directory_facilities"](groups)
+        self.assertEqual(set(facilities.values()), {
+            "Akademie Bad Homburg", "Akademie Darmstadt", "Akademie Wiesbaden",
+        })
+        own = CONTRACT["contact_facilities"]([g.name for g in groups if "DARMSTADT" in g.name], memberships)
+        self.assertEqual(own, {"directory:academy:darmstadt"})
+        for group in groups:
+            self.assertFalse(CONTRACT["real_facility"](group.name, group.attributes))
+
+    def test_academy_zentrale_and_unknown_groups_are_not_assigned_a_city(self):
+        facilities, memberships = CONTRACT["directory_facilities"]([
+            self.academy_group("ORG_AKA_ZENTRAL"), self.academy_group("ORG_AKA_UNKNOWN"),
+        ])
+        self.assertEqual((facilities, memberships), ({}, {}))
+        self.assertEqual(CONTRACT["contact_facilities"](["ORG_AKA_ZENTRAL"], memberships), set())
+        self.assertEqual(CONTRACT["account_kind"](self.user()), "person")
+
+    def test_academy_requires_canonical_identity_attributes_and_real_parent(self):
+        name = "ORG_AKA_BAD_HOMBURG"
+        for changes in ({"iam_managed": False}, {"iam_group_type": "role"},
+                        {"iam_plan_status": "INAKTIV"}, {"iam_org_level": "Teilbereich"},
+                        {"iam_parent_group": "ORG_OTHER"}):
+            self.assertEqual(CONTRACT["directory_facilities"]([self.academy_group(name, **changes)]), ({}, {}))
+        group = self.academy_group(name)
+        group.pk = "different-uuid"
+        self.assertEqual(CONTRACT["directory_facilities"]([group]), ({}, {}))
+        group = self.academy_group(name)
+        group.parents = SimpleNamespace(all=lambda: [])
+        self.assertEqual(CONTRACT["directory_facilities"]([group]), ({}, {}))
+        self.assertEqual(len(CONTRACT["directory_facilities"]([self.academy_group(name, iam_plan_status="AKTIV")])[0]), 1)
+
     def user(self, **attrs):
         return SimpleNamespace(uid="test-id", name="Test Person", email="person@example.invalid", is_active=True,
                                type="external", attributes={"iam_account_kind": "person", "iam_directory_class": "person", **attrs})

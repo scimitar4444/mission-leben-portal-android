@@ -216,4 +216,5 @@
     <string name="login_approval_failed">The login request could not be answered.</string>
     <string name="login_approval_personal_only">Login requests can only be approved on personal devices.</string>
     <string name="login_approval_invalid">Invalid login request.</string>
+    <string name="announcements_unread">New</string>
 </resources>

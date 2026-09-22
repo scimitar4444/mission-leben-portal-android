@@ -240,4 +240,5 @@
     <string name="login_approval_failed">Die Anmeldeanfrage konnte nicht beantwortet werden.</string>
     <string name="login_approval_personal_only">Anmeldeanfragen können nur auf persönlichen Geräten bestätigt werden.</string>
     <string name="login_approval_invalid">Ungültige Anmeldeanfrage.</string>
+    <string name="announcements_unread">Neu</string>
 </resources>

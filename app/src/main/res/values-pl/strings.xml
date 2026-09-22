@@ -218,4 +218,5 @@
     <string name="login_approval_failed">Nie można było odpowiedzieć na żądanie logowania.</string>
     <string name="login_approval_personal_only">Żądania logowania można zatwierdzać tylko na urządzeniach osobistych.</string>
     <string name="login_approval_invalid">Nieprawidłowe żądanie logowania.</string>
+    <string name="announcements_unread">Nowe</string>
 </resources>

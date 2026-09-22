@@ -218,4 +218,5 @@
     <string name="login_approval_failed">Не вдалося відповісти на запит на вхід.</string>
     <string name="login_approval_personal_only">Запити на вхід можна підтверджувати лише на особистих пристроях.</string>
     <string name="login_approval_invalid">Недійсний запит на вхід.</string>
+    <string name="announcements_unread">Нове</string>
 </resources>
