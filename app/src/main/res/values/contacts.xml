@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="contacts_title">Kontakte</string>
+    <string name="contacts_subtitle">Mitarbeitende finden und erreichen</string>
+    <string name="contacts_back">Portal</string>
+    <string name="contacts_search">Name, Einrichtung oder Funktion</string>
+    <string name="contacts_all">Alle</string>
+    <string name="contacts_mine">Meine Einrichtung</string>
+    <string name="contacts_no_facility">Keine Einrichtung zugeordnet</string>
+    <string name="contacts_error">Kontakte sind gerade nicht erreichbar. Bitte versuche es erneut.</string>
+    <string name="contacts_denied">Der Zugriff ist derzeit nicht freigegeben. Prüfe deine Geräteanmeldung.</string>
+    <string name="contacts_retry">Erneut versuchen</string>
+    <string name="contacts_empty">Keine passenden Kontakte gefunden.</string>
+    <string name="contacts_count">%1$d Kontakte</string>
+    <string name="contacts_more">Weitere laden</string>
+    <string name="contacts_phone">Telefon: %1$s</string>
+    <string name="contacts_mobile">Mobil: %1$s</string>
+    <string name="contacts_no_handler">Auf diesem Gerät ist keine passende Telefon- oder E-Mail-App verfügbar.</string>
+</resources>

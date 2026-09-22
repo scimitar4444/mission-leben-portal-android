@@ -85,6 +85,9 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
         self._dispatch("DELETE")
 
     def log_message(self, format_string: str, *args: object) -> None:
+        if urlsplit(self.path).path == "/v1/contacts/search":
+            # Search terms contain employee names. Never put them in logs.
+            return
         LOGGER.info("%s - %s", self.client_address[0], format_string % args)
 
     def _dispatch(self, method: str) -> None:
@@ -189,6 +192,19 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
 
             if method == "GET" and path == "/v1/announcements":
                 self._json(200, self.server.service.announcements(self._bearer()))
+                return
+
+            if method == "POST" and path == "/v1/contacts/search":
+                _, params = self._body_json()
+                mine = params.get("mine", False)
+                query = params.get("q", "")
+                offset = params.get("offset", 0)
+                if not isinstance(mine, bool) or not isinstance(query, str) or type(offset) is not int:
+                    raise ApiError(400, "invalid facility filter")
+                self._json(200, self.server.service.contacts(
+                    self._bearer(), self.headers.get("X-ML-Device-Token", ""),
+                    query, mine, offset,
+                ))
                 return
 
             if method == "GET" and path == "/v1/link-targets":

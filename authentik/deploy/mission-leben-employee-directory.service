@@ -1,0 +1,17 @@
+[Unit]
+Description=Read-only Authentik employee directory projection
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mission-leben-employee-directory/sync-employee-directory.sh
+TimeoutStartSec=90
+User=root
+Group=root
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/run/lock /opt/mission-leben-bridge/directory-data
+RestrictAddressFamilies=AF_UNIX

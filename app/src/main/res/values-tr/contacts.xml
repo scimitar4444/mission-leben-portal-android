@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="contacts_title">Kişiler</string>
+    <string name="contacts_subtitle">Çalışanları bul ve iletişime geç</string>
+    <string name="contacts_back">Portal</string>
+    <string name="contacts_search">Ad, kurum veya görev</string>
+    <string name="contacts_all">Tümü</string>
+    <string name="contacts_mine">Kurumum</string>
+    <string name="contacts_no_facility">Kurum atanmamış</string>
+    <string name="contacts_error">Kişilere şu anda ulaşılamıyor. Lütfen tekrar dene.</string>
+    <string name="contacts_denied">Erişim şu anda açık değil. Cihaz kaydını kontrol et.</string>
+    <string name="contacts_retry">Tekrar dene</string>
+    <string name="contacts_empty">Eşleşen kişi bulunamadı.</string>
+    <string name="contacts_count">%1$d kişi</string>
+    <string name="contacts_more">Daha fazla yükle</string>
+    <string name="contacts_phone">Telefon: %1$s</string>
+    <string name="contacts_mobile">Cep: %1$s</string>
+    <string name="contacts_no_handler">Bu cihazda uygun telefon veya e-posta uygulaması yok.</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="contacts_title">संपर्क</string>
+    <string name="contacts_subtitle">सहकर्मियों को खोजें और संपर्क करें</string>
+    <string name="contacts_back">पोर्टल</string>
+    <string name="contacts_search">नाम, संस्थान या भूमिका</string>
+    <string name="contacts_all">सभी</string>
+    <string name="contacts_mine">मेरा संस्थान</string>
+    <string name="contacts_no_facility">कोई संस्थान नहीं सौंपा गया</string>
+    <string name="contacts_error">संपर्क अभी उपलब्ध नहीं हैं। फिर से कोशिश करें।</string>
+    <string name="contacts_denied">पहुँच उपलब्ध नहीं है। डिवाइस का पंजीकरण जाँचें।</string>
+    <string name="contacts_retry">फिर कोशिश करें</string>
+    <string name="contacts_empty">कोई संपर्क नहीं मिला।</string>
+    <string name="contacts_count">%1$d संपर्क</string>
+    <string name="contacts_more">और लोड करें</string>
+    <string name="contacts_phone">फ़ोन: %1$s</string>
+    <string name="contacts_mobile">मोबाइल: %1$s</string>
+    <string name="contacts_no_handler">इस डिवाइस पर उपयुक्त फ़ोन या ईमेल ऐप उपलब्ध नहीं है।</string>
+</resources>

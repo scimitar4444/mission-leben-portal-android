@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="contacts_title">Contactos</string>
+    <string name="contacts_subtitle">Busca y contacta con tus compañeros</string>
+    <string name="contacts_back">Portal</string>
+    <string name="contacts_search">Nombre, centro o función</string>
+    <string name="contacts_all">Todos</string>
+    <string name="contacts_mine">Mi centro</string>
+    <string name="contacts_no_facility">Sin centro asignado</string>
+    <string name="contacts_error">Los contactos no están disponibles. Inténtalo de nuevo.</string>
+    <string name="contacts_denied">Acceso no disponible. Comprueba el registro del dispositivo.</string>
+    <string name="contacts_retry">Reintentar</string>
+    <string name="contacts_empty">No se encontraron contactos.</string>
+    <string name="contacts_count">%1$d contactos</string>
+    <string name="contacts_more">Cargar más</string>
+    <string name="contacts_phone">Teléfono: %1$s</string>
+    <string name="contacts_mobile">Móvil: %1$s</string>
+    <string name="contacts_no_handler">No hay una aplicación de teléfono o correo compatible.</string>
+</resources>

@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh employee contacts from Authentik every five minutes
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=5min
+RandomizedDelaySec=10s
+Persistent=true
+Unit=mission-leben-employee-directory.service
+
+[Install]
+WantedBy=timers.target

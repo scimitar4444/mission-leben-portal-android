@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="contacts_title">Контакти</string>
+    <string name="contacts_subtitle">Знайти колег і зв’язатися з ними</string>
+    <string name="contacts_back">Портал</string>
+    <string name="contacts_search">Ім’я, заклад або посада</string>
+    <string name="contacts_all">Усі</string>
+    <string name="contacts_mine">Мій заклад</string>
+    <string name="contacts_no_facility">Заклад не призначено</string>
+    <string name="contacts_error">Контакти зараз недоступні. Спробуй ще раз.</string>
+    <string name="contacts_denied">Доступ недоступний. Перевір реєстрацію пристрою.</string>
+    <string name="contacts_retry">Спробувати ще раз</string>
+    <string name="contacts_empty">Контактів не знайдено.</string>
+    <string name="contacts_count">%1$d контактів</string>
+    <string name="contacts_more">Завантажити ще</string>
+    <string name="contacts_phone">Телефон: %1$s</string>
+    <string name="contacts_mobile">Мобільний: %1$s</string>
+    <string name="contacts_no_handler">На пристрої немає відповідного застосунку для дзвінків або пошти.</string>
+</resources>

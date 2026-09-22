@@ -49,6 +49,8 @@ services:
     restart: unless-stopped
     init: true
     env_file: .env
+    environment:
+      BRIDGE_EMPLOYEE_DIRECTORY_FILE: /run/mission-leben-directory/employee-directory.json
     depends_on:
       ntfy:
         condition: service_healthy

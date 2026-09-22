@@ -56,6 +56,7 @@ class Settings:
     duo_api_hostname: str
     duo_approval_timeout_seconds: int
     dev_mode: bool
+    employee_directory_file: Path | None = None
 
     @property
     def ntfy_configured(self) -> bool:
@@ -232,4 +233,8 @@ class Settings:
             duo_api_hostname=duo_api_hostname,
             duo_approval_timeout_seconds=duo_timeout,
             dev_mode=dev_mode,
+            employee_directory_file=(
+                Path(os.environ["BRIDGE_EMPLOYEE_DIRECTORY_FILE"])
+                if os.getenv("BRIDGE_EMPLOYEE_DIRECTORY_FILE") else None
+            ),
         )

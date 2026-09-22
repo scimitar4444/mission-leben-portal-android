@@ -17,6 +17,8 @@ import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.data.NewsRepository
 import de.missionleben.portal.data.PortalAuthenticationException
 import de.missionleben.portal.data.PortalRepository
+import de.missionleben.portal.data.ContactsRepository
+import de.missionleben.portal.data.ContactPage
 import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrPayload
 import de.missionleben.portal.device.EnrollmentQrParser
@@ -52,6 +54,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import javax.crypto.Cipher
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -60,6 +65,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val identity = DeviceIdentity()
     private val authRepository = AuthRepository(application)
     private val portalRepository = PortalRepository()
+    private val contactsRepository = ContactsRepository(application)
     private val newsRepository = NewsRepository(application)
     private val deviceService = DeviceServiceRepository(application)
     private val pushStore = PushRegistrationStore(application)
@@ -97,6 +103,39 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         ),
     )
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+    suspend fun searchContacts(query: String, mine: Boolean, offset: Int): ContactPage {
+        if (expireAtAbsoluteDeadline() || !_uiState.value.signedIn) throw PortalAuthenticationException()
+        val subject = _uiState.value.user?.subject ?: throw PortalAuthenticationException()
+        val state = serializedAuthState ?: throw PortalAuthenticationException()
+        val token = suspendCancellableCoroutine<String> { continuation ->
+            authRepository.withFreshAccessToken(
+                serializedState = state,
+                onSuccess = { accessToken, updatedState ->
+                    if (continuation.isActive) {
+                        if (_uiState.value.signedIn && _uiState.value.user?.subject == subject) {
+                            updateSerializedState(updatedState)
+                            continuation.resume(accessToken)
+                        } else continuation.resumeWithException(PortalAuthenticationException())
+                    }
+                },
+                onError = { failure ->
+                    if (continuation.isActive) {
+                        if (failure.reauthenticationRequired) sessionExpired()
+                        continuation.resumeWithException(IllegalStateException("Directory authentication failed"))
+                    }
+                },
+            )
+        }
+        return try {
+            val result = contactsRepository.search(token, query, mine, offset)
+            if (!_uiState.value.signedIn || _uiState.value.user?.subject != subject) throw PortalAuthenticationException()
+            result
+        } catch (error: PortalAuthenticationException) {
+            if (_uiState.value.user?.subject == subject) sessionExpired()
+            throw error
+        }
+    }
 
     init {
         val storedDeviceId = preferences.deviceId

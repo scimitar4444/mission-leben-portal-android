@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="contacts_title">Contacts</string>
+    <string name="contacts_subtitle">Trouver et contacter des collègues</string>
+    <string name="contacts_back">Portail</string>
+    <string name="contacts_search">Nom, établissement ou fonction</string>
+    <string name="contacts_all">Tous</string>
+    <string name="contacts_mine">Mon établissement</string>
+    <string name="contacts_no_facility">Aucun établissement attribué</string>
+    <string name="contacts_error">Les contacts sont indisponibles. Réessaie plus tard.</string>
+    <string name="contacts_denied">Accès indisponible. Vérifie l’enregistrement de ton appareil.</string>
+    <string name="contacts_retry">Réessayer</string>
+    <string name="contacts_empty">Aucun contact trouvé.</string>
+    <string name="contacts_count">%1$d contacts</string>
+    <string name="contacts_more">Charger plus</string>
+    <string name="contacts_phone">Téléphone : %1$s</string>
+    <string name="contacts_mobile">Mobile : %1$s</string>
+    <string name="contacts_no_handler">Aucune application de téléphone ou de messagerie adaptée sur cet appareil.</string>
+</resources>

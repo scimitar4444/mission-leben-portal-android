@@ -1,0 +1,123 @@
+"""Read-only, allowlisted employee projection. Run in Authentik via ak shell.
+
+No credentials, private numbers, HR attributes or full group memberships leave
+the host. The internal audience/device maps are never returned to app clients.
+"""
+from __future__ import annotations
+
+import json
+import re
+import time
+
+
+BUSINESS_EMAIL_DOMAINS = {"mission-leben.de", "akademie-mission-leben.de"}
+
+
+def text(value, limit=160):
+    return " ".join(value.split())[:limit] if isinstance(value, str) else ""
+
+
+def real_facility(name, attrs):
+    return bool(
+        re.fullmatch(r"ORG_ML_H[0-9]{3}(?:_[0-9]{2})?", name)
+        and attrs.get("iam_group_type") == "organization_unit"
+        and attrs.get("iam_managed") is True
+        and attrs.get("iam_plan_status") in {"UMGESETZT_UEBERGANG", "AKTIV"}
+        and (attrs.get("iam_org_level") in {"Einrichtung", "Einrichtung/Verbund"}
+             or (name == "ORG_ML_H001" and attrs.get("iam_org_level") == "Geschäftseinheit/Standort"))
+    )
+
+
+def account_kind(user):
+    attrs = user.attributes or {}
+    if not user.is_active or user.type == "service_account":
+        return ""
+    if attrs.get("iam_account_kind") == "person" and attrs.get("iam_directory_class") == "person":
+        return "person"
+    if attrs.get("iam_account_kind") == "shared":
+        return "shared"
+    return ""
+
+
+def contact(user, facilities):
+    attrs = user.attributes or {}
+    # Owner confirmed telephoneNumber AND mobile hold company numbers (2026-09-22).
+    # Never fall back to homePhone, arbitrary phone_number, notes or addresses.
+    phone = text(attrs.get("telephoneNumber"), 64)
+    if not re.fullmatch(r"\+?[0-9 ()/.-]{3,60}", phone) or sum(c.isdigit() for c in phone) < 3:
+        phone = ""
+    mobile = text(attrs.get("mobile"), 64)
+    if not re.fullmatch(r"\+?[0-9 ()/.-]{3,60}", mobile) or sum(c.isdigit() for c in mobile) < 3:
+        mobile = ""
+    if re.sub(r"[^0-9+]", "", phone) == re.sub(r"[^0-9+]", "", mobile):
+        mobile = ""
+    email = text(user.email, 254)
+    if (not re.fullmatch(r"[^\s<>?&#,;]+@[^\s<>?&#,;]+\.[^\s<>?&#,;]+", email)
+            or email.rsplit("@", 1)[-1].lower() not in BUSINESS_EMAIL_DOMAINS):
+        email = ""
+    return {
+        "id": str(user.uid), "name": text(user.name), "email": email,
+        "phone": phone, "mobile": mobile,
+        "job_title": text(attrs.get("employee_job_title") or attrs.get("title")),
+        "department": text(attrs.get("employee_department") or attrs.get("department")),
+        "facilities": sorted(facilities),
+    }
+
+
+def main():
+    from authentik.core.models import Group, User
+    from authentik.endpoints.models import Device, DeviceUserBinding
+    from django.utils import timezone
+
+    facilities = {
+        g.name: text((g.attributes or {}).get("iam_display_name")) or g.name
+        for g in Group.objects.filter(name__startswith="ORG_ML_H")
+        if real_facility(g.name, g.attributes or {})
+    }
+    entries, audience, subjects = [], {}, {}
+    for user in User.objects.filter(is_active=True).order_by("pk"):
+        kind = account_kind(user)
+        if not kind:
+            continue
+        own = {g.name for g in user.all_groups()} & facilities.keys()
+        uid = str(user.uid)
+        subjects[user.pk] = uid
+        audience[uid] = {"kind": kind, "facilities": sorted(own)}
+        if kind == "person":
+            entry = contact(user, own)
+            if entry["name"]:
+                entries.append(entry)
+
+    devices = {}
+    for device in Device.objects.select_related("access_group"):
+        if (device.attributes or {}).get("mission-leben.de/status") == "disabled":
+            continue
+        if device.expiring and device.expires and device.expires <= timezone.now():
+            continue
+        group = device.access_group
+        attrs = (group.attributes or {}) if group else {}
+        if attrs.get("mission-leben.de/purpose") != "android-portal":
+            continue
+        bindings = list(DeviceUserBinding.objects.filter(target=group))
+        if len(bindings) != 1:
+            continue
+        binding = bindings[0]
+        if not binding.enabled or binding.negate or binding.policy_id is not None:
+            continue
+        mode = attrs.get("mission-leben.de/mode")
+        if mode == "personal" and binding.group_id is None and binding.user_id in subjects:
+            subject = subjects[binding.user_id]
+            if audience[subject]["kind"] == "person":
+                devices[str(device.pk)] = {"mode": mode, "subject": subject}
+        elif mode == "shared" and binding.user_id is None and binding.group_id is not None:
+            facility = attrs.get("mission-leben.de/facility-group")
+            if facility in facilities and binding.group.name == facility:
+                devices[str(device.pk)] = {"mode": mode, "facility": facility}
+    print("ML_EMPLOYEE_DIRECTORY=" + json.dumps({
+        "version": 1, "generated_at": int(time.time()), "facilities": facilities,
+        "entries": entries, "audience": audience, "devices": devices,
+    }, ensure_ascii=False, separators=(",", ":")))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="contacts_title">Contacts</string>
+    <string name="contacts_subtitle">Find and contact colleagues</string>
+    <string name="contacts_back">Portal</string>
+    <string name="contacts_search">Name, location or role</string>
+    <string name="contacts_all">All</string>
+    <string name="contacts_mine">My location</string>
+    <string name="contacts_no_facility">No location assigned</string>
+    <string name="contacts_error">Contacts are currently unavailable. Please try again.</string>
+    <string name="contacts_denied">Access is currently unavailable. Please check your device registration.</string>
+    <string name="contacts_retry">Try again</string>
+    <string name="contacts_empty">No matching contacts found.</string>
+    <string name="contacts_count">%1$d contacts</string>
+    <string name="contacts_more">Load more</string>
+    <string name="contacts_phone">Phone: %1$s</string>
+    <string name="contacts_mobile">Mobile: %1$s</string>
+    <string name="contacts_no_handler">No suitable phone or email app is available on this device.</string>
+</resources>

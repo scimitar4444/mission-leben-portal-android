@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="contacts_title">Kontakty</string>
+    <string name="contacts_subtitle">Znajdź pracowników i skontaktuj się z nimi</string>
+    <string name="contacts_back">Portal</string>
+    <string name="contacts_search">Imię, placówka lub funkcja</string>
+    <string name="contacts_all">Wszyscy</string>
+    <string name="contacts_mine">Moja placówka</string>
+    <string name="contacts_no_facility">Nie przypisano placówki</string>
+    <string name="contacts_error">Kontakty są niedostępne. Spróbuj ponownie.</string>
+    <string name="contacts_denied">Brak dostępu. Sprawdź rejestrację urządzenia.</string>
+    <string name="contacts_retry">Spróbuj ponownie</string>
+    <string name="contacts_empty">Nie znaleziono kontaktów.</string>
+    <string name="contacts_count">%1$d kontaktów</string>
+    <string name="contacts_more">Wczytaj więcej</string>
+    <string name="contacts_phone">Telefon: %1$s</string>
+    <string name="contacts_mobile">Komórka: %1$s</string>
+    <string name="contacts_no_handler">Na urządzeniu nie ma odpowiedniej aplikacji telefonu lub poczty.</string>
+</resources>

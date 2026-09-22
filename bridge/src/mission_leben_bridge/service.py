@@ -8,6 +8,7 @@ from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .authentik import AuthenticationError, AuthentikClient, UserInfo
+from .employee_directory import EmployeeDirectory, DirectoryDenied, DirectoryUnavailable
 from .nextcloud_announcements import AnnouncementFetchError, NextcloudAnnouncementClient
 from .ntfy import NtfyCredentials, NtfyError, NtfyManager, NullNtfyManager
 from .offboard import offboard_subject
@@ -96,6 +97,7 @@ class BridgeService:
         announcement_client: NextcloudAnnouncementClient | None = None,
         announcement_cache_ttl_seconds: int = 300,
         announcement_stale_ttl_seconds: int = 86_400,
+        employee_directory: EmployeeDirectory | None = None,
     ):
         self.store = store
         self.authentik = authentik
@@ -105,6 +107,25 @@ class BridgeService:
         self.announcement_cache_ttl_seconds = announcement_cache_ttl_seconds
         self.announcement_stale_ttl_seconds = announcement_stale_ttl_seconds
         self._dispatch_lock = threading.Lock()
+        self.employee_directory = employee_directory
+
+    def contacts(self, bearer: str, agent_token: str, query: str, mine: bool, offset: int) -> dict[str, Any]:
+        # Authenticate on every request, independently of notification settings.
+        user = self.authentik.user_info(bearer)
+        if not agent_token or len(agent_token) > 4096:
+            raise ApiError(403, "registered device is required")
+        try:
+            device_id = self.authentik.device_id(agent_token)
+        except AuthenticationError as error:
+            raise ApiError(403 if error.permanent else 503, "device verification failed") from error
+        if self.employee_directory is None:
+            raise ApiError(503, "employee directory is not configured")
+        try:
+            return self.employee_directory.search(user.subject, device_id, query, mine, offset)
+        except DirectoryDenied as error:
+            raise ApiError(403, str(error)) from error
+        except DirectoryUnavailable as error:
+            raise ApiError(503, str(error)) from error
 
     def authenticate(self, bearer: str) -> UserInfo:
         user = self.authentik.user_info(bearer)

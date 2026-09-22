@@ -61,6 +61,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.missionleben.portal.BuildConfig
+import de.missionleben.portal.data.ContactPage
 import de.missionleben.portal.R
 import de.missionleben.portal.auth.IdentityBirthday
 import de.missionleben.portal.auth.ReauthenticationPolicy
@@ -89,6 +90,7 @@ fun MissionLebenApp(
     onOpenUrl: (String) -> Unit,
     onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
+    onSearchContacts: suspend (String, Boolean, Int) -> ContactPage,
     onMarkAnnouncementRead: (Long) -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
@@ -133,6 +135,7 @@ fun MissionLebenApp(
                 onOpenUrl = onOpenUrl,
                 onOpenPublicUrl = onOpenPublicUrl,
                 onReloadApplications = onReloadApplications,
+                onSearchContacts = onSearchContacts,
                 onMarkAnnouncementRead = onMarkAnnouncementRead,
                 onSelfEnrollment = onSelfEnrollment,
                 onRefreshDeviceStatus = onRefreshDeviceStatus,
@@ -316,6 +319,7 @@ private fun Home(
     onOpenUrl: (String) -> Unit,
     onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
+    onSearchContacts: suspend (String, Boolean, Int) -> ContactPage,
     onMarkAnnouncementRead: (Long) -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
@@ -336,6 +340,12 @@ private fun Home(
 ) {
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
     var talkDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var contactsOpen by remember(state.signedIn, state.user?.subject) { mutableStateOf(false) }
+
+    if (contactsOpen && state.signedIn) {
+        ContactsScreen(onSearchContacts, onBack = { contactsOpen = false })
+        return
+    }
 
     BackHandler(enabled = settingsOpen) {
         settingsOpen = false
@@ -412,6 +422,22 @@ private fun Home(
         }
 
         if (state.signedIn) {
+            item {
+                Card(onClick = { contactsOpen = true }, modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.contacts_title), style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.contacts_subtitle), style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Text("›", style = MaterialTheme.typography.headlineSmall)
+                    }
+                }
+            }
             item {
                 SectionTitle(
                     title = stringResource(R.string.web_apps_title),
