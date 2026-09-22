@@ -39,6 +39,22 @@ def account_kind(user):
     return ""
 
 
+def contact_name(user):
+    attrs = user.attributes or {}
+    known = text(attrs.get("displayName")) or text(user.name)
+    if account_kind(user) == "person":
+        given, family = text(attrs.get("givenName")), text(attrs.get("sn"))
+        # Preserve functional/ambiguous display names even when the upstream
+        # classification currently says person. No reclassification here.
+        known_forms = {f"{given} {family}".casefold(), f"{family} {given}".casefold(),
+                       f"{family}, {given}".casefold(), f"{family},{given}".casefold()}
+        if given and family and known.casefold() in known_forms:
+            return text(f"{family}, {given}")
+    # Functional accounts keep their complete function name. Never guess name
+    # parts from spaces, dots, email addresses or usernames.
+    return known
+
+
 def contact(user, facilities):
     attrs = user.attributes or {}
     # Owner confirmed telephoneNumber AND mobile hold company numbers (2026-09-22).
@@ -56,7 +72,7 @@ def contact(user, facilities):
             or email.rsplit("@", 1)[-1].lower() not in BUSINESS_EMAIL_DOMAINS):
         email = ""
     return {
-        "id": str(user.uid), "name": text(user.name), "email": email,
+        "id": str(user.uid), "name": contact_name(user), "email": email,
         "phone": phone, "mobile": mobile,
         "job_title": text(attrs.get("employee_job_title") or attrs.get("title")),
         "department": text(attrs.get("employee_department") or attrs.get("department")),

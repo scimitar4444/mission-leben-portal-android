@@ -38,14 +38,17 @@ verwenden ausschließlich ihr einzelnes gebundenes Haus für „Meine Einrichtun
 
 Aufgeführt werden nur aktive `person`/`person`-Konten (keine service_account).
 Shared-Konten dürfen das Verzeichnis über ihr zulässiges Tablet nutzen, werden
-aber selbst nicht als Mitarbeitende aufgeführt. Keine Berechtigung aus
+aber selbst nicht als Mitarbeitende aufgeführt. Die aktuelle Klassifikation
+kann bestehende Funktionskonten als Person führen; diese werden durch die
+Namensformatierung weder neu aufgenommen noch umklassifiziert. Keine Berechtigung aus
 „Mobil erreichbar“, Einrichterrollen oder den alten ML_DEVICE_INIT-Gruppen.
 
 Explizite Feldliste:
 
 | Kontaktfeld | Quelle |
 | --- | --- |
-| Name | User.name |
+| Personenname | sn + Komma + givenName, wenn beide vorhanden und dem bekannten vollständigen Namen entsprechen; sonst displayName bzw. User.name |
+| Sammelkonto | displayName, sonst User.name; keine Zerlegung als Personenname |
 | E-Mail | User.email, ausschließlich mission-leben.de / akademie-mission-leben.de |
 | Telefon | telephoneNumber |
 | Mobil | mobile |
@@ -64,6 +67,12 @@ In Authentik können auch private oder externe E-Mail-Adressen stehen; diese
 werden nicht veröffentlicht. Weitere Firmendomänen müssen ausdrücklich geprüft
 und in BUSINESS_EMAIL_DOMAINS ergänzt werden (kein Suffix-/Teilstringvergleich).
 
+Die getrennten Namen und Anzeigenamen werden aus den vorhandenen Quellfeldern
+über reguläre LDAP-Source-Mappings in Authentik übernommen. Keine aus Adressen
+oder technischen Kürzeln erratenen Namen. Fehlen getrennte Namensfelder, bleibt
+der bekannte vollständige Anzeigename erhalten. Das Verzeichnis formatiert nur
+seine Anzeige; Login-Namen, Mailadressen, Gruppen und Flows bleiben unverändert.
+
 ## Schnittstelle und Schutz
 
 `POST /device-bridge/v1/contacts/search`
@@ -78,8 +87,10 @@ und in BUSINESS_EMAIL_DOMAINS ergänzt werden (kein Suffix-/Teilstringvergleich)
   `initials` enthält die vorhandenen Buchstaben nach Haus-/Textfilter, vor dem
   Buchstabenfilter und der Paginierung. Kein Nachladen aller Kontakte für den Index.
 - Höchstens 40 Treffer/Antwort, `total`, `next_offset`, `my_facilities`, `updated_at`.
-- `facility_options`: alphabetisch sortierte `{id, name}`-Liste aus dem kanonischen
-  Standortexport, unabhängig vom Suchtext. Keine Abteilungen, keine Rohgruppen-
+- `facility_options`: nach Hausnummer sortierte `{id, name}`-Liste aus dem kanonischen
+  Standortexport, unabhängig vom Suchtext. Ab Bridge 0.10.2 mit Nummer vor dem
+  Namen, z. B. `01 – Zentrale`; eigene Teilnummern bleiben eindeutig (`15.01`).
+  Keine Abteilungen, keine Rohgruppen-
   oder Mitgliedschaftsliste. IDs sind SHA-256-Filterkennungen, keine Credentials.
   Alte Apps können die zusätzlichen Felder ignorieren; die neue App blendet bei
   einer alten Bridge ohne Optionen die Häuserauswahl deaktiviert ein.

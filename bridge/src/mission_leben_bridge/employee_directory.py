@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import re
 import threading
 import time
 import unicodedata
@@ -29,6 +30,14 @@ def facility_id(group: str) -> str:
 def name_initial(name: str) -> str:
     first = search_key(name).strip()[:1].upper()
     return first if first in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" and first else "#"
+
+
+def facility_option_name(group: str, name: str) -> str:
+    match = re.fullmatch(r"ORG_ML_H([0-9]{3})(?:_([0-9]{2}))?", group)
+    if not match:
+        return name
+    number = f"{int(match[1]):02d}" + (f".{match[2]}" if match[2] else "")
+    return f"{number} – {name}"
 
 
 class EmployeeDirectory:
@@ -114,6 +123,6 @@ class EmployeeDirectory:
                 "next_offset": next_offset if next_offset < len(matches) else None,
                 "my_facilities": [data["facilities"][f] for f in sorted(own)],
                 "initials": initials,
-                "facility_options": [{"id": key, "name": facilities[group]} for key, group in
-                                     sorted(keys.items(), key=lambda item: (search_key(facilities[item[1]]), item[0]))],
+                "facility_options": [{"id": key, "name": facility_option_name(group, facilities[group])} for key, group in
+                                     sorted(keys.items(), key=lambda item: item[1])],
                 "updated_at": data["generated_at"]}

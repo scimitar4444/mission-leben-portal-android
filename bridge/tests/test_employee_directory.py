@@ -13,7 +13,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from mission_leben_bridge.authentik import AuthenticationError, UserInfo
-from mission_leben_bridge.employee_directory import EmployeeDirectory, DirectoryDenied, DirectoryUnavailable
+from mission_leben_bridge.employee_directory import EmployeeDirectory, DirectoryDenied, DirectoryUnavailable, facility_option_name
 from mission_leben_bridge.service import BridgeService, ApiError
 from mission_leben_bridge.config import Settings
 from mission_leben_bridge.http_api import BridgeHttpServer
@@ -72,15 +72,23 @@ class DirectoryTest(unittest.TestCase):
 
     def test_house_options_are_sorted_stable_and_independent_of_search(self):
         options = self.directory.search("one", "personal")["facility_options"]
-        self.assertEqual([o["name"] for o in options], ["Haus Zwei", "Zentrale"])
+        self.assertEqual([o["name"] for o in options], ["01 – Zentrale", "02 – Haus Zwei"])
         self.assertEqual(options, self.directory.search("one", "personal", query="no-match", mine=True)["facility_options"])
         self.assertEqual(options, self.directory.search("shared", "tablet")["facility_options"])
         self.data["facilities"]["ORG_ML_H002"] = "Haus Zwei umbenannt"
         self.write()
-        self.assertEqual(options[0]["id"], self.directory.search("one", "personal")["facility_options"][0]["id"])
+        self.assertEqual(options[1]["id"], self.directory.search("one", "personal")["facility_options"][1]["id"])
+
+    def test_house_numbers_keep_subnumbers_and_do_not_change_contact_labels(self):
+        self.assertEqual(facility_option_name("ORG_ML_H015_01", "Haus Beispiel"), "15.01 – Haus Beispiel")
+        self.assertEqual(facility_option_name("ORG_ML_H101", "Haus Beispiel"), "101 – Haus Beispiel")
+        self.assertEqual(facility_option_name("unknown", "Haus Beispiel"), "Haus Beispiel")
+        result = self.directory.search("one", "personal")
+        self.assertEqual(result["my_facilities"], ["Zentrale", "Haus Zwei"])
+        self.assertEqual(result["results"][0]["facilities"], ["Zentrale"])
 
     def test_selected_house_intersects_query_not_authorization(self):
-        house = self.directory.search("one", "personal")["facility_options"][0]["id"]
+        house = self.directory.search("one", "personal")["facility_options"][1]["id"]
         for subject, device in (("one", "personal"), ("one", "tablet"), ("shared", "tablet")):
             result = self.directory.search(subject, device, facility=house)
             self.assertEqual([e["id"] for e in result["results"]], ["two"])
@@ -90,7 +98,7 @@ class DirectoryTest(unittest.TestCase):
         self.assertEqual(self.directory.search("one", "tablet", mine=True)["total"], 1)
 
     def test_unknown_removed_conflicting_and_oversized_house_fail_closed(self):
-        house = self.directory.search("one", "personal")["facility_options"][0]["id"]
+        house = self.directory.search("one", "personal")["facility_options"][1]["id"]
         for value, mine in (("missing", False), ("x" * 65, False), (house, True), (None, False)):
             with self.assertRaises(ValueError):
                 self.directory.search("one", "personal", mine=mine, facility=value)
@@ -102,7 +110,7 @@ class DirectoryTest(unittest.TestCase):
             self.directory.search("one", "personal", facility=house)
 
     def test_selected_house_paging_stays_filtered(self):
-        house = self.directory.search("one", "personal")["facility_options"][0]["id"]
+        house = self.directory.search("one", "personal")["facility_options"][1]["id"]
         self.data["entries"] += [dict(self.data["entries"][1], id=str(i), name="Person %03d" % i) for i in range(80)]
         self.write()
         first = self.directory.search("one", "personal", facility=house)
@@ -133,7 +141,7 @@ class DirectoryTest(unittest.TestCase):
         page = self.directory.search("one", "tablet", mine=True, initial="O")
         self.assertEqual((page["total"], page["initials"]), (1, ["O"]))
         self.assertEqual(self.directory.search("one", "personal", initial="#")["total"], 1)
-        house = self.directory.search("one", "personal")["facility_options"][0]["id"]
+        house = self.directory.search("one", "personal")["facility_options"][1]["id"]
         self.assertEqual(self.directory.search("one", "personal", facility=house)["initials"], ["#"])
         for initial in (None, "AA", "a", "Ö", "*", " "):
             with self.assertRaises(ValueError):
@@ -232,7 +240,7 @@ class DirectoryTest(unittest.TestCase):
 
         status, data = request({"q": "Pflege", "mine": False, "offset": 0})
         self.assertEqual((status, data["total"]), (200, 1))
-        house = data["facility_options"][0]["id"]
+        house = data["facility_options"][1]["id"]
         status, data = request({"facility": house})
         self.assertEqual((status, [e["id"] for e in data["results"]]), (200, ["two"]))
         for value in (None, [], True, 5, "missing", "x" * 65):
@@ -276,6 +284,25 @@ class ExportContractTest(unittest.TestCase):
         self.assertNotIn("SECRET", json.dumps(result))
         result = CONTRACT["contact"](self.user(phone_number="12345", homePhone="12345"), [])
         self.assertEqual(result["phone"], "")
+
+    def test_person_names_use_explicit_family_and_given_fields(self):
+        user = self.user(givenName="Maria Anna", sn="von Beispiel-Dorf")
+        user.name = "Maria Anna von Beispiel-Dorf"
+        self.assertEqual(CONTRACT["contact"](user, [])["name"], "von Beispiel-Dorf, Maria Anna")
+        user.name = "von Beispiel-Dorf, Maria Anna"
+        self.assertEqual(CONTRACT["contact"](user, [])["name"], "von Beispiel-Dorf, Maria Anna")
+
+    def test_missing_name_parts_are_not_guessed(self):
+        user = self.user(displayName="Known Complete Name")
+        self.assertEqual(CONTRACT["contact"](user, [])["name"], "Known Complete Name")
+        self.assertEqual(CONTRACT["contact"](self.user(), [])["name"], "Test Person")
+
+    def test_function_names_are_not_reinterpreted_as_person_names(self):
+        user = self.user(iam_account_kind="shared", iam_directory_class="mailbox", givenName="wb1",
+                         sn="haus", displayName="Haus Beispiel – Wohnbereich 1")
+        self.assertEqual(CONTRACT["contact"](user, [])["name"], "Haus Beispiel – Wohnbereich 1")
+        user = self.user(givenName="wb1", sn="haus", displayName="haus.wb1")
+        self.assertEqual(CONTRACT["contact"](user, [])["name"], "haus.wb1")
 
     def test_dedup_numbers_reject_control_dial_and_email_header_injection(self):
         result = CONTRACT["contact"](self.user(telephoneNumber="+49 123/456", mobile="+49123456"), [])
