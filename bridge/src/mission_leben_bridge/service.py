@@ -109,7 +109,8 @@ class BridgeService:
         self._dispatch_lock = threading.Lock()
         self.employee_directory = employee_directory
 
-    def contacts(self, bearer: str, agent_token: str, query: str, mine: bool, offset: int) -> dict[str, Any]:
+    def contacts(self, bearer: str, agent_token: str, query: str, mine: bool, offset: int,
+                 facility: str = "", initial: str = "") -> dict[str, Any]:
         # Authenticate on every request, independently of notification settings.
         user = self.authentik.user_info(bearer)
         if not agent_token or len(agent_token) > 4096:
@@ -121,7 +122,7 @@ class BridgeService:
         if self.employee_directory is None:
             raise ApiError(503, "employee directory is not configured")
         try:
-            return self.employee_directory.search(user.subject, device_id, query, mine, offset)
+            return self.employee_directory.search(user.subject, device_id, query, mine, offset, facility, initial)
         except DirectoryDenied as error:
             raise ApiError(403, str(error)) from error
         except DirectoryUnavailable as error:

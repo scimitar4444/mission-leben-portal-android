@@ -18,4 +18,10 @@
     <string name="contacts_no_handler">Aucune application de téléphone disponible sur cet appareil.</string>
     <string name="contacts_email_error">Impossible d’ouvrir le nouveau message. Réessaie.</string>
     <string name="contacts_email">E-mail :</string>
+    <string name="contacts_houses">Sites</string>
+    <string name="contacts_choose_house">Choisir un site</string>
+    <string name="contacts_search_house">Rechercher un site</string>
+    <string name="contacts_no_house_match">Aucun site correspondant.</string>
+    <string name="contacts_all_initials">Toutes les initiales</string>
+    <string name="contacts_initial">Initiale %1$s</string>
 </resources>

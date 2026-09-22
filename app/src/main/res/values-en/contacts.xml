@@ -18,4 +18,10 @@
     <string name="contacts_no_handler">No phone app is available on this device.</string>
     <string name="contacts_email_error">The new message could not be opened. Please try again.</string>
     <string name="contacts_email">Email:</string>
+    <string name="contacts_houses">Houses</string>
+    <string name="contacts_choose_house">Choose a house</string>
+    <string name="contacts_search_house">Search houses</string>
+    <string name="contacts_no_house_match">No matching house found.</string>
+    <string name="contacts_all_initials">All initials</string>
+    <string name="contacts_initial">Initial %1$s</string>
 </resources>

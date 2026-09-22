@@ -18,4 +18,10 @@
     <string name="contacts_no_handler">इस डिवाइस पर फ़ोन ऐप उपलब्ध नहीं है।</string>
     <string name="contacts_email_error">नया संदेश नहीं खोला जा सका। कृपया दोबारा कोशिश करें।</string>
     <string name="contacts_email">ईमेल:</string>
+    <string name="contacts_houses">संस्थान</string>
+    <string name="contacts_choose_house">संस्थान चुनें</string>
+    <string name="contacts_search_house">संस्थान खोजें</string>
+    <string name="contacts_no_house_match">कोई संस्थान नहीं मिला।</string>
+    <string name="contacts_all_initials">सभी शुरुआती अक्षर</string>
+    <string name="contacts_initial">शुरुआती अक्षर %1$s</string>
 </resources>

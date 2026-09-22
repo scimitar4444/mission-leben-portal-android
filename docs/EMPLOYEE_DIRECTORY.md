@@ -2,6 +2,14 @@
 
 Ab App 0.12.0 / Bridge 0.10.0: unternehmensweites Mitarbeiterverzeichnis,
 Suche nach Name, Einrichtung, Funktion oder Abteilung; optional „Meine Einrichtung“.
+Ab App 0.12.3 / Bridge 0.10.1 gibt es daneben „Häuser“ mit einer durchsuchbaren
+Auswahl aller echten Einrichtungen. „Alle“, „Meine Einrichtung“ und ein einzelnes
+Haus sind alternative Suchfilter, keine neuen Zugriffsrechte. Die zusätzliche
+Textsuche und das Nachladen bleiben auf das gewählte Haus beschränkt.
+Die schmale A–Z-Leiste rechts grenzt nach dem Anfangsbuchstaben des angezeigten
+Namens ein. Sie berücksichtigt alle Treffer, nicht nur die erste Seite.
+Umlaute/Akzente werden ihrem Grundbuchstaben zugeordnet, andere Zeichen zu `#`.
+Der Punkt oben hebt die Buchstabenauswahl auf; ein Hauswechsel setzt sie zurück.
 Telefon und Mobil öffnen die Wählansicht (kein automatischer Anruf). Ab App 0.12.1
 öffnet E-Mail eine neue Nachricht mit Empfänger in Zimbra im geschützten App-Browser
 (kein automatischer Versand, keine lokale Mail-App). Die vorhandene Zimbra-Kachel
@@ -62,8 +70,19 @@ und in BUSINESS_EMAIL_DOMAINS ergänzt werden (kein Suffix-/Teilstringvergleich)
 
 - Bearer: aktueller OIDC-Access-Token; Userinfo wird bei jeder Anfrage geprüft.
 - `X-ML-Device-Token`: Gerätecredential; zentraler Gerätestatus wird live geprüft.
-- JSON: `q` (max. 100 Zeichen), `mine` (Boolean), `offset` (Integer ab 0).
+- JSON: `q` (max. 100 Zeichen), `mine` (Boolean), `offset` (Integer ab 0),
+  optional `facility` (stabile Filter-ID aus `facility_options`; leer = kein Hausfilter).
+  Unbekannte/entfernte IDs sowie `mine=true` zusammen mit einer Haus-ID ergeben
+  HTTP 400, niemals eine ungefilterte Suche.
+- Optional `initial`: leer oder genau ein Zeichen A–Z/`#`, sonst HTTP 400.
+  `initials` enthält die vorhandenen Buchstaben nach Haus-/Textfilter, vor dem
+  Buchstabenfilter und der Paginierung. Kein Nachladen aller Kontakte für den Index.
 - Höchstens 40 Treffer/Antwort, `total`, `next_offset`, `my_facilities`, `updated_at`.
+- `facility_options`: alphabetisch sortierte `{id, name}`-Liste aus dem kanonischen
+  Standortexport, unabhängig vom Suchtext. Keine Abteilungen, keine Rohgruppen-
+  oder Mitgliedschaftsliste. IDs sind SHA-256-Filterkennungen, keine Credentials.
+  Alte Apps können die zusätzlichen Felder ignorieren; die neue App blendet bei
+  einer alten Bridge ohne Optionen die Häuserauswahl deaktiviert ein.
 - Persönlich: exakt das gebundene aktive persönliche Konto. Shared: aktives
   person/person- oder shared-Konto in der exakt gebundenen Einrichtung.
 - Diese Bindung wird auch in der Bridge geprüft, unabhängig von Push-Freigaben.

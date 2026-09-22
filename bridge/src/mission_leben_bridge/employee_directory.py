@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import threading
 import time
 import unicodedata
@@ -18,6 +19,16 @@ class DirectoryDenied(Exception):
 
 def search_key(value: str) -> str:
     return "".join(c for c in unicodedata.normalize("NFKD", value.casefold()) if not unicodedata.combining(c))
+
+
+def facility_id(group: str) -> str:
+    # Stable filter key, not a credential. Never expose raw group memberships.
+    return hashlib.sha256(("contacts-facility:" + group).encode()).hexdigest()
+
+
+def name_initial(name: str) -> str:
+    first = search_key(name).strip()[:1].upper()
+    return first if first in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" and first else "#"
 
 
 class EmployeeDirectory:
@@ -58,7 +69,8 @@ class EmployeeDirectory:
         except (OSError, ValueError, KeyError, TypeError) as error:
             raise DirectoryUnavailable("employee directory is temporarily unavailable") from error
 
-    def search(self, subject: str, device_id: str, query: str = "", mine: bool = False, offset: int = 0):
+    def search(self, subject: str, device_id: str, query: str = "", mine: bool = False, offset: int = 0,
+               facility: str = "", initial: str = ""):
         data = self._load()
         actor = data["audience"].get(subject)
         device = data["devices"].get(device_id)
@@ -78,10 +90,21 @@ class EmployeeDirectory:
             raise DirectoryDenied("employee and device binding does not match")
         if len(query) > 100 or offset < 0 or offset > 100_000:
             raise ValueError("invalid directory query")
+        facilities = data["facilities"]
+        keys = {facility_id(group): group for group in facilities}
+        if not isinstance(facility, str) or len(facility) > 64 or (facility and (mine or facility not in keys)):
+            raise ValueError("invalid facility filter")
+        selected = keys.get(facility)
+        if not isinstance(initial, str) or (initial and initial not in list("ABCDEFGHIJKLMNOPQRSTUVWXYZ#")):
+            raise ValueError("invalid initial filter")
         words = search_key(query).split()
         matches = [entry for entry in data["entries"]
                    if (not mine or own.intersection(entry["facilities"]))
+                   and (not selected or selected in entry["facilities"])
                    and all(word in entry["_search"] for word in words)]
+        initials = sorted({name_initial(entry["name"]) for entry in matches})
+        if initial:
+            matches = [entry for entry in matches if name_initial(entry["name"]) == initial]
         results = [{
             key: entry[key] for key in ("id", "name", "email", "phone", "mobile", "job_title", "department")
         } | {"facilities": [data["facilities"][f] for f in entry["facilities"]]}
@@ -90,4 +113,7 @@ class EmployeeDirectory:
         return {"results": results, "total": len(matches),
                 "next_offset": next_offset if next_offset < len(matches) else None,
                 "my_facilities": [data["facilities"][f] for f in sorted(own)],
+                "initials": initials,
+                "facility_options": [{"id": key, "name": facilities[group]} for key, group in
+                                     sorted(keys.items(), key=lambda item: (search_key(facilities[item[1]]), item[0]))],
                 "updated_at": data["generated_at"]}

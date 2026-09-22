@@ -18,4 +18,10 @@
     <string name="contacts_no_handler">Bu cihazda telefon uygulaması yok.</string>
     <string name="contacts_email_error">Yeni ileti açılamadı. Lütfen yeniden dene.</string>
     <string name="contacts_email">E-posta:</string>
+    <string name="contacts_houses">Kurumlar</string>
+    <string name="contacts_choose_house">Kurum seç</string>
+    <string name="contacts_search_house">Kurum ara</string>
+    <string name="contacts_no_house_match">Eşleşen kurum bulunamadı.</string>
+    <string name="contacts_all_initials">Tüm baş harfler</string>
+    <string name="contacts_initial">Baş harf %1$s</string>
 </resources>

@@ -18,4 +18,10 @@
     <string name="contacts_no_handler">Pe acest dispozitiv nu există o aplicație de telefon.</string>
     <string name="contacts_email_error">Mesajul nou nu a putut fi deschis. Încearcă din nou.</string>
     <string name="contacts_email">E-mail:</string>
+    <string name="contacts_houses">Centre</string>
+    <string name="contacts_choose_house">Alege un centru</string>
+    <string name="contacts_search_house">Caută un centru</string>
+    <string name="contacts_no_house_match">Nu s-a găsit niciun centru.</string>
+    <string name="contacts_all_initials">Toate inițialele</string>
+    <string name="contacts_initial">Inițiala %1$s</string>
 </resources>

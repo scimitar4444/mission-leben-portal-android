@@ -18,4 +18,10 @@
     <string name="contacts_no_handler">На цьому пристрої немає застосунку для дзвінків.</string>
     <string name="contacts_email_error">Не вдалося відкрити нове повідомлення. Спробуй ще раз.</string>
     <string name="contacts_email">Пошта:</string>
+    <string name="contacts_houses">Заклади</string>
+    <string name="contacts_choose_house">Виберіть заклад</string>
+    <string name="contacts_search_house">Пошук закладу</string>
+    <string name="contacts_no_house_match">Відповідного закладу не знайдено.</string>
+    <string name="contacts_all_initials">Усі початкові літери</string>
+    <string name="contacts_initial">Початкова літера %1$s</string>
 </resources>

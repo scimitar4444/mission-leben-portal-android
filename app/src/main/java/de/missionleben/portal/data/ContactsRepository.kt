@@ -25,14 +25,18 @@ data class ContactPage(
     val total: Int,
     val nextOffset: Int?,
     val myFacilities: List<String>,
+    val facilityOptions: List<ContactFacility> = emptyList(),
+    val initials: List<String> = emptyList(),
 )
+
+data class ContactFacility(val id: String, val name: String)
 
 class ContactsAccessException : IllegalStateException()
 
 class ContactsRepository(context: Context) {
     private val credentialVault = DeviceCredentialVault(context.applicationContext)
 
-    suspend fun search(token: String, query: String, mine: Boolean, offset: Int): ContactPage =
+    suspend fun search(token: String, query: String, mine: Boolean, offset: Int, facility: String, initial: String): ContactPage =
         withContext(Dispatchers.IO) {
             val credential = credentialVault.load() ?: throw ContactsAccessException()
             val connection = URL(BuildConfig.DEVICE_SERVICE_BASE_URL.trimEnd('/') + "/v1/contacts/search")
@@ -49,7 +53,8 @@ class ContactsRepository(context: Context) {
                 connection.setRequestProperty("Accept", "application/json")
                 connection.doOutput = true
                 connection.outputStream.bufferedWriter(Charsets.UTF_8).use {
-                    it.write(JSONObject().put("q", query.take(100)).put("mine", mine).put("offset", offset).toString())
+                    it.write(JSONObject().put("q", query.take(100)).put("mine", mine).put("offset", offset)
+                        .put("facility", facility).put("initial", initial).toString())
                 }
                 when (connection.responseCode) {
                     401 -> throw PortalAuthenticationException()
@@ -74,6 +79,15 @@ class ContactsRepository(context: Context) {
                     myFacilities = root.getJSONArray("my_facilities").let { values ->
                         List(values.length()) { values.getString(it) }
                     },
+                    facilityOptions = root.optJSONArray("facility_options")?.let { values ->
+                        List(values.length()) {
+                            val option = values.getJSONObject(it)
+                            ContactFacility(option.getString("id"), option.getString("name"))
+                        }
+                    }.orEmpty(),
+                    initials = root.optJSONArray("initials")?.let { values ->
+                        List(values.length()) { values.getString(it) }
+                    }.orEmpty(),
                 )
             } finally {
                 connection.disconnect()

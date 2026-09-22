@@ -18,4 +18,10 @@
     <string name="contacts_no_handler">Na urządzeniu nie ma aplikacji telefonu.</string>
     <string name="contacts_email_error">Nie można otworzyć nowej wiadomości. Spróbuj ponownie.</string>
     <string name="contacts_email">E-mail:</string>
+    <string name="contacts_houses">Placówki</string>
+    <string name="contacts_choose_house">Wybierz placówkę</string>
+    <string name="contacts_search_house">Szukaj placówki</string>
+    <string name="contacts_no_house_match">Nie znaleziono placówki.</string>
+    <string name="contacts_all_initials">Wszystkie inicjały</string>
+    <string name="contacts_initial">Pierwsza litera %1$s</string>
 </resources>

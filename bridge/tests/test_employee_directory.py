@@ -70,6 +70,75 @@ class DirectoryTest(unittest.TestCase):
         self.write()
         self.assertEqual(self.directory.search("one", "personal", mine=True)["results"], [])
 
+    def test_house_options_are_sorted_stable_and_independent_of_search(self):
+        options = self.directory.search("one", "personal")["facility_options"]
+        self.assertEqual([o["name"] for o in options], ["Haus Zwei", "Zentrale"])
+        self.assertEqual(options, self.directory.search("one", "personal", query="no-match", mine=True)["facility_options"])
+        self.assertEqual(options, self.directory.search("shared", "tablet")["facility_options"])
+        self.data["facilities"]["ORG_ML_H002"] = "Haus Zwei umbenannt"
+        self.write()
+        self.assertEqual(options[0]["id"], self.directory.search("one", "personal")["facility_options"][0]["id"])
+
+    def test_selected_house_intersects_query_not_authorization(self):
+        house = self.directory.search("one", "personal")["facility_options"][0]["id"]
+        for subject, device in (("one", "personal"), ("one", "tablet"), ("shared", "tablet")):
+            result = self.directory.search(subject, device, facility=house)
+            self.assertEqual([e["id"] for e in result["results"]], ["two"])
+            self.assertEqual(self.directory.search(subject, device, query="Pflege", facility=house)["total"], 0)
+        with self.assertRaises(DirectoryDenied):
+            self.directory.search("two", "tablet", facility=house)
+        self.assertEqual(self.directory.search("one", "tablet", mine=True)["total"], 1)
+
+    def test_unknown_removed_conflicting_and_oversized_house_fail_closed(self):
+        house = self.directory.search("one", "personal")["facility_options"][0]["id"]
+        for value, mine in (("missing", False), ("x" * 65, False), (house, True), (None, False)):
+            with self.assertRaises(ValueError):
+                self.directory.search("one", "personal", mine=mine, facility=value)
+        self.data["entries"] = self.data["entries"][:1]
+        del self.data["facilities"]["ORG_ML_H002"]
+        self.data["audience"]["one"]["facilities"] = ["ORG_ML_H001"]
+        self.write()
+        with self.assertRaises(ValueError):
+            self.directory.search("one", "personal", facility=house)
+
+    def test_selected_house_paging_stays_filtered(self):
+        house = self.directory.search("one", "personal")["facility_options"][0]["id"]
+        self.data["entries"] += [dict(self.data["entries"][1], id=str(i), name="Person %03d" % i) for i in range(80)]
+        self.write()
+        first = self.directory.search("one", "personal", facility=house)
+        second = self.directory.search("one", "personal", facility=house, offset=first["next_offset"])
+        last = self.directory.search("one", "personal", facility=house, offset=second["next_offset"])
+        self.assertEqual([len(p["results"]) for p in (first, second, last)], [40, 40, 1])
+        self.assertTrue(all(e["facilities"] == ["Haus Zwei"] for p in (first, second, last) for e in p["results"]))
+        self.assertIsNone(last["next_offset"])
+
+    def test_initials_apply_to_entire_result_not_first_page(self):
+        self.data["entries"] += [dict(self.data["entries"][0], id=str(i), name="Anna %03d" % i) for i in range(90)]
+        self.write()
+        page = self.directory.search("one", "personal")
+        self.assertEqual(page["initials"], ["A", "M", "T"])
+        self.assertTrue(all(e["name"].startswith("A") for e in page["results"]))
+        selected = self.directory.search("one", "personal", initial="T")
+        self.assertEqual([e["id"] for e in selected["results"]], ["two"])
+        self.assertEqual(selected["initials"], ["A", "M", "T"])
+        first = self.directory.search("one", "personal", initial="A")
+        second = self.directory.search("one", "personal", initial="A", offset=first["next_offset"])
+        self.assertEqual((first["total"], len(second["results"])), (90, 40))
+        self.assertEqual(self.directory.search("one", "personal", query="Pflege", initial="T")["total"], 0)
+
+    def test_initials_respect_house_and_normalize_accents(self):
+        self.data["entries"][0]["name"] = "Öztürk, Maria"
+        self.data["entries"][1]["name"] = "123"
+        self.write()
+        page = self.directory.search("one", "tablet", mine=True, initial="O")
+        self.assertEqual((page["total"], page["initials"]), (1, ["O"]))
+        self.assertEqual(self.directory.search("one", "personal", initial="#")["total"], 1)
+        house = self.directory.search("one", "personal")["facility_options"][0]["id"]
+        self.assertEqual(self.directory.search("one", "personal", facility=house)["initials"], ["#"])
+        for initial in (None, "AA", "a", "Ö", "*", " "):
+            with self.assertRaises(ValueError):
+                self.directory.search("one", "personal", initial=initial)
+
     def test_reject_wrong_owner_house_shared_on_personal_and_unknown(self):
         for subject, device in (("two", "personal"), ("two", "tablet"), ("shared", "personal"),
                                 ("missing", "tablet"), ("one", "deleted")):
@@ -163,6 +232,16 @@ class DirectoryTest(unittest.TestCase):
 
         status, data = request({"q": "Pflege", "mine": False, "offset": 0})
         self.assertEqual((status, data["total"]), (200, 1))
+        house = data["facility_options"][0]["id"]
+        status, data = request({"facility": house})
+        self.assertEqual((status, [e["id"] for e in data["results"]]), (200, ["two"]))
+        for value in (None, [], True, 5, "missing", "x" * 65):
+            self.assertEqual(request({"facility": value})[0], 400)
+        self.assertEqual(request({"facility": house, "mine": True})[0], 400)
+        status, data = request({"initial": "M"})
+        self.assertEqual((status, [e["id"] for e in data["results"]]), (200, ["one"]))
+        for initial in (None, [], True, 5, "MM", "m"):
+            self.assertEqual(request({"initial": initial})[0], 400)
         self.assertEqual(request({}, bearer="")[0], 401)
         self.assertEqual(request({}, bearer="bad")[0], 401)
         self.assertEqual(request({}, device="revoked")[0], 403)

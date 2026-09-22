@@ -199,11 +199,14 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                 mine = params.get("mine", False)
                 query = params.get("q", "")
                 offset = params.get("offset", 0)
-                if not isinstance(mine, bool) or not isinstance(query, str) or type(offset) is not int:
+                facility = params.get("facility", "")
+                initial = params.get("initial", "")
+                if (not isinstance(mine, bool) or not isinstance(query, str) or type(offset) is not int
+                        or not isinstance(facility, str) or not isinstance(initial, str)):
                     raise ApiError(400, "invalid facility filter")
                 self._json(200, self.server.service.contacts(
                     self._bearer(), self.headers.get("X-ML-Device-Token", ""),
-                    query, mine, offset,
+                    query, mine, offset, facility, initial,
                 ))
                 return
 

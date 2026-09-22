@@ -18,4 +18,10 @@
     <string name="contacts_no_handler">Auf diesem Gerät ist keine Telefon-App verfügbar.</string>
     <string name="contacts_email_error">Die neue Nachricht konnte nicht geöffnet werden. Bitte versuche es erneut.</string>
     <string name="contacts_email">E-Mail:</string>
+    <string name="contacts_houses">Häuser</string>
+    <string name="contacts_choose_house">Haus auswählen</string>
+    <string name="contacts_search_house">Haus suchen</string>
+    <string name="contacts_no_house_match">Kein passendes Haus gefunden.</string>
+    <string name="contacts_all_initials">Alle Anfangsbuchstaben</string>
+    <string name="contacts_initial">Anfangsbuchstabe %1$s</string>
 </resources>

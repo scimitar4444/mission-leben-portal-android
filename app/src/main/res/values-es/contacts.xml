@@ -18,4 +18,10 @@
     <string name="contacts_no_handler">No hay una aplicación de teléfono disponible en este dispositivo.</string>
     <string name="contacts_email_error">No se pudo abrir el mensaje nuevo. Inténtalo de nuevo.</string>
     <string name="contacts_email">Correo:</string>
+    <string name="contacts_houses">Centros</string>
+    <string name="contacts_choose_house">Elegir centro</string>
+    <string name="contacts_search_house">Buscar centro</string>
+    <string name="contacts_no_house_match">No se encontró ningún centro.</string>
+    <string name="contacts_all_initials">Todas las iniciales</string>
+    <string name="contacts_initial">Inicial %1$s</string>
 </resources>

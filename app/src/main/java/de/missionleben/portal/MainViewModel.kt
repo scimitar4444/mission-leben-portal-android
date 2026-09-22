@@ -105,7 +105,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     )
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    suspend fun searchContacts(query: String, mine: Boolean, offset: Int): ContactPage {
+    suspend fun searchContacts(query: String, mine: Boolean, offset: Int, facility: String, initial: String): ContactPage {
         if (expireAtAbsoluteDeadline() || !_uiState.value.signedIn) throw PortalAuthenticationException()
         val subject = _uiState.value.user?.subject ?: throw PortalAuthenticationException()
         val state = serializedAuthState ?: throw PortalAuthenticationException()
@@ -129,7 +129,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
         return try {
-            val result = contactsRepository.search(token, query, mine, offset)
+            val result = contactsRepository.search(token, query, mine, offset, facility, initial)
             if (!_uiState.value.signedIn || _uiState.value.user?.subject != subject) throw PortalAuthenticationException()
             result
         } catch (error: PortalAuthenticationException) {
