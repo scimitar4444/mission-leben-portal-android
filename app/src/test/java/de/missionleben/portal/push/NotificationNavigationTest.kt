@@ -1,7 +1,9 @@
 package de.missionleben.portal.push
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NotificationNavigationTest {
@@ -69,6 +71,27 @@ class NotificationNavigationTest {
             NotificationNavigation.zimbraMailOverviewUrl(
                 "https://mail.mission-leben.de/modern/email/Inbox/conversation/42",
                 "https://mail.mission-leben.de",
+            ),
+        )
+    }
+
+    @Test
+    fun `zimbra folder overview ends application back navigation`() {
+        val base = "https://mail.mission-leben.de"
+
+        assertTrue(NotificationNavigation.isZimbraMailOverviewUrl("$base/modern/email/Inbox", base))
+        assertTrue(NotificationNavigation.isZimbraMailOverviewUrl("$base/modern/email/Sent/", base))
+        assertTrue(NotificationNavigation.isZimbraMailOverviewUrl("$base/modern/email", base))
+        assertFalse(
+            NotificationNavigation.isZimbraMailOverviewUrl(
+                "$base/modern/email/Inbox/message/200207",
+                base,
+            ),
+        )
+        assertFalse(
+            NotificationNavigation.isZimbraMailOverviewUrl(
+                "https://evil.example/modern/email/Inbox",
+                base,
             ),
         )
     }

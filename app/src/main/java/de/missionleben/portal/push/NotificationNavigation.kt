@@ -36,6 +36,18 @@ object NotificationNavigation {
         return URI("https", base.rawAuthority, "/modern/email/Inbox", null, null).toASCIIString()
     }
 
+    internal fun isZimbraMailOverviewUrl(currentUrl: String, zimbraWebBaseUrl: String): Boolean {
+        val current = runCatching { URI(currentUrl) }.getOrNull() ?: return false
+        val base = runCatching { URI(zimbraWebBaseUrl) }.getOrNull() ?: return false
+        if (!current.scheme.equals("https", ignoreCase = true) || !base.scheme.equals("https", ignoreCase = true)) {
+            return false
+        }
+        if (!current.host.equals(base.host, ignoreCase = true) || effectivePort(current) != effectivePort(base)) {
+            return false
+        }
+        return current.rawPath.orEmpty().matches(Regex("/modern/email(?:/[^/]+)?/?"))
+    }
+
     private fun zimbraMessageUrl(baseUrl: String, messageId: String): String {
         val base = runCatching { URI(baseUrl) }.getOrNull() ?: return baseUrl
         if (!base.scheme.equals("https", ignoreCase = true) || base.host.isNullOrBlank()) return baseUrl

@@ -207,7 +207,7 @@ class PortalBrowserActivity : FragmentActivity() {
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
             setPadding(dp(8), 0, dp(12), 0)
-            setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+            setOnClickListener { finishApplicationBrowserFromBack() }
         }
         titleView = TextView(this).apply {
             text = initialTitle.ifBlank { getString(R.string.browser_protected_area) }
@@ -325,7 +325,13 @@ class PortalBrowserActivity : FragmentActivity() {
     private fun installBackNavigation() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (webView.canGoBack()) {
+                if (NotificationNavigation.isZimbraMailOverviewUrl(
+                        webView.url.orEmpty(),
+                        BuildConfig.ZIMBRA_WEB_BASE_URL,
+                    )
+                ) {
+                    finishApplicationBrowserFromBack()
+                } else if (webView.canGoBack()) {
                     webView.goBack()
                 } else {
                     finishApplicationBrowserFromBack()
