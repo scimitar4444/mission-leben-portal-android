@@ -16,4 +16,6 @@
     <string name="contacts_phone">Telefon: %1$s</string>
     <string name="contacts_mobile">Cep: %1$s</string>
     <string name="contacts_no_handler">Bu cihazda telefon uygulaması yok.</string>
+    <string name="contacts_email_error">Yeni ileti açılamadı. Lütfen yeniden dene.</string>
+    <string name="contacts_email">E-posta:</string>
 </resources>

@@ -51,4 +51,16 @@ class ContactActionsTest {
             "https://mail.example.org?redirect=bad", "https://mail.example.org#other", "https://")
             .forEach { assertNull(it, ContactActions.zimbraComposeUrl(it, "a@example.org")) }
     }
+
+    @Test fun composeRecipientIsExtractedOnlyFromOwnValidatedRequest() {
+        val base = "https://mail.example.org"
+        listOf("maria@example.org", "maria+team@example.org", "maria%team@example.org").forEach { email ->
+            assertEquals(email, ContactActions.zimbraComposeRecipient(requireNotNull(ContactActions.zimbraComposeUrl(base, email)), base))
+        }
+        listOf("https://evil.example/modern/email/new?to=a%2540example.org",
+            "$base:444/modern/email/new?to=a%2540example.org", "$base/modern/email/new?to=a%2540example.org&bcc=b",
+            "$base/modern/email/new?to=a%2540example.org#other", "$base/modern/email/new?to=%",
+            "$base/modern/email/new?to=a%250Ab%2540example.org", "$base/modern/email/Inbox?to=a%2540example.org")
+            .forEach { assertNull(it, ContactActions.zimbraComposeRecipient(it, base)) }
+    }
 }

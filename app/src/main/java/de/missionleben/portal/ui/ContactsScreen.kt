@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -85,14 +84,8 @@ fun ContactsScreen(
     }
 
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.contacts_back)) }
-            Text(stringResource(R.string.contacts_title), style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.weight(1f).padding(start = 8.dp))
-            TextButton(onClick = { offset = 0; contacts = emptyList(); page = null; refresh++ }) {
-                Text(stringResource(R.string.refresh))
-            }
-        }
+        PortalHeader(stringResource(R.string.contacts_title), onBack,
+            onRefresh = { offset = 0; contacts = emptyList(); page = null; refresh++ })
         OutlinedTextField(
             value = query,
             onValueChange = { query = it.take(100); offset = 0; contacts = emptyList(); page = null },
@@ -150,17 +143,17 @@ private fun ContactCard(contact: EmployeeContact, onEmail: (String) -> Unit, ena
             if (details.isNotBlank()) Text(details, style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Column(Modifier.fillMaxWidth()) {
-                if (contact.phone.isNotBlank()) ContactLink(stringResource(R.string.contacts_phone, contact.phone), enabled) {
+                if (contact.phone.isNotBlank()) ContactLink(stringResource(R.string.contacts_phone, "").trim(), contact.phone, enabled) {
                     ContactActions.dialable(contact.phone)?.let { dialable ->
                         open(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", dialable, null)))
                     }
                 }
-                if (contact.mobile.isNotBlank()) ContactLink(stringResource(R.string.contacts_mobile, contact.mobile), enabled) {
+                if (contact.mobile.isNotBlank()) ContactLink(stringResource(R.string.contacts_mobile, "").trim(), contact.mobile, enabled) {
                     ContactActions.dialable(contact.mobile)?.let { dialable ->
                         open(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", dialable, null)))
                     }
                 }
-                if (contact.email.isNotBlank()) ContactLink(contact.email, enabled) {
+                if (contact.email.isNotBlank()) ContactLink(stringResource(R.string.contacts_email), contact.email, enabled) {
                     onEmail(contact.email)
                 }
             }
@@ -170,13 +163,15 @@ private fun ContactCard(contact: EmployeeContact, onEmail: (String) -> Unit, ena
 }
 
 @Composable
-private fun ContactLink(text: String, enabled: Boolean, onClick: () -> Unit) {
-    // Full-width touch row, without TextButton's extra padding/minimum layout height.
+private fun ContactLink(label: String, value: String, enabled: Boolean, onClick: () -> Unit) {
+    // Natural text height: no fixed-height button rows between the contact details.
     Row(
         Modifier.fillMaxWidth().clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .heightIn(min = 40.dp).padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(vertical = 1.dp),
     ) {
-        Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+        Text(label, modifier = Modifier.width(60.dp).padding(end = 6.dp).alignByBaseline(),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, modifier = Modifier.weight(1f).alignByBaseline(),
+            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
     }
 }

@@ -12,7 +12,6 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -33,7 +32,6 @@ import android.webkit.WebViewClient
 import android.webkit.WebViewDatabase
 import android.widget.LinearLayout
 import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,6 +43,16 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import de.missionleben.portal.BuildConfig
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
+import de.missionleben.portal.ui.MissionLebenTheme
+import de.missionleben.portal.ui.PortalHeader
 import de.missionleben.portal.R
 import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.device.DeviceServiceRepository
@@ -62,7 +70,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class PortalBrowserActivity : FragmentActivity() {
     private lateinit var webView: WebView
     private lateinit var progress: ProgressBar
-    private lateinit var titleView: TextView
+    private var browserTitle by mutableStateOf("")
     private lateinit var policy: WebNavigationPolicy
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private var logoutFinished = false
@@ -74,6 +82,9 @@ class PortalBrowserActivity : FragmentActivity() {
     private var talkChatNoticeShown = false
     private var pendingInitialTargetUrl: String? = null
     private var initialHistoryUrl: String? = null
+    private var pendingContactEmail: String? = null
+    private var contactComposeAttempts = 0
+    private var contactComposeRunning = false
     private val deviceService by lazy { DeviceServiceRepository(applicationContext) }
     private val sessionPolicy by lazy {
         WebSessionPolicy(
@@ -139,6 +150,8 @@ class PortalBrowserActivity : FragmentActivity() {
         configureWebView()
         installBackNavigation()
 
+        if (savedInstanceState == null) pendingContactEmail = intent.getStringExtra(EXTRA_CONTACT_EMAIL)
+
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState)
         } else if (intent.getBooleanExtra(EXTRA_CLEAR_BEFORE_LOAD, false)) {
@@ -195,29 +208,16 @@ class PortalBrowserActivity : FragmentActivity() {
             view.setPadding(systemBars.left, systemBars.top + dp(5), systemBars.right, systemBars.bottom)
             insets
         }
-        val toolbar = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(8), 0, dp(12), 0)
-            setBackgroundColor(Color.rgb(42, 31, 48))
+        browserTitle = initialTitle.ifBlank { getString(R.string.browser_protected_area) }
+        val toolbar = ComposeView(this).apply {
+            setContent {
+                MissionLebenTheme {
+                    Box(Modifier.padding(horizontal = 16.dp)) {
+                        PortalHeader(browserTitle, onBack = ::finishApplicationBrowserFromBack)
+                    }
+                }
+            }
         }
-        val close = TextView(this).apply {
-            text = getString(R.string.browser_back)
-            textSize = 15f
-            setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
-            setPadding(dp(8), 0, dp(12), 0)
-            setOnClickListener { finishApplicationBrowserFromBack() }
-        }
-        titleView = TextView(this).apply {
-            text = initialTitle.ifBlank { getString(R.string.browser_protected_area) }
-            textSize = 15f
-            setTextColor(Color.WHITE)
-            maxLines = 1
-            gravity = Gravity.CENTER_VERTICAL
-        }
-        toolbar.addView(close, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(48)))
-        toolbar.addView(titleView, LinearLayout.LayoutParams(0, dp(48), 1f))
 
         progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
             max = 100
@@ -376,6 +376,29 @@ class PortalBrowserActivity : FragmentActivity() {
         }
     }
 
+    private fun openPendingContactEmail() {
+        val recipient = pendingContactEmail ?: return
+        if (contactComposeRunning || isFinishing || isDestroyed) return
+        if (!sameWebOrigin(webView.url.orEmpty(), BuildConfig.ZIMBRA_WEB_BASE_URL)) return
+        val script = ZimbraContactCompose.script(BuildConfig.ZIMBRA_WEB_BASE_URL, recipient) ?: return
+        contactComposeRunning = true
+        webView.evaluateJavascript(script) { result ->
+            contactComposeRunning = false
+            if (isFinishing || isDestroyed) return@evaluateJavascript
+            if (result == "\"opened\"") {
+                pendingContactEmail = null
+                // No address, message content, cookies or credentials in diagnostics.
+                Log.i(AUTH_LOG_TAG, "Contact composer accepted by Zimbra")
+            } else if (++contactComposeAttempts < 40) {
+                webView.postDelayed({ openPendingContactEmail() }, 500L)
+            } else {
+                pendingContactEmail = null
+                Toast.makeText(this, R.string.contacts_email_error, Toast.LENGTH_LONG).show()
+                Log.w(AUTH_LOG_TAG, "Contact composer unavailable")
+            }
+        }
+    }
+
     private inner class BrowserClient : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
             handleNavigation(request.url.toString(), request.isForMainFrame)
@@ -392,7 +415,8 @@ class PortalBrowserActivity : FragmentActivity() {
             super.onPageFinished(view, url)
             if (interceptExpiredSession(url)) return
             loadPendingInitialTarget(view, url)
-            titleView.text = view.title?.takeIf { it.isNotBlank() } ?: titleView.text
+            openPendingContactEmail()
+            browserTitle = view.title?.takeIf { it.isNotBlank() } ?: browserTitle
             if (isAuthentikOrigin(url)) view.evaluateJavascript(ENDPOINT_BRIDGE_SCRIPT, null)
             if (TalkChatPolicy.isTalkPage(url)) {
                 // Fallback for providers without document-start script support and defense in depth
@@ -528,7 +552,7 @@ class PortalBrowserActivity : FragmentActivity() {
         }
 
         override fun onReceivedTitle(view: WebView, title: String?) {
-            if (!title.isNullOrBlank()) titleView.text = title
+            if (!title.isNullOrBlank()) browserTitle = title
         }
 
         override fun onPermissionRequest(request: PermissionRequest) {
@@ -631,6 +655,7 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_LOGOUT = "logout"
         private const val EXTRA_SELF_ENROLLMENT = "self_enrollment"
         private const val EXTRA_INITIAL_HISTORY_URL = "initial_history_url"
+        private const val EXTRA_CONTACT_EMAIL = "contact_email"
         private const val EXTRA_NOTIFICATION_BADGE_TARGET = "notification_badge_target"
         private const val EXTRA_VISITED_NOTIFICATION_BADGE_TARGET = "visited_notification_badge_target"
         private const val DOWNLOAD_PREFERENCES = "protected_web_downloads"
@@ -672,8 +697,15 @@ class PortalBrowserActivity : FragmentActivity() {
                     notificationBadgeTarget?.let {
                         putExtra(EXTRA_NOTIFICATION_BADGE_TARGET, it.name)
                     }
-                    NotificationNavigation.zimbraMailOverviewUrl(url, BuildConfig.ZIMBRA_WEB_BASE_URL)?.let {
-                        putExtra(EXTRA_INITIAL_HISTORY_URL, it)
+                    NotificationNavigation.zimbraMailOverviewUrl(url, BuildConfig.ZIMBRA_WEB_BASE_URL)?.let { inbox ->
+                        val recipient = de.missionleben.portal.data.ContactActions.zimbraComposeRecipient(
+                            url, BuildConfig.ZIMBRA_WEB_BASE_URL,
+                        )
+                        if (recipient != null) {
+                            // Never send the contact address as a query string to the mail server.
+                            putExtra(EXTRA_URL, inbox)
+                            putExtra(EXTRA_CONTACT_EMAIL, recipient)
+                        } else putExtra(EXTRA_INITIAL_HISTORY_URL, inbox)
                     }
                 }
 

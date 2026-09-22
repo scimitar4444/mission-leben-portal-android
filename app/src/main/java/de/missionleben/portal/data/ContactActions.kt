@@ -1,6 +1,7 @@
 package de.missionleben.portal.data
 
 import java.net.URI
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -24,4 +25,19 @@ internal object ContactActions {
         fun encode(value: String) = URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20")
         return "$compose?to=${encode(encode(email))}"
     }
+
+    /** Recognise only our own compose request, never a mailto or a different origin. */
+    fun zimbraComposeRecipient(targetUrl: String, baseUrl: String): String? = runCatching {
+        val target = URI(targetUrl)
+        val base = URI(baseUrl)
+        fun port(uri: URI) = if (uri.port == -1) 443 else uri.port
+        if (!target.scheme.equals("https", true) || !base.scheme.equals("https", true) ||
+            !target.host.equals(base.host, true) || port(target) != port(base) ||
+            target.rawUserInfo != null || target.rawFragment != null || target.path != "/modern/email/new"
+        ) return null
+        val query = target.rawQuery.orEmpty()
+        if (!query.startsWith("to=") || query.contains('&')) return null
+        val email = URLDecoder.decode(URLDecoder.decode(query.substring(3), StandardCharsets.UTF_8), StandardCharsets.UTF_8)
+        email.takeIf { zimbraComposeUrl(baseUrl, it) != null }
+    }.getOrNull()
 }

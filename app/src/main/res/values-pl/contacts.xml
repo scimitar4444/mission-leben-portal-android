@@ -16,4 +16,6 @@
     <string name="contacts_phone">Telefon: %1$s</string>
     <string name="contacts_mobile">Komórka: %1$s</string>
     <string name="contacts_no_handler">Na urządzeniu nie ma aplikacji telefonu.</string>
+    <string name="contacts_email_error">Nie można otworzyć nowej wiadomości. Spróbuj ponownie.</string>
+    <string name="contacts_email">E-mail:</string>
 </resources>

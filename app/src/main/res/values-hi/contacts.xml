@@ -16,4 +16,6 @@
     <string name="contacts_phone">फ़ोन: %1$s</string>
     <string name="contacts_mobile">मोबाइल: %1$s</string>
     <string name="contacts_no_handler">इस डिवाइस पर फ़ोन ऐप उपलब्ध नहीं है।</string>
+    <string name="contacts_email_error">नया संदेश नहीं खोला जा सका। कृपया दोबारा कोशिश करें।</string>
+    <string name="contacts_email">ईमेल:</string>
 </resources>

@@ -6,7 +6,13 @@ Telefon und Mobil öffnen die Wählansicht (kein automatischer Anruf). Ab App 0.
 öffnet E-Mail eine neue Nachricht mit Empfänger in Zimbra im geschützten App-Browser
 (kein automatischer Versand, keine lokale Mail-App). Die vorhandene Zimbra-Kachel
 muss verfügbar sein; Geräte-/Sitzungsprüfung und Zimbra-SSO bleiben unverändert.
-Der Posteingang wird als Zurück-Ziel vorbereitet; „Portal“ verlässt den Browser.
+Ab App 0.12.2 wird der Empfänger vor der Navigation aus dem appinternen Auftrag
+entnommen und nicht als Query an den Mailserver geschickt. Nach Laden des
+Posteingangs verwendet die App einmalig Zimbras eigenen `mailto`-Handler, der den
+Empfänger auch dem mobilen Verfassen-Fenster übergibt. Exakte Origin-Prüfung,
+höchstens 20 Sekunden Wartezeit, Schutz gegen doppelte Entwürfe und kein externer
+`mailto`-Fallback. Schlägt die Übergabe fehl, erscheint eine Fehlermeldung.
+Der Posteingang ist das Zurück-Ziel; „Portal“ verlässt den Browser.
 Talk-Direktchat ist nicht
 Teil dieser Version. Keine Android-Kontaktberechtigung und kein Adressbuchexport.
 
@@ -96,6 +102,9 @@ Rollback: altes Bridge-Image/Compose zurücksetzen, neuen Timer deaktivieren.
 Die ältere App ist mit der erweiterten Bridge unverändert kompatibel.
 
 Tests: `PYTHONPATH=bridge/src python3 -m unittest discover -s bridge/tests` sowie
-Android-Unit-Tests und Lint. Die physischen Tests (Wählansicht/Zimbra-Verfassen, Schrift-
+Android-Unit-Tests, Lint und `node scripts/test_zimbra_contact_compose.mjs` (auch CI).
+Der JS-Vertrag prüft verzögertes Laden, Empfänger mit Pluszeichen, keine doppelten
+Aufrufe, fremde Origins und unterbundene externe Mail-App-Navigation.
+Die physischen Tests (Wählansicht/Zimbra-Verfassen, Schrift-
 größen und eigene Einrichtung auf Handy/Tablet) müssen mit der installierten
 App durchgeführt werden; ein erfolgreicher Build ersetzt diese Prüfung nicht.

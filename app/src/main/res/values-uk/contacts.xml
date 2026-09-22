@@ -16,4 +16,6 @@
     <string name="contacts_phone">Телефон: %1$s</string>
     <string name="contacts_mobile">Мобільний: %1$s</string>
     <string name="contacts_no_handler">На цьому пристрої немає застосунку для дзвінків.</string>
+    <string name="contacts_email_error">Не вдалося відкрити нове повідомлення. Спробуй ще раз.</string>
+    <string name="contacts_email">Пошта:</string>
 </resources>

@@ -16,4 +16,6 @@
     <string name="contacts_phone">Phone: %1$s</string>
     <string name="contacts_mobile">Mobile: %1$s</string>
     <string name="contacts_no_handler">No phone app is available on this device.</string>
+    <string name="contacts_email_error">The new message could not be opened. Please try again.</string>
+    <string name="contacts_email">Email:</string>
 </resources>

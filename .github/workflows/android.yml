@@ -18,6 +18,8 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v6
+      - name: Test Zimbra contact composer bridge
+        run: node scripts/test_zimbra_contact_compose.mjs
       - name: Test and build debug APK
         run: ./gradlew testDebugUnitTest lintDebug assembleDebug --stacktrace
       - uses: actions/upload-artifact@v7
