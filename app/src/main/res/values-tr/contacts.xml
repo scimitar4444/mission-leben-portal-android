@@ -15,5 +15,5 @@
     <string name="contacts_more">Daha fazla yükle</string>
     <string name="contacts_phone">Telefon: %1$s</string>
     <string name="contacts_mobile">Cep: %1$s</string>
-    <string name="contacts_no_handler">Bu cihazda uygun telefon veya e-posta uygulaması yok.</string>
+    <string name="contacts_no_handler">Bu cihazda telefon uygulaması yok.</string>
 </resources>

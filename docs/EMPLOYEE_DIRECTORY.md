@@ -2,8 +2,12 @@
 
 Ab App 0.12.0 / Bridge 0.10.0: unternehmensweites Mitarbeiterverzeichnis,
 Suche nach Name, Einrichtung, Funktion oder Abteilung; optional „Meine Einrichtung“.
-Telefon und Mobil öffnen die Wählansicht (kein automatischer Anruf), E-Mail öffnet
-eine vorhandene Mail-App (kein automatischer Versand). Talk-Direktchat ist nicht
+Telefon und Mobil öffnen die Wählansicht (kein automatischer Anruf). Ab App 0.12.1
+öffnet E-Mail eine neue Nachricht mit Empfänger in Zimbra im geschützten App-Browser
+(kein automatischer Versand, keine lokale Mail-App). Die vorhandene Zimbra-Kachel
+muss verfügbar sein; Geräte-/Sitzungsprüfung und Zimbra-SSO bleiben unverändert.
+Der Posteingang wird als Zurück-Ziel vorbereitet; „Portal“ verlässt den Browser.
+Talk-Direktchat ist nicht
 Teil dieser Version. Keine Android-Kontaktberechtigung und kein Adressbuchexport.
 
 ## Daten und fachlicher Vertrag
@@ -92,6 +96,6 @@ Rollback: altes Bridge-Image/Compose zurücksetzen, neuen Timer deaktivieren.
 Die ältere App ist mit der erweiterten Bridge unverändert kompatibel.
 
 Tests: `PYTHONPATH=bridge/src python3 -m unittest discover -s bridge/tests` sowie
-Android-Unit-Tests und Lint. Die physischen Tests (Telefon/Mail-Handler, Schrift-
+Android-Unit-Tests und Lint. Die physischen Tests (Wählansicht/Zimbra-Verfassen, Schrift-
 größen und eigene Einrichtung auf Handy/Tablet) müssen mit der installierten
 App durchgeführt werden; ein erfolgreicher Build ersetzt diese Prüfung nicht.

@@ -15,5 +15,5 @@
     <string name="contacts_more">Load more</string>
     <string name="contacts_phone">Phone: %1$s</string>
     <string name="contacts_mobile">Mobile: %1$s</string>
-    <string name="contacts_no_handler">No suitable phone or email app is available on this device.</string>
+    <string name="contacts_no_handler">No phone app is available on this device.</string>
 </resources>

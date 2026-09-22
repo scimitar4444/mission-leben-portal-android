@@ -30,7 +30,7 @@ object NotificationNavigation {
         if (!target.host.equals(base.host, ignoreCase = true) || effectivePort(target) != effectivePort(base)) {
             return null
         }
-        if (!target.rawPath.orEmpty().matches(Regex("/modern/email/Inbox/message/[0-9]{1,20}/?"))) {
+        if (!target.rawPath.orEmpty().matches(Regex("/modern/email/(?:Inbox/message/[0-9]{1,20}|new)/?"))) {
             return null
         }
         return URI("https", base.rawAuthority, "/modern/email/Inbox", null, null).toASCIIString()
@@ -45,7 +45,8 @@ object NotificationNavigation {
         if (!current.host.equals(base.host, ignoreCase = true) || effectivePort(current) != effectivePort(base)) {
             return false
         }
-        return current.rawPath.orEmpty().matches(Regex("/modern/email(?:/[^/]+)?/?"))
+        val path = current.rawPath.orEmpty()
+        return path.trimEnd('/') != "/modern/email/new" && path.matches(Regex("/modern/email(?:/[^/]+)?/?"))
     }
 
     private fun zimbraMessageUrl(baseUrl: String, messageId: String): String {

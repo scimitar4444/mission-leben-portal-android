@@ -15,5 +15,5 @@
     <string name="contacts_more">Завантажити ще</string>
     <string name="contacts_phone">Телефон: %1$s</string>
     <string name="contacts_mobile">Мобільний: %1$s</string>
-    <string name="contacts_no_handler">На пристрої немає відповідного застосунку для дзвінків або пошти.</string>
+    <string name="contacts_no_handler">На цьому пристрої немає застосунку для дзвінків.</string>
 </resources>

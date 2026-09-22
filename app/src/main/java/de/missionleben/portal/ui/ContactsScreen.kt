@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -27,7 +29,13 @@ import kotlinx.coroutines.delay
 
 /** Contact data lives only in this screen, never in saved state or on disk. */
 @Composable
-fun ContactsScreen(search: suspend (String, Boolean, Int) -> ContactPage, onBack: () -> Unit) {
+fun ContactsScreen(
+    search: suspend (String, Boolean, Int) -> ContactPage,
+    onBack: () -> Unit,
+    onEmail: (String) -> Unit,
+    busy: Boolean,
+    message: String?,
+) {
     var query by remember { mutableStateOf("") }
     var mine by remember { mutableStateOf(false) }
     var page by remember { mutableStateOf<ContactPage?>(null) }
@@ -102,7 +110,8 @@ fun ContactsScreen(search: suspend (String, Boolean, Int) -> ContactPage, onBack
             Text(page!!.myFacilities.joinToString(" · ").ifBlank { stringResource(R.string.contacts_no_facility) },
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        if (loading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 8.dp))
+        if (loading || busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 8.dp))
+        message?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 8.dp)) }
         error?.let {
             Text(stringResource(it), modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.error)
             TextButton(onClick = { offset = 0; refresh++ }) { Text(stringResource(R.string.contacts_retry)) }
@@ -114,7 +123,7 @@ fun ContactsScreen(search: suspend (String, Boolean, Int) -> ContactPage, onBack
             style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(vertical = 6.dp))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 20.dp)) {
-            items(contacts, key = { it.id }) { ContactCard(it) }
+            items(contacts, key = { it.id }) { ContactCard(it, onEmail, enabled = !busy) }
             page?.nextOffset?.let { next ->
                 item {
                     OutlinedButton(onClick = { offset = next }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
@@ -127,39 +136,47 @@ fun ContactsScreen(search: suspend (String, Boolean, Int) -> ContactPage, onBack
 }
 
 @Composable
-private fun ContactCard(contact: EmployeeContact) {
+private fun ContactCard(contact: EmployeeContact, onEmail: (String) -> Unit, enabled: Boolean) {
     val context = LocalContext.current
     var noHandler by remember(contact.id) { mutableStateOf(false) }
     fun open(intent: Intent) {
         try { context.startActivity(intent) } catch (_: ActivityNotFoundException) { noHandler = true }
     }
     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
-        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(contact.name, style = MaterialTheme.typography.titleMedium)
-            listOf(contact.jobTitle, contact.department, contact.facilities.joinToString(" · "))
-                .filter(String::isNotBlank).distinct().forEach {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val details = listOf(contact.jobTitle, contact.department, contact.facilities.joinToString(" · "))
+                .filter(String::isNotBlank).distinct().joinToString(" · ")
+            if (details.isNotBlank()) Text(details, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(Modifier.fillMaxWidth()) {
+                if (contact.phone.isNotBlank()) ContactLink(stringResource(R.string.contacts_phone, contact.phone), enabled) {
+                    ContactActions.dialable(contact.phone)?.let { dialable ->
+                        open(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", dialable, null)))
+                    }
                 }
-            if (contact.phone.isNotBlank()) TextButton(onClick = {
-                ContactActions.dialable(contact.phone)?.let { dialable ->
-                    open(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", dialable, null)))
+                if (contact.mobile.isNotBlank()) ContactLink(stringResource(R.string.contacts_mobile, contact.mobile), enabled) {
+                    ContactActions.dialable(contact.mobile)?.let { dialable ->
+                        open(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", dialable, null)))
+                    }
                 }
-            }, contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp)) {
-                Text(stringResource(R.string.contacts_phone, contact.phone))
-            }
-            if (contact.email.isNotBlank()) TextButton(onClick = {
-                open(Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto", contact.email, null)))
-            }, contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp)) {
-                Text(contact.email)
-            }
-            if (contact.mobile.isNotBlank()) TextButton(onClick = {
-                ContactActions.dialable(contact.mobile)?.let { dialable ->
-                    open(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", dialable, null)))
+                if (contact.email.isNotBlank()) ContactLink(contact.email, enabled) {
+                    onEmail(contact.email)
                 }
-            }, contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp)) {
-                Text(stringResource(R.string.contacts_mobile, contact.mobile))
             }
             if (noHandler) Text(stringResource(R.string.contacts_no_handler), style = MaterialTheme.typography.bodySmall)
         }
+    }
+}
+
+@Composable
+private fun ContactLink(text: String, enabled: Boolean, onClick: () -> Unit) {
+    // Full-width touch row, without TextButton's extra padding/minimum layout height.
+    Row(
+        Modifier.fillMaxWidth().clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .heightIn(min = 40.dp).padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
     }
 }

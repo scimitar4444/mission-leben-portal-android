@@ -91,6 +91,7 @@ fun MissionLebenApp(
     onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onSearchContacts: suspend (String, Boolean, Int) -> ContactPage,
+    onComposeContactEmail: (String) -> Unit,
     onMarkAnnouncementRead: (Long) -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
@@ -136,6 +137,7 @@ fun MissionLebenApp(
                 onOpenPublicUrl = onOpenPublicUrl,
                 onReloadApplications = onReloadApplications,
                 onSearchContacts = onSearchContacts,
+                onComposeContactEmail = onComposeContactEmail,
                 onMarkAnnouncementRead = onMarkAnnouncementRead,
                 onSelfEnrollment = onSelfEnrollment,
                 onRefreshDeviceStatus = onRefreshDeviceStatus,
@@ -320,6 +322,7 @@ private fun Home(
     onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onSearchContacts: suspend (String, Boolean, Int) -> ContactPage,
+    onComposeContactEmail: (String) -> Unit,
     onMarkAnnouncementRead: (Long) -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
@@ -343,7 +346,13 @@ private fun Home(
     var contactsOpen by remember(state.signedIn, state.user?.subject) { mutableStateOf(false) }
 
     if (contactsOpen && state.signedIn) {
-        ContactsScreen(onSearchContacts, onBack = { contactsOpen = false })
+        ContactsScreen(
+            onSearchContacts,
+            onBack = { contactsOpen = false },
+            onEmail = onComposeContactEmail,
+            busy = state.busy,
+            message = state.message,
+        )
         return
     }
 

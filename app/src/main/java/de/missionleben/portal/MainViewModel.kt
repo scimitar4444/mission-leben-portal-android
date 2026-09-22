@@ -19,6 +19,7 @@ import de.missionleben.portal.data.PortalAuthenticationException
 import de.missionleben.portal.data.PortalRepository
 import de.missionleben.portal.data.ContactsRepository
 import de.missionleben.portal.data.ContactPage
+import de.missionleben.portal.data.ContactActions
 import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrPayload
 import de.missionleben.portal.device.EnrollmentQrParser
@@ -473,6 +474,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update {
             it.copy(readAnnouncementIds = it.readAnnouncementIds + announcementId)
         }
+    }
+
+    fun composeContactEmail(email: String) {
+        if (_uiState.value.busy) return
+        if (_uiState.value.applications.none { NotificationBadgeTarget.fromApplication(it) == NotificationBadgeTarget.ZIMBRA }) {
+            _uiState.update { it.copy(message = string(R.string.message_app_not_approved)) }
+            return
+        }
+        val url = ContactActions.zimbraComposeUrl(BuildConfig.ZIMBRA_WEB_BASE_URL, email)
+        if (url == null) {
+            _uiState.update { it.copy(message = string(R.string.contacts_error)) }
+            return
+        }
+        // Uses the same live device/session check and in-app browser as the Zimbra tile.
+        openApplication(url, null, NotificationBadgeTarget.ZIMBRA)
     }
 
     fun openApplication(url: String) = openApplication(

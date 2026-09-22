@@ -60,6 +60,16 @@ class NotificationNavigationTest {
     }
 
     @Test
+    fun `zimbra composer gets inbox history but is not itself an overview`() {
+        val base = "https://mail.mission-leben.de"
+        val compose = "$base/modern/email/new?to=maria%2540example.org"
+        assertEquals("$base/modern/email/Inbox", NotificationNavigation.zimbraMailOverviewUrl(compose, base))
+        assertFalse(NotificationNavigation.isZimbraMailOverviewUrl(compose, base))
+        assertFalse(NotificationNavigation.isZimbraMailOverviewUrl("$base/modern/email/new/", base))
+        assertNull(NotificationNavigation.zimbraMailOverviewUrl("https://other.example/modern/email/new", base))
+    }
+
+    @Test
     fun `non zimbra targets never get a synthetic browser history parent`() {
         assertNull(
             NotificationNavigation.zimbraMailOverviewUrl(

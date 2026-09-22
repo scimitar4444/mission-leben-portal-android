@@ -15,5 +15,5 @@
     <string name="contacts_more">Wczytaj więcej</string>
     <string name="contacts_phone">Telefon: %1$s</string>
     <string name="contacts_mobile">Komórka: %1$s</string>
-    <string name="contacts_no_handler">Na urządzeniu nie ma odpowiedniej aplikacji telefonu lub poczty.</string>
+    <string name="contacts_no_handler">Na urządzeniu nie ma aplikacji telefonu.</string>
 </resources>

@@ -176,6 +176,7 @@ class MainActivity : FragmentActivity() {
                     onOpenPublicUrl = ::openUrl,
                     onReloadApplications = viewModel::loadApplications,
                     onSearchContacts = viewModel::searchContacts,
+                    onComposeContactEmail = viewModel::composeContactEmail,
                     onMarkAnnouncementRead = viewModel::markAnnouncementRead,
                     onSelfEnrollment = {
                         selfEnrollmentLauncher.launch(

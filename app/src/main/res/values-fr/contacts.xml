@@ -15,5 +15,5 @@
     <string name="contacts_more">Charger plus</string>
     <string name="contacts_phone">Téléphone : %1$s</string>
     <string name="contacts_mobile">Mobile : %1$s</string>
-    <string name="contacts_no_handler">Aucune application de téléphone ou de messagerie adaptée sur cet appareil.</string>
+    <string name="contacts_no_handler">Aucune application de téléphone disponible sur cet appareil.</string>
 </resources>
