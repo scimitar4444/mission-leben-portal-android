@@ -519,11 +519,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 serializedState = state,
                 onSuccess = { _, updatedState ->
                     updateSerializedState(updatedState)
-                    if (notificationEventId != null) {
+                    if (badgeTarget != null) {
+                        NotificationPresenter.dismissApplication(getApplication(), badgeTarget)
+                    } else if (notificationEventId != null) {
                         unreadNotificationStore.cancel(notificationEventId)
+                        NotificationPresenter.cancel(getApplication(), notificationEventId)
+                    }
+                    if (notificationEventId != null) {
                         NotificationTargetStore(getApplication()).remove(notificationEventId)
-                    } else if (badgeTarget != null) {
-                        unreadNotificationStore.clear(badgeTarget)
                     }
                     _uiState.update {
                         it.copy(
@@ -546,7 +549,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun markApplicationVisited(target: NotificationBadgeTarget) {
-        unreadNotificationStore.clear(target)
+        NotificationPresenter.dismissApplication(getApplication(), target)
         refreshUnreadNotificationBadges()
     }
 

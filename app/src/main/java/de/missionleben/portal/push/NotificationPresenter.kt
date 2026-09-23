@@ -19,7 +19,9 @@ import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.model.EnrollmentState
 
 object NotificationPresenter {
+    @Synchronized
     fun showGeneric(context: Context, action: PushAction, eventId: String? = null) {
+        if (eventId != null && !UnreadNotificationStore(context).isUnread(action, eventId)) return
         show(context, action, eventId, detail = null, privacy = NotificationPrivacy.MINIMAL)
     }
 
@@ -32,6 +34,9 @@ object NotificationPresenter {
         expectedDeviceId: String,
     ) {
         if (detail.eventId != eventId || detail.action != expectedAction || detail.isExpired()) return
+        // ntfy may fetch details BEFORE showing a generic notification. Use the
+        // acknowledged event state, not presence in Android's notification tray.
+        if (!UnreadNotificationStore(context).isUnread(expectedAction, eventId)) return
         // Re-read AFTER the network fetch. A setting/profile change while the
         // request was in flight must never reintroduce an old, richer preview.
         val preferences = AppPreferences(context)
@@ -101,11 +106,30 @@ object NotificationPresenter {
         }
     }
 
+    @Synchronized
     fun cancel(context: Context, eventId: String) {
         val id = notificationId(eventId)
         context.getSystemService(JobScheduler::class.java).cancel(id)
         NotificationManagerCompat.from(context).cancel(id)
         NotificationTargetStore(context).remove(eventId)
+    }
+
+    /** Only locally acknowledge this application; never change server read state. */
+    @Synchronized
+    fun dismissApplication(context: Context, target: NotificationBadgeTarget) {
+        val unread = UnreadNotificationStore(context)
+        val eventIds = unread.eventIds(target)
+        unread.clear(target) // Keep deduplication history so replay cannot re-post it.
+        val channels = PushAction.entries
+            .filter { NotificationBadgeTarget.fromAction(it) == target }
+            .map { it.channelId }.toSet()
+        val manager = context.getSystemService(NotificationManager::class.java)
+        manager.activeNotifications
+            .filter { it.notification.channelId in channels }
+            .forEach { manager.cancel(it.tag, it.id) }
+        RichNotificationJobService.cancelForApplication(context, target)
+        val targets = NotificationTargetStore(context)
+        eventIds.forEach(targets::remove)
     }
 
     fun showLoginApproval(context: Context, requestId: String) {

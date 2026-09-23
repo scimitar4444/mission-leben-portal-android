@@ -98,6 +98,11 @@ class UnreadNotificationStore(context: Context) {
         talk = unread(NotificationBadgeTarget.TALK).size,
     )
 
+    fun isUnread(action: PushAction, eventId: String): Boolean =
+        NotificationBadgeTarget.fromAction(action)?.let { eventId in unread(it) } == true
+
+    internal fun eventIds(target: NotificationBadgeTarget): Set<String> = unread(target)
+
     private fun unread(target: NotificationBadgeTarget): Set<String> =
         preferences.getString(unreadKey(target), "")
             .orEmpty()

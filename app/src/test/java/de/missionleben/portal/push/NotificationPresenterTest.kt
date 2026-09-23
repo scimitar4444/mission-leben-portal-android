@@ -37,6 +37,8 @@ class NotificationPresenterTest {
         shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
         context.getSharedPreferences("mission_leben_push", Context.MODE_PRIVATE).edit().clear().commit()
         context.getSharedPreferences("mission_leben_settings", Context.MODE_PRIVATE).edit().clear().commit()
+        context.getSharedPreferences("mission_leben_unread_notifications", Context.MODE_PRIVATE).edit().clear().commit()
+        context.getSharedPreferences("notification_navigation_targets", Context.MODE_PRIVATE).edit().clear().commit()
         manager = context.getSystemService(NotificationManager::class.java)
         manager.cancelAll()
         listOf("mail", "calendar", "talk", "security", "connection").forEach {
@@ -54,8 +56,10 @@ class NotificationPresenterTest {
         event, action, "Sender Example", "Example subject", preview, "42", null, null,
     )
 
-    private fun show(value: NotificationDetail = detail()) =
+    private fun show(value: NotificationDetail = detail()) {
+        PushEventDispatcher.recordUnread(context, value.action, event)
         NotificationPresenter.showRich(context, value.action, event, value, device)
+    }
 
     private fun notification() = manager.activeNotifications.single { it.id == NotificationPresenter.notificationId(event) }.notification
 

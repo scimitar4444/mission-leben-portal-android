@@ -71,6 +71,7 @@ class RichNotificationJobService : JobService() {
             eventId: String,
             action: PushAction,
         ): Boolean {
+            if (!UnreadNotificationStore(context).isUnread(action, eventId)) return false
             val preferences = AppPreferences(context)
             if (!PushRegistrationStore(context).communicationAllowed()) return false
             val privacy = NotificationPrivacy.effective(
@@ -91,7 +92,10 @@ class RichNotificationJobService : JobService() {
             return true
         }
 
-        fun schedule(context: Context, command: PushCommand.Fetch): Boolean {
+        fun schedule(context: Context, command: PushCommand.Fetch): Boolean = synchronized(NotificationPresenter) {
+            if (!UnreadNotificationStore(context).isUnread(command.eventType, command.eventId)) {
+                return@synchronized false
+            }
             val extras = PersistableBundle().apply {
                 putString(KEY_EVENT_ID, command.eventId)
                 putString(KEY_EVENT_TYPE, command.eventType.wireName)
@@ -104,12 +108,22 @@ class RichNotificationJobService : JobService() {
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
                 .setExtras(extras)
                 .build()
-            return runCatching {
+            runCatching {
                 context.getSystemService(JobScheduler::class.java).schedule(info) ==
                     JobScheduler.RESULT_SUCCESS
             }.onFailure {
                 Log.w(TAG, "notification detail retry could not be scheduled", it)
             }.getOrDefault(false)
+        }
+
+        internal fun cancelForApplication(context: Context, target: NotificationBadgeTarget) {
+            val scheduler = context.getSystemService(JobScheduler::class.java)
+            val component = ComponentName(context, RichNotificationJobService::class.java)
+            scheduler.allPendingJobs.filter { job ->
+                job.service == component &&
+                    PushAction.fromWireName(job.extras.getString(KEY_EVENT_TYPE, ""))
+                        ?.let(NotificationBadgeTarget::fromAction) == target
+            }.forEach { scheduler.cancel(it.id) }
         }
     }
 }

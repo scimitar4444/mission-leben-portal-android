@@ -7,7 +7,7 @@ import de.missionleben.portal.MissionLebenApplication
 object PushEventDispatcher {
     fun dispatch(context: Context, command: PushCommand) {
         when (command) {
-            is PushCommand.Legacy -> {
+            is PushCommand.Legacy -> synchronized(NotificationPresenter) {
                 if (command.action == PushAction.REFRESH_SECURITY_STATE) {
                     DeviceSecurityRefreshJobService.schedule(context)
                 } else if (PushRegistrationStore(context).communicationAllowed()) {
@@ -15,13 +15,18 @@ object PushEventDispatcher {
                     NotificationPresenter.showGeneric(context, command.action)
                 }
             }
-            is PushCommand.Fetch -> {
-                if (!PushRegistrationStore(context).communicationAllowed()) return
+            // Serialize receive+record+post+schedule with application dismissal
+            // and late rich responses; do not leave a job behind after clearing.
+            is PushCommand.Fetch -> synchronized(NotificationPresenter) {
+                if (!PushRegistrationStore(context).communicationAllowed()) return@synchronized
                 recordUnread(context, command.eventType, command.eventId)
+                if (!UnreadNotificationStore(context).isUnread(command.eventType, command.eventId)) {
+                    return@synchronized
+                }
                 NotificationPresenter.showGeneric(context, command.eventType, command.eventId)
                 RichNotificationJobService.schedule(context, command)
             }
-            is PushCommand.Cancel -> {
+            is PushCommand.Cancel -> synchronized(NotificationPresenter) {
                 NotificationPresenter.cancel(context, command.eventId)
                 if (UnreadNotificationStore(context).cancel(command.eventId)) notifyUnreadChanged(context)
             }
@@ -38,7 +43,7 @@ object PushEventDispatcher {
         }
     }
 
-    fun recordUnread(context: Context, action: PushAction, eventId: String) {
+    fun recordUnread(context: Context, action: PushAction, eventId: String) = synchronized(NotificationPresenter) {
         if (UnreadNotificationStore(context).record(action, eventId)) notifyUnreadChanged(context)
     }
 
