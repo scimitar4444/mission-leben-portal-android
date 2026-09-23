@@ -9,6 +9,15 @@ service account used by the stateless portal.
 
 import os
 
+# Copying/updating this source is not permission to execute the bootstrap.
+if os.environ.get("ML_AUTHENTIK_BOOTSTRAP_APPLY") != "1":
+    raise RuntimeError("Bootstrap execution requires separate approval and ML_AUTHENTIK_BOOTSTRAP_APPLY=1")
+
+from authentik import VERSION
+
+if VERSION != "2026.8.3":
+    raise RuntimeError(f"Unreviewed Authentik version {VERSION}; validate this bootstrap before execution")
+
 from django.contrib.auth.models import Permission
 
 from authentik.core.models import Application, Group, Token, TokenIntents, User, UserTypes
@@ -49,9 +58,6 @@ AUTHORIZATION_MFA_STAGE_NAME = "Mission Leben Geräte-Einrichtung - Starke Anmel
 APP_APPROVAL_STAGE_NAME = "Mission Leben Zentral - App-Bestätigung"
 ROLE_GROUPS = (
     "BR_IT_MANAGEMENT",
-    "BR_GESCHAEFTSBEREICHSLEITUNG",
-    "BR_GESCHAEFTSEINHEITSLEITUNG",
-    "BR_ABTEILUNGSLEITUNG",
     "BR_EINRICHTUNGSLEITUNG",
     "BR_PFLEGEDIENSTLEITUNG",
 )
@@ -75,6 +81,18 @@ PERMISSIONS = (
     "authentik_stages_authenticator_duo.add_duodevice",
 )
 
+
+# Resolve the complete canonical prerequisite set BEFORE any database mutation.
+# Group governance is external: never create a substitute or migrate members.
+operator_groups = []
+for name in ROLE_GROUPS:
+    try:
+        group = Group.objects.get(name=name)
+    except Group.DoesNotExist as error:
+        raise RuntimeError(f"Required canonical group is missing: {name}; contact group governance") from error
+    if group.is_superuser or group.attributes.get("iam_group_type") != "business_role":
+        raise RuntimeError(f"{name} is not a canonical non-superuser business role")
+    operator_groups.append(group)
 
 external_host = os.environ.get("ML_ENROLL_PUBLIC_ORIGIN", DEFAULT_EXTERNAL_HOST).strip().rstrip("/")
 authentik_browser_origin = os.environ.get(
@@ -229,13 +247,6 @@ application, _ = Application.objects.update_or_create(
         "policy_engine_mode": PolicyEngineMode.MODE_ANY,
     },
 )
-
-operator_groups = []
-for name in ROLE_GROUPS:
-    group = Group.objects.get(name=name)
-    if group.is_superuser or group.attributes.get("iam_group_type") != "business_role":
-        raise RuntimeError(f"{name} is not a canonical non-superuser business role")
-    operator_groups.append(group)
 
 # Every active user with an existing TOTP authenticator or passkey may enter
 # the self-service page. The portal itself combines the canonical BR roles with

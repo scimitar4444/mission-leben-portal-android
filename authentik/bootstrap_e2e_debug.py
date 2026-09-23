@@ -3,12 +3,22 @@
 Run this script inside the authentik server container with ``ak shell`` only
 after a PostgreSQL backup. Password and TOTP key are read from root-only files;
 the script never prints either secret.
+Required groups must already exist. This script never grants initializer roles;
+any such test authorization is a separate group-governance decision.
 """
 
 import json
 import os
 import re
 from pathlib import Path
+
+if os.environ.get("ML_AUTHENTIK_BOOTSTRAP_APPLY") != "1":
+    raise RuntimeError("Bootstrap execution requires separate approval and ML_AUTHENTIK_BOOTSTRAP_APPLY=1")
+
+from authentik import VERSION
+
+if VERSION != "2026.8.3":
+    raise RuntimeError(f"Unreviewed Authentik version {VERSION}; validate this bootstrap before execution")
 
 from django.db import transaction
 
@@ -43,6 +53,21 @@ if not re.fullmatch(r"[0-9a-f]{40}", totp_key):
 
 
 with transaction.atomic():
+    # Prerequisites are read-only and checked before provider/user changes.
+    try:
+        initializer_role = Group.objects.get(name=INITIALIZER_ROLE)
+        test_organization = Group.objects.get(name=TEST_ORGANIZATION)
+    except Group.DoesNotExist as error:
+        raise RuntimeError("Required E2E group is missing; contact group governance") from error
+    if initializer_role.is_superuser or initializer_role.attributes.get("iam_group_type") != "business_role":
+        raise RuntimeError("The E2E initializer role is not a canonical business role")
+    if (
+        test_organization.is_superuser
+        or test_organization.attributes.get("iam_group_type") != "organization_unit"
+        or test_organization.attributes.get("mission-leben.de/purpose") != "e2e-test-only"
+    ):
+        raise RuntimeError("The existing E2E organization is not an isolated test organization")
+
     provider = OAuth2Provider.objects.select_for_update().get(name=PROVIDER_NAME)
     current_redirects = {
         (str(item.url), item.matching_mode, item.redirect_uri_type)
@@ -72,22 +97,6 @@ with transaction.atomic():
     ]
     provider.save(update_fields=["_redirect_uris"])
 
-    initializer_role = Group.objects.get(name=INITIALIZER_ROLE)
-    test_organization, _ = Group.objects.get_or_create(name=TEST_ORGANIZATION)
-    existing_type = test_organization.attributes.get("iam_group_type")
-    existing_purpose = test_organization.attributes.get("mission-leben.de/purpose")
-    if existing_type not in {None, "organization_unit"}:
-        raise RuntimeError("The E2E organization has an unexpected group type")
-    if existing_purpose not in {None, "e2e-test-only"}:
-        raise RuntimeError("The E2E organization has an unexpected purpose")
-    test_organization.is_superuser = False
-    test_organization.attributes = {
-        **test_organization.attributes,
-        "iam_group_type": "organization_unit",
-        "mission-leben.de/purpose": "e2e-test-only",
-    }
-    test_organization.save(update_fields=["is_superuser", "attributes"])
-
     user, created = User.objects.get_or_create(
         username=USERNAME,
         defaults={
@@ -112,7 +121,8 @@ with transaction.atomic():
     user.attributes = {**user.attributes, "mission-leben.de/purpose": "e2e-test-only"}
     user.set_password(password)
     user.save()
-    user.groups.add(initializer_role, test_organization)
+    # Preserve separately approved existing roles, but never grant/migrate one.
+    user.groups.add(test_organization)
 
     other_totp_devices = TOTPDevice.objects.filter(user=user).exclude(name=TOTP_DEVICE_NAME)
     if other_totp_devices.exists():
@@ -138,6 +148,7 @@ print(
             "username": USERNAME,
             "organization": TEST_ORGANIZATION,
             "initializer_role": INITIALIZER_ROLE,
+            "initializer_role_assigned": user.groups.filter(pk=initializer_role.pk).exists(),
             "debug_redirect": DEBUG_REDIRECT_URI,
             "created": created,
         },
