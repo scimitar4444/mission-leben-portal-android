@@ -7,6 +7,17 @@ import org.junit.Test
 
 class NotificationPrivacyTest {
     @Test
+    fun `preview limits are enforced locally per action and privacy`() {
+        val text = "x".repeat(400)
+        PushAction.entries.forEach { action ->
+            assertEquals("", NotificationPrivacy.MINIMAL.visiblePreview(action, text))
+            assertEquals(if (action == PushAction.OPEN_TALK) "x".repeat(120) else "",
+                NotificationPrivacy.STANDARD.visiblePreview(action, text))
+            assertEquals("x".repeat(280), NotificationPrivacy.DETAILED.visiblePreview(action, text))
+        }
+    }
+
+    @Test
     fun `personal devices keep the selected privacy level`() {
         NotificationPrivacy.entries.forEach { privacy ->
             assertEquals(

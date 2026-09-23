@@ -3,7 +3,7 @@
     <string name="contacts_title">Contacte</string>
     <string name="contacts_subtitle">Găsește și contactează colegii</string>
     <string name="contacts_back">Portal</string>
-    <string name="contacts_search">Nume, unitate sau funcție</string>
+    <string name="contacts_search">Prenume, nume, unitate …</string>
     <string name="contacts_all">Toate</string>
     <string name="contacts_mine">Unitatea mea</string>
     <string name="contacts_no_facility">Nicio unitate atribuită</string>

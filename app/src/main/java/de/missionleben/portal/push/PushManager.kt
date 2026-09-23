@@ -18,6 +18,7 @@ object PushManager {
 
     fun initialize(context: Context) {
         createChannels(context)
+        NotificationPresenter.reconcilePrivacy(context)
         start(context)
     }
 

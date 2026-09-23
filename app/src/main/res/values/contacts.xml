@@ -3,7 +3,7 @@
     <string name="contacts_title">Kontakte</string>
     <string name="contacts_subtitle">Mitarbeitende finden und erreichen</string>
     <string name="contacts_back">Portal</string>
-    <string name="contacts_search">Name, Einrichtung oder Funktion</string>
+    <string name="contacts_search">Vorname, Nachname, Einrichtung …</string>
     <string name="contacts_all">Alle</string>
     <string name="contacts_mine">Meine Einrichtung</string>
     <string name="contacts_no_facility">Keine Einrichtung zugeordnet</string>

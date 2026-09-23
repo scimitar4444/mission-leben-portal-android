@@ -1,32 +1,104 @@
 package de.missionleben.portal.push
 
 import android.Manifest
+import android.app.Notification
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.job.JobScheduler
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import de.missionleben.portal.MainActivity
 import de.missionleben.portal.R
+import de.missionleben.portal.data.AppPreferences
+import de.missionleben.portal.model.EnrollmentState
 
 object NotificationPresenter {
     fun showGeneric(context: Context, action: PushAction, eventId: String? = null) {
         show(context, action, eventId, detail = null, privacy = NotificationPrivacy.MINIMAL)
     }
 
+    @Synchronized
     fun showRich(
         context: Context,
         expectedAction: PushAction,
         eventId: String,
         detail: NotificationDetail,
-        privacy: NotificationPrivacy,
+        expectedDeviceId: String,
     ) {
         if (detail.eventId != eventId || detail.action != expectedAction || detail.isExpired()) return
+        // Re-read AFTER the network fetch. A setting/profile change while the
+        // request was in flight must never reintroduce an old, richer preview.
+        val preferences = AppPreferences(context)
+        val store = PushRegistrationStore(context)
+        if (preferences.deviceId != expectedDeviceId ||
+            preferences.enrollmentState != EnrollmentState.TRUSTED || !store.communicationAllowed()
+        ) return
+        val privacy = NotificationPrivacy.effective(preferences.deviceMode, store.personalPrivacy)
         show(context, expectedAction, eventId, detail, privacy)
+    }
+
+    @Synchronized
+    fun setPersonalPrivacy(context: Context, privacy: NotificationPrivacy) {
+        PushRegistrationStore(context).personalPrivacy = privacy
+        reconcilePrivacy(context)
+    }
+
+    /** Also called after an OTA/process restart to sanitize pre-update notifications. */
+    @Synchronized
+    fun reconcilePrivacy(context: Context) {
+        val privacy = NotificationPrivacy.effective(
+            AppPreferences(context).deviceMode, PushRegistrationStore(context).personalPrivacy,
+        )
+        if (privacy == NotificationPrivacy.DETAILED) return
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            cancelCommunication(context)
+            return
+        }
+        val manager = context.getSystemService(NotificationManager::class.java)
+        manager.activeNotifications.forEach { active ->
+            val old = active.notification
+            val action = PushAction.entries.firstOrNull {
+                it.channelId == old.channelId && it.channelId in COMMUNICATION_CHANNELS
+            } ?: return@forEach
+            if (old.extras.getString(EXTRA_PRIVACY) == privacy.wireName &&
+                old.extras.getInt(EXTRA_CONTENT_POLICY) == CONTENT_POLICY_VERSION
+            ) return@forEach
+
+            val genericTitle = context.getString(action.titleRes)
+            val genericBody = context.getString(action.bodyRes)
+            val minimal = privacy == NotificationPrivacy.MINIMAL
+            val title = if (minimal) genericTitle else
+                old.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty().ifBlank { genericTitle }
+            // Old mail/calendar collapsed text was only subject/time+location.
+            // Legacy Talk text mixed in its preview: do not reuse that string.
+            val summary = if (minimal) genericBody else
+                (old.extras.getString(EXTRA_SAFE_SUMMARY)
+                    ?: if (action != PushAction.OPEN_TALK)
+                        old.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() else null)
+                    .orEmpty().ifBlank { genericBody }
+            // Rebuild from an allowlist, NOT recoverBuilder: BigText/style extras
+            // may still contain the old mail body even after setting plain text.
+            val clean = NotificationCompat.Builder(context, action.channelId)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(title).setContentText(summary)
+                .setContentIntent(old.contentIntent)
+                .setWhen(old.`when`).setShowWhen(old.extras.getBoolean(Notification.EXTRA_SHOW_WHEN, false))
+                .setAutoCancel(true).setOnlyAlertOnce(true).setSilent(true)
+                .setCategory(category(action)).setGroup("mission_leben_${action.channelId}")
+                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setPublicVersion(NotificationCompat.Builder(context, action.channelId)
+                    .setSmallIcon(R.drawable.ic_notification)
+                    .setContentTitle(genericTitle).setContentText(genericBody).build())
+                .addExtras(contentPolicyExtras(privacy, summary))
+                .build()
+            manager.notify(active.tag, active.id, clean)
+        }
     }
 
     fun cancel(context: Context, eventId: String) {
@@ -103,6 +175,7 @@ object NotificationPresenter {
         }
 
         val rich = detail != null && privacy != NotificationPrivacy.MINIMAL
+        val preview = if (rich) privacy.visiblePreview(action, detail.preview) else ""
         val genericTitle = context.getString(action.titleRes)
         val genericBody = context.getString(action.bodyRes)
         val title = if (rich) detail.title.ifBlank { genericTitle } else genericTitle
@@ -110,9 +183,9 @@ object NotificationPresenter {
         val summary = if (
             rich &&
             action == PushAction.OPEN_TALK &&
-            detail.preview.isNotBlank()
+            preview.isNotBlank()
         ) {
-            listOf(contextSummary, detail.preview).filter(String::isNotBlank).joinToString(" · ")
+            listOf(contextSummary, preview).filter(String::isNotBlank).joinToString(" · ")
         } else {
             contextSummary
         }
@@ -154,14 +227,15 @@ object NotificationPresenter {
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setPublicVersion(publicVersion)
             .setGroup("mission_leben_${action.channelId}")
+            .addExtras(contentPolicyExtras(privacy, contextSummary))
 
         detail?.displayAtMillis?.let {
             builder.setWhen(it).setShowWhen(true)
         }
-        if (rich && detail.preview.isNotBlank()) {
+        if (preview.isNotBlank()) {
             builder.setStyle(
                 NotificationCompat.BigTextStyle().bigText(
-                    listOf(contextSummary, detail.preview).filter(String::isNotBlank).joinToString("\n"),
+                    listOf(contextSummary, preview).filter(String::isNotBlank).joinToString("\n"),
                 ),
             )
         }
@@ -184,4 +258,14 @@ object NotificationPresenter {
     }
 
     private val COMMUNICATION_CHANNELS = setOf("mail", "calendar", "talk")
+    private const val EXTRA_PRIVACY = "de.missionleben.portal.notification_privacy"
+    private const val EXTRA_SAFE_SUMMARY = "de.missionleben.portal.notification_summary"
+    private const val EXTRA_CONTENT_POLICY = "de.missionleben.portal.notification_content_policy"
+    private const val CONTENT_POLICY_VERSION = 1
+
+    private fun contentPolicyExtras(privacy: NotificationPrivacy, summary: String) = Bundle().apply {
+        putString(EXTRA_PRIVACY, privacy.wireName)
+        putString(EXTRA_SAFE_SUMMARY, summary)
+        putInt(EXTRA_CONTENT_POLICY, CONTENT_POLICY_VERSION)
+    }
 }

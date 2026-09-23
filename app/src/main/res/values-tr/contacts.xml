@@ -3,7 +3,7 @@
     <string name="contacts_title">Kişiler</string>
     <string name="contacts_subtitle">Çalışanları bul ve iletişime geç</string>
     <string name="contacts_back">Portal</string>
-    <string name="contacts_search">Ad, kurum veya görev</string>
+    <string name="contacts_search">Ad, soyad, kurum …</string>
     <string name="contacts_all">Tümü</string>
     <string name="contacts_mine">Kurumum</string>
     <string name="contacts_no_facility">Kurum atanmamış</string>

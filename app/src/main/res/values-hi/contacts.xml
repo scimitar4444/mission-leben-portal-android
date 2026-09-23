@@ -3,7 +3,7 @@
     <string name="contacts_title">संपर्क</string>
     <string name="contacts_subtitle">सहकर्मियों को खोजें और संपर्क करें</string>
     <string name="contacts_back">पोर्टल</string>
-    <string name="contacts_search">नाम, संस्थान या भूमिका</string>
+    <string name="contacts_search">पहला नाम, उपनाम, संस्थान …</string>
     <string name="contacts_all">सभी</string>
     <string name="contacts_mine">मेरा संस्थान</string>
     <string name="contacts_no_facility">कोई संस्थान नहीं सौंपा गया</string>

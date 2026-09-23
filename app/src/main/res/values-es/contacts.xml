@@ -3,7 +3,7 @@
     <string name="contacts_title">Contactos</string>
     <string name="contacts_subtitle">Busca y contacta con tus compañeros</string>
     <string name="contacts_back">Portal</string>
-    <string name="contacts_search">Nombre, centro o función</string>
+    <string name="contacts_search">Nombre, apellidos, centro …</string>
     <string name="contacts_all">Todos</string>
     <string name="contacts_mine">Mi centro</string>
     <string name="contacts_no_facility">Sin centro asignado</string>

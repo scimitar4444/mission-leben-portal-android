@@ -3,7 +3,7 @@
     <string name="contacts_title">Kontakty</string>
     <string name="contacts_subtitle">Znajdź pracowników i skontaktuj się z nimi</string>
     <string name="contacts_back">Portal</string>
-    <string name="contacts_search">Imię, placówka lub funkcja</string>
+    <string name="contacts_search">Imię, nazwisko, placówka …</string>
     <string name="contacts_all">Wszyscy</string>
     <string name="contacts_mine">Moja placówka</string>
     <string name="contacts_no_facility">Nie przypisano placówki</string>

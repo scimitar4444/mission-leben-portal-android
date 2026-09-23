@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mission-leben-bridge"
-version = "0.10.2"
+version = "0.10.3"
 description = "Device approval and privacy-preserving notification bridge for the Mission Leben Android portal"
 requires-python = ">=3.12"
 license = { text = "Apache-2.0" }

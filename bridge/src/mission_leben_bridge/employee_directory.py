@@ -66,8 +66,13 @@ class EmployeeDirectory:
                     # Precompute a search index once per snapshot, not per keystroke.
                     data["entries"] = sorted(data["entries"], key=lambda e: (search_key(e["name"]), e["id"]))
                     for entry in data["entries"]:
+                        aliases = entry.get("search_names", [])
+                        if (not isinstance(aliases, list) or len(aliases) > 2
+                                or any(not isinstance(alias, str) or len(alias) > 160 for alias in aliases)):
+                            raise ValueError("invalid directory search names")
                         entry["_search"] = search_key(" ".join([
                             entry["name"], entry["email"], entry["department"], entry["job_title"],
+                            *aliases,
                             *[data["facilities"][f] for f in entry["facilities"]],
                         ]))
                     self._data, self._stamp = data, stamp

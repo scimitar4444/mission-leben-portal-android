@@ -87,7 +87,7 @@ class RichNotificationJobService : JobService() {
             val repository = DeviceServiceRepository(context)
             if (!repository.communicationConfigured) return false
             val detail = repository.notificationDetail(eventId, action, deviceId, DeviceIdentity())
-            NotificationPresenter.showRich(context, action, eventId, detail, privacy)
+            NotificationPresenter.showRich(context, action, eventId, detail, deviceId)
             return true
         }
 

@@ -1115,7 +1115,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setNotificationPrivacy(value: NotificationPrivacy) {
         if (_uiState.value.mode != DeviceMode.PERSONAL) return
-        pushStore.personalPrivacy = value
+        NotificationPresenter.setPersonalPrivacy(getApplication(), value)
         _uiState.update { it.copy(notificationPrivacy = value) }
         syncPushRegistration()
     }

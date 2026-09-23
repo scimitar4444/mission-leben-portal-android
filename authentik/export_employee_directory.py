@@ -116,6 +116,11 @@ def contact(user, facilities):
         email = ""
     return {
         "id": str(user.uid), "name": contact_name(user), "email": email,
+        # Internal search aliases, not a display-name rewrite and never inferred
+        # from usernames/email. Only the explicitly allowed person attributes.
+        "search_names": list(dict.fromkeys(filter(None, (
+            text(attrs.get("givenName")), text(attrs.get("sn")),
+        )))) if account_kind(user) == "person" else [],
         "phone": phone, "mobile": mobile,
         "job_title": text(attrs.get("employee_job_title") or attrs.get("title")),
         "department": text(attrs.get("employee_department") or attrs.get("department")),

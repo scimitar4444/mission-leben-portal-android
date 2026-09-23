@@ -3,7 +3,7 @@
     <string name="contacts_title">Contacts</string>
     <string name="contacts_subtitle">Trouver et contacter des collègues</string>
     <string name="contacts_back">Portail</string>
-    <string name="contacts_search">Nom, établissement ou fonction</string>
+    <string name="contacts_search">Prénom, nom, établissement …</string>
     <string name="contacts_all">Tous</string>
     <string name="contacts_mine">Mon établissement</string>
     <string name="contacts_no_facility">Aucun établissement attribué</string>

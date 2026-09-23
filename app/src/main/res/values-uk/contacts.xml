@@ -3,7 +3,7 @@
     <string name="contacts_title">Контакти</string>
     <string name="contacts_subtitle">Знайти колег і зв’язатися з ними</string>
     <string name="contacts_back">Портал</string>
-    <string name="contacts_search">Ім’я, заклад або посада</string>
+    <string name="contacts_search">Ім’я, прізвище, заклад …</string>
     <string name="contacts_all">Усі</string>
     <string name="contacts_mine">Мій заклад</string>
     <string name="contacts_no_facility">Заклад не призначено</string>

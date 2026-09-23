@@ -3,7 +3,7 @@
     <string name="contacts_title">Contacts</string>
     <string name="contacts_subtitle">Find and contact colleagues</string>
     <string name="contacts_back">Portal</string>
-    <string name="contacts_search">Name, location or role</string>
+    <string name="contacts_search">First name, surname, location …</string>
     <string name="contacts_all">All</string>
     <string name="contacts_mine">My location</string>
     <string name="contacts_no_facility">No location assigned</string>

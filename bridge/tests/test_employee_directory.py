@@ -65,6 +65,31 @@ class DirectoryTest(unittest.TestCase):
         self.assertEqual(self.directory.search("shared", "tablet")["total"], 2)
         self.assertEqual(self.directory.search("shared", "tablet", mine=True)["my_facilities"], ["Zentrale"])
 
+    def test_first_name_alone_and_both_name_orders(self):
+        for query in ("Maria", "maria müller", "Muller MARIA", "mari"):
+            self.assertEqual([e["id"] for e in self.directory.search("one", "personal", query)["results"]], ["one"])
+
+    def test_explicit_first_name_search_independent_of_display_and_email(self):
+        self.data["entries"][0].update(name="Müller, B.", email="b@example.invalid", search_names=["Björn", "Müller"])
+        self.write()
+        for query in ("Björn", "bjorn", "bjo", "bjorn muller", "muller bjorn"):
+            result = self.directory.search("one", "personal", query)
+            self.assertEqual([e["id"] for e in result["results"]], ["one"])
+            self.assertEqual(result["results"][0]["name"], "Müller, B.")
+            self.assertNotIn("search_names", result["results"][0])
+        self.assertEqual(self.directory.search("one", "tablet", "Bjorn", mine=True)["total"], 1)
+        other_house = self.directory.search("one", "personal")["facility_options"][1]["id"]
+        self.assertEqual(self.directory.search("one", "personal", "Bjorn", facility=other_house)["total"], 0)
+        with self.assertRaises(DirectoryDenied):
+            self.directory.search("two", "tablet", "Bjorn")
+
+    def test_invalid_search_names_fail_closed(self):
+        for aliases in ("not-a-list", [None], ["x" * 161], ["a", "b", "c"]):
+            self.data["entries"][0]["search_names"] = aliases
+            self.write()
+            with self.assertRaises(DirectoryUnavailable):
+                self.directory.search("one", "personal", "Maria")
+
     def test_academy_filter_is_not_a_numbered_house_or_a_device_right(self):
         academy = "directory:academy:darmstadt"
         self.data["facilities"][academy] = "Akademie Darmstadt"
@@ -353,6 +378,16 @@ class ExportContractTest(unittest.TestCase):
         user = self.user(displayName="Known Complete Name")
         self.assertEqual(CONTRACT["contact"](user, [])["name"], "Known Complete Name")
         self.assertEqual(CONTRACT["contact"](self.user(), [])["name"], "Test Person")
+
+    def test_search_names_are_explicit_bounded_and_do_not_rename_contact(self):
+        user = self.user(givenName="  Björn  ", sn="Müller", displayName="Müller, B.", homePhone="private", nickname="private")
+        result = CONTRACT["contact"](user, [])
+        self.assertEqual(result["name"], "Müller, B.")
+        self.assertEqual(result["search_names"], ["Björn", "Müller"])
+        self.assertEqual(CONTRACT["contact"](self.user(), [])["search_names"], [])
+        self.assertEqual(CONTRACT["contact"](self.user(givenName="x" * 200), [])["search_names"], ["x" * 160])
+        user.attributes["iam_account_kind"] = "shared"
+        self.assertEqual(CONTRACT["contact"](user, [])["search_names"], [])
 
     def test_function_names_are_not_reinterpreted_as_person_names(self):
         user = self.user(iam_account_kind="shared", iam_directory_class="mailbox", givenName="wb1",

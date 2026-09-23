@@ -85,6 +85,14 @@ Die Antwort enthält `provider=ntfy`, die fest erwartete öffentliche Basis, ein
 
 `calendar_reminder_minutes` akzeptiert ausschließlich `5`, `10`, `15` oder `30`; Standard sind 15 Minuten. Der Wert gilt pro persönlichem Gerät und wird auch auf bereits vorgemerkte, noch nicht zugestellte Termine angewendet. Shared Tablets verwenden serverseitig immer den zentralen Standard von 15 Minuten.
 
+Die Android-App erzwingt den gewählten Umfang zusätzlich unmittelbar vor der
+Anzeige, auch für verspätete Detailantworten. Bei `standard` bleibt eine
+Mailbenachrichtigung auch aufgeklappt auf Absender und Betreff begrenzt. Eine
+Umstellung auf einen kleineren Umfang bereinigt bestehende Kommunikationsmeldungen
+lautlos, ohne Klickziel, Ungelesen-Zähler, Anmeldeanfragen oder die
+Hintergrundverbindung zu entfernen. Beim App-Start werden auch ältere Meldungen
+aus Versionen ohne diese lokale Begrenzung bereinigt.
+
 ## Authentik-Anmeldung in der App bestaetigen
 
 Ein persoenliches Geraet registriert denselben Authentik-geprueften Kommunikationsschluessel unabhaengig vom Pushtransport:
