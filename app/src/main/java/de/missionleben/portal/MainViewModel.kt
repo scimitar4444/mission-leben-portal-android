@@ -78,6 +78,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var dataEncryptionKey: ByteArray? = null
     private var pendingVaultState: String? = null
     private var pendingPushAction: PendingPushAction? = null
+    private var notificationNavigationJob: Job? = null
     private var downloadedUpdateFile: File? = null
     private var automaticUpdateCheckStarted = false
     private var loginApprovalPollingJob: Job? = null
@@ -645,6 +646,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         serializedAuthState = null
         pendingVaultState = null
         pendingPushAction = null
+        notificationNavigationJob?.cancel()
         dataEncryptionKey?.fill(0)
         dataEncryptionKey = null
         vault.clear()
@@ -740,6 +742,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         serializedAuthState = null
         pendingVaultState = null
         pendingPushAction = null
+        notificationNavigationJob?.cancel()
         dataEncryptionKey?.fill(0)
         dataEncryptionKey = null
         vault.clear()
@@ -876,6 +879,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun acceptPushAction(value: String?, eventId: String?) {
         val action = PushAction.fromWireName(value) ?: return
+        notificationNavigationJob?.cancel()
         pendingPushAction = PendingPushAction(
             action = action,
             eventId = eventId?.takeIf(PushCommand::validEventId),
@@ -1302,18 +1306,42 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (application == null) {
             _uiState.update { it.copy(message = string(R.string.message_app_not_approved)) }
         } else {
-            val targetId = NotificationTargetStore(getApplication()).get(pending.eventId, action)
-            val targetUrl = NotificationNavigation.resolve(
-                action = action,
-                targetId = targetId,
-                applicationLaunchUrl = application.launchUrl,
-                zimbraWebBaseUrl = BuildConfig.ZIMBRA_WEB_BASE_URL,
-            )
-            openApplication(
-                url = targetUrl,
-                notificationEventId = pending.eventId,
-                notificationBadgeTarget = NotificationBadgeTarget.fromAction(action),
-            )
+            val deviceId = preferences.deviceId
+            val subject = _uiState.value.user?.subject
+            notificationNavigationJob?.cancel()
+            notificationNavigationJob = viewModelScope.launch {
+                var targetId = NotificationTargetStore(getApplication()).get(pending.eventId, action)
+                // Older app versions did not persist calendar targets. A tap can
+                // also arrive before the background detail job finishes.
+                if (action == PushAction.OPEN_CALENDAR && targetId.isBlank() &&
+                    pending.eventId != null && deviceId != null &&
+                    effectiveNotificationPrivacy(preferences.deviceMode) != NotificationPrivacy.MINIMAL
+                ) {
+                    targetId = try {
+                        deviceService.notificationDetail(pending.eventId, action, deviceId, identity)
+                            .takeUnless { it.isExpired() }?.targetId.orEmpty()
+                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                        throw cancelled
+                    } catch (_: Exception) {
+                        "" // Safe fallback is the calendar overview, never a guessed appointment.
+                    }
+                }
+                if (!isActive || !_uiState.value.signedIn || preferences.deviceId != deviceId ||
+                    _uiState.value.user?.subject != subject ||
+                    _uiState.value.applications.none { it.slug == application.slug && it.launchUrl == application.launchUrl }
+                ) return@launch
+                val targetUrl = NotificationNavigation.resolve(
+                    action = action,
+                    targetId = targetId,
+                    applicationLaunchUrl = application.launchUrl,
+                    zimbraWebBaseUrl = BuildConfig.ZIMBRA_WEB_BASE_URL,
+                )
+                openApplication(
+                    url = targetUrl,
+                    notificationEventId = pending.eventId,
+                    notificationBadgeTarget = NotificationBadgeTarget.fromAction(action),
+                )
+            }
         }
     }
 

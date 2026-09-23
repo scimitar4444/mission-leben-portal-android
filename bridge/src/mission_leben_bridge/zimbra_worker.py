@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .source_client import BridgeSourceClient
+from .calendar_target import calendar_target
 from .zimbra_waitset import (
     ZimbraAppointment,
     ZimbraMessage,
@@ -151,6 +152,12 @@ class ZimbraWorker:
                         self.timezone_name,
                     ),
                     "preview": "",
+                    "target_id": calendar_target(
+                        appointment.invite_id,
+                        appointment.recurrence_id,
+                        appointment.start_millis,
+                        appointment.start_millis + (appointment.duration_millis if appointment.duration_millis > 0 else duration),
+                    ),
                     "display_at": iso_from_millis(appointment.start_millis),
                     "expires_at": iso_from_millis(appointment.start_millis + duration),
                 }

@@ -13,11 +13,45 @@ object NotificationNavigation {
         zimbraWebBaseUrl: String,
     ): String {
         val validated = NotificationDetail.notificationTarget(action, targetId)
+        if (action == PushAction.OPEN_CALENDAR) {
+            val base = trustedZimbraUri(zimbraWebBaseUrl, zimbraWebBaseUrl) ?: return applicationLaunchUrl
+            val target = CalendarNotificationTarget.parse(validated)
+            val path = target?.let { "/modern/calendar/event/details/${it.inviteId}" } ?: "/modern/calendar"
+            val query = target?.let {
+                listOfNotNull(
+                    it.recurrenceId.takeIf(String::isNotBlank)?.let { id -> "utcRecurrenceId=$id" },
+                    "start=${it.startMillis}", "end=${it.endMillis}",
+                ).joinToString("&")
+            }
+            return URI("https", base.rawAuthority, path, query, null).toASCIIString()
+        }
         if (validated.isBlank()) return applicationLaunchUrl
         return when (action) {
             PushAction.OPEN_MAIL -> zimbraMessageUrl(zimbraWebBaseUrl, validated)
             PushAction.OPEN_TALK -> talkRoomUrl(applicationLaunchUrl, validated)
             PushAction.OPEN_CALENDAR, PushAction.REFRESH_SECURITY_STATE -> applicationLaunchUrl
+        }
+    }
+
+    internal fun zimbraCalendarOverviewUrl(targetUrl: String, baseUrl: String): String? {
+        val target = trustedZimbraUri(targetUrl, baseUrl) ?: return null
+        if (!target.path.orEmpty().matches(Regex("/modern/calendar/event/details/[0-9]{1,20}-[0-9]{1,20}/?"))) return null
+        val start = decodedQuery(target.rawQuery).singleOrNull { it.first == "start" }?.second
+            ?.takeIf { it.matches(Regex("[0-9]{13}")) } ?: return null
+        return URI("https", target.rawAuthority, "/modern/calendar/day/$start", null, null).toASCIIString()
+    }
+
+    internal fun isZimbraCalendarOverviewUrl(currentUrl: String, baseUrl: String): Boolean =
+        trustedZimbraUri(currentUrl, baseUrl)?.path.orEmpty()
+            .matches(Regex("/modern/calendar(?:/day/[0-9]{13})?/?"))
+
+    private fun trustedZimbraUri(url: String, baseUrl: String): URI? {
+        val uri = runCatching { URI(url) }.getOrNull() ?: return null
+        val base = runCatching { URI(baseUrl) }.getOrNull() ?: return null
+        return uri.takeIf {
+            it.scheme.equals("https", true) && base.scheme.equals("https", true) &&
+                !it.host.isNullOrBlank() && it.host.equals(base.host, true) &&
+                effectivePort(it) == effectivePort(base) && it.rawUserInfo == null && base.rawUserInfo == null
         }
     }
 

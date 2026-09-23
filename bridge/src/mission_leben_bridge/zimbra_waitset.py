@@ -56,6 +56,8 @@ class ZimbraAppointment:
     duration_millis: int
     subject: str
     location: str
+    invite_id: str = ""
+    recurrence_id: str = ""
 
 
 class ZimbraSoapClient:
@@ -169,6 +171,8 @@ class ZimbraSoapClient:
                         duration_millis=int(instance.attrib.get("dur", str(appointment_duration))),
                         subject=subject,
                         location=location,
+                        invite_id=_local_item_id(instance.attrib.get("invId") or node.attrib.get("invId", ""), account_id),
+                        recurrence_id=instance.attrib.get("ridZ", ""),
                     )
                 )
         return appointments

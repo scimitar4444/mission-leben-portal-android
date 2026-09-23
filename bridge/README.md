@@ -34,6 +34,8 @@ Sie speichert nur die für Kommunikation notwendige Zuordnung eines von Authenti
 - indizierte Zustellwarteschlange für Kalenderhinweise mit 5, 10, 15 oder 30 Minuten Vorlauf pro persönlichem Gerät; Shared Tablets verwenden 15 Minuten
 - deduplizierte Quellereignisse und Versandstatus pro Gerät
 - Zimbra SOAP WaitSet für ausgewählte Konten, Mail-Suche und Kalenderinstanzen
+- Details bereits erfasster Kalenderinstanzen werden beim erneuten Zimbra-Abgleich aktualisiert. Ereignis-ID, individueller Erinnerungsvorlauf und Zustellstatus bleiben erhalten; unveränderte Daten erhöhen die Revision nicht und Änderungen lösen keinen Doppelversand aus. Verschiebungen und Absagen sind damit noch nicht vollständig abgeglichen (siehe Testpunkte unten).
+- Kalender-Ziele enthalten ausschließlich eine mailbox-lokale Einladungs-ID, die originale Wiederholungskennung sowie Beginn/Ende. Die App baut daraus den festen Zimbra-Modern-Details-Link; beliebige URLs oder fremde Kontoqualifizierer sind nicht erlaubt. Ohne gültige Details öffnet sie die Kalenderübersicht. Der Rückweg führt zum Termintag und danach ins Portal.
 - Talk-Handoff-Vertrag mit fest konfigurierten Zielgeräten und maximal 30 Sekunden TTL
 - Authentik-App-Bestätigung über die normale Duo-Stufe und eine eng begrenzte, signierte Duo-Auth-API-Kompatibilität; die eigentliche Bestätigung kommt ausschließlich von einem persönlichen, live bei Authentik geprüften Endpoint
 

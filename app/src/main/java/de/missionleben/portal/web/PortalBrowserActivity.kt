@@ -328,6 +328,8 @@ class PortalBrowserActivity : FragmentActivity() {
                 if (NotificationNavigation.isZimbraMailOverviewUrl(
                         webView.url.orEmpty(),
                         BuildConfig.ZIMBRA_WEB_BASE_URL,
+                    ) || NotificationNavigation.isZimbraCalendarOverviewUrl(
+                        webView.url.orEmpty(), BuildConfig.ZIMBRA_WEB_BASE_URL,
                     )
                 ) {
                     finishApplicationBrowserFromBack()
@@ -706,6 +708,9 @@ class PortalBrowserActivity : FragmentActivity() {
                             putExtra(EXTRA_URL, inbox)
                             putExtra(EXTRA_CONTACT_EMAIL, recipient)
                         } else putExtra(EXTRA_INITIAL_HISTORY_URL, inbox)
+                    }
+                    NotificationNavigation.zimbraCalendarOverviewUrl(url, BuildConfig.ZIMBRA_WEB_BASE_URL)?.let { calendar ->
+                        putExtra(EXTRA_INITIAL_HISTORY_URL, calendar)
                     }
                 }
 

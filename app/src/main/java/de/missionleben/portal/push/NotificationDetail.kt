@@ -47,7 +47,8 @@ data class NotificationDetail(
             val valid = when (action) {
                 PushAction.OPEN_MAIL -> target.matches(Regex("(?:[A-Za-z0-9_-]{1,64}:)?[0-9]{1,20}"))
                 PushAction.OPEN_TALK -> target.matches(Regex("[A-Za-z0-9_-]{4,128}"))
-                PushAction.OPEN_CALENDAR, PushAction.REFRESH_SECURITY_STATE -> false
+                PushAction.OPEN_CALENDAR -> CalendarNotificationTarget.parse(target) != null
+                PushAction.REFRESH_SECURITY_STATE -> false
             }
             return target.takeIf { valid }.orEmpty()
         }

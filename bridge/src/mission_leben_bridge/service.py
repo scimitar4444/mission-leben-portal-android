@@ -8,6 +8,7 @@ from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .authentik import AuthenticationError, AuthentikClient, UserInfo
+from .calendar_target import valid_calendar_target
 from .employee_directory import EmployeeDirectory, DirectoryDenied, DirectoryUnavailable
 from .nextcloud_announcements import AnnouncementFetchError, NextcloudAnnouncementClient
 from .ntfy import NtfyCredentials, NtfyError, NtfyManager, NullNtfyManager
@@ -76,6 +77,10 @@ def _notification_target(event_type: str, value: Any) -> str:
     target_id = str(value or "").strip()
     if not target_id:
         return ""
+    if event_type == "open_calendar":
+        if not valid_calendar_target(target_id):
+            raise ApiError(400, "invalid notification target")
+        return target_id
     pattern = {
         "open_mail": ZIMBRA_ITEM_ID,
         "open_talk": TALK_NOTIFICATION_TARGET,

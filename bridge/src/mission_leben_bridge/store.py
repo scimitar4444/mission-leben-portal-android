@@ -796,6 +796,30 @@ class Store:
                 (event["source"], event["source_event_id"]),
             ).fetchone()
             if existing is not None:
+                # A calendar instance keeps its identity and delivery schedule,
+                # but its details can change (or have been imported by an older
+                # parser). Refresh those details without queuing a second alert.
+                if (
+                    existing["event_type"] == event["event_type"] == "open_calendar"
+                    and existing["subject"] == event["subject"]
+                    and existing["display_at"] == event.get("display_at")
+                ):
+                    fields = ("title", "summary", "preview", "target_id", "expires_at", "expires_epoch")
+                    values = tuple(event.get(field, "" if field == "target_id" else None) for field in fields)
+                    if values != tuple(existing[field] for field in fields):
+                        connection.execute(
+                            """
+                            UPDATE notification_events
+                            SET title = ?, summary = ?, preview = ?, target_id = ?,
+                                expires_at = ?, expires_epoch = ?, revision = revision + 1
+                            WHERE event_id = ?
+                            """,
+                            (*values, existing["event_id"]),
+                        )
+                        existing = connection.execute(
+                            "SELECT * FROM notification_events WHERE event_id = ?",
+                            (existing["event_id"],),
+                        ).fetchone()
                 return dict(existing), False
             connection.execute(
                 """
