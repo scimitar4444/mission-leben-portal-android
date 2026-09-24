@@ -28,6 +28,8 @@ from mission_leben_bridge.store import Store
 
 
 class FakeAuthentik:
+    enrollment_profile = "personal-employee"
+
     def user_info(self, access_token: str) -> UserInfo:
         if access_token != "valid-token":
             raise AssertionError("unexpected test token")
@@ -42,6 +44,12 @@ class FakeAuthentik:
         if agent_token != "valid-agent-token":
             raise AssertionError("unexpected agent token")
         return "11111111-1111-1111-1111-111111111111"
+
+    def device_status(self, agent_token: str) -> dict:
+        return {
+            "device_id": self.device_id(agent_token),
+            "enrollment_profile": self.enrollment_profile,
+        }
 
 
 class FakeNtfy:
@@ -668,6 +676,28 @@ class ServiceTest(unittest.TestCase):
         self.assertTrue(repeated["applied"])
         self.assertEqual(0, repeated["registrations"])
         self.assertEqual(0, repeated["events"])
+
+    def test_group_handset_cannot_register_login_approval(self) -> None:
+        self.service.authentik.enrollment_profile = "shared-account-handset"
+        public_numbers = ec.generate_private_key(ec.SECP256R1()).public_key().public_numbers()
+        jwk = {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": base64url_encode(public_numbers.x.to_bytes(32, "big")),
+            "y": base64url_encode(public_numbers.y.to_bytes(32, "big")),
+        }
+        jwk["kid"] = device_key_id(jwk)
+        with self.assertRaisesRegex(Exception, "cannot approve logins"):
+            self.service.register_auth_channel(
+                "11111111-1111-1111-1111-111111111111",
+                "valid-token",
+                {
+                    "authentik_device_token": "valid-agent-token",
+                    "mode": "personal",
+                    "key_id": jwk["kid"],
+                    "public_key_jwk": jwk,
+                },
+            )
 
     def test_foreground_login_approval_is_device_signed_and_one_time(self) -> None:
         private_key = ec.generate_private_key(ec.SECP256R1())

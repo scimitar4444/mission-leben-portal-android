@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Gruppenkonto auswählen{% endblock %}
+{% block content %}
+<a class="back" href="/">← Zurück</a>
+<section class="intro">
+  <span class="step">Schritt 2 von 3 · nur IT</span>
+  <h1>Welches Gruppenkonto gehört auf das Diensthandy?</h1>
+  <p>Geben Sie mindestens zwei Buchstaben des Kontonamens ein.</p>
+</section>
+<form class="search" method="get" action="/handset">
+  <label for="q">Gruppenkonto suchen</label>
+  <div class="search-row">
+    <input id="q" name="q" value="{{ query }}" minlength="2" maxlength="80" autocomplete="off" autofocus required>
+    <button type="submit">Suchen</button>
+  </div>
+</form>
+{% if query and not accounts %}
+<div class="notice">Kein geeignetes aktives Gruppenkonto gefunden.</div>
+{% endif %}
+{% if accounts %}
+<section class="results" aria-label="Suchergebnisse">
+  {% for account in accounts %}
+  <form method="post" action="/handset/enrollments" class="person-row">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="account_pk" value="{{ account.pk }}">
+    <span>
+      <strong>{{ account.name or account.username }}</strong>
+      <small>{{ account.username }}</small>
+      <small>Die Nutzung auf einem Tablet muss bei Bedarf organisatorisch beendet werden. Bestehende Anmeldungen verschwinden nicht automatisch.</small>
+      <label><input type="checkbox" name="company_owned" value="true" required> Ich bestätige: Dies ist ein dienstliches Handy.</label>
+    </span>
+    <button type="submit">Diensthandy einrichten</button>
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

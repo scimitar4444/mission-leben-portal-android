@@ -9,8 +9,16 @@ from fastapi.testclient import TestClient
 
 from mission_leben_device_enrollment.app import create_app
 from mission_leben_device_enrollment.auth import Actor, CsrfProtector, Role
-from mission_leben_device_enrollment.authentik import AuthentikError
-from mission_leben_device_enrollment.service import EnrollmentService
+from mission_leben_device_enrollment.authentik import (
+    AuthentikError,
+    is_real_facility,
+    is_shared_handset_account,
+)
+from mission_leben_device_enrollment.service import (
+    HANDSET_PROFILE_ATTRIBUTE,
+    PENDING_ENROLLMENT_ATTRIBUTE,
+    EnrollmentService,
+)
 
 
 class FakeAuthentik:
@@ -38,14 +46,24 @@ class FakeAuthentik:
             "name": "Maria Beispiel",
             "is_active": True,
             "type": "internal",
+            "attributes": {
+                "iam_account_kind": "person",
+                "iam_directory_class": "person",
+            },
             "groups_obj": [
                 {
                     "pk": "bbbbbbbb-bbbb-cccc-dddd-eeeeeeeeeeee",
                     "name": "ORG_ML_H042",
-                    "attributes": {"iam_group_type": "organization_house"},
+                    "attributes": {
+                        "iam_group_type": "organization_unit",
+                        "iam_managed": True,
+                        "iam_plan_status": "AKTIV",
+                        "iam_org_level": "Einrichtung",
+                    },
                 }
             ],
         }
+        self.organizations = list(self.user["groups_obj"])
         self.token_record = {
             "token_uuid": "cccccccc-bbbb-cccc-dddd-eeeeeeeeeeee",
             "connector": settings.agent_connector_uuid,
@@ -69,9 +87,20 @@ class FakeAuthentik:
         return None
 
     def _is_organization(self, group):
-        return group.get("name", "").startswith("ORG_") and group.get("attributes", {}).get(
-            "iam_group_type"
-        ) in {"organization_house", "organization_unit"}
+        return is_real_facility(group, self.settings.organization_scope_prefix)
+
+    async def organization_groups(self, names=None):
+        return [
+            group
+            for group in self.organizations
+            if self._is_organization(group) and (names is None or group["name"] in names)
+        ]
+
+    async def organization_group(self, group_uuid):
+        for group in self.organizations:
+            if group["pk"] == group_uuid and self._is_organization(group):
+                return group
+        raise AuthentikError(400, "Die gewählte Gruppe ist keine freigegebene Einrichtung.")
 
     async def employee(self, user_pk):
         assert user_pk == self.user["pk"]
@@ -83,6 +112,12 @@ class FakeAuthentik:
 
     async def employee_by_username(self, username):
         assert username == self.user["username"]
+        return self.user
+
+    async def shared_handset_account(self, user_pk):
+        assert user_pk == self.user["pk"]
+        if not is_shared_handset_account(self.user):
+            raise AuthentikError(403, "Dieses Gruppenkonto ist nicht freigegeben.")
         return self.user
 
     async def access_group_by_name(self, _):
@@ -150,7 +185,9 @@ class FakeAuthentik:
         self.disabled_devices.append(device_uuid)
         return device
 
-    async def update_device_assignment(self, device_uuid, display_name, mode, assigned_to):
+    async def update_device_assignment(
+        self, device_uuid, display_name, mode, assigned_to, *, handset_profile=None
+    ):
         device = await self.device(device_uuid)
         device["name"] = display_name
         device["attributes"] = {
@@ -162,6 +199,9 @@ class FakeAuthentik:
             ),
             "mission-leben.de/assigned-to": assigned_to,
         }
+        if handset_profile is not None:
+            device["attributes"][HANDSET_PROFILE_ATTRIBUTE] = handset_profile
+            device["attributes"]["mission-leben.de/device-ownership"] = "company"
         self.updated_device_assignments.append(
             (device_uuid, display_name, mode, assigned_to)
         )
@@ -231,7 +271,195 @@ class FakeAuthentik:
 
 def actor(role=Role.EL, organizations=frozenset({"ORG_ML_H042"})):
     roles = frozenset() if role is None else frozenset({role})
-    return Actor("actor-id", "leitung.test", "Leitung Test", roles, organizations)
+    effective_groups = frozenset({"BR_IT_MANAGEMENT"}) if role == Role.IT else frozenset()
+    return Actor("actor-id", "leitung.test", "Leitung Test", roles, organizations, effective_groups)
+
+
+def organization(pk, name, level="Einrichtung"):
+    return {
+        "pk": pk,
+        "name": name,
+        "attributes": {
+            "iam_group_type": "organization_unit",
+            "iam_managed": True,
+            "iam_plan_status": "AKTIV",
+            "iam_org_level": level,
+        },
+    }
+
+
+@pytest.mark.asyncio
+async def test_shared_handset_preflight_is_it_only_and_does_not_issue_a_token(settings):
+    authentik = FakeAuthentik(settings)
+    calls = []
+
+    async def candidates(search):
+        calls.append(("search", search))
+        return [{"pk": 17, "username": "team.example"}]
+
+    async def target(user_pk):
+        calls.append(("target", user_pk))
+        return {"pk": 17, "username": "team.example"}
+
+    authentik.shared_handset_accounts = candidates
+    authentik.shared_handset_account = target
+    service = EnrollmentService(settings, authentik)
+
+    for role in (Role.EL, Role.PDL):
+        with pytest.raises(AuthentikError) as error:
+            await service.shared_handset_accounts_for(actor(role), "team")
+        assert error.value.status == 403
+        with pytest.raises(AuthentikError) as error:
+            await service.shared_handset_account_for(actor(role), 17)
+        assert error.value.status == 403
+
+    mapped_it_without_canonical_group = Actor(
+        "actor-id", "other.it", "Other IT", frozenset({Role.IT}), frozenset(), frozenset({"BR_OTHER"})
+    )
+    with pytest.raises(AuthentikError) as error:
+        await service.shared_handset_accounts_for(mapped_it_without_canonical_group, "team")
+    assert error.value.status == 403
+
+    it = actor(Role.IT)
+    assert (await service.shared_handset_accounts_for(it, "team"))[0]["pk"] == 17
+    assert (await service.shared_handset_account_for(it, 17))["username"] == "team.example"
+    assert calls == [("search", "team"), ("target", 17)]
+    assert authentik.created_groups == []
+    assert authentik.created_bindings == []
+    assert authentik.audit_events == []
+
+
+@pytest.mark.asyncio
+async def test_it_enrolls_one_company_handset_for_interactive_shared_mailbox(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.user["username"] = "haus042"
+    authentik.user["attributes"] = {
+        "iam_account_kind": "shared",
+        "iam_directory_class": "mailbox",
+        "iam_interactive_login_allowed": True,
+        "iam_noninteractive_account": False,
+    }
+    service = EnrollmentService(settings, authentik)
+
+    for enrolling_actor, owned in ((actor(Role.EL), True), (actor(Role.PDL), True), (actor(Role.IT), False)):
+        with pytest.raises(AuthentikError) as error:
+            await service.issue_shared_handset(enrolling_actor, 42, company_owned=owned)
+        assert error.value.status in {400, 403}
+    assert authentik.created_groups == []
+
+    issued = await service.issue_shared_handset(actor(Role.IT), 42, company_owned=True)
+    assert issued.mode == "personal"
+    assert authentik.created_groups[0]["name"] == "Mission Leben Android - Personal - haus042"
+    assert authentik.existing_group["attributes"][HANDSET_PROFILE_ATTRIBUTE] == "shared-account"
+    assert authentik.existing_group["attributes"]["mission-leben.de/device-ownership"] == "company"
+    assert authentik.created_bindings == [("user", authentik.token_record["device_group"], 42)]
+    assert authentik.login_approval_devices == []
+
+    authentik.token_record["device_group_obj"] = authentik.existing_group
+    authentik._bindings = [{
+        "enabled": True, "negate": False, "policy": None, "user": 42, "group": None,
+    }]
+    result = await service.redeem(
+        authentik.token_record["token_uuid"],
+        "abcdefghijklmnopqrstuvwxyz0123456789_-",
+        "personal",
+        "ml-android-1234567890abcdef",
+        "Samsung Diensthandy",
+        profile_supported=True,
+    )
+    assert result["enrollment_profile"] == "shared-account-handset"
+    assert authentik.device_records[-1]["attributes"][HANDSET_PROFILE_ATTRIBUTE] == "shared-account"
+    assert authentik.device_records[-1]["attributes"]["mission-leben.de/device-ownership"] == "company"
+    assert await service.device_status("agent-device-token") == {
+        "device_id": authentik.device_uuid,
+        "trusted": True,
+        "enrollment_profile": "shared-account-handset",
+    }
+    authentik.device_records.append({
+        "device_uuid": "ffffffff-bbbb-cccc-dddd-eeeeeeeeeeee",
+        "name": "Zweites Handy",
+        "access_group": authentik.token_record["device_group"],
+        "expiring": False,
+        "expires": None,
+        "attributes": {"mission-leben.de/status": "active"},
+    })
+    with pytest.raises(AuthentikError) as error:
+        await service.device_status("agent-device-token")
+    assert error.value.status == 403
+
+
+@pytest.mark.asyncio
+async def test_el_sees_all_own_real_facilities_but_not_a_subgroup(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.organizations = [
+        organization("10000000-bbbb-cccc-dddd-eeeeeeeeeeee", "ORG_ML_H015"),
+        organization("20000000-bbbb-cccc-dddd-eeeeeeeeeeee", "ORG_ML_H016"),
+        organization(
+            "30000000-bbbb-cccc-dddd-eeeeeeeeeeee",
+            "ORG_ML_H031_01",
+            "Einrichtung/Teilbetrieb",
+        ),
+    ]
+    current = actor(
+        organizations=frozenset({"ORG_ML_H015", "ORG_ML_H016", "ORG_ML_H031_01"})
+    )
+
+    groups = await EnrollmentService(settings, authentik).organizations_for(current)
+
+    assert [group["name"] for group in groups] == ["ORG_ML_H015", "ORG_ML_H016"]
+
+
+@pytest.mark.asyncio
+async def test_it_sees_only_real_facilities(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.organizations = [
+        organization("10000000-bbbb-cccc-dddd-eeeeeeeeeeee", "ORG_ML_H001", "Geschäftseinheit/Standort"),
+        organization("20000000-bbbb-cccc-dddd-eeeeeeeeeeee", "ORG_ML_H042"),
+        organization("30000000-bbbb-cccc-dddd-eeeeeeeeeeee", "ORG_ML_ZD_IT", "Teilbereich"),
+    ]
+
+    groups = await EnrollmentService(settings, authentik).organizations_for(
+        actor(Role.IT, frozenset())
+    )
+
+    assert [group["name"] for group in groups] == ["ORG_ML_H001", "ORG_ML_H042"]
+
+
+@pytest.mark.asyncio
+async def test_shared_tablet_binds_exactly_one_revalidated_facility(settings):
+    authentik = FakeAuthentik(settings)
+
+    issued = await EnrollmentService(settings, authentik).issue_shared(
+        actor(),
+        authentik.organizations[0]["pk"],
+        "Wohnbereich 1",
+    )
+
+    assert issued.mode == "shared"
+    assert authentik.created_groups[0]["name"] == (
+        "Mission Leben Android - Shared - ORG_ML_H042"
+    )
+    assert authentik.created_groups[0]["attributes"]["mission-leben.de/facility-group"] == (
+        "ORG_ML_H042"
+    )
+    assert authentik.created_bindings == [
+        ("group", "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee", authentik.organizations[0]["pk"])
+    ]
+
+
+@pytest.mark.asyncio
+async def test_scoped_initializer_cannot_select_another_facility(settings):
+    authentik = FakeAuthentik(settings)
+
+    with pytest.raises(AuthentikError) as error:
+        await EnrollmentService(settings, authentik).issue_shared(
+            actor(organizations=frozenset({"ORG_ML_H015"})),
+            authentik.organizations[0]["pk"],
+            "Wohnbereich 1",
+        )
+
+    assert error.value.status == 403
+    assert authentik.created_groups == []
 
 
 @pytest.mark.asyncio
@@ -239,8 +467,10 @@ async def test_personal_enrollment_is_bound_before_qr_is_issued(settings):
     authentik = FakeAuthentik(settings)
     service = EnrollmentService(settings, authentik)
 
+    issued_at = datetime.now(UTC)
     issued = await service.issue_personal(actor(), 42)
 
+    assert timedelta(minutes=30) <= issued.expires - issued_at < timedelta(minutes=30, seconds=5)
     assert authentik.created_groups[0]["name"] == (
         "Mission Leben Android - Personal - m.beispiel"
     )
@@ -251,6 +481,12 @@ async def test_personal_enrollment_is_bound_before_qr_is_issued(settings):
     assert authentik.login_approval_devices == [
         (authentik.user["username"], authentik.user["uid"])
     ]
+    pending_until = datetime.fromisoformat(
+        authentik.existing_group["attributes"][PENDING_ENROLLMENT_ATTRIBUTE].replace(
+            "Z", "+00:00"
+        )
+    )
+    assert pending_until > datetime.now(UTC)
     assert "token_id=" in issued.deep_link()
     assert "mode=personal" in issued.deep_link()
     assert issued.install_link(settings.public_origin).startswith(
@@ -260,6 +496,14 @@ async def test_personal_enrollment_is_bound_before_qr_is_issued(settings):
     assert split_install_link.query == ""
     assert "token=abcdefghijklmnopqrstuvwxyz0123456789_-" in split_install_link.fragment
     assert authentik.audit_events[0][0] == "model_created"
+
+
+def test_enrollment_lifetime_is_bounded_to_thirty_minutes(settings):
+    assert settings.token_ttl_seconds == 1800
+    replace(settings, token_ttl_seconds=120).validate()
+    replace(settings, token_ttl_seconds=1800).validate()
+    with pytest.raises(RuntimeError, match="between 120 and 1800"):
+        replace(settings, token_ttl_seconds=1801).validate()
 
 
 @pytest.mark.asyncio
@@ -336,6 +580,9 @@ async def test_existing_unexpected_binding_fails_closed(settings):
 @pytest.mark.asyncio
 async def test_redeem_enrolls_in_authentik_and_deletes_token(settings):
     authentik = FakeAuthentik(settings)
+    authentik.token_record["device_group_obj"]["attributes"][
+        PENDING_ENROLLMENT_ATTRIBUTE
+    ] = (datetime.now(UTC) + timedelta(minutes=5)).isoformat()
     service = EnrollmentService(settings, authentik)
     result = await service.redeem(
         authentik.token_record["token_uuid"],
@@ -345,7 +592,10 @@ async def test_redeem_enrolls_in_authentik_and_deletes_token(settings):
         "TCL T807D (12345678)",
     )
 
-    assert result == {"token": "agent-device-token"}
+    assert result == {
+        "token": "agent-device-token",
+        "enrollment_profile": "personal-employee",
+    }
     assert authentik.deleted_tokens == [authentik.token_record["token_uuid"]]
     assert authentik.enrolled[0][1]["device_serial"] == "ml-android-1234567890abcdef"
     assert authentik.enrolled[0][1]["device_name"] == "TCL T807D (12345678) · m.beispiel"
@@ -358,7 +608,29 @@ async def test_redeem_enrolls_in_authentik_and_deletes_token(settings):
         )
     ]
     assert authentik.device_records[-1]["attributes"]["mission-leben.de/assigned-to"] == "m.beispiel"
+    assert PENDING_ENROLLMENT_ATTRIBUTE not in authentik.existing_group["attributes"]
     assert authentik.audit_events[-1][0] == "model_updated"
+
+
+@pytest.mark.asyncio
+async def test_special_handset_token_is_rejected_before_agent_enrollment(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.token_record["device_group_obj"]["attributes"][HANDSET_PROFILE_ATTRIBUTE] = (
+        "shared-account"
+    )
+    service = EnrollmentService(settings, authentik)
+
+    with pytest.raises(AuthentikError) as error:
+        await service.redeem(
+            authentik.token_record["token_uuid"],
+            "abcdefghijklmnopqrstuvwxyz0123456789_-",
+            "personal",
+            "ml-android-1234567890abcdef",
+            "Diensthandy",
+        )
+    assert error.value.status == 403
+    assert authentik.enrolled == []
+    assert authentik.deleted_tokens == []
 
 
 @pytest.mark.asyncio
@@ -379,7 +651,10 @@ async def test_shared_redeem_is_labeled_with_its_organization(settings):
         "Samsung Tablet (12345678)",
     )
 
-    assert result == {"token": "agent-device-token"}
+    assert result == {
+        "token": "agent-device-token",
+        "enrollment_profile": "facility-tablet",
+    }
     assert authentik.enrolled[0][1]["device_name"] == (
         "Samsung Tablet (12345678) · ORG_ML_H042"
     )
@@ -584,7 +859,15 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
         assert response.status_code == 200
         assert "Ein QR-Code für Installation und Einrichtung" in response.text
         assert "<svg" in response.text
-        assert "abcdefghijklmnopqrstuvwxyz0123456789_-" not in response.text
+        assert 'id="copy-enrollment-link"' in response.text
+        assert 'data-link="https://geraete.example.org/install#token=' in response.text
+        assert response.text.count("abcdefghijklmnopqrstuvwxyz0123456789_-") == 1
+        assert 'src="/static/copy-enrollment.js"' in response.text
+        assert "script-src 'self'" in response.headers["content-security-policy"]
+        assert response.headers["cache-control"] == "no-store"
+        copy_script = client.get("/static/copy-enrollment.js")
+        assert copy_script.status_code == 200
+        assert "navigator.clipboard.writeText" in copy_script.text
 
         installer = client.get("/install#fragment-is-not-sent")
         assert installer.status_code == 200
@@ -651,7 +934,21 @@ def test_device_status_reads_live_authentik_device_state(settings):
             headers={"authorization": "Bearer+Agent abcdefghijklmnopqrstuvwxyz0123456789_-"},
         )
         assert active.status_code == 200
-        assert active.json() == {"device_id": authentik.device_uuid, "trusted": True}
+        assert active.json() == {
+            "device_id": authentik.device_uuid,
+            "trusted": True,
+            "enrollment_profile": "personal-employee",
+        }
+
+        authentik.token_record["device_group_obj"]["attributes"][HANDSET_PROFILE_ATTRIBUTE] = (
+            "shared-account"
+        )
+        not_released = client.get(
+            "/api/v1/devices/status",
+            headers={"authorization": "Bearer+Agent abcdefghijklmnopqrstuvwxyz0123456789_-"},
+        )
+        assert not_released.status_code == 403
+        authentik.token_record["device_group_obj"]["attributes"].pop(HANDSET_PROFILE_ATTRIBUTE)
 
         authentik.device_records[0]["attributes"]["mission-leben.de/status"] = "disabled"
         disabled = client.get(
@@ -660,6 +957,34 @@ def test_device_status_reads_live_authentik_device_state(settings):
         )
         assert disabled.status_code == 403
         assert disabled.json() == {"error": "Das Gerät ist deaktiviert oder abgelaufen."}
+
+
+def test_device_status_rejects_marked_shared_access_group(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.token_record["device_group_obj"]["attributes"] = {
+        "mission-leben.de/purpose": "android-portal",
+        "mission-leben.de/mode": "shared",
+        HANDSET_PROFILE_ATTRIBUTE: "shared-account",
+    }
+    authentik.device_records.append(
+        {
+            "device_uuid": authentik.device_uuid,
+            "name": "Testtablet",
+            "access_group": authentik.token_record["device_group"],
+            "expiring": False,
+            "expires": None,
+            "attributes": {"mission-leben.de/status": "active"},
+        }
+    )
+    app = create_app(settings, authentik)
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/devices/status",
+            headers={"authorization": "Bearer+Agent abcdefghijklmnopqrstuvwxyz0123456789_-"},
+        )
+        assert response.status_code == 403
+        assert "kein Diensthandy-Profil" in response.json()["error"]
 
 
 def test_device_status_rejects_inactive_bound_user(settings):
@@ -698,6 +1023,46 @@ def test_device_status_rejects_inactive_bound_user(settings):
 
     assert response.status_code == 403
     assert response.json() == {"error": "Der zugeordnete Mitarbeiter ist deaktiviert."}
+
+
+def test_device_status_rejects_non_personal_bound_account(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.token_record["device_group_obj"]["attributes"] = {
+        "mission-leben.de/purpose": "android-portal",
+        "mission-leben.de/mode": "personal",
+    }
+    authentik._bindings = [
+        {
+            "enabled": True,
+            "negate": False,
+            "policy": None,
+            "user": authentik.user["pk"],
+            "group": None,
+        }
+    ]
+    authentik.user["attributes"]["iam_account_kind"] = "shared"
+    authentik.device_records.append(
+        {
+            "device_uuid": authentik.device_uuid,
+            "name": "Testgerät",
+            "access_group": authentik.token_record["device_group"],
+            "expiring": False,
+            "expires": None,
+            "attributes": {"mission-leben.de/status": "active"},
+        }
+    )
+    app = create_app(settings, authentik)
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/devices/status",
+            headers={"authorization": "Bearer+Agent abcdefghijklmnopqrstuvwxyz0123456789_-"},
+        )
+
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": "Das zugeordnete Konto passt nicht zum Gerätetyp."
+    }
 
 
 def test_device_status_rejects_ambiguous_personal_binding(settings):
@@ -792,9 +1157,18 @@ def test_normal_employee_can_only_create_own_enrollment(settings):
         page = client.get("/self", headers=headers)
         assert page.status_code == 200
         assert "Dieses Gerät registrieren" in page.text
+        assert "30 Minuten gültig" in page.text
 
         management = client.get("/", headers=headers)
         assert management.status_code == 403
+
+        forbidden_qr = client.post(
+            "/personal/enrollments",
+            headers={**headers, "origin": settings.public_origin},
+            data={"employee_pk": "42", "csrf_token": csrf_token},
+        )
+        assert forbidden_qr.status_code == 403
+        assert "copy-enrollment-link" not in forbidden_qr.text
 
         response = client.post(
             "/self/enrollments",

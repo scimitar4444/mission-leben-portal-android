@@ -78,7 +78,7 @@ class AuthentikClient:
             nextcloud_user_id=str(payload.get("nextcloud_uid") or "").strip(),
         )
 
-    def device_id(self, agent_token: str) -> str:
+    def device_status(self, agent_token: str) -> dict:
         if not agent_token:
             raise AuthenticationError("missing Authentik device token")
         request = urllib.request.Request(
@@ -102,4 +102,7 @@ class AuthentikClient:
         device_id = str(payload.get("device_id", "")).strip()
         if not device_id:
             raise AuthenticationError("Authentik device status contains no device id")
-        return device_id
+        return payload
+
+    def device_id(self, agent_token: str) -> str:
+        return str(self.device_status(agent_token)["device_id"])

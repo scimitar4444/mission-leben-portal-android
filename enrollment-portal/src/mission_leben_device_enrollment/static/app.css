@@ -110,6 +110,9 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .qr svg { width: 100%; height: auto; }
 .qr-card ol { margin: 22px auto; max-width: 480px; padding-left: 28px; text-align: left; line-height: 1.8; }
 .expiry { padding: 14px; border-radius: 12px; background: #f1e7ec; color: var(--berry); font-weight: 700; }
+.copy-enrollment { margin-top: 18px; }
+.copy-enrollment button { width: 100%; }
+.copy-enrollment p { margin: 9px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.4; }
 .actions { display: flex; justify-content: center; margin-top: 22px; }
 .error-card { max-width: 620px; margin: 40px auto; text-align: center; }
 .error-symbol { display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; background: #fde8e8; color: #a11e2b; font-size: 2rem; font-weight: 900; }

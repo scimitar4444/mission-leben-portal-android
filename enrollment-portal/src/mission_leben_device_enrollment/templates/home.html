@@ -19,6 +19,14 @@
     <span>Mehrere Beschäftigte einer Einrichtung verwenden dieses Tablet.</span>
     <b>Auswählen →</b>
   </a>
+  {% if actor.can_initialize_shared_handset %}
+  <a class="choice-card" href="/handset">
+    <span class="choice-icon" aria-hidden="true">📱</span>
+    <strong>Diensthandy mit Gruppenkonto</strong>
+    <span>Nur für IT: ein gemeinsames Konto direkt an ein dienstliches Handy binden.</span>
+    <b>Auswählen →</b>
+  </a>
+  {% endif %}
 </section>
 <section class="download-card" aria-labelledby="app-download-title">
   <div class="download-copy">

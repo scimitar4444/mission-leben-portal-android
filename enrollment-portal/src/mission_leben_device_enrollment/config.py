@@ -14,11 +14,6 @@ DEFAULT_APK_DOWNLOAD_URL = (
 )
 
 DEFAULT_ROLE_IT_GROUPS = ("BR_IT_MANAGEMENT",)
-DEFAULT_ROLE_CENTRAL_GROUPS = (
-    "BR_GESCHAEFTSBEREICHSLEITUNG",
-    "BR_GESCHAEFTSEINHEITSLEITUNG",
-    "BR_ABTEILUNGSLEITUNG",
-)
 DEFAULT_ROLE_EL_GROUPS = ("BR_EINRICHTUNGSLEITUNG",)
 DEFAULT_ROLE_PDL_GROUPS = ("BR_PFLEGEDIENSTLEITUNG",)
 
@@ -55,13 +50,11 @@ class Settings:
     csrf_secret: str
     app_approval_stage_uuid: str | None = None
     role_it_groups: tuple[str, ...] = DEFAULT_ROLE_IT_GROUPS
-    role_central_groups: tuple[str, ...] = DEFAULT_ROLE_CENTRAL_GROUPS
     role_el_groups: tuple[str, ...] = DEFAULT_ROLE_EL_GROUPS
     role_pdl_groups: tuple[str, ...] = DEFAULT_ROLE_PDL_GROUPS
     organization_group_prefix: str = "ORG_"
     organization_scope_prefix: str = "ORG_ML_H"
-    central_organization_group: str = "ORG_ML_H001"
-    token_ttl_seconds: int = 600
+    token_ttl_seconds: int = 1800
     display_timezone: str = "Europe/Berlin"
     apk_download_url: str = DEFAULT_APK_DOWNLOAD_URL
     android_cert_sha256_fingerprints: tuple[str, ...] = ()
@@ -81,9 +74,6 @@ class Settings:
                 os.environ.get("ML_ENROLL_APP_APPROVAL_STAGE_UUID", "").strip() or None
             ),
             role_it_groups=_group_names("ML_ENROLL_ROLE_IT_GROUPS", DEFAULT_ROLE_IT_GROUPS),
-            role_central_groups=_group_names(
-                "ML_ENROLL_ROLE_CENTRAL_GROUPS", DEFAULT_ROLE_CENTRAL_GROUPS
-            ),
             role_el_groups=_group_names("ML_ENROLL_ROLE_EL_GROUPS", DEFAULT_ROLE_EL_GROUPS),
             role_pdl_groups=_group_names(
                 "ML_ENROLL_ROLE_PDL_GROUPS", DEFAULT_ROLE_PDL_GROUPS
@@ -92,10 +82,7 @@ class Settings:
             organization_scope_prefix=os.environ.get(
                 "ML_ENROLL_ORG_SCOPE_PREFIX", "ORG_ML_H"
             ).strip(),
-            central_organization_group=os.environ.get(
-                "ML_ENROLL_CENTRAL_ORG_GROUP", "ORG_ML_H001"
-            ).strip(),
-            token_ttl_seconds=int(os.environ.get("ML_ENROLL_TOKEN_TTL_SECONDS", "600")),
+            token_ttl_seconds=int(os.environ.get("ML_ENROLL_TOKEN_TTL_SECONDS", "1800")),
             display_timezone=os.environ.get("ML_ENROLL_DISPLAY_TIMEZONE", "Europe/Berlin").strip(),
             apk_download_url=os.environ.get(
                 "ML_ENROLL_APK_DOWNLOAD_URL", DEFAULT_APK_DOWNLOAD_URL
@@ -140,8 +127,8 @@ class Settings:
                 UUID(self.app_approval_stage_uuid)
             except ValueError as error:
                 raise RuntimeError("ML_ENROLL_APP_APPROVAL_STAGE_UUID must be a UUID") from error
-        if not 120 <= self.token_ttl_seconds <= 600:
-            raise RuntimeError("ML_ENROLL_TOKEN_TTL_SECONDS must be between 120 and 600")
+        if not 120 <= self.token_ttl_seconds <= 1800:
+            raise RuntimeError("ML_ENROLL_TOKEN_TTL_SECONDS must be between 120 and 1800")
         for fingerprint in self.android_cert_sha256_fingerprints:
             compact = fingerprint.replace(":", "")
             if len(compact) != 64 or any(
@@ -156,7 +143,6 @@ class Settings:
             raise RuntimeError("ML_ENROLL_DISPLAY_TIMEZONE is invalid") from error
         configured_role_groups = (
             self.role_it_groups,
-            self.role_central_groups,
             self.role_el_groups,
             self.role_pdl_groups,
         )
@@ -169,5 +155,3 @@ class Settings:
             raise RuntimeError("Enrollment role group names must be unique")
         if not self.organization_scope_prefix.startswith(self.organization_group_prefix):
             raise RuntimeError("The organization scope prefix must be inside the ORG namespace")
-        if not self.central_organization_group.startswith(self.organization_scope_prefix):
-            raise RuntimeError("The central organization must be inside the managed ORG scope")

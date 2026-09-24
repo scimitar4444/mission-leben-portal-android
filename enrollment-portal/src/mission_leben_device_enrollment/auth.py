@@ -15,7 +15,6 @@ from .config import Settings
 
 class Role(str, Enum):
     IT = "it"
-    CENTRAL = "central"
     EL = "el"
     PDL = "pdl"
 
@@ -27,10 +26,17 @@ class Actor:
     display_name: str
     roles: frozenset[Role]
     organization_names: frozenset[str]
+    effective_group_names: frozenset[str] = frozenset()
 
     @property
     def has_global_scope(self) -> bool:
         return Role.IT in self.roles
+
+    @property
+    def can_initialize_shared_handset(self) -> bool:
+        # This new privilege is intentionally narrower than configurable IT
+        # scope used by the existing personal/tablet initialization paths.
+        return Role.IT in self.roles and "BR_IT_MANAGEMENT" in self.effective_group_names
 
     @property
     def can_manage_devices(self) -> bool:
@@ -38,7 +44,7 @@ class Actor:
 
     @property
     def role(self) -> Role | None:
-        for candidate in (Role.IT, Role.CENTRAL, Role.EL, Role.PDL):
+        for candidate in (Role.IT, Role.EL, Role.PDL):
             if candidate in self.roles:
                 return candidate
         return None
@@ -47,7 +53,6 @@ class Actor:
     def role_label(self) -> str:
         labels = {
             Role.IT: "IT",
-            Role.CENTRAL: "Leitung Zentrale",
             Role.EL: "EL",
             Role.PDL: "PDL",
         }
@@ -78,7 +83,6 @@ def authenticated_actor_from_request(request: Request, settings: Settings) -> Ac
     )
     role_groups = (
         (settings.role_it_groups, Role.IT),
-        (settings.role_central_groups, Role.CENTRAL),
         (settings.role_el_groups, Role.EL),
         (settings.role_pdl_groups, Role.PDL),
     )
@@ -86,17 +90,12 @@ def authenticated_actor_from_request(request: Request, settings: Settings) -> Ac
         role for configured_groups, role in role_groups if groups.intersection(configured_groups)
     )
     scope_pattern = re.compile(
-        rf"^{re.escape(settings.organization_scope_prefix)}[0-9]{{3}}(?:_[A-Z0-9]+)*$"
+        rf"^{re.escape(settings.organization_scope_prefix)}[0-9]{{3}}(?:_[0-9]{{2}})?$"
     )
     scoped_organizations = {name for name in groups if scope_pattern.fullmatch(name)}
     organizations: set[str] = set()
     if Role.EL in roles or Role.PDL in roles:
         organizations.update(scoped_organizations)
-    if (
-        Role.CENTRAL in roles
-        and settings.central_organization_group in scoped_organizations
-    ):
-        organizations.add(settings.central_organization_group)
     return Actor(
         uid=uid,
         username=username,
@@ -106,6 +105,7 @@ def authenticated_actor_from_request(request: Request, settings: Settings) -> Ac
         or username,
         roles=roles,
         organization_names=frozenset(organizations),
+        effective_group_names=groups,
     )
 
 

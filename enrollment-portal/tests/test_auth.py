@@ -47,43 +47,43 @@ def test_recognizes_only_configured_operational_roles(settings, role_group, expe
 
 
 @pytest.mark.parametrize(
-    "role_group",
+    "groups",
     [
-        "BR_GESCHAEFTSBEREICHSLEITUNG",
-        "BR_GESCHAEFTSEINHEITSLEITUNG",
-        "BR_ABTEILUNGSLEITUNG",
+        "BR_GESCHAEFTSBEREICHSLEITUNG|ORG_ML_H001",
+        "BR_GESCHAEFTSEINHEITSLEITUNG|ORG_ML_H001",
+        "BR_ABTEILUNGSLEITUNG|ORG_ML_H001",
+        "BR_GESCHAEFTSFUEHRUNG|ORG_ML_H001",
     ],
 )
-def test_central_leadership_requires_the_central_organization(settings, role_group):
-    actor = actor_from_request(
-        request(authentik_headers(f"{role_group}|ORG_ML_H001|ORG_ML_ZD_IT")), settings
-    )
-    assert actor.roles == frozenset({Role.CENTRAL})
-    assert actor.organization_names == frozenset({"ORG_ML_H001"})
+def test_central_leadership_is_not_an_initializer(settings, groups):
+    with pytest.raises(HTTPException) as error:
+        actor_from_request(request(authentik_headers(groups)), settings)
+    assert error.value.status_code == 403
 
 
 def test_it_has_global_scope_without_organization(settings):
     actor = actor_from_request(request(authentik_headers("BR_IT_MANAGEMENT")), settings)
     assert actor.has_global_scope
+    assert actor.can_initialize_shared_handset
+
+
+def test_shared_handset_role_requires_exact_canonical_it_group(settings):
+    from dataclasses import replace
+
+    configured = replace(settings, role_it_groups=("BR_OTHER_IT",))
+    actor = actor_from_request(request(authentik_headers("BR_OTHER_IT")), configured)
+    assert actor.has_global_scope
+    assert not actor.can_initialize_shared_handset
 
 
 def test_scoped_roles_require_an_explicit_managed_organization(settings):
     for role_group in (
         "BR_PFLEGEDIENSTLEITUNG",
         "BR_EINRICHTUNGSLEITUNG",
-        "BR_ABTEILUNGSLEITUNG",
     ):
         with pytest.raises(HTTPException) as error:
             actor_from_request(request(authentik_headers(role_group)), settings)
         assert error.value.status_code == 403
-
-
-def test_central_role_does_not_authorize_another_house(settings):
-    with pytest.raises(HTTPException) as error:
-        actor_from_request(
-            request(authentik_headers("BR_ABTEILUNGSLEITUNG|ORG_ML_H042")), settings
-        )
-    assert error.value.status_code == 403
 
 
 def test_unrelated_legacy_or_gf_group_has_no_permission(settings):
@@ -98,19 +98,19 @@ def test_unrelated_legacy_or_gf_group_has_no_permission(settings):
         assert error.value.status_code == 403
 
 
-def test_multiple_roles_unite_only_their_authorized_scopes(settings):
+def test_el_and_pdl_keep_all_effective_facilities_deduplicated(settings):
     actor = actor_from_request(
         request(
             authentik_headers(
-                "BR_ABTEILUNGSLEITUNG|BR_EINRICHTUNGSLEITUNG|"
-                "ORG_ML_H001|ORG_ML_H042|ORG_OTHER"
+                "BR_PFLEGEDIENSTLEITUNG|BR_EINRICHTUNGSLEITUNG|"
+                "ORG_ML_H015|ORG_ML_H016|ORG_ML_H015|ORG_ML_ZD_IT"
             )
         ),
         settings,
     )
-    assert actor.roles == frozenset({Role.CENTRAL, Role.EL})
-    assert actor.organization_names == frozenset({"ORG_ML_H001", "ORG_ML_H042"})
-    assert actor.role_label == "Leitung Zentrale / EL"
+    assert actor.roles == frozenset({Role.EL, Role.PDL})
+    assert actor.organization_names == frozenset({"ORG_ML_H015", "ORG_ML_H016"})
+    assert actor.role_label == "EL / PDL"
 
 
 def test_similarly_named_noncanonical_org_group_is_not_a_scope(settings):

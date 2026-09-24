@@ -151,7 +151,54 @@ if approved_mode not in ("personal", "shared") or reported_mode != approved_mode
     return True
 
 from authentik.endpoints.connectors.agent.auth import check_device_policies
-return not check_device_policies(device, pending_user, http_request).passing
+if not check_device_policies(device, pending_user, http_request).passing:
+    return True
+
+attributes = pending_user.attributes or {}
+if not pending_user.is_active or pending_user.type == "service_account":
+    return True
+group_attributes = access_group.attributes or {}
+device_attributes = device.attributes or {}
+handset_profile = group_attributes.get("mission-leben.de/handset-profile")
+device_handset_profile = device_attributes.get("mission-leben.de/handset-profile")
+if approved_mode == "shared":
+    if handset_profile is not None or device_handset_profile is not None:
+        return True
+    return not (
+        attributes.get("iam_account_kind") == "shared"
+        or (
+            attributes.get("iam_account_kind") == "person"
+            and attributes.get("iam_directory_class") == "person"
+        )
+    )
+if handset_profile == "shared-account":
+    handset_allowed = (
+        device_handset_profile == handset_profile
+        and group_attributes.get("mission-leben.de/device-ownership") == "company"
+        and device_attributes.get("mission-leben.de/device-ownership") == "company"
+        and str(group_attributes.get("mission-leben.de/user-uuid")) == str(pending_user.uuid)
+        and attributes.get("iam_account_kind") == "shared"
+        and attributes.get("iam_directory_class") == "mailbox"
+        and attributes.get("iam_interactive_login_allowed") is True
+        and attributes.get("iam_noninteractive_account") is False
+    )
+    if not handset_allowed:
+        return True
+    from authentik.endpoints.models import DeviceUserBinding
+    bindings = list(DeviceUserBinding.objects.filter(target=access_group, enabled=True))
+    return not (
+        len(bindings) == 1
+        and not bindings[0].negate
+        and bindings[0].user_id == pending_user.pk
+        and bindings[0].group_id is None
+        and bindings[0].policy_id is None
+    )
+if handset_profile is not None or device_handset_profile is not None:
+    return True
+return not (
+    attributes.get("iam_account_kind") == "person"
+    and attributes.get("iam_directory_class") == "person"
+)
 '''
 
 
@@ -196,7 +243,54 @@ if f"MissionLebenMode/{approved_mode}" not in user_agent:
     return True
 
 from authentik.endpoints.connectors.agent.auth import check_device_policies
-return not check_device_policies(device, pending_user, http_request).passing
+if not check_device_policies(device, pending_user, http_request).passing:
+    return True
+
+attributes = pending_user.attributes or {}
+if not pending_user.is_active or pending_user.type == "service_account":
+    return True
+group_attributes = access_group.attributes or {}
+device_attributes = device.attributes or {}
+handset_profile = group_attributes.get("mission-leben.de/handset-profile")
+device_handset_profile = device_attributes.get("mission-leben.de/handset-profile")
+if approved_mode == "shared":
+    if handset_profile is not None or device_handset_profile is not None:
+        return True
+    return not (
+        attributes.get("iam_account_kind") == "shared"
+        or (
+            attributes.get("iam_account_kind") == "person"
+            and attributes.get("iam_directory_class") == "person"
+        )
+    )
+if handset_profile == "shared-account":
+    handset_allowed = (
+        device_handset_profile == handset_profile
+        and group_attributes.get("mission-leben.de/device-ownership") == "company"
+        and device_attributes.get("mission-leben.de/device-ownership") == "company"
+        and str(group_attributes.get("mission-leben.de/user-uuid")) == str(pending_user.uuid)
+        and attributes.get("iam_account_kind") == "shared"
+        and attributes.get("iam_directory_class") == "mailbox"
+        and attributes.get("iam_interactive_login_allowed") is True
+        and attributes.get("iam_noninteractive_account") is False
+    )
+    if not handset_allowed:
+        return True
+    from authentik.endpoints.models import DeviceUserBinding
+    bindings = list(DeviceUserBinding.objects.filter(target=access_group, enabled=True))
+    return not (
+        len(bindings) == 1
+        and not bindings[0].negate
+        and bindings[0].user_id == pending_user.pk
+        and bindings[0].group_id is None
+        and bindings[0].policy_id is None
+    )
+if handset_profile is not None or device_handset_profile is not None:
+    return True
+return not (
+    attributes.get("iam_account_kind") == "person"
+    and attributes.get("iam_directory_class") == "person"
+)
 '''
 
 
@@ -240,6 +334,15 @@ reported_mode = (
     .get("mode")
 )
 if approved_mode != "personal" or reported_mode != "personal":
+    return False
+if (access_group.attributes or {}).get("mission-leben.de/handset-profile") is not None:
+    return False
+attributes = pending_user.attributes or {}
+if not (
+    pending_user.is_active
+    and attributes.get("iam_account_kind") == "person"
+    and attributes.get("iam_directory_class") == "person"
+):
     return False
 
 from authentik.endpoints.connectors.agent.auth import check_device_policies

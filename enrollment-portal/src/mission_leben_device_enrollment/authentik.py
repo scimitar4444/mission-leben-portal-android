@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hmac
+import re
 from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
@@ -14,6 +15,54 @@ class AuthentikError(RuntimeError):
     def __init__(self, status: int, message: str):
         self.status = status
         super().__init__(message)
+
+
+def is_personal_employee(user: dict[str, Any]) -> bool:
+    attributes = user.get("attributes") or {}
+    return bool(
+        user.get("is_active")
+        and user.get("type") != "service_account"
+        and attributes.get("iam_account_kind") == "person"
+        and attributes.get("iam_directory_class") == "person"
+    )
+
+
+def is_shared_handset_account(user: dict[str, Any]) -> bool:
+    """Return only interactive shared mailboxes eligible for an IT-owned handset.
+
+    This is an enrollment preflight, not an authorization decision. Device
+    ownership, direct binding and endpoint trust are checked separately.
+    """
+    attributes = user.get("attributes") or {}
+    return bool(
+        user.get("is_active")
+        and user.get("type") != "service_account"
+        and attributes.get("iam_account_kind") == "shared"
+        and attributes.get("iam_directory_class") == "mailbox"
+        and attributes.get("iam_interactive_login_allowed") is True
+        and attributes.get("iam_noninteractive_account") is False
+    )
+
+
+def is_real_facility(group: dict[str, Any], organization_scope_prefix: str) -> bool:
+    name = str(group.get("name", ""))
+    attributes = group.get("attributes") or {}
+    if not re.fullmatch(
+        rf"{re.escape(organization_scope_prefix)}[0-9]{{3}}(?:_[0-9]{{2}})?",
+        name,
+    ):
+        return False
+    if (
+        attributes.get("iam_group_type") != "organization_unit"
+        or attributes.get("iam_managed") is not True
+        or attributes.get("iam_plan_status") not in {"UMGESETZT_UEBERGANG", "AKTIV"}
+    ):
+        return False
+    organization_level = attributes.get("iam_org_level")
+    return organization_level in {"Einrichtung", "Einrichtung/Verbund"} or (
+        name == "ORG_ML_H001"
+        and organization_level == "Geschäftseinheit/Standort"
+    )
 
 
 class AuthentikClient:
@@ -85,11 +134,7 @@ class AuthentikClient:
         return [group for group in candidates if self._is_organization(group)]
 
     def _is_organization(self, group: dict[str, Any]) -> bool:
-        return bool(
-            str(group.get("name", "")).startswith(self.settings.organization_group_prefix)
-            and group.get("attributes", {}).get("iam_group_type")
-            in {"organization_house", "organization_unit"}
-        )
+        return is_real_facility(group, self.settings.organization_scope_prefix)
 
     async def organization_group(self, group_uuid: str) -> dict[str, Any]:
         UUID(group_uuid)
@@ -116,7 +161,7 @@ class AuthentikClient:
                 params.append(("groups_by_name", group_name))
             payload = await self._request("GET", "/core/users/", params=params)
             for user in payload["results"]:
-                if user.get("is_active") and user.get("type") != "service_account":
+                if is_personal_employee(user):
                     results[int(user["pk"])] = user
         if allowed_groups is not None:
             results = {
@@ -133,8 +178,34 @@ class AuthentikClient:
 
     async def employee(self, user_pk: int) -> dict[str, Any]:
         user = await self.user_record(user_pk)
-        if not user.get("is_active") or user.get("type") == "service_account":
+        if not is_personal_employee(user):
             raise AuthentikError(400, "Dieser Mitarbeiter kann nicht ausgewählt werden.")
+        return user
+
+    async def shared_handset_accounts(self, search: str) -> list[dict[str, Any]]:
+        search = search.strip()
+        if len(search) < 2:
+            return []
+        payload = await self._request(
+            "GET",
+            "/core/users/",
+            params={
+                "search": search,
+                "is_active": "true",
+                "include_groups": "false",
+                "include_roles": "false",
+                "page_size": 50,
+            },
+        )
+        return sorted(
+            (user for user in payload["results"] if is_shared_handset_account(user)),
+            key=lambda user: (user.get("name") or user["username"]).casefold(),
+        )[:50]
+
+    async def shared_handset_account(self, user_pk: int) -> dict[str, Any]:
+        user = await self.user_record(user_pk)
+        if not is_shared_handset_account(user):
+            raise AuthentikError(400, "Dieses Gruppenkonto ist nicht für ein Diensthandy freigegeben.")
         return user
 
     async def user_record(self, user_pk: int) -> dict[str, Any]:
@@ -154,7 +225,7 @@ class AuthentikClient:
         if len(matches) != 1:
             raise AuthentikError(403, "Das angemeldete Mitarbeiterkonto ist nicht eindeutig.")
         user = matches[0]
-        if not user.get("is_active") or user.get("type") == "service_account":
+        if not is_personal_employee(user):
             raise AuthentikError(403, "Dieses Mitarbeiterkonto darf kein Gerät registrieren.")
         return user
 
@@ -266,6 +337,8 @@ class AuthentikClient:
         display_name: str,
         mode: str,
         assigned_to: str,
+        *,
+        handset_profile: str | None = None,
     ) -> dict[str, Any]:
         UUID(device_uuid)
         if mode not in {"personal", "shared"}:
@@ -280,6 +353,11 @@ class AuthentikClient:
             ),
             "mission-leben.de/assigned-to": assigned_to,
         }
+        if handset_profile is not None:
+            if mode != "personal" or handset_profile != "shared-account":
+                raise ValueError("invalid handset profile")
+            attributes["mission-leben.de/handset-profile"] = handset_profile
+            attributes["mission-leben.de/device-ownership"] = "company"
         return await self._request(
             "PATCH",
             f"/endpoints/devices/{device_uuid}/",

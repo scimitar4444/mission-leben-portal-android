@@ -361,11 +361,13 @@ class BridgeService:
         if derived_key_id != key_id or jwk.get("kid") != key_id:
             raise ApiError(400, "key_id does not match the communication public key")
         try:
-            verified_device_id = self.authentik.device_id(agent_token)
+            device_status = self.authentik.device_status(agent_token)
         except AuthenticationError as error:
             raise ApiError(403 if error.permanent else 503, str(error)) from error
-        if verified_device_id != device_id:
+        if str(device_status.get("device_id") or "") != device_id:
             raise ApiError(403, "Authentik device token does not match the device id")
+        if device_status.get("enrollment_profile") == "shared-account-handset":
+            raise ApiError(403, "shared-account handsets cannot approve logins")
         try:
             self.store.register_auth_channel(
                 device_id=device_id,

@@ -25,8 +25,13 @@
     <li>Falls nötig, die App installieren und <strong>„Einrichtung fortsetzen“</strong> antippen.</li>
   </ol>
   <div class="expiry">Der Code gilt nur bis {{ expires_local }} und wird nach der ersten erfolgreichen Einrichtung entwertet.</div>
+  <div class="copy-enrollment">
+    <button class="secondary" type="button" id="copy-enrollment-link" data-link="{{ copy_link }}">Einrichtungslink kopieren</button>
+    <p id="copy-enrollment-status" role="status" aria-live="polite">Für eine E-Mail nur an die vorgesehene Person. Der Link enthält den einmaligen Registrierungscode.</p>
+  </div>
 </section>
 <div class="actions">
   <a class="button secondary" href="/">Weiteres Gerät einrichten</a>
 </div>
 {% endblock %}
+{% block scripts %}<script src="/static/copy-enrollment.js" defer></script>{% endblock %}

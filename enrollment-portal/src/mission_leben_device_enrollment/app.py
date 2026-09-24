@@ -26,6 +26,7 @@ class RedeemRequest(BaseModel):
     mode: str
     device_serial: str = Field(min_length=16, max_length=160)
     device_name: str = Field(min_length=2, max_length=120)
+    enrollment_profile_supported: bool = False
 
 
 def create_app(
@@ -63,7 +64,11 @@ def create_app(
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
         response = await call_next(request)
-        script_policy = "script-src 'self'; " if request.url.path == "/install" else ""
+        script_policy = (
+            "script-src 'self'; "
+            if request.url.path in {"/install", "/personal/enrollments", "/shared/enrollments", "/handset/enrollments"}
+            else ""
+        )
         response.headers["Cache-Control"] = "no-store"
         response.headers["Pragma"] = "no-cache"
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -166,6 +171,7 @@ def create_app(
         return html(
             "self.html",
             existing_devices=await service.personal_devices_for_username(current.username),
+            token_ttl_minutes=settings.token_ttl_seconds // 60,
             **page_context(current, "issue-self-personal"),
         )
 
@@ -215,6 +221,41 @@ def create_app(
             "qr.html",
             enrollment=enrollment,
             qr_svg=qr_svg(enrollment),
+            copy_link=enrollment.install_link(settings.public_origin),
+            expires_local=enrollment.expires.astimezone(ZoneInfo(settings.display_timezone)).strftime("%H:%M Uhr"),
+            **page_context(current),
+        )
+
+    @app.get("/handset", response_class=HTMLResponse)
+    async def handset(request: Request, q: str = ""):
+        current = actor(request)
+        if not current.can_initialize_shared_handset:
+            raise HTTPException(403, "Nur die IT darf Gruppenkonten an Diensthandys binden.")
+        accounts = await service.shared_handset_accounts_for(current, q) if len(q.strip()) >= 2 else []
+        return html(
+            "handset.html",
+            query=q.strip(),
+            accounts=accounts,
+            **page_context(current, "issue-shared-handset"),
+        )
+
+    @app.post("/handset/enrollments", response_class=HTMLResponse)
+    async def issue_handset(
+        request: Request,
+        account_pk: int = Form(...),
+        company_owned: bool = Form(False),
+        csrf_token: str = Form(...),
+    ):
+        current = actor(request)
+        csrf.verify_request(request, current, "issue-shared-handset", csrf_token)
+        enrollment = await service.issue_shared_handset(
+            current, account_pk, company_owned=company_owned
+        )
+        return html(
+            "qr.html",
+            enrollment=enrollment,
+            qr_svg=qr_svg(enrollment),
+            copy_link=enrollment.install_link(settings.public_origin),
             expires_local=enrollment.expires.astimezone(ZoneInfo(settings.display_timezone)).strftime("%H:%M Uhr"),
             **page_context(current),
         )
@@ -243,6 +284,7 @@ def create_app(
             "qr.html",
             enrollment=enrollment,
             qr_svg=qr_svg(enrollment),
+            copy_link=enrollment.install_link(settings.public_origin),
             expires_local=enrollment.expires.astimezone(ZoneInfo(settings.display_timezone)).strftime("%H:%M Uhr"),
             **page_context(current),
         )
@@ -264,6 +306,7 @@ def create_app(
             payload.mode,
             payload.device_serial,
             payload.device_name,
+            payload.enrollment_profile_supported,
         )
         return JSONResponse(result)
 
