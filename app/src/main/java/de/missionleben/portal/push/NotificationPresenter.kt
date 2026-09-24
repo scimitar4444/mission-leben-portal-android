@@ -93,6 +93,7 @@ object NotificationPresenter {
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title).setContentText(summary)
                 .setContentIntent(old.contentIntent)
+                .setDeleteIntent(old.deleteIntent)
                 .setWhen(old.`when`).setShowWhen(old.extras.getBoolean(Notification.EXTRA_SHOW_WHEN, false))
                 .setAutoCancel(true).setOnlyAlertOnce(true).setSilent(true)
                 .setCategory(category(action)).setGroup("mission_leben_${action.channelId}")
@@ -235,6 +236,8 @@ object NotificationPresenter {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+        val deleteIntent = eventId?.takeIf { NotificationBadgeTarget.fromAction(action) != null }
+            ?.let { NotificationDismissedReceiver.pendingIntent(context, action, it) }
         val publicVersion = NotificationCompat.Builder(context, action.channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(genericTitle)
@@ -245,6 +248,7 @@ object NotificationPresenter {
             .setContentTitle(title)
             .setContentText(summary)
             .setContentIntent(pendingIntent)
+            .setDeleteIntent(deleteIntent)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setCategory(category(action))

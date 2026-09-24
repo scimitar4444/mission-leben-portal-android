@@ -83,6 +83,15 @@ class UnreadNotificationStore(context: Context) {
     }
 
     @Synchronized
+    fun cancel(action: PushAction, eventId: String): Boolean {
+        val target = NotificationBadgeTarget.fromAction(action) ?: return false
+        if (!PushCommand.validEventId(eventId)) return false
+        val unread = unread(target).toMutableSet()
+        if (!unread.remove(eventId)) return false
+        return preferences.edit().putString(unreadKey(target), unread.joinToString("\n")).commit()
+    }
+
+    @Synchronized
     fun clear(target: NotificationBadgeTarget): Boolean {
         if (unread(target).isEmpty()) return false
         return preferences.edit().remove(unreadKey(target)).commit()

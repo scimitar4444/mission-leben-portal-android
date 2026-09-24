@@ -2,6 +2,7 @@ package de.missionleben.portal.push
 
 import android.content.Context
 import android.content.Intent
+import android.app.job.JobScheduler
 import de.missionleben.portal.MissionLebenApplication
 
 object PushEventDispatcher {
@@ -11,8 +12,9 @@ object PushEventDispatcher {
                 if (command.action == PushAction.REFRESH_SECURITY_STATE) {
                     DeviceSecurityRefreshJobService.schedule(context)
                 } else if (PushRegistrationStore(context).communicationAllowed()) {
-                    recordUnread(context, command.action, "legacy-${command.action.wireName}-${System.nanoTime()}")
-                    NotificationPresenter.showGeneric(context, command.action)
+                    val eventId = "legacy-${command.action.wireName}-${System.nanoTime()}"
+                    recordUnread(context, command.action, eventId)
+                    NotificationPresenter.showGeneric(context, command.action, eventId)
                 }
             }
             // Serialize receive+record+post+schedule with application dismissal
@@ -45,6 +47,15 @@ object PushEventDispatcher {
 
     fun recordUnread(context: Context, action: PushAction, eventId: String) = synchronized(NotificationPresenter) {
         if (UnreadNotificationStore(context).record(action, eventId)) notifyUnreadChanged(context)
+    }
+
+    fun acknowledgeDismissal(context: Context, action: PushAction, eventId: String) = synchronized(NotificationPresenter) {
+        if (UnreadNotificationStore(context).cancel(action, eventId)) {
+            context.getSystemService(JobScheduler::class.java)
+                .cancel(NotificationPresenter.notificationId(eventId))
+            NotificationTargetStore(context).remove(eventId)
+            notifyUnreadChanged(context)
+        }
     }
 
     private fun notifyUnreadChanged(context: Context) {

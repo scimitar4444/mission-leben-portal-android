@@ -8,6 +8,7 @@ import android.app.job.JobInfo
 import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
+import android.os.Looper
 import android.os.PersistableBundle
 import androidx.core.app.NotificationCompat
 import de.missionleben.portal.R
@@ -32,6 +33,7 @@ class NotificationDismissalTest {
     private lateinit var scheduler: JobScheduler
     private lateinit var unread: UnreadNotificationStore
     private val mail = "mail-dismissal-0123456789"
+    private val secondMail = "second-mail-dismissal-0123456789"
     private val calendar = "calendar-dismissal-0123456789"
     private val talk = "talk-dismissal-0123456789"
     private val device = "synthetic-device"
@@ -65,6 +67,23 @@ class NotificationDismissalTest {
     private fun activeChannels() = manager.activeNotifications.map { it.notification.channelId }.toSet()
     private fun jobIds() = scheduler.allPendingJobs.map { it.id }.toSet()
 
+    private fun swipe(eventId: String) {
+        val notification = manager.activeNotifications.single {
+            it.id == NotificationPresenter.notificationId(eventId)
+        }.notification
+        assertNotNull(notification.deleteIntent)
+        notification.deleteIntent.send()
+        shadowOf(Looper.getMainLooper()).idle()
+        // Robolectric does not dispatch a manifest receiver in this bare
+        // Application test; deliver the exact PendingIntent payload to it.
+        NotificationDismissedReceiver().onReceive(
+            context, shadowOf(notification.deleteIntent).savedIntent,
+        )
+        // Android removes the notification when the user swipes; Robolectric's
+        // PendingIntent.send() only simulates the callback.
+        manager.cancel(NotificationPresenter.notificationId(eventId))
+    }
+
     private fun showUnrelated() {
         manager.notify(501, NotificationCompat.Builder(context, "security")
             .setSmallIcon(R.drawable.ic_notification).setContentTitle("Login request").build())
@@ -87,6 +106,57 @@ class NotificationDismissalTest {
         assertEquals(setOf(NotificationPresenter.notificationId(talk)), jobIds())
         assertEquals("", NotificationTargetStore(context).get(mail, PushAction.OPEN_MAIL))
         assertEquals("room1234", NotificationTargetStore(context).get(talk, PushAction.OPEN_TALK))
+    }
+
+    @Test fun swipingOneMailOnlyDecrementsThatBadgeAndDoesNotMarkOtherAppsVisited() {
+        receive(PushAction.OPEN_MAIL, mail)
+        receive(PushAction.OPEN_MAIL, secondMail)
+        receive(PushAction.OPEN_TALK, talk)
+        NotificationTargetStore(context).put(mail, PushAction.OPEN_MAIL, "42")
+
+        swipe(mail)
+
+        assertEquals(NotificationBadgeCounts(zimbra = 1, talk = 1), unread.counts())
+        assertEquals(setOf("mail", "talk"), activeChannels())
+        assertFalse(NotificationPresenter.notificationId(mail) in jobIds())
+        assertEquals("", NotificationTargetStore(context).get(mail, PushAction.OPEN_MAIL))
+        NotificationPresenter.showGeneric(context, PushAction.OPEN_MAIL, mail)
+        assertFalse(RichNotificationJobService.schedule(context, PushCommand.Fetch(mail, PushAction.OPEN_MAIL, "1")))
+        assertEquals(2, manager.activeNotifications.size)
+    }
+
+    @Test fun clearingAllNotificationsClearsAllCommunicationBadges() {
+        receive(PushAction.OPEN_MAIL, mail)
+        receive(PushAction.OPEN_CALENDAR, calendar)
+        receive(PushAction.OPEN_TALK, talk)
+        showUnrelated()
+
+        // Android invokes every child's deleteIntent when the user taps Alle löschen.
+        listOf(mail, calendar, talk).forEach(::swipe)
+
+        assertEquals(NotificationBadgeCounts(), unread.counts())
+        assertTrue(scheduler.allPendingJobs.isEmpty())
+        assertEquals(setOf("security", "connection"), activeChannels())
+    }
+
+    @Test fun privacyRebuildPreservesSwipeAcknowledgement() {
+        receive(PushAction.OPEN_MAIL, mail)
+        NotificationPresenter.reconcilePrivacy(context)
+        swipe(mail)
+        assertEquals(NotificationBadgeCounts(), unread.counts())
+    }
+
+    @Test fun legacyGenericEventCanAlsoBeDismissed() {
+        PushEventDispatcher.dispatch(context, PushCommand.Legacy(PushAction.OPEN_TALK))
+        assertEquals(1, unread.counts().talk)
+        val notification = manager.activeNotifications.single().notification
+        assertNotNull(notification.deleteIntent)
+        notification.deleteIntent.send()
+        shadowOf(Looper.getMainLooper()).idle()
+        NotificationDismissedReceiver().onReceive(
+            context, shadowOf(notification.deleteIntent).savedIntent,
+        )
+        assertEquals(0, unread.counts().talk)
     }
 
     @Test fun openingTalkKeepsZimbraAndSecurityNotifications() {

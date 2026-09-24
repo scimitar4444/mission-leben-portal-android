@@ -47,6 +47,9 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".push.NotificationDismissedReceiver"
+            android:exported="false" />
         <service
             android:name=".push.RichNotificationJobService"
             android:exported="false"
