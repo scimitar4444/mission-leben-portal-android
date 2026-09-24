@@ -20,7 +20,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.NotificationBadgeTarget
@@ -34,9 +33,6 @@ import de.missionleben.portal.ui.MissionLebenTheme
 import de.missionleben.portal.update.UpdateInstaller
 import de.missionleben.portal.update.UpdateStatus
 import de.missionleben.portal.web.PortalBrowserActivity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private const val AUTH_LOG_TAG = "MissionLebenAuth"
 
@@ -229,7 +225,6 @@ class MainActivity : FragmentActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (UpdateInstaller.consumeFailure(this)) viewModel.updateInstallFailed()
         viewModel.consumeSharedSessionScreenOffState()
     }
 
@@ -313,18 +308,9 @@ class MainActivity : FragmentActivity() {
             updatePermissionLauncher.launch(UpdateInstaller.permissionIntent(this))
             return
         }
-        lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching { UpdateInstaller.install(this@MainActivity, apk) }
-            }
-            result.onSuccess { viewModel.updateInstallStarted() }
-                .onFailure {
-                    // Some vendor builds reject sessions up front. Keep the old visible installer as fallback.
-                    runCatching { startActivity(UpdateInstaller.installIntent(this@MainActivity, apk)) }
-                        .onSuccess { viewModel.updateInstallStarted() }
-                        .onFailure { viewModel.updateInstallFailed() }
-                }
-        }
+        runCatching { startActivity(UpdateInstaller.installIntent(this, apk)) }
+            .onSuccess { viewModel.updateInstallStarted() }
+            .onFailure { viewModel.updateInstallFailed() }
     }
 
     private fun handleVaultRequest(request: VaultRequest) {

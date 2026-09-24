@@ -8,7 +8,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
     <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
 
     <application
@@ -34,10 +33,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/update_file_paths" />
         </provider>
-        <receiver
-            android:name=".update.UpdateInstallReceiver"
-            android:exported="false" />
-
         <service
             android:name=".push.NtfySubscriberService"
             android:exported="false"

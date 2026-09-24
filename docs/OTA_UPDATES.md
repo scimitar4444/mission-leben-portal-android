@@ -14,9 +14,9 @@ Eine gefundene Version wird nur angeboten. Erst nach **Herunterladen und install
 4. die exakte Dateigröße und SHA-256-Prüfsumme aus `update.json`,
 5. dass das APK mit demselben Zertifikat wie die installierte App signiert ist.
 
-Android verlangt bei einer nicht über Google Play oder eine Geräteverwaltung verteilten App einmal die Freigabe **Unbekannte Apps installieren** für Mission Leben Zentral. Ab Version 0.12.10 übergibt die App ein geprüftes APK an eine `PackageInstaller`-Sitzung und bittet Android bei einem Selbstupdate um Installation ohne erneute Bestätigung. Das ist eine Bitte, keine Garantie: Wenn Android `STATUS_PENDING_USER_ACTION` meldet, wird die echte Systembestätigung angezeigt. Manche Samsung-Geräte können zusätzlich durch „Automatische Sperre“ oder Play Protect eingreifen. Scheitert bereits die Sitzungserstellung auf einem Gerät, bleibt der bisherige sichtbare Installer als Rückfall erhalten. Ein Fehler nach dem Start der Sitzung wird beim nächsten Öffnen der App angezeigt.
+Android verlangt bei einer nicht über Google Play oder eine Geräteverwaltung verteilten App einmal die Freigabe **Unbekannte Apps installieren** für Mission Leben Zentral. Ab Version 0.12.13 öffnet die App nach der APK-Prüfung wieder den sichtbaren Android-Installationsdialog. Die Versionen 0.12.10 bis 0.12.12 enthielten einen Versuch mit `PackageInstaller`-Sitzungen ohne erneute Nutzerbestätigung. Auf dem Pilotgerät verlangte Play Protect trotzdem eine zusätzliche Entscheidung; dieser Weg wurde daher zurückgenommen. Play Protect und auf Samsung-Geräten die „Automatische Sperre“ können weiterhin eingreifen. Ob Play Protect nur einen Scan anbietet oder eine Warnung anzeigt, entscheidet Android bzw. Google und ist durch die App nicht garantiert.
 
-Vor einem breiten Rollout sind auf einem typischen Samsung-Gerät zwei aufeinanderfolgende, identisch signierte Versionen zu testen: erst die Version mit dem neuen Installer aufspielen, dann das nächste Update über die App. Dabei einmal mit „Automatische Sperre“ an und einmal aus prüfen, ob Android tatsächlich ohne Dialog aktualisiert, ob der Bestätigungsrückfall funktioniert und ob Registrierung/Sitzung nach dem Update erhalten bleiben. Bis dahin ist ein bestätigungsfreies Update **nicht** als verifiziert zu bezeichnen.
+Beim Update von 0.12.10 oder 0.12.11 auf 0.12.13 führt noch die bisher installierte Version die Übergabe an Android aus. Dabei kann einmalig die Play-Protect-Abfrage des `PackageInstaller`-Piloten erscheinen. Alternativ kann die identisch signierte 0.12.13-APK direkt im Browser geladen und über den Android-Installer installiert werden. Erst ab der installierten 0.12.13 werden weitere OTA-Updates wieder direkt an den sichtbaren Installer übergeben. Für den Rollout sind Registrierung, Anmeldung und Sitzungserhalt nach dem Update zu prüfen.
 
 ## Release erstellen
 
@@ -37,14 +37,14 @@ install -m 0644 app/build/outputs/apk/release/app-release.apk mission-leben-zent
 python scripts/create_update_manifest.py \
   --apk mission-leben-zentral.apk \
   --metadata app/build/outputs/apk/release/output-metadata.json \
-  --tag v0.12.10 \
+  --tag v0.12.13 \
   --output update.json
-gh release create v0.12.10 mission-leben-zentral.apk update.json \
+gh release create v0.12.13 mission-leben-zentral.apk update.json \
   --repo scimitar4444/mission-leben-portal-android \
-  --title 'Mission Leben Zentral 0.12.10' \
-  --notes 'Verbesserte, signaturgeprüfte OTA-Selbstupdates.'
+  --title 'Mission Leben Zentral 0.12.13' \
+  --notes 'Signaturgeprüfte OTA-Updates mit sichtbarem Android-Installationsdialog.'
 ```
 
-Bestandsinstallationen ab 0.7.8 erkennen spätere Releases selbst. Das erste Update auf 0.12.10 kann je nach Gerät noch eine Android-Bestätigung erfordern; die neue `PackageInstaller`-Sitzung ist erst in 0.12.10 vorhanden und kann daher frühestens beim darauffolgenden Update genutzt werden.
+Bestandsinstallationen ab 0.7.8 erkennen spätere reguläre Releases selbst. Eine installierte 0.12.10 oder 0.12.11 nutzt für den Übergang auf 0.12.13 noch den `PackageInstaller`-Piloten.
 
 Der Signierschlüssel ist die dauerhafte Vertrauenswurzel. Geht er verloren, können bestehende Installationen nicht mehr nahtlos aktualisiert werden. Er benötigt deshalb mindestens eine verschlüsselte Offline-Sicherung mit dokumentiertem Wiederherstellungstest.
