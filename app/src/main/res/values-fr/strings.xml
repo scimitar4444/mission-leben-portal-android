@@ -35,7 +35,7 @@
     <string name="update_check_failed">La recherche de mises à jour est momentanément impossible.</string>
     <string name="update_download_failed">La mise à jour n’a pas pu être téléchargée ou vérifiée de manière sécurisée.</string>
     <string name="update_install_permission_denied">Autorisez Mission Leben Zentral à installer des applications inconnues, puis réessayez.</string>
-    <string name="update_installer_unavailable">Le programme d’installation Android n’a pas pu être ouvert.</string>
+    <string name="update_installer_unavailable">La mise à jour n’a pas pu être installée. Réessayez.</string>
     <string name="switch_device_profile">Changer de profil d’appareil</string>
     <string name="mode_personal">Appareil personnel</string>
     <string name="mode_shared">Tablette partagée</string>

@@ -35,7 +35,7 @@
     <string name="update_check_failed">No se pueden buscar actualizaciones en este momento.</string>
     <string name="update_download_failed">No se pudo descargar o verificar la actualización de forma segura.</string>
     <string name="update_install_permission_denied">Permite que Mission Leben Zentral instale aplicaciones desconocidas y vuelve a intentarlo.</string>
-    <string name="update_installer_unavailable">No se pudo abrir el instalador de paquetes de Android.</string>
+    <string name="update_installer_unavailable">No se pudo instalar la actualización. Inténtalo de nuevo.</string>
     <string name="switch_device_profile">Cambiar perfil del dispositivo</string>
     <string name="mode_personal">Dispositivo personal</string>
     <string name="mode_shared">Tableta compartida</string>

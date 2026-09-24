@@ -35,7 +35,7 @@
     <string name="update_check_failed">Obecnie nie można sprawdzić aktualizacji.</string>
     <string name="update_download_failed">Nie udało się bezpiecznie pobrać lub sprawdzić aktualizacji.</string>
     <string name="update_install_permission_denied">Zezwól Mission Leben Zentral na instalowanie nieznanych aplikacji i spróbuj ponownie.</string>
-    <string name="update_installer_unavailable">Nie udało się otworzyć instalatora pakietów Android.</string>
+    <string name="update_installer_unavailable">Nie udało się zainstalować aktualizacji. Spróbuj ponownie.</string>
     <string name="switch_device_profile">Zmień profil urządzenia</string>
     <string name="mode_personal">Urządzenie osobiste</string>
     <string name="mode_shared">Współdzielony tablet</string>

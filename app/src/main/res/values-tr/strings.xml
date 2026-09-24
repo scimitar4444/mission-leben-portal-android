@@ -35,7 +35,7 @@
     <string name="update_check_failed">Güncellemeler şu anda denetlenemiyor.</string>
     <string name="update_download_failed">Güncelleme güvenli şekilde indirilemedi veya doğrulanamadı.</string>
     <string name="update_install_permission_denied">Mission Leben Zentral’in bilinmeyen uygulamaları yüklemesine izin verip yeniden deneyin.</string>
-    <string name="update_installer_unavailable">Android paket yükleyicisi açılamadı.</string>
+    <string name="update_installer_unavailable">Güncelleme yüklenemedi. Lütfen tekrar deneyin.</string>
     <string name="switch_device_profile">Cihaz profilini değiştir</string>
     <string name="mode_personal">Kişisel cihaz</string>
     <string name="mode_shared">Ortak tablet</string>

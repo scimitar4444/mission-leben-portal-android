@@ -35,7 +35,7 @@
     <string name="update_check_failed">Updates cannot be checked at the moment.</string>
     <string name="update_download_failed">The update could not be downloaded or verified securely.</string>
     <string name="update_install_permission_denied">Allow Mission Leben Zentral to install unknown apps, then try again.</string>
-    <string name="update_installer_unavailable">The Android package installer could not be opened.</string>
+    <string name="update_installer_unavailable">The update could not be installed. Please try again.</string>
     <string name="switch_device_profile">Switch device profile</string>
     <string name="mode_personal">Personal device</string>
     <string name="mode_shared">Shared tablet</string>

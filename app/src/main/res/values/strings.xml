@@ -50,7 +50,7 @@
     <string name="update_check_failed">Die Update-Prüfung ist derzeit nicht möglich.</string>
     <string name="update_download_failed">Das Update konnte nicht sicher heruntergeladen oder geprüft werden.</string>
     <string name="update_install_permission_denied">Erlaube Mission Leben Zentral bitte die Installation unbekannter Apps und versuche es erneut.</string>
-    <string name="update_installer_unavailable">Der Android-Paketinstaller konnte nicht geöffnet werden.</string>
+    <string name="update_installer_unavailable">Das Update konnte nicht installiert werden. Bitte versuche es erneut.</string>
     <string name="switch_device_profile">Geräteprofil wechseln</string>
     <string name="mode_personal">Persönliches Gerät</string>
     <string name="mode_shared">Gemeinsam genutztes Tablet</string>
