@@ -320,7 +320,13 @@ private fun Onboarding(
             )
         }
         item { LanguagePanel(currentLanguageTag, onLanguageChange) }
-        item { UpdateFooter(state.updateStatus, onCheckForUpdates) }
+        item {
+            UpdateFooter(
+                status = state.updateStatus,
+                managedByFdroid = state.updatesManagedByFdroid,
+                onCheckForUpdates = onCheckForUpdates,
+            )
+        }
     }
 }
 
@@ -729,6 +735,7 @@ private fun SettingsScreen(
         item {
             UpdateFooter(
                 status = state.updateStatus,
+                managedByFdroid = state.updatesManagedByFdroid,
                 onCheckForUpdates = onCheckForUpdates,
                 onResetProfile = if (PortalCapability.DEVICE_PROFILE_SWITCH in state.capabilities) {
                     onResetProfile
@@ -743,6 +750,7 @@ private fun SettingsScreen(
 @Composable
 private fun UpdateFooter(
     status: UpdateStatus,
+    managedByFdroid: Boolean,
     onCheckForUpdates: () -> Unit,
     onResetProfile: (() -> Unit)? = null,
 ) {
@@ -762,12 +770,20 @@ private fun UpdateFooter(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
             )
-            TextButton(onClick = onCheckForUpdates, enabled = actionEnabled) {
+            if (managedByFdroid) {
                 Text(
-                    stringResource(
-                        if (checking) R.string.update_checking else R.string.update_check_action,
-                    ),
+                    stringResource(R.string.update_managed_by_fdroid),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 12.sp,
                 )
+            } else {
+                TextButton(onClick = onCheckForUpdates, enabled = actionEnabled) {
+                    Text(
+                        stringResource(
+                            if (checking) R.string.update_checking else R.string.update_check_action,
+                        ),
+                    )
+                }
             }
         }
         onResetProfile?.let { reset ->

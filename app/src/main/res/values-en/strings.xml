@@ -30,6 +30,7 @@
     <string name="update_downloading">Verifying and downloading update…</string>
     <string name="update_later">Later</string>
     <string name="update_check_action">Check for updates</string>
+    <string name="update_managed_by_fdroid">Updates via F-Droid</string>
     <string name="update_checking">Checking for updates…</string>
     <string name="update_up_to_date">Mission Leben Zentral is up to date (version %1$s).</string>
     <string name="update_check_failed">Updates cannot be checked at the moment.</string>

@@ -30,6 +30,7 @@
     <string name="update_downloading">Güncelleme doğrulanıyor ve indiriliyor…</string>
     <string name="update_later">Daha sonra</string>
     <string name="update_check_action">Güncellemeleri denetle</string>
+    <string name="update_managed_by_fdroid">Güncellemeler F-Droid üzerinden</string>
     <string name="update_checking">Güncellemeler denetleniyor…</string>
     <string name="update_up_to_date">Mission Leben Zentral güncel (sürüm %1$s).</string>
     <string name="update_check_failed">Güncellemeler şu anda denetlenemiyor.</string>

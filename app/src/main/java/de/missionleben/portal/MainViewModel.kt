@@ -45,6 +45,7 @@ import de.missionleben.portal.security.DeviceSecurityLock
 import de.missionleben.portal.security.SecureSessionVault
 import de.missionleben.portal.security.SharedSessionLifecyclePolicy
 import de.missionleben.portal.update.UpdateRepository
+import de.missionleben.portal.update.UpdateChannel
 import de.missionleben.portal.update.UpdateStatus
 import java.io.File
 import java.time.ZoneId
@@ -73,6 +74,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val pushStore = PushRegistrationStore(application)
     private val ntfyVault = NtfyCredentialVault(application)
     private val updateRepository = UpdateRepository(application)
+    private val updatesManagedByFdroid = UpdateChannel.managedByFdroid(application)
     private val unreadNotificationStore = UnreadNotificationStore(application)
 
     private var serializedAuthState: String? = null
@@ -103,6 +105,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             reauthenticationRequired = preferences.reauthenticationRequired,
             unreadNotificationBadges = unreadNotificationStore.counts(),
             news = newsRepository.cached(),
+            updatesManagedByFdroid = updatesManagedByFdroid,
         ),
     )
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -790,6 +793,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun clearMessage() = _uiState.update { it.copy(message = null) }
 
     fun checkForUpdates(force: Boolean = false) {
+        if (updatesManagedByFdroid) return
         val status = _uiState.value.updateStatus
         if (status == UpdateStatus.CHECKING || status == UpdateStatus.DOWNLOADING || status == UpdateStatus.READY) {
             return

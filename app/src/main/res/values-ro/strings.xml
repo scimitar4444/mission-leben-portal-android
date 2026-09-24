@@ -30,6 +30,7 @@
     <string name="update_downloading">Se verifică și se descarcă actualizarea…</string>
     <string name="update_later">Mai târziu</string>
     <string name="update_check_action">Caută actualizări</string>
+    <string name="update_managed_by_fdroid">Actualizări prin F-Droid</string>
     <string name="update_checking">Se caută actualizări…</string>
     <string name="update_up_to_date">Mission Leben Zentral este actualizată (versiunea %1$s).</string>
     <string name="update_check_failed">Actualizările nu pot fi verificate momentan.</string>

@@ -48,3 +48,5 @@ gh release create v0.12.13 mission-leben-zentral.apk update.json \
 Bestandsinstallationen ab 0.7.8 erkennen spätere reguläre Releases selbst. Eine installierte 0.12.10 oder 0.12.11 nutzt für den Übergang auf 0.12.13 noch den `PackageInstaller`-Piloten.
 
 Der Signierschlüssel ist die dauerhafte Vertrauenswurzel. Geht er verloren, können bestehende Installationen nicht mehr nahtlos aktualisiert werden. Er benötigt deshalb mindestens eine verschlüsselte Offline-Sicherung mit dokumentiertem Wiederherstellungstest.
+
+Ein getrenntes [F-Droid-Binärrepository befindet sich im Pilot](FDROID_PILOT.md). Es verwendet weiterhin dieselbe APK-Signatur und schaltet den GitHub-OTA-Check nur dann ab, wenn F-Droid als installierende App erkennbar ist. Die reguläre Veröffentlichung über `releases/latest` wird dadurch noch nicht ersetzt.

@@ -129,4 +129,5 @@ data class UiState(
     val clearWebDataRequested: Boolean = false,
     val availableUpdate: AppUpdate? = null,
     val updateStatus: UpdateStatus = UpdateStatus.IDLE,
+    val updatesManagedByFdroid: Boolean = false,
 )

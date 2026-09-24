@@ -45,6 +45,7 @@
     <string name="update_downloading">Update wird geprüft und heruntergeladen…</string>
     <string name="update_later">Später</string>
     <string name="update_check_action">Nach Updates suchen</string>
+    <string name="update_managed_by_fdroid">Updates über F-Droid</string>
     <string name="update_checking">Suche nach Updates…</string>
     <string name="update_up_to_date">Mission Leben Zentral ist aktuell (Version %1$s).</string>
     <string name="update_check_failed">Die Update-Prüfung ist derzeit nicht möglich.</string>

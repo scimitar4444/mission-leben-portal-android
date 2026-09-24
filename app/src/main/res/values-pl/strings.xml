@@ -30,6 +30,7 @@
     <string name="update_downloading">Sprawdzanie i pobieranie aktualizacji…</string>
     <string name="update_later">Później</string>
     <string name="update_check_action">Sprawdź aktualizacje</string>
+    <string name="update_managed_by_fdroid">Aktualizacje przez F-Droid</string>
     <string name="update_checking">Sprawdzanie aktualizacji…</string>
     <string name="update_up_to_date">Mission Leben Zentral jest aktualna (wersja %1$s).</string>
     <string name="update_check_failed">Obecnie nie można sprawdzić aktualizacji.</string>

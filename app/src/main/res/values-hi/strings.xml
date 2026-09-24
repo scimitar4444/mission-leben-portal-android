@@ -30,6 +30,7 @@
     <string name="update_downloading">अपडेट की जाँच और डाउनलोड हो रहा है…</string>
     <string name="update_later">बाद में</string>
     <string name="update_check_action">अपडेट खोजें</string>
+    <string name="update_managed_by_fdroid">F-Droid से अपडेट</string>
     <string name="update_checking">अपडेट की जाँच हो रही है…</string>
     <string name="update_up_to_date">Mission Leben Zentral अद्यतित है (संस्करण %1$s)।</string>
     <string name="update_check_failed">अभी अपडेट की जाँच नहीं की जा सकती।</string>

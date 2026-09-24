@@ -30,6 +30,7 @@
     <string name="update_downloading">Перевірка та завантаження оновлення…</string>
     <string name="update_later">Пізніше</string>
     <string name="update_check_action">Перевірити оновлення</string>
+    <string name="update_managed_by_fdroid">Оновлення через F-Droid</string>
     <string name="update_checking">Перевірка оновлень…</string>
     <string name="update_up_to_date">Mission Leben Zentral оновлено (версія %1$s).</string>
     <string name="update_check_failed">Наразі неможливо перевірити оновлення.</string>
