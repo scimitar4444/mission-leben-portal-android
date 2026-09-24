@@ -1,7 +1,10 @@
 # Gruppenkonto auf einem Diensthandy
 
-Stand: 24.09.2026. Lokal implementiert und mit automatisierten Tests geprüft;
-**noch nicht produktiv ausgerollt oder mit einem echten Diensthandy abgenommen**.
+Stand: 24.09.2026. Android 0.12.11, Geräteportal 0.2.8, Bridge 0.10.6
+und die drei eng begrenzten Authentik-Policies sind ausgerollt. Automatisierte
+Tests und Live-Health-/Rollenprüfungen sind erfolgreich; **die Anmeldung und
+der Geräteersatz mit einem echten Gruppenkonto-Diensthandy sind noch nicht
+End-to-End abgenommen**.
 
 ## Fachliche Regel
 
