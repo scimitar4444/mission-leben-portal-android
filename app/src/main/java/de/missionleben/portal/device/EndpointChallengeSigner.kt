@@ -1,6 +1,5 @@
 package de.missionleben.portal.device
 
-import java.time.Instant
 import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -9,7 +8,6 @@ object EndpointChallengeSigner {
     fun sign(
         challenge: String,
         credential: AuthentikDeviceCredential,
-        now: Instant = Instant.now(),
     ): String {
         require(challenge.length in 32..8192 && challenge.count { it == '.' } == 2) {
             "Invalid Authentik endpoint challenge"
@@ -18,9 +16,7 @@ object EndpointChallengeSigner {
         val payload = "{" +
             "\"iss\":${jsonString(credential.identifier)}," +
             "\"atc\":${jsonString(challenge)}," +
-            "\"aud\":\"goauthentik.io/platform/endpoint\"," +
-            "\"iat\":${now.epochSecond}," +
-            "\"exp\":${now.plusSeconds(300).epochSecond}" +
+            "\"aud\":\"goauthentik.io/platform/endpoint\"" +
             "}"
         val unsigned = "${base64Url(header.toByteArray())}.${base64Url(payload.toByteArray())}"
         val mac = Mac.getInstance("HmacSHA512")

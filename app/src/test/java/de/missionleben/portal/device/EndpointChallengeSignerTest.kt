@@ -1,9 +1,9 @@
 package de.missionleben.portal.device
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.Instant
 import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -17,11 +17,7 @@ class EndpointChallengeSignerTest {
             token = "agent-device-token",
         )
         val challenge = "signed-header.signed-challenge-payload.signed-challenge-signature"
-        val response = EndpointChallengeSigner.sign(
-            challenge,
-            credential,
-            Instant.ofEpochSecond(1_789_689_600),
-        )
+        val response = EndpointChallengeSigner.sign(challenge, credential)
         val parts = response.split('.')
 
         assertEquals(3, parts.size)
@@ -29,7 +25,10 @@ class EndpointChallengeSignerTest {
         assertTrue(payload.contains("\"iss\":\"${credential.identifier}\""))
         assertTrue(payload.contains("\"atc\":\"$challenge\""))
         assertTrue(payload.contains("\"aud\":\"goauthentik.io/platform/endpoint\""))
-        assertTrue(payload.contains("\"exp\":1789689900"))
+        // The Authentik endpoint challenge already expires server-side. The
+        // response must not depend on the Android device clock being in sync.
+        assertFalse(payload.contains("\"iat\""))
+        assertFalse(payload.contains("\"exp\""))
 
         val mac = Mac.getInstance("HmacSHA512")
         mac.init(SecretKeySpec(credential.token.toByteArray(), "HmacSHA512"))
