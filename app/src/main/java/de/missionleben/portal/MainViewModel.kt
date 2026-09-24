@@ -24,6 +24,7 @@ import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrPayload
 import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
+import de.missionleben.portal.model.EnrollmentProfile
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.PortalCapability
 import de.missionleben.portal.model.UiState
@@ -143,6 +144,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val storedDeviceId = preferences.deviceId
         if (storedDeviceId != null && !deviceService.hasDeviceCredential(storedDeviceId)) {
             preferences.deviceId = null
+            preferences.enrollmentProfile = null
             preferences.enrollmentState = EnrollmentState.NOT_ENROLLED
             vault.clear()
             unreadNotificationStore.clearAll()
@@ -175,6 +177,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             PushManager.stop(getApplication())
         }
         preferences.deviceMode = mode
+        if (preferences.enrollmentProfile?.matches(mode) == false) {
+            preferences.enrollmentProfile = null
+        }
         _uiState.update {
             it.copy(
                 mode = mode,
@@ -217,6 +222,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         clearNotifications()
         PushManager.stop(getApplication())
         preferences.deviceMode = null
+        preferences.enrollmentProfile = null
         _uiState.value = UiState(
             enrollmentState = preferences.enrollmentState,
             deviceId = preferences.deviceId,
@@ -566,6 +572,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             runCatching { deviceService.enroll(enrollment, requestedMode, identity) }
                 .onSuccess { result ->
                     preferences.deviceId = result.deviceId
+                    preferences.enrollmentProfile = result.profile
                     preferences.enrollmentState = if (result.trusted) EnrollmentState.TRUSTED else EnrollmentState.PENDING
                     _uiState.update {
                         it.copy(
@@ -919,6 +926,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (
                     state.signedIn &&
                     state.mode == DeviceMode.PERSONAL &&
+                    preferences.enrollmentProfile != EnrollmentProfile.SHARED_ACCOUNT_HANDSET &&
                     state.enrollmentState == EnrollmentState.TRUSTED &&
                     state.communicationServiceConfigured &&
                     deviceId != null &&
@@ -937,6 +945,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (
             !state.signedIn ||
             state.mode != DeviceMode.PERSONAL ||
+            preferences.enrollmentProfile == EnrollmentProfile.SHARED_ACCOUNT_HANDSET ||
             state.enrollmentState != EnrollmentState.TRUSTED ||
             !state.communicationServiceConfigured ||
             state.loginApprovalSubmitting
@@ -1206,7 +1215,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (!deviceService.communicationConfigured) return
         val deviceId = _uiState.value.deviceId ?: return
         val mode = _uiState.value.mode ?: return
-        if (mode == DeviceMode.PERSONAL) {
+        if (mode == DeviceMode.PERSONAL &&
+            preferences.enrollmentProfile != EnrollmentProfile.SHARED_ACCOUNT_HANDSET
+        ) {
             viewModelScope.launch {
                 runCatching {
                     deviceService.registerLoginApproval(accessToken, deviceId, mode)

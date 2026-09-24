@@ -3,6 +3,7 @@ package de.missionleben.portal.data
 import android.content.Context
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
+import de.missionleben.portal.model.EnrollmentProfile
 import java.security.MessageDigest
 
 class AppPreferences(context: Context) {
@@ -24,6 +25,16 @@ class AppPreferences(context: Context) {
         set(value) {
             preferences.edit().apply {
                 if (value == null) remove(KEY_DEVICE_ID) else putString(KEY_DEVICE_ID, value)
+            }.apply()
+        }
+
+    var enrollmentProfile: EnrollmentProfile?
+        get() = preferences.getString(KEY_ENROLLMENT_PROFILE, null)
+            ?.let { runCatching { EnrollmentProfile.valueOf(it) }.getOrNull() }
+        set(value) {
+            preferences.edit().apply {
+                if (value == null) remove(KEY_ENROLLMENT_PROFILE)
+                else putString(KEY_ENROLLMENT_PROFILE, value.name)
             }.apply()
         }
 
@@ -95,6 +106,7 @@ class AppPreferences(context: Context) {
         preferences.edit()
             .remove(KEY_DEVICE_MODE)
             .remove(KEY_DEVICE_ID)
+            .remove(KEY_ENROLLMENT_PROFILE)
             .remove(KEY_ENROLLMENT_STATE)
             .remove(KEY_REAUTHENTICATION_HINT)
             .remove(KEY_REAUTHENTICATION_REQUIRED)
@@ -112,6 +124,7 @@ class AppPreferences(context: Context) {
     private companion object {
         const val KEY_DEVICE_MODE = "device_mode"
         const val KEY_DEVICE_ID = "device_id"
+        const val KEY_ENROLLMENT_PROFILE = "enrollment_profile"
         const val KEY_ENROLLMENT_STATE = "enrollment_state"
         const val KEY_REAUTHENTICATION_HINT = "reauthentication_hint"
         const val KEY_REAUTHENTICATION_REQUIRED = "reauthentication_required"

@@ -5,6 +5,7 @@ import android.os.Build
 import de.missionleben.portal.BuildConfig
 import de.missionleben.portal.R
 import de.missionleben.portal.model.DeviceMode
+import de.missionleben.portal.model.EnrollmentProfile
 import de.missionleben.portal.model.AnnouncementItem
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
@@ -30,6 +31,7 @@ import java.util.Base64
 data class EnrollmentResult(
     val deviceId: String,
     val trusted: Boolean,
+    val profile: EnrollmentProfile,
 )
 
 data class AnnouncementResult(
@@ -77,6 +79,7 @@ class DeviceServiceRepository(context: Context? = null) {
                 .put("mode", mode.name.lowercase())
                 .put("device_serial", identifier)
                 .put("device_name", body.getString("device_name"))
+                .put("enrollment_profile_supported", true)
             performEnrollmentPortalRequest(
                 path = "/api/v1/enrollments/${enrollment.tokenUuid}/redeem",
                 method = "POST",
@@ -94,7 +97,16 @@ class DeviceServiceRepository(context: Context? = null) {
         if (enrollmentResponse.status !in 200..299) {
             error(text(R.string.device_service_http_error, enrollmentResponse.status))
         }
-        val agentToken = JSONObject(enrollmentResponse.body).getString("token")
+        val enrollmentPayload = JSONObject(enrollmentResponse.body)
+        val profile = if (enrollment.tokenUuid != null) {
+            EnrollmentProfile.fromPortalResponse(
+                enrollmentPayload.optString("enrollment_profile").takeIf { it.isNotBlank() },
+                mode,
+            )
+        } else {
+            EnrollmentProfile.defaultFor(mode)
+        }
+        val agentToken = enrollmentPayload.getString("token")
         val config = agentRequest(AGENT_CONFIG_PATH, "GET", null, agentToken)
         if (config.status !in 200..299) {
             error(text(R.string.device_status_unavailable, config.status))
@@ -105,6 +117,7 @@ class DeviceServiceRepository(context: Context? = null) {
         EnrollmentResult(
             deviceId = deviceId,
             trusted = true,
+            profile = profile,
         )
     }
 
