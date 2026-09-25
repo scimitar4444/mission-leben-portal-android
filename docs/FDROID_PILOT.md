@@ -18,6 +18,8 @@ Die App erkennt eine Installation durch `org.fdroid.fdroid` oder `org.fdroid.bas
 
 Der Pilot-Zweig `fdroid-permission-pilot` baut Version 0.12.17 (Code 75) ohne `REQUEST_INSTALL_PACKAGES`. Damit prüfen wir, ob diese für den alten App-eigenen OTA-Weg benötigte Berechtigung die Play-Protect-Rückfrage beim nächsten F-Droid-Update beeinflusst. Ein Ausbleiben oder Wiederkehren der Rückfrage ist ein Gerätetest, kein Beweis für eine allgemeine Google-Regel. Den Pilot-Zweig nicht als reguläres GitHub-OTA-Release veröffentlichen: Dort bleibt `releases/latest/download/update.json` vorerst auf 0.12.13 (Code 71), und diese Installationen benötigen weiterhin den App-eigenen Installationsweg.
 
+Veröffentlicht am 25.09.2026 ausschließlich im F-Droid-Pilotrepository (`gh-pages`-Commit `6036fc1`). Signatur, Paketname, Code 75, Berechtigungsliste und alle öffentlichen Index-/Diff-/APK-Hashes wurden geprüft. Der Hintergrund-Installationsversuch und die Play-Protect-Reaktion für 0.12.17 sind noch **offen**; am Pilotgerät ist unmittelbar nach Veröffentlichung weiterhin 0.12.16 installiert. Den F-Droid-Index für diesen Test nicht manuell aktualisieren.
+
 ## Veröffentlichung und Sicherheitsgrenzen
 
 - Den Versionscode strikt erhöhen und dieselbe Paket-ID sowie dasselbe APK-Signierzertifikat beibehalten. Vor Veröffentlichung APK-Hash, Signatur, Versionscode und Tests prüfen.
