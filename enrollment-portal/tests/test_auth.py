@@ -37,6 +37,7 @@ def authentik_headers(groups: str) -> dict[str, str]:
     ("role_group", "expected_role"),
     [
         ("BR_EINRICHTUNGSLEITUNG", Role.EL),
+        ("BR_STELLVERTRETENDE_EINRICHTUNGSLEITUNG", Role.DEPUTY_EL),
         ("BR_PFLEGEDIENSTLEITUNG", Role.PDL),
     ],
 )
@@ -67,6 +68,18 @@ def test_it_has_global_scope_without_organization(settings):
     assert actor.can_initialize_shared_handset
 
 
+def test_deputy_is_scoped_and_cannot_initialize_group_handset(settings):
+    actor = actor_from_request(
+        request(authentik_headers("BR_STELLVERTRETENDE_EINRICHTUNGSLEITUNG|ORG_ML_H044")),
+        settings,
+    )
+    assert actor.roles == frozenset({Role.DEPUTY_EL})
+    assert actor.organization_names == frozenset({"ORG_ML_H044"})
+    assert actor.role_label == "Stellvertretende EL"
+    assert not actor.has_global_scope
+    assert not actor.can_initialize_shared_handset
+
+
 def test_shared_handset_role_requires_exact_canonical_it_group(settings):
     from dataclasses import replace
 
@@ -80,6 +93,7 @@ def test_scoped_roles_require_an_explicit_managed_organization(settings):
     for role_group in (
         "BR_PFLEGEDIENSTLEITUNG",
         "BR_EINRICHTUNGSLEITUNG",
+        "BR_STELLVERTRETENDE_EINRICHTUNGSLEITUNG",
     ):
         with pytest.raises(HTTPException) as error:
             actor_from_request(request(authentik_headers(role_group)), settings)
@@ -111,6 +125,30 @@ def test_el_and_pdl_keep_all_effective_facilities_deduplicated(settings):
     assert actor.roles == frozenset({Role.EL, Role.PDL})
     assert actor.organization_names == frozenset({"ORG_ML_H015", "ORG_ML_H016"})
     assert actor.role_label == "EL / PDL"
+
+
+def test_deputy_keeps_multiple_effective_facilities_without_gaining_global_scope(settings):
+    actor = actor_from_request(
+        request(authentik_headers(
+            "BR_STELLVERTRETENDE_EINRICHTUNGSLEITUNG|"
+            "ORG_ML_H015|ORG_ML_H016|ORG_ML_H017|ORG_ML_H015|ORG_ML_ZD_IT"
+        )),
+        settings,
+    )
+    assert actor.roles == frozenset({Role.DEPUTY_EL})
+    assert actor.organization_names == frozenset({"ORG_ML_H015", "ORG_ML_H016", "ORG_ML_H017"})
+    assert not actor.has_global_scope
+
+
+def test_deputy_group_cannot_be_reused_as_el_or_pdl_config(settings):
+    from dataclasses import replace
+
+    for configured in (
+        replace(settings, role_el_groups=("BR_STELLVERTRETENDE_EINRICHTUNGSLEITUNG",)),
+        replace(settings, role_pdl_groups=("BR_STELLVERTRETENDE_EINRICHTUNGSLEITUNG",)),
+    ):
+        with pytest.raises(RuntimeError, match="independent role"):
+            configured.validate()
 
 
 def test_similarly_named_noncanonical_org_group_is_not_a_scope(settings):

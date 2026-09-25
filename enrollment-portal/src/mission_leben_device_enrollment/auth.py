@@ -10,12 +10,13 @@ from enum import Enum
 
 from fastapi import HTTPException, Request
 
-from .config import Settings
+from .config import DEPUTY_EL_GROUP, Settings
 
 
 class Role(str, Enum):
     IT = "it"
     EL = "el"
+    DEPUTY_EL = "deputy_el"
     PDL = "pdl"
 
 
@@ -44,7 +45,7 @@ class Actor:
 
     @property
     def role(self) -> Role | None:
-        for candidate in (Role.IT, Role.EL, Role.PDL):
+        for candidate in (Role.IT, Role.EL, Role.DEPUTY_EL, Role.PDL):
             if candidate in self.roles:
                 return candidate
         return None
@@ -54,6 +55,7 @@ class Actor:
         labels = {
             Role.IT: "IT",
             Role.EL: "EL",
+            Role.DEPUTY_EL: "Stellvertretende EL",
             Role.PDL: "PDL",
         }
         ordered = [labels[role] for role in Role if role in self.roles]
@@ -84,6 +86,7 @@ def authenticated_actor_from_request(request: Request, settings: Settings) -> Ac
     role_groups = (
         (settings.role_it_groups, Role.IT),
         (settings.role_el_groups, Role.EL),
+        ((DEPUTY_EL_GROUP,), Role.DEPUTY_EL),
         (settings.role_pdl_groups, Role.PDL),
     )
     roles = frozenset(
@@ -94,7 +97,7 @@ def authenticated_actor_from_request(request: Request, settings: Settings) -> Ac
     )
     scoped_organizations = {name for name in groups if scope_pattern.fullmatch(name)}
     organizations: set[str] = set()
-    if Role.EL in roles or Role.PDL in roles:
+    if roles.intersection({Role.EL, Role.DEPUTY_EL, Role.PDL}):
         organizations.update(scoped_organizations)
     return Actor(
         uid=uid,

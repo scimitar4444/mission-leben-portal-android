@@ -16,6 +16,7 @@ DEFAULT_APK_DOWNLOAD_URL = (
 DEFAULT_ROLE_IT_GROUPS = ("BR_IT_MANAGEMENT",)
 DEFAULT_ROLE_EL_GROUPS = ("BR_EINRICHTUNGSLEITUNG",)
 DEFAULT_ROLE_PDL_GROUPS = ("BR_PFLEGEDIENSTLEITUNG",)
+DEPUTY_EL_GROUP = "BR_STELLVERTRETENDE_EINRICHTUNGSLEITUNG"
 
 
 def _group_names(name: str, defaults: tuple[str, ...]) -> tuple[str, ...]:
@@ -159,6 +160,8 @@ class Settings:
         if any(not groups for groups in configured_role_groups):
             raise RuntimeError("Enrollment role group lists must not be empty")
         role_groups = [group for groups in configured_role_groups for group in groups]
+        if DEPUTY_EL_GROUP in role_groups:
+            raise RuntimeError("Deputy EL group must remain an independent role")
         if any(not group.startswith("BR_") for group in role_groups):
             raise RuntimeError("Enrollment role groups must use the BR_ namespace")
         if len(role_groups) != len(set(role_groups)):

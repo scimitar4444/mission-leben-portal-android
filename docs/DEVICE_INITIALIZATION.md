@@ -49,14 +49,14 @@ Der Container verifiziert UUID, Tokenwert, Connector, Ablaufzeit, Gerätemodus u
 ## Bedienrollen
 
 - IT: globaler Bereich und Support.
-- Leitungen in der Zentrale: ausdrücklich zugewiesene `ORG_*`-Bereiche.
 - EL: eigene Einrichtung.
+- Stellvertretende EL: eigene echte Einrichtung, über `BR_STELLVERTRETENDE_EINRICHTUNGSLEITUNG` und effektive `ORG_ML_H*`-Mitgliedschaft.
 - PDL: eigene Einrichtung.
-- Keine GF-Sonderrolle. Normale Mitarbeiter dürfen ausschließlich ihr eigenes persönliches Gerät mit einem vorhandenen starken Faktor registrieren; beim ersten Gerät ist das TOTP oder Passkey.
+- Keine Berechtigung aus Zentralleitungs-, GF- oder alten `ML_DEVICE_INIT_*`-Rollen. Normale Mitarbeiter dürfen ausschließlich ihr eigenes persönliches Gerät mit einem vorhandenen starken Faktor registrieren; beim ersten Gerät ist das TOTP oder Passkey.
 
 ## Betriebsregeln
 
-- QR-Gültigkeit: zehn Minuten, konfigurierbar nur zwischen zwei und zehn Minuten.
+- QR-Gültigkeit: 30 Minuten, konfigurierbar zwischen zwei und 30 Minuten.
 - Genau ein Container-Worker. Vor horizontaler Skalierung ist eine verteilte Einmal-Sperre erforderlich.
 - API- und CSRF-Schlüssel ausschließlich als Read-only-Container-Secrets mit Modus `0600`.
 - Authentik-Audit muss bereits beim Erzeugen des QR-Codes funktionieren; sonst wird der Token gelöscht und kein QR angezeigt.

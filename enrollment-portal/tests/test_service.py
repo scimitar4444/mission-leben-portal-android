@@ -307,7 +307,7 @@ async def test_shared_handset_preflight_is_it_only_and_does_not_issue_a_token(se
     authentik.shared_handset_account = target
     service = EnrollmentService(settings, authentik)
 
-    for role in (Role.EL, Role.PDL):
+    for role in (Role.EL, Role.DEPUTY_EL, Role.PDL):
         with pytest.raises(AuthentikError) as error:
             await service.shared_handset_accounts_for(actor(role), "team")
         assert error.value.status == 403
@@ -343,7 +343,7 @@ async def test_it_enrolls_one_company_handset_for_interactive_shared_mailbox(set
     }
     service = EnrollmentService(settings, authentik)
 
-    for enrolling_actor in (actor(Role.EL), actor(Role.PDL)):
+    for enrolling_actor in (actor(Role.EL), actor(Role.DEPUTY_EL), actor(Role.PDL)):
         with pytest.raises(AuthentikError) as error:
             await service.issue_shared_handset(enrolling_actor, 42)
         assert error.value.status == 403
@@ -559,7 +559,8 @@ def test_handset_mail_failure_never_displays_registration_secret(settings, monke
 
 
 @pytest.mark.asyncio
-async def test_el_sees_all_own_real_facilities_but_not_a_subgroup(settings):
+@pytest.mark.parametrize("role", (Role.EL, Role.DEPUTY_EL, Role.PDL))
+async def test_scoped_initializer_sees_all_own_real_facilities_but_not_a_subgroup(settings, role):
     authentik = FakeAuthentik(settings)
     authentik.organizations = [
         organization("10000000-bbbb-cccc-dddd-eeeeeeeeeeee", "ORG_ML_H015"),
@@ -571,12 +572,118 @@ async def test_el_sees_all_own_real_facilities_but_not_a_subgroup(settings):
         ),
     ]
     current = actor(
+        role,
         organizations=frozenset({"ORG_ML_H015", "ORG_ML_H016", "ORG_ML_H031_01"})
     )
 
     groups = await EnrollmentService(settings, authentik).organizations_for(current)
 
     assert [group["name"] for group in groups] == ["ORG_ML_H015", "ORG_ML_H016"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("facility", ("ORG_ML_H044", "ORG_ML_H017"))
+async def test_deputy_can_prepare_only_own_real_facility(settings, facility):
+    authentik = FakeAuthentik(settings)
+    own = organization("10000000-bbbb-cccc-dddd-eeeeeeeeeeee", facility)
+    foreign = organization("20000000-bbbb-cccc-dddd-eeeeeeeeeeee", "ORG_ML_H042")
+    department = organization(
+        "30000000-bbbb-cccc-dddd-eeeeeeeeeeee",
+        facility + "_01",
+        "Einrichtung/Teilbetrieb",
+    )
+    authentik.organizations = [own, foreign, department]
+    authentik.user["groups_obj"] = [own]
+    current = actor(Role.DEPUTY_EL, frozenset({facility, facility + "_01"}))
+    service = EnrollmentService(settings, authentik)
+
+    assert [group["name"] for group in await service.organizations_for(current)] == [facility]
+    issued = await service.issue_shared(current, own["pk"], "Testtablet")
+    assert issued.mode == "shared"
+    assert authentik.created_groups[0]["name"] == "Mission Leben Android - Shared - " + facility
+    assert authentik.created_groups[0]["attributes"]["mission-leben.de/facility-group"] == facility
+
+    with pytest.raises(AuthentikError) as error:
+        await service.issue_shared(current, foreign["pk"], "Fremdes Tablet")
+    assert error.value.status == 403
+    with pytest.raises(AuthentikError) as error:
+        await service.issue_shared(current, department["pk"], "Abteilungstablet")
+    assert error.value.status == 400
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("facility", ("ORG_ML_H044", "ORG_ML_H017"))
+async def test_deputy_personal_enrollment_rechecks_employee_facility(settings, facility):
+    authentik = FakeAuthentik(settings)
+    authentik.user["groups_obj"] = [organization("10000000-bbbb-cccc-dddd-eeeeeeeeeeee", facility)]
+    current = actor(Role.DEPUTY_EL, frozenset({facility}))
+
+    issued = await EnrollmentService(settings, authentik).issue_personal(current, 42)
+
+    assert issued.mode == "personal"
+    assert authentik.audit_events[0][1]["role"] == "deputy_el"
+
+
+@pytest.mark.asyncio
+async def test_deputy_department_without_real_facility_has_no_tablet_site(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.organizations = [organization(
+        "30000000-bbbb-cccc-dddd-eeeeeeeeeeee",
+        "ORG_ML_H044_01",
+        "Teilbereich",
+    )]
+    current = actor(Role.DEPUTY_EL, frozenset({"ORG_ML_H044_01"}))
+
+    assert await EnrollmentService(settings, authentik).organizations_for(current) == []
+    with pytest.raises(AuthentikError) as error:
+        await EnrollmentService(settings, authentik).issue_shared(
+            current, authentik.organizations[0]["pk"], "Abteilungstablet"
+        )
+    assert error.value.status == 400
+    assert authentik.created_groups == []
+
+
+@pytest.mark.parametrize("facility", ("ORG_ML_H044", "ORG_ML_H017"))
+def test_deputy_proxy_header_portal_path_is_scoped_and_handset_stays_it_only(settings, facility):
+    authentik = FakeAuthentik(settings)
+    own = organization("10000000-bbbb-cccc-dddd-eeeeeeeeeeee", facility)
+    foreign = organization("20000000-bbbb-cccc-dddd-eeeeeeeeeeee", "ORG_ML_H042")
+    authentik.organizations = [own, foreign]
+    app = create_app(settings, authentik)
+    headers = {
+        "x-authentik-meta-app": settings.proxy_app_slug,
+        "x-authentik-uid": "actor-id",
+        "x-authentik-username": "leitung.test",
+        "x-authentik-name": "Leitung Test",
+        "x-authentik-groups": "BR_STELLVERTRETENDE_EINRICHTUNGSLEITUNG|" + facility,
+    }
+    csrf_token = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(
+        actor(Role.DEPUTY_EL, frozenset({facility})), "issue-shared"
+    )
+
+    with TestClient(app) as client:
+        own_page = client.get("/shared", headers=headers)
+        assert own_page.status_code == 200
+        assert facility in own_page.text
+        assert "ORG_ML_H042" not in own_page.text
+        assert client.get("/personal", headers=headers).status_code == 200
+        assert client.get("/handset", headers=headers).status_code == 403
+
+        foreign_post = client.post(
+            "/shared/enrollments",
+            headers={**headers, "origin": settings.public_origin},
+            data={"organization_uuid": foreign["pk"], "device_label": "Fremdes Tablet", "csrf_token": csrf_token},
+        )
+        assert foreign_post.status_code == 403
+        assert authentik.created_groups == []
+
+        own_post = client.post(
+            "/shared/enrollments",
+            headers={**headers, "origin": settings.public_origin},
+            data={"organization_uuid": own["pk"], "device_label": "Eigenes Tablet", "csrf_token": csrf_token},
+        )
+        assert own_post.status_code == 200
+        assert authentik.created_groups[0]["attributes"]["mission-leben.de/facility-group"] == facility
 
 
 @pytest.mark.asyncio
@@ -618,12 +725,13 @@ async def test_shared_tablet_binds_exactly_one_revalidated_facility(settings):
 
 
 @pytest.mark.asyncio
-async def test_scoped_initializer_cannot_select_another_facility(settings):
+@pytest.mark.parametrize("role", (Role.EL, Role.DEPUTY_EL, Role.PDL))
+async def test_scoped_initializer_cannot_select_another_facility(settings, role):
     authentik = FakeAuthentik(settings)
 
     with pytest.raises(AuthentikError) as error:
         await EnrollmentService(settings, authentik).issue_shared(
-            actor(organizations=frozenset({"ORG_ML_H015"})),
+            actor(role, organizations=frozenset({"ORG_ML_H015"})),
             authentik.organizations[0]["pk"],
             "Wohnbereich 1",
         )
@@ -700,12 +808,13 @@ async def test_personal_enrollment_renames_uuid_group_without_creating_a_duplica
 
 
 @pytest.mark.asyncio
-async def test_personal_enrollment_fails_outside_el_scope(settings):
+@pytest.mark.parametrize("role", (Role.EL, Role.DEPUTY_EL, Role.PDL))
+async def test_personal_enrollment_fails_outside_scoped_initializer_facility(settings, role):
     authentik = FakeAuthentik(settings)
     service = EnrollmentService(settings, authentik)
 
     with pytest.raises(AuthentikError) as error:
-        await service.issue_personal(actor(organizations=frozenset({"ORG_ML_H043"})), 42)
+        await service.issue_personal(actor(role, organizations=frozenset({"ORG_ML_H043"})), 42)
     assert error.value.status == 403
     assert not authentik.created_groups
 
