@@ -30,7 +30,13 @@
       <small class="existing-device">Vorhandenes Handy: {{ device.name }} · zuletzt {{ device.last_seen | device_seen }}</small>
       {% endfor %}
     </span>
-    <button type="submit">{% if employee.personal_devices %}Handy ersetzen{% else %}Diese Person{% endif %}</button>
+    <button type="submit" name="delivery" value="screen">{% if employee.personal_devices %}Handy ersetzen{% else %}Diese Person{% endif %}</button>
+    {% if can_send_mail %}
+    {% if employee.get('email') %}
+    <button type="submit" name="delivery" value="email" class="secondary">Einrichtung per E-Mail</button>
+    <button type="submit" formaction="/personal/download-email" class="secondary">Nur App-Installation per E-Mail (TOTP)</button>
+    {% else %}<small>Keine E-Mail-Adresse für diese Person hinterlegt.</small>{% endif %}
+    {% endif %}
   </form>
   {% endfor %}
 </section>

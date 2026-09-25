@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import logging
+from base64 import b64encode
 from contextlib import asynccontextmanager
+from io import BytesIO
 from pathlib import Path
+from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
 import segno
@@ -15,6 +18,7 @@ from pydantic import BaseModel, Field
 from .auth import Actor, CsrfProtector, actor_from_request, authenticated_actor_from_request
 from .authentik import AuthentikClient, AuthentikError
 from .config import Settings
+from .mailer import send_setup_mail, validate_address
 from .service import EnrollmentService, IssuedEnrollment
 
 
@@ -27,6 +31,12 @@ class RedeemRequest(BaseModel):
     device_serial: str = Field(min_length=16, max_length=160)
     device_name: str = Field(min_length=2, max_length=120)
     enrollment_profile_supported: bool = False
+
+
+class SetupPreviewRequest(BaseModel):
+    token_uuid: str = Field(min_length=36, max_length=36)
+    token: str = Field(min_length=20, max_length=512)
+    mode: str
 
 
 def create_app(
@@ -66,7 +76,12 @@ def create_app(
         response = await call_next(request)
         script_policy = (
             "script-src 'self'; "
-            if request.url.path in {"/install", "/personal/enrollments", "/shared/enrollments", "/handset/enrollments"}
+            if request.url.path in {"/install", "/setup", "/download", "/personal/enrollments", "/shared/enrollments", "/handset/enrollments"}
+            else ""
+        )
+        connect_policy = (
+            "connect-src 'self'; "
+            if request.url.path in {"/setup", "/personal/enrollments", "/shared/enrollments", "/handset/enrollments"}
             else ""
         )
         response.headers["Cache-Control"] = "no-store"
@@ -79,7 +94,7 @@ def create_app(
         response.headers["Referrer-Policy"] = "same-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Content-Security-Policy"] = (
-            f"default-src 'none'; style-src 'self'; {script_policy}img-src 'self' data:; "
+            f"default-src 'none'; style-src 'self'; {script_policy}{connect_policy}img-src 'self' data:; "
             "font-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
         )
         return response
@@ -99,15 +114,65 @@ def create_app(
             "csrf_token": csrf.issue(current, action) if action else "",
         }
 
-    def qr_svg(enrollment: IssuedEnrollment) -> str:
-        qr = segno.make(enrollment.install_link(settings.public_origin), error="m")
+    def download_qr_svg() -> str:
+        qr = segno.make(settings.apk_download_url, error="m")
         return qr.svg_inline(scale=5, border=2, dark="#5b1438", light="#ffffff")
 
-    def install_url() -> str:
-        return settings.public_origin.rstrip("/") + "/install"
+    def setup_page(enrollment: IssuedEnrollment, current: Actor, mail_status: str = "") -> HTMLResponse:
+        return html(
+            "setup.html",
+            setup_link=enrollment.setup_link(settings.public_origin),
+            target_label=enrollment.target_label,
+            replaced_devices=enrollment.replaced_devices,
+            download_qr_svg=download_qr_svg(),
+            apk_download_url=settings.apk_download_url,
+            self_service=False,
+            mail_status=mail_status,
+            **page_context(current),
+        )
+
+    def require_it_mail(current: Actor) -> None:
+        if not current.can_initialize_shared_handset:
+            raise HTTPException(403, "Nur die IT darf Einrichtungslinks per E-Mail versenden.")
+        if not settings.smtp_host or not settings.smtp_sender:
+            raise HTTPException(503, "Der E-Mail-Versand ist noch nicht eingerichtet.")
+
+    def mail_recipient(value: str, *, corporate_only: bool = False) -> str:
+        try:
+            return validate_address(value, corporate_only=corporate_only)
+        except ValueError as error:
+            raise HTTPException(400, str(error)) from error
+
+    def first_name(user: dict) -> str:
+        raw = str(user.get("name") or "")
+        name = " ".join((raw.split(",", 1)[1] if "," in raw else raw).split())
+        return name.split()[0] if name else ""
+
+    async def mail_enrollment(enrollment: IssuedEnrollment, recipient: str, greeting: str) -> str:
+        salutation = f"Hallo {greeting}," if greeting else "Hallo,"
+        body = (
+            f"{salutation}\n\n"
+            "ich habe die Einrichtung von Mission Leben Zentral für dich vorbereitet. "
+            "Öffne den folgenden Link an einem PC. Auf der Seite bereitest du zuerst dein Android- oder Samsung-Gerät vor, "
+            "installierst die App mit dem ersten QR-Code und klickst dann auf „App installiert“. "
+            "Der zweite QR-Code verbindet das Gerät mit deinem Zugang.\n\n"
+            f"{enrollment.setup_link(settings.public_origin)}\n\n"
+            "Der Link gilt 30 Minuten ab seiner Erstellung und kann nur einmal zur Registrierung verwendet werden. "
+            "Bitte leite ihn nicht weiter. Falls du keine Einrichtung erwartest, melde dich beim IT-Service.\n\n"
+            "Viele Grüße\nDein IT-Service\n"
+        )
+        try:
+            await send_setup_mail(settings, recipient, "Mission Leben Zentral: Gerät einrichten", body)
+        except Exception:
+            LOGGER.exception("setup mail delivery failed")
+            return "E-Mail-Versand fehlgeschlagen. Bitte den Einrichtungslink selbst kopieren und sicher weitergeben."
+        return f"Einrichtungslink an {recipient} versendet."
+
+    def download_url() -> str:
+        return settings.public_origin.rstrip("/") + "/download"
 
     def install_qr_svg() -> str:
-        qr = segno.make(install_url(), error="m")
+        qr = segno.make(settings.apk_download_url, error="m")
         return qr.svg_inline(scale=3, border=2, dark="#5b1438", light="#ffffff")
 
     @app.exception_handler(AuthentikError)
@@ -136,6 +201,49 @@ def create_app(
     async def install():
         return html("install.html", apk_download_url=settings.apk_download_url)
 
+    @app.get("/setup", response_class=HTMLResponse)
+    async def setup():
+        return html(
+            "setup.html",
+            setup_link="",
+            target_label="",
+            replaced_devices=(),
+            download_qr_svg=download_qr_svg(),
+            apk_download_url=settings.apk_download_url,
+            self_service=False,
+            mail_status="",
+        )
+
+    @app.get("/download", response_class=HTMLResponse)
+    async def download():
+        return html(
+            "setup.html",
+            setup_link="",
+            target_label="",
+            replaced_devices=(),
+            download_qr_svg=download_qr_svg(),
+            apk_download_url=settings.apk_download_url,
+            self_service=True,
+            mail_status="",
+        )
+
+    @app.post("/api/v1/setup/qr")
+    async def setup_qr(payload: SetupPreviewRequest):
+        if any(character.isspace() for character in payload.token):
+            raise HTTPException(400, "Ungültiger Registrierungscode.")
+        expires = await service.validate_setup_token(payload.token_uuid, payload.token, payload.mode)
+        enrollment_link = settings.public_origin.rstrip("/") + "/install#" + urlencode(
+            {"token": payload.token, "token_id": payload.token_uuid, "mode": payload.mode}
+        )
+        qr = segno.make(enrollment_link, error="m")
+        image = BytesIO()
+        qr.save(image, kind="png", scale=5, border=2)
+        return JSONResponse({
+            "image": "data:image/png;base64," + b64encode(image.getvalue()).decode("ascii"),
+            "expires": expires.astimezone(ZoneInfo(settings.display_timezone)).strftime("%H:%M Uhr"),
+            "expires_at": expires.isoformat(),
+        })
+
     @app.get("/.well-known/assetlinks.json")
     async def asset_links():
         if not settings.android_cert_sha256_fingerprints:
@@ -160,7 +268,7 @@ def create_app(
         current = actor(request)
         return html(
             "home.html",
-            install_url=install_url(),
+            install_url=download_url(),
             install_qr_svg=install_qr_svg(),
             **page_context(current),
         )
@@ -205,6 +313,7 @@ def create_app(
             "personal.html",
             query=q.strip(),
             employees=results,
+            can_send_mail=current.can_initialize_shared_handset and bool(settings.smtp_host),
             **page_context(current, "issue-personal"),
         )
 
@@ -213,18 +322,50 @@ def create_app(
         request: Request,
         employee_pk: int = Form(...),
         csrf_token: str = Form(...),
+        delivery: str = Form("screen"),
     ):
         current = actor(request)
         csrf.verify_request(request, current, "issue-personal", csrf_token)
+        if delivery not in {"screen", "email"}:
+            raise HTTPException(400, "Ungültiger Versandweg.")
+        recipient = ""
+        user = None
+        if delivery == "email":
+            require_it_mail(current)
+            user = await client.employee(employee_pk)
+            recipient = mail_recipient(str(user.get("email") or ""))
         enrollment = await service.issue_personal(current, employee_pk)
-        return html(
-            "qr.html",
-            enrollment=enrollment,
-            qr_svg=qr_svg(enrollment),
-            copy_link=enrollment.install_link(settings.public_origin),
-            expires_local=enrollment.expires.astimezone(ZoneInfo(settings.display_timezone)).strftime("%H:%M Uhr"),
-            **page_context(current),
+        mail_status = await mail_enrollment(enrollment, recipient, first_name(user)) if user else ""
+        return setup_page(enrollment, current, mail_status)
+
+    @app.post("/personal/download-email", response_class=HTMLResponse)
+    async def mail_personal_download(
+        request: Request,
+        employee_pk: int = Form(...),
+        csrf_token: str = Form(...),
+    ):
+        current = actor(request)
+        csrf.verify_request(request, current, "issue-personal", csrf_token)
+        require_it_mail(current)
+        user = await client.employee(employee_pk)
+        recipient = mail_recipient(str(user.get("email") or ""))
+        name = first_name(user)
+        salutation = f"Hallo {name}," if name else "Hallo,"
+        body = (
+            f"{salutation}\n\n"
+            "hier findest du Mission Leben Zentral für dein persönliches Android-Handy:\n\n"
+            f"{download_url()}\n\n"
+            "Öffne den Link an einem PC. Bereite dein Handy wie beschrieben vor, scanne den Download-QR-Code und installiere die App. "
+            "Danach klicke auf „App installiert“, öffne die App und melde dich mit deinem Benutzernamen, Passwort und vorhandenen TOTP an. "
+            "Die App führt dich durch die Registrierung deines Handys. Dieser reine Installationslink läuft nicht ab und enthält keinen Registrierungscode.\n\n"
+            "Falls du Fragen hast, melde dich beim IT-Service.\n\nViele Grüße\nDein IT-Service\n"
         )
+        try:
+            await send_setup_mail(settings, recipient, "Mission Leben Zentral: App selbst installieren", body)
+        except Exception:
+            LOGGER.exception("download mail delivery failed")
+            raise HTTPException(502, "Die E-Mail konnte nicht versendet werden. Bitte später erneut versuchen.")
+        return html("mail_sent.html", recipient=recipient, **page_context(current))
 
     @app.get("/handset", response_class=HTMLResponse)
     async def handset(request: Request, q: str = ""):
@@ -236,6 +377,7 @@ def create_app(
             "handset.html",
             query=q.strip(),
             accounts=accounts,
+            can_send_mail=bool(settings.smtp_host),
             **page_context(current, "issue-shared-handset"),
         )
 
@@ -244,18 +386,20 @@ def create_app(
         request: Request,
         account_pk: int = Form(...),
         csrf_token: str = Form(...),
+        delivery: str = Form("screen"),
+        recipient_email: str = Form(""),
     ):
         current = actor(request)
         csrf.verify_request(request, current, "issue-shared-handset", csrf_token)
+        if delivery not in {"screen", "email"}:
+            raise HTTPException(400, "Ungültiger Versandweg.")
+        recipient = ""
+        if delivery == "email":
+            require_it_mail(current)
+            recipient = mail_recipient(recipient_email, corporate_only=True)
         enrollment = await service.issue_shared_handset(current, account_pk)
-        return html(
-            "qr.html",
-            enrollment=enrollment,
-            qr_svg=qr_svg(enrollment),
-            copy_link=enrollment.install_link(settings.public_origin),
-            expires_local=enrollment.expires.astimezone(ZoneInfo(settings.display_timezone)).strftime("%H:%M Uhr"),
-            **page_context(current),
-        )
+        mail_status = await mail_enrollment(enrollment, recipient, "") if recipient else ""
+        return setup_page(enrollment, current, mail_status)
 
     @app.get("/shared", response_class=HTMLResponse)
     async def shared(request: Request):
@@ -277,14 +421,7 @@ def create_app(
         current = actor(request)
         csrf.verify_request(request, current, "issue-shared", csrf_token)
         enrollment = await service.issue_shared(current, organization_uuid, device_label)
-        return html(
-            "qr.html",
-            enrollment=enrollment,
-            qr_svg=qr_svg(enrollment),
-            copy_link=enrollment.install_link(settings.public_origin),
-            expires_local=enrollment.expires.astimezone(ZoneInfo(settings.display_timezone)).strftime("%H:%M Uhr"),
-            **page_context(current),
-        )
+        return setup_page(enrollment, current)
 
     @app.post("/api/v1/enrollments/{token_uuid}/redeem")
     async def redeem(

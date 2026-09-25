@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Gerät installieren und einrichten{% endblock %}
+{% block content %}
+<section class="intro centered install-intro">
+  <span class="step">Geräte-Einrichtung</span>
+  <h1>{% if self_service %}App selbst installieren{% else %}Erst installieren, dann registrieren{% endif %}</h1>
+  {% if target_label %}<p class="target">{{ target_label }}</p>{% endif %}
+  <p>Diese Seite bleibt auf dem PC geöffnet. {% if self_service %}Der QR-Code lädt nur die App herunter. Die Anmeldung erfolgt danach in der App mit einem vorhandenen TOTP.{% else %}Beide QR-Codes werden nacheinander mit der normalen Handykamera gescannt.{% endif %}</p>
+</section>
+<section class="install-card" id="setup-page" data-link="{{ setup_link }}" data-self-service="{{ 'true' if self_service else 'false' }}">
+  {% if replaced_devices %}
+  <div class="replacement-warning">
+    <strong>Das bisherige Handy bleibt bis zur erfolgreichen Registrierung aktiv:</strong>
+    <ul>{% for device in replaced_devices %}<li>{{ device.name }} <small>· zuletzt {{ device.last_seen | device_seen }}</small></li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  <div class="install-step">
+    <span class="install-number" aria-hidden="true">1</span>
+    <div>
+      <h2>Handy vorbereiten</h2>
+      <ul class="install-list">
+        <li><strong>Android:</strong> Wenn das Handy fragt, für den verwendeten Browser <strong>„Apps aus dieser Quelle zulassen“</strong> aktivieren.</li>
+        <li><strong>Samsung zusätzlich:</strong> Unter <strong>Einstellungen → Sicherheit und Datenschutz → Automatische Sperre</strong> die Automatische Sperre ausschalten. Das ist nicht die Bildschirmsperre. Eine angebotene automatische Reaktivierung nach 30 Minuten ablehnen, damit spätere App-Updates möglich bleiben.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="install-divider" aria-hidden="true"></div>
+  <div class="install-step">
+    <span class="install-number" aria-hidden="true">2</span>
+    <div>
+      <h2>App installieren</h2>
+      <p>Mit dem Handy diesen QR-Code scannen, die APK von GitHub herunterladen und die Installation auf dem Handy bestätigen.</p>
+      <div class="setup-qr" aria-label="QR-Code für den App-Download">{{ download_qr_svg | safe }}</div>
+      <p class="hint">Falls die Kamera nicht funktioniert: <a href="{{ apk_download_url }}" rel="noreferrer">APK-Download öffnen</a> – auf dem Handy.</p>
+      <button type="button" class="primary" id="show-registration">App installiert</button>
+    </div>
+  </div>
+  <div class="install-divider" aria-hidden="true"></div>
+  <div class="install-step" id="registration-step" hidden>
+    <span class="install-number" aria-hidden="true">3</span>
+    <div>
+      <h2>{% if self_service %}App öffnen und anmelden{% else %}Gerät registrieren{% endif %}</h2>
+      {% if self_service %}
+      <p>Öffne <strong>Mission Leben Zentral</strong> über das App-Symbol. Melde dich mit deinem persönlichen Benutzernamen, Passwort und deinem vorhandenen TOTP an. Folge in der App der Aufforderung, dein persönliches Handy zu registrieren.</p>
+      <p>Du brauchst keinen zweiten QR-Code. Diese Installationsanleitung läuft nicht ab.</p>
+      {% else %}
+      <p>Jetzt den zweiten QR-Code mit der normalen Handykamera scannen. Er öffnet die installierte App und startet die vorbereitete Registrierung.</p>
+      <img class="setup-qr-image" id="registration-qr" alt="Einmaliger QR-Code zur Registrierung" hidden>
+      <p id="registration-expiry" class="expiry" hidden></p>
+      {% endif %}
+    </div>
+  </div>
+  {% if mail_status %}<p class="notice">{{ mail_status }}</p>{% endif %}
+  <p id="setup-status" class="hint" role="status" aria-live="polite">{% if self_service %}Der Installationslink läuft nicht ab.{% else %}Der Einrichtungslink gilt 30 Minuten ab Erstellung.{% endif %}</p>
+  <div class="copy-enrollment">
+    <button class="secondary" type="button" id="copy-enrollment-link" {% if not setup_link and not self_service %}hidden{% endif %}>{% if self_service %}Installationslink kopieren{% else %}Einrichtungslink kopieren{% endif %}</button>
+    <p>{% if self_service %}Dieser Link kann an Mitarbeitende mit eigenem TOTP geschickt werden. Er enthält keinen Registrierungscode.{% else %}Nur an die vorgesehene Person senden. Der Link gehört auf einen PC und enthält einen einmaligen Registrierungscode.{% endif %}</p>
+  </div>
+</section>
+<div class="actions"><a class="button secondary" href="/">Weiteres Gerät einrichten</a></div>
+<noscript><section class="notice error-notice">Für den zweiten QR-Code muss JavaScript im PC-Browser aktiviert sein.</section></noscript>
+{% endblock %}
+{% block scripts %}<script src="/static/setup.js" defer></script>{% endblock %}

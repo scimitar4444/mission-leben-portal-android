@@ -57,6 +57,9 @@ class Settings:
     token_ttl_seconds: int = 1800
     display_timezone: str = "Europe/Berlin"
     apk_download_url: str = DEFAULT_APK_DOWNLOAD_URL
+    smtp_host: str = ""
+    smtp_port: int = 25
+    smtp_sender: str = ""
     android_cert_sha256_fingerprints: tuple[str, ...] = ()
 
     @classmethod
@@ -87,6 +90,9 @@ class Settings:
             apk_download_url=os.environ.get(
                 "ML_ENROLL_APK_DOWNLOAD_URL", DEFAULT_APK_DOWNLOAD_URL
             ).strip(),
+            smtp_host=os.environ.get("ML_ENROLL_SMTP_HOST", "").strip(),
+            smtp_port=int(os.environ.get("ML_ENROLL_SMTP_PORT", "25")),
+            smtp_sender=os.environ.get("ML_ENROLL_SMTP_SENDER", "").strip(),
             android_cert_sha256_fingerprints=tuple(
                 fingerprint.strip().upper()
                 for fingerprint in os.environ.get(
@@ -118,6 +124,10 @@ class Settings:
                 raise RuntimeError(f"{label} must be an HTTPS origin without a path")
             if label == "ML_ENROLL_APK_DOWNLOAD_URL" and (parsed.query or parsed.fragment):
                 raise RuntimeError(f"{label} must not contain a query or fragment")
+        if bool(self.smtp_host) != bool(self.smtp_sender):
+            raise RuntimeError("SMTP host and sender must be configured together")
+        if self.smtp_host and (not 1 <= self.smtp_port <= 65535 or any(c.isspace() for c in self.smtp_host)):
+            raise RuntimeError("Invalid SMTP configuration")
         try:
             UUID(self.agent_connector_uuid)
         except ValueError as error:

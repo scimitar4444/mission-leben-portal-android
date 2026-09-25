@@ -42,6 +42,7 @@ class FakeAuthentik:
             "pk": 42,
             "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
             "username": "m.beispiel",
+            "email": "m.beispiel@mission-leben.de",
             "uid": "authentik-stable-subject",
             "name": "Maria Beispiel",
             "is_active": True,
@@ -211,6 +212,7 @@ class FakeAuthentik:
         self.login_approval_devices.append((username, subject))
 
     async def create_enrollment_token(self, name, access_group_uuid, expires):
+        self.token_record["expires"] = expires.isoformat()
         return {
             "token_uuid": self.token_record["token_uuid"],
             "name": name,
@@ -430,6 +432,50 @@ def test_it_handset_page_issues_link_without_ownership_checkbox(settings):
         assert response.status_code == 200
         assert 'id="copy-enrollment-link"' in response.text
         assert authentik.existing_group["attributes"]["mission-leben.de/device-ownership"] == "company"
+
+
+def test_it_handset_mail_requires_corporate_recipient(settings, monkeypatch):
+    settings = replace(settings, smtp_host="mail.mission-leben.de", smtp_sender="it-service@mission-leben.de")
+    authentik = FakeAuthentik(settings)
+    authentik.user["username"] = "haus042"
+    authentik.user["attributes"] = {
+        "iam_account_kind": "shared",
+        "iam_directory_class": "mailbox",
+        "iam_interactive_login_allowed": True,
+        "iam_noninteractive_account": False,
+    }
+    sent = []
+
+    async def fake_send(_settings, recipient, subject, body):
+        sent.append((recipient, subject, body))
+
+    monkeypatch.setattr("mission_leben_device_enrollment.app.send_setup_mail", fake_send)
+    app = create_app(settings, authentik)
+    headers = {
+        "x-authentik-meta-app": settings.proxy_app_slug,
+        "x-authentik-uid": "actor-id",
+        "x-authentik-username": "leitung.test",
+        "x-authentik-name": "Leitung Test",
+        "x-authentik-groups": "BR_IT_MANAGEMENT",
+        "origin": settings.public_origin,
+    }
+    csrf_token = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(
+        actor(Role.IT), "issue-shared-handset"
+    )
+    with TestClient(app) as client:
+        bad = client.post(
+            "/handset/enrollments", headers=headers,
+            data={"account_pk": "42", "csrf_token": csrf_token, "delivery": "email", "recipient_email": "private@example.org"},
+        )
+        assert bad.status_code == 400
+        assert not authentik.audit_events
+        good = client.post(
+            "/handset/enrollments", headers=headers,
+            data={"account_pk": "42", "csrf_token": csrf_token, "delivery": "email", "recipient_email": "dienst@mission-leben.de"},
+        )
+        assert good.status_code == 200
+        assert sent[0][0] == "dienst@mission-leben.de"
+        assert "https://geraete.example.org/setup#token=" in sent[0][2]
 
 
 @pytest.mark.asyncio
@@ -871,7 +917,7 @@ async def test_redeem_rejects_wrong_mode_or_token(settings):
     assert wrong_token.value.status == 401
 
 
-def test_simple_management_page_renders_qr_without_exposing_token_as_text(settings):
+def test_management_setup_has_download_first_and_registration_after_confirmation(settings):
     authentik = FakeAuthentik(settings)
     app = create_app(settings, authentik)
     headers = {
@@ -889,7 +935,7 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
         assert home.status_code == 200
         assert "Mitarbeiter-Handy" in home.text
         assert "App noch nicht installiert?" in home.text
-        assert f'href="{settings.public_origin}/install"' in home.text
+        assert f'href="{settings.public_origin}/download"' in home.text
         assert settings.apk_download_url not in home.text
         assert "<svg" in home.text
         assert "default-src 'none'" in home.headers["content-security-policy"]
@@ -901,17 +947,73 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
             data={"employee_pk": "42", "csrf_token": csrf_token},
         )
         assert response.status_code == 200
-        assert "Ein QR-Code für Installation und Einrichtung" in response.text
+        assert "Erst installieren, dann registrieren" in response.text
+        assert response.text.index("Handy vorbereiten") < response.text.index("App installieren")
+        assert response.text.index("App installieren") < response.text.index("Gerät registrieren")
+        assert "App installiert" in response.text
+        assert settings.apk_download_url in response.text
         assert "<svg" in response.text
         assert 'id="copy-enrollment-link"' in response.text
-        assert 'data-link="https://geraete.example.org/install#token=' in response.text
+        assert 'data-link="https://geraete.example.org/setup#token=' in response.text
         assert response.text.count("abcdefghijklmnopqrstuvwxyz0123456789_-") == 1
-        assert 'src="/static/copy-enrollment.js"' in response.text
+        assert 'src="/static/setup.js"' in response.text
         assert "script-src 'self'" in response.headers["content-security-policy"]
+        assert "connect-src 'self'" in response.headers["content-security-policy"]
         assert response.headers["cache-control"] == "no-store"
-        copy_script = client.get("/static/copy-enrollment.js")
-        assert copy_script.status_code == 200
-        assert "navigator.clipboard.writeText" in copy_script.text
+        setup_script = client.get("/static/setup.js")
+        assert setup_script.status_code == 200
+        assert "navigator.clipboard.writeText" in setup_script.text
+
+        shared_setup = client.get("/setup#fragment-is-not-sent")
+        assert shared_setup.status_code == 200
+        assert settings.apk_download_url in shared_setup.text
+        assert "abcdefghijklmnopqrstuvwxyz0123456789_-" not in shared_setup.text
+        assert "script-src 'self'" in shared_setup.headers["content-security-policy"]
+
+        self_install = client.get("/download")
+        assert self_install.status_code == 200
+        assert "App selbst installieren" in self_install.text
+        assert "App öffnen und anmelden" in self_install.text
+        assert "Du brauchst keinen zweiten QR-Code" in self_install.text
+        assert settings.apk_download_url in self_install.text
+        assert "script-src 'self'" in self_install.headers["content-security-policy"]
+
+        preview = client.post("/api/v1/setup/qr", json={
+            "token_uuid": authentik.token_record["token_uuid"],
+            "token": "abcdefghijklmnopqrstuvwxyz0123456789_-",
+            "mode": "personal",
+        })
+        assert preview.status_code == 200
+        assert preview.json()["image"].startswith("data:image/png;base64,")
+        assert "expires_at" in preview.json()
+        assert "no-store" in preview.headers["cache-control"]
+        bad_token = client.post("/api/v1/setup/qr", json={
+            "token_uuid": authentik.token_record["token_uuid"],
+            "token": "abcdefghijklmnopqrstuvwxyz0123456789_x",
+            "mode": "personal",
+        })
+        assert bad_token.status_code == 401
+        wrong_mode = client.post("/api/v1/setup/qr", json={
+            "token_uuid": authentik.token_record["token_uuid"],
+            "token": "abcdefghijklmnopqrstuvwxyz0123456789_-",
+            "mode": "shared",
+        })
+        assert wrong_mode.status_code == 403
+        authentik.token_record["expires"] = (datetime.now(UTC) - timedelta(seconds=1)).isoformat()
+        expired = client.post("/api/v1/setup/qr", json={
+            "token_uuid": authentik.token_record["token_uuid"],
+            "token": "abcdefghijklmnopqrstuvwxyz0123456789_-",
+            "mode": "personal",
+        })
+        assert expired.status_code == 410
+        authentik.token_record["expires"] = (datetime.now(UTC) + timedelta(minutes=5)).isoformat()
+        authentik.deleted_tokens.append(authentik.token_record["token_uuid"])
+        used = client.post("/api/v1/setup/qr", json={
+            "token_uuid": authentik.token_record["token_uuid"],
+            "token": "abcdefghijklmnopqrstuvwxyz0123456789_-",
+            "mode": "personal",
+        })
+        assert used.status_code == 404
 
         installer = client.get("/install#fragment-is-not-sent")
         assert installer.status_code == 200
@@ -944,6 +1046,63 @@ def test_simple_management_page_renders_qr_without_exposing_token_as_text(settin
         assert invalid_redeem.status_code == 401
         assert invalid_redeem.json() == {"error": "Registrierungscode ist ungültig."}
 
+
+def test_it_can_send_personal_enrollment_and_nonexpiring_totp_download(settings, monkeypatch):
+    settings = replace(settings, smtp_host="mail.mission-leben.de", smtp_sender="it-service@mission-leben.de")
+    authentik = FakeAuthentik(settings)
+    messages = []
+
+    async def fake_send(_settings, recipient, subject, body):
+        messages.append((recipient, subject, body))
+
+    monkeypatch.setattr("mission_leben_device_enrollment.app.send_setup_mail", fake_send)
+    app = create_app(settings, authentik)
+    headers = {
+        "x-authentik-meta-app": settings.proxy_app_slug,
+        "x-authentik-uid": "actor-id",
+        "x-authentik-username": "leitung.test",
+        "x-authentik-name": "Leitung Test",
+        "x-authentik-groups": "BR_IT_MANAGEMENT",
+        "origin": settings.public_origin,
+    }
+    csrf_token = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(
+        actor(Role.IT), "issue-personal"
+    )
+    with TestClient(app) as client:
+        mailed_setup = client.post(
+            "/personal/enrollments",
+            headers=headers,
+            data={"employee_pk": "42", "csrf_token": csrf_token, "delivery": "email"},
+        )
+        assert mailed_setup.status_code == 200
+        assert "Einrichtungslink an m.beispiel@mission-leben.de versendet" in mailed_setup.text
+        assert messages[0][0] == "m.beispiel@mission-leben.de"
+        assert "https://geraete.example.org/setup#token=" in messages[0][2]
+        assert "30 Minuten" in messages[0][2]
+
+        count_before = len(authentik.audit_events)
+        mailed_download = client.post(
+            "/personal/download-email",
+            headers=headers,
+            data={"employee_pk": "42", "csrf_token": csrf_token},
+        )
+        assert mailed_download.status_code == 200
+        assert len(authentik.audit_events) == count_before
+        assert "https://geraete.example.org/download" in messages[1][2]
+        assert "keinen Registrierungscode" in messages[1][2]
+        assert "#token=" not in messages[1][2]
+
+        el_headers = {**headers, "x-authentik-groups": "BR_EINRICHTUNGSLEITUNG|ORG_ML_H042"}
+        el_csrf = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(
+            actor(), "issue-personal"
+        )
+        denied = client.post(
+            "/personal/download-email",
+            headers=el_headers,
+            data={"employee_pk": "42", "csrf_token": el_csrf},
+        )
+        assert denied.status_code == 403
+        assert len(messages) == 2
 
 def test_device_status_reads_live_authentik_device_state(settings):
     authentik = FakeAuthentik(settings)

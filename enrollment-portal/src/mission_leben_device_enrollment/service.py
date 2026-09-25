@@ -67,12 +67,39 @@ class IssuedEnrollment:
             }
         )
 
+    def setup_link(self, public_origin: str) -> str:
+        # The PC-only setup link carries the same one-time credential as the
+        # Android App Link, but never sends it to nginx in a request URL.
+        return public_origin.rstrip("/") + "/setup#" + urlencode(
+            {"token": self.token, "token_id": self.token_uuid, "mode": self.mode}
+        )
+
 
 class EnrollmentService:
     def __init__(self, settings: Settings, authentik: AuthentikClient):
         self.settings = settings
         self.authentik = authentik
         self._redemption_lock = asyncio.Lock()
+
+    async def validate_setup_token(self, token_uuid: str, token: str, mode: str) -> datetime:
+        try:
+            UUID(token_uuid)
+        except ValueError as error:
+            raise AuthentikError(400, "Ungültiger Registrierungscode.") from error
+        if mode not in {"personal", "shared"}:
+            raise AuthentikError(400, "Ungültiger Gerätemodus.")
+        token_record = await self.authentik.enrollment_token(token_uuid)
+        if token_record.get("connector") != self.settings.agent_connector_uuid:
+            raise AuthentikError(403, "Der Registrierungscode gehört zu einem anderen Connector.")
+        expires = datetime.fromisoformat(str(token_record["expires"]).replace("Z", "+00:00"))
+        if not token_record.get("expiring") or expires <= datetime.now(UTC):
+            raise AuthentikError(410, "Der Einrichtungslink ist abgelaufen. Bitte einen neuen anfordern.")
+        if not await self.authentik.token_matches(token_uuid, token):
+            raise AuthentikError(401, "Der Registrierungscode ist ungültig.")
+        attributes = (token_record.get("device_group_obj") or {}).get("attributes") or {}
+        if attributes.get("mission-leben.de/purpose") != "android-portal" or attributes.get("mission-leben.de/mode") != mode:
+            raise AuthentikError(403, "Der Registrierungscode passt nicht zu diesem Gerät.")
+        return expires
 
     async def device_status(self, agent_token: str) -> dict[str, Any]:
         device_uuid = await self.authentik.agent_device_id(agent_token)

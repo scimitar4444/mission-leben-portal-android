@@ -27,7 +27,13 @@
       <strong>{{ account.name or account.username }}</strong>
       <small>{{ account.username }}</small>
     </span>
-    <button type="submit">Diensthandy einrichten</button>
+    <button type="submit" name="delivery" value="screen">Diensthandy einrichten</button>
+    {% if can_send_mail %}
+    <label>Empfänger für den Einrichtungslink (dienstliche Adresse)
+      <input type="email" name="recipient_email" placeholder="name@mission-leben.de" autocomplete="off">
+    </label>
+    <button type="submit" name="delivery" value="email" class="secondary">Einrichtung per E-Mail</button>
+    {% endif %}
   </form>
   {% endfor %}
 </section>

@@ -32,11 +32,11 @@
   <div class="download-copy">
     <span class="download-kicker">Mission Leben Zentral</span>
     <h2 id="app-download-title">App noch nicht installiert?</h2>
-    <p>QR-Code mit dem Android-Gerät scannen oder die passende Installationsanleitung öffnen.</p>
+    <p>Der QR-Code lädt die App direkt herunter. Die Anleitung erklärt Android, Samsung und die Anmeldung per TOTP.</p>
     <a class="download-link" href="{{ install_url }}">Installationsanleitung öffnen →</a>
   </div>
-  <a class="download-qr" href="{{ install_url }}" aria-label="Installationsanleitung öffnen">
+  <div class="download-qr" aria-label="QR-Code zum direkten App-Download">
     {{ install_qr_svg | safe }}
-  </a>
+  </div>
 </section>
 {% endblock %}
