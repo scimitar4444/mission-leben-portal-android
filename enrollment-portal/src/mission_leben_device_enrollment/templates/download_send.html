@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Installationslink versenden{% endblock %}
+{% block content %}
+<a class="back" href="/">← Zurück</a>
+<section class="intro">
+  <span class="step">Nur IT · TOTP-Selbstinstallation</span>
+  <h1>Wem soll ich den Installationslink senden?</h1>
+  <p>Suchen Sie eine Person. Sie erhält die einfache Anleitung und meldet sich danach selbst in der App mit TOTP an. Es wird jetzt noch kein Gerät registriert.</p>
+</section>
+<form class="search" method="get" action="/download/send">
+  <label for="q">Person suchen</label>
+  <div class="search-row">
+    <input id="q" name="q" value="{{ query }}" minlength="2" maxlength="80" autocomplete="off" autofocus required>
+    <button type="submit">Suchen</button>
+  </div>
+</form>
+{% if query and not employees %}
+<div class="notice">Keine passende aktive Person gefunden.</div>
+{% endif %}
+{% if employees %}
+<section class="results" aria-label="Suchergebnisse">
+  {% for employee in employees %}
+  <form method="post" action="/personal/download-email" class="person-row">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="employee_pk" value="{{ employee.pk }}">
+    <span>
+      <strong>{{ employee.name or employee.username }}</strong>
+      <small>{{ employee.username }}</small>
+      {% if employee.get('email') %}<small>{{ employee.get('email') }}</small>{% endif %}
+    </span>
+    {% if employee.get('email') %}
+    <button type="submit">Installationslink senden</button>
+    {% else %}
+    <small>Keine E-Mail-Adresse hinterlegt</small>
+    {% endif %}
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

@@ -390,8 +390,10 @@ async def test_it_enrolls_one_company_handset_for_interactive_shared_mailbox(set
     assert error.value.status == 403
 
 
-def test_it_handset_page_issues_link_without_ownership_checkbox(settings):
+def test_it_handset_page_requires_person_recipient_and_hides_enrollment_link(settings, monkeypatch):
+    settings = replace(settings, smtp_host="mail.mission-leben.de", smtp_sender="it-service@mission-leben.de")
     authentik = FakeAuthentik(settings)
+    person = dict(authentik.user)
     authentik.user["username"] = "haus042"
     authentik.user["attributes"] = {
         "iam_account_kind": "shared",
@@ -404,6 +406,20 @@ def test_it_handset_page_issues_link_without_ownership_checkbox(settings):
         return [authentik.user]
 
     authentik.shared_handset_accounts = accounts
+    async def people(_search, _allowed_groups):
+        return [person]
+
+    async def employee(pk):
+        assert pk == person["pk"]
+        return person
+
+    sent = []
+    async def fake_send(_settings, recipient, subject, body):
+        sent.append((recipient, subject, body))
+
+    authentik.employees = people
+    authentik.employee = employee
+    monkeypatch.setattr("mission_leben_device_enrollment.app.send_setup_mail", fake_send)
     app = create_app(settings, authentik)
     headers = {
         "x-authentik-meta-app": settings.proxy_app_slug,
@@ -419,18 +435,30 @@ def test_it_handset_page_issues_link_without_ownership_checkbox(settings):
     with TestClient(app) as client:
         page = client.get("/handset?q=haus", headers=headers)
         assert page.status_code == 200
-        assert "Diensthandy einrichten" in page.text
+        assert "E-Mail-Empfänger suchen" in page.text
+        assert 'name="recipient_email"' not in page.text
+        assert 'name="delivery"' not in page.text
         assert "Die Nutzung auf einem Tablet" not in page.text
         assert "Ich bestätige" not in page.text
         assert 'name="company_owned"' not in page.text
 
+        recipient_page = client.get("/handset/recipient?account_pk=42&q=maria", headers=headers)
+        assert recipient_page.status_code == 200
+        assert person["email"] in recipient_page.text
+        assert "Gruppenkonto: " in recipient_page.text
+        assert not authentik.audit_events
+
         response = client.post(
             "/handset/enrollments",
             headers={**headers, "origin": settings.public_origin},
-            data={"account_pk": "42", "csrf_token": csrf_token},
+            data={"account_pk": "42", "recipient_pk": "42", "csrf_token": csrf_token},
         )
         assert response.status_code == 200
-        assert 'id="copy-enrollment-link"' in response.text
+        assert "Einrichtungslink versendet" in response.text
+        assert 'id="copy-enrollment-link"' not in response.text
+        assert "#token=" not in response.text
+        assert sent[0][0] == person["email"]
+        assert "Gruppenkonto" in sent[0][2]
         assert authentik.existing_group["attributes"]["mission-leben.de/device-ownership"] == "company"
 
 
@@ -444,6 +472,16 @@ def test_it_handset_mail_requires_corporate_recipient(settings, monkeypatch):
         "iam_interactive_login_allowed": True,
         "iam_noninteractive_account": False,
     }
+    person = {
+        **authentik.user,
+        "email": "private@example.org",
+        "attributes": {"iam_account_kind": "person", "iam_directory_class": "person"},
+    }
+
+    async def employee(_pk):
+        return person
+
+    authentik.employee = employee
     sent = []
 
     async def fake_send(_settings, recipient, subject, body):
@@ -465,17 +503,59 @@ def test_it_handset_mail_requires_corporate_recipient(settings, monkeypatch):
     with TestClient(app) as client:
         bad = client.post(
             "/handset/enrollments", headers=headers,
-            data={"account_pk": "42", "csrf_token": csrf_token, "delivery": "email", "recipient_email": "private@example.org"},
+            data={"account_pk": "42", "recipient_pk": "42", "csrf_token": csrf_token},
         )
         assert bad.status_code == 400
         assert not authentik.audit_events
+        person["email"] = "dienst@mission-leben.de"
         good = client.post(
             "/handset/enrollments", headers=headers,
-            data={"account_pk": "42", "csrf_token": csrf_token, "delivery": "email", "recipient_email": "dienst@mission-leben.de"},
+            data={"account_pk": "42", "recipient_pk": "42", "csrf_token": csrf_token},
         )
         assert good.status_code == 200
         assert sent[0][0] == "dienst@mission-leben.de"
         assert "https://geraete.example.org/setup#token=" in sent[0][2]
+
+
+def test_handset_mail_failure_never_displays_registration_secret(settings, monkeypatch):
+    settings = replace(settings, smtp_host="mail.mission-leben.de", smtp_sender="it-service@mission-leben.de")
+    authentik = FakeAuthentik(settings)
+    person = dict(authentik.user)
+    authentik.user["attributes"] = {
+        "iam_account_kind": "shared",
+        "iam_directory_class": "mailbox",
+        "iam_interactive_login_allowed": True,
+        "iam_noninteractive_account": False,
+    }
+
+    async def employee(_pk):
+        return person
+
+    async def failed_send(_settings, _recipient, _subject, _body):
+        raise RuntimeError("synthetic SMTP failure")
+
+    authentik.employee = employee
+    monkeypatch.setattr("mission_leben_device_enrollment.app.send_setup_mail", failed_send)
+    app = create_app(settings, authentik)
+    headers = {
+        "x-authentik-meta-app": settings.proxy_app_slug,
+        "x-authentik-uid": "actor-id",
+        "x-authentik-username": "leitung.test",
+        "x-authentik-name": "Leitung Test",
+        "x-authentik-groups": "BR_IT_MANAGEMENT",
+        "origin": settings.public_origin,
+    }
+    csrf_token = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(
+        actor(Role.IT), "issue-shared-handset"
+    )
+    with TestClient(app) as client:
+        response = client.post(
+            "/handset/enrollments", headers=headers,
+            data={"account_pk": "42", "recipient_pk": "42", "csrf_token": csrf_token},
+        )
+        assert response.status_code == 502
+        assert "#token=" not in response.text
+        assert 'id="copy-enrollment-link"' not in response.text
 
 
 @pytest.mark.asyncio
@@ -1050,6 +1130,10 @@ def test_management_setup_has_download_first_and_registration_after_confirmation
 def test_it_can_send_personal_enrollment_and_nonexpiring_totp_download(settings, monkeypatch):
     settings = replace(settings, smtp_host="mail.mission-leben.de", smtp_sender="it-service@mission-leben.de")
     authentik = FakeAuthentik(settings)
+    async def people(_search, _allowed_groups):
+        return [authentik.user]
+
+    authentik.employees = people
     messages = []
 
     async def fake_send(_settings, recipient, subject, body):
@@ -1068,7 +1152,15 @@ def test_it_can_send_personal_enrollment_and_nonexpiring_totp_download(settings,
     csrf_token = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(
         actor(Role.IT), "issue-personal"
     )
+    download_csrf = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(
+        actor(Role.IT), "send-personal-download"
+    )
     with TestClient(app) as client:
+        search = client.get("/download/send?q=maria", headers=headers)
+        assert search.status_code == 200
+        assert "Person suchen" in search.text
+        assert "m.beispiel@mission-leben.de" in search.text
+        assert not authentik.audit_events
         mailed_setup = client.post(
             "/personal/enrollments",
             headers=headers,
@@ -1084,7 +1176,7 @@ def test_it_can_send_personal_enrollment_and_nonexpiring_totp_download(settings,
         mailed_download = client.post(
             "/personal/download-email",
             headers=headers,
-            data={"employee_pk": "42", "csrf_token": csrf_token},
+            data={"employee_pk": "42", "csrf_token": download_csrf},
         )
         assert mailed_download.status_code == 200
         assert len(authentik.audit_events) == count_before
@@ -1094,8 +1186,10 @@ def test_it_can_send_personal_enrollment_and_nonexpiring_totp_download(settings,
 
         el_headers = {**headers, "x-authentik-groups": "BR_EINRICHTUNGSLEITUNG|ORG_ML_H042"}
         el_csrf = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(
-            actor(), "issue-personal"
+            actor(), "send-personal-download"
         )
+        blocked_search = client.get("/download/send?q=maria", headers=el_headers)
+        assert blocked_search.status_code == 403
         denied = client.post(
             "/personal/download-email",
             headers=el_headers,

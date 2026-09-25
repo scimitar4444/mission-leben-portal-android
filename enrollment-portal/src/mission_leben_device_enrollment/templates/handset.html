@@ -20,21 +20,13 @@
 {% if accounts %}
 <section class="results" aria-label="Suchergebnisse">
   {% for account in accounts %}
-  <form method="post" action="/handset/enrollments" class="person-row">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <input type="hidden" name="account_pk" value="{{ account.pk }}">
+  <div class="person-row">
     <span>
       <strong>{{ account.name or account.username }}</strong>
       <small>{{ account.username }}</small>
     </span>
-    <button type="submit" name="delivery" value="screen">Diensthandy einrichten</button>
-    {% if can_send_mail %}
-    <label>Empfänger für den Einrichtungslink (dienstliche Adresse)
-      <input type="email" name="recipient_email" placeholder="name@mission-leben.de" autocomplete="off">
-    </label>
-    <button type="submit" name="delivery" value="email" class="secondary">Einrichtung per E-Mail</button>
-    {% endif %}
-  </form>
+    <a class="button" href="/handset/recipient?account_pk={{ account.pk }}">E-Mail-Empfänger suchen</a>
+  </div>
   {% endfor %}
 </section>
 {% endif %}

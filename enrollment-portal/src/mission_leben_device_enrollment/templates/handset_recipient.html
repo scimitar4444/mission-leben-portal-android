@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}E-Mail-Empfänger suchen{% endblock %}
+{% block content %}
+<a class="back" href="/handset">← Gruppenkonto ändern</a>
+<section class="intro">
+  <span class="step">Nur IT · Diensthandy</span>
+  <h1>An wen soll der Einrichtungslink gehen?</h1>
+  <p class="target">Gruppenkonto: {{ account.name or account.username }}</p>
+  <p>Suchen Sie eine Person mit dienstlicher E-Mail-Adresse. Der Link geht an diese Person; das Handy wird ausschließlich mit dem oben genannten Gruppenkonto verbunden.</p>
+</section>
+<form class="search" method="get" action="/handset/recipient">
+  <input type="hidden" name="account_pk" value="{{ account.pk }}">
+  <label for="q">E-Mail-Empfänger suchen</label>
+  <div class="search-row">
+    <input id="q" name="q" value="{{ query }}" minlength="2" maxlength="80" autocomplete="off" autofocus required>
+    <button type="submit">Suchen</button>
+  </div>
+</form>
+{% if query and not recipients %}
+<div class="notice">Keine passende aktive Person mit dienstlicher E-Mail-Adresse gefunden.</div>
+{% endif %}
+{% if recipients %}
+<section class="results" aria-label="E-Mail-Empfänger">
+  {% for person in recipients %}
+  <form method="post" action="/handset/enrollments" class="person-row">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="account_pk" value="{{ account.pk }}">
+    <input type="hidden" name="recipient_pk" value="{{ person.pk }}">
+    <span>
+      <strong>{{ person.name or person.username }}</strong>
+      <small>{{ person.get('email') }}</small>
+    </span>
+    <button type="submit">Einrichtungslink per E-Mail senden</button>
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

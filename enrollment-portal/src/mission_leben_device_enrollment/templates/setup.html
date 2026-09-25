@@ -55,6 +55,7 @@
   <div class="copy-enrollment">
     <button class="secondary" type="button" id="copy-enrollment-link" {% if not setup_link and not self_service %}hidden{% endif %}>{% if self_service %}Installationslink kopieren{% else %}Einrichtungslink kopieren{% endif %}</button>
     <p>{% if self_service %}Dieser Link kann an Mitarbeitende mit eigenem TOTP geschickt werden. Er enthält keinen Registrierungscode.{% else %}Nur an die vorgesehene Person senden. Der Link gehört auf einen PC und enthält einen einmaligen Registrierungscode.{% endif %}</p>
+    {% if self_service %}<p><a class="download-link" href="/download/send">Für IT: Person suchen und Installationslink per E-Mail senden →</a></p>{% endif %}
   </div>
 </section>
 <div class="actions"><a class="button secondary" href="/">Weiteres Gerät einrichten</a></div>

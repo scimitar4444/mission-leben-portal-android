@@ -34,7 +34,6 @@
     {% if can_send_mail %}
     {% if employee.get('email') %}
     <button type="submit" name="delivery" value="email" class="secondary">Einrichtung per E-Mail</button>
-    <button type="submit" formaction="/personal/download-email" class="secondary">Nur App-Installation per E-Mail (TOTP)</button>
     {% else %}<small>Keine E-Mail-Adresse für diese Person hinterlegt.</small>{% endif %}
     {% endif %}
   </form>

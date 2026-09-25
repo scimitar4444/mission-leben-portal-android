@@ -1,8 +1,9 @@
 # Gruppenkonto auf einem Diensthandy
 
 Stand: 25.09.2026. Der Diensthandy-Weg ist seit Android 0.12.11,
-Geräteportal 0.2.8 und Bridge 0.10.6 umgesetzt; Portal 0.2.9 vereinfacht
-die IT-Oberfläche. Die drei eng begrenzten Authentik-Policies sind ausgerollt. Automatisierte
+Geräteportal 0.2.8 und Bridge 0.10.6 umgesetzt; Portal 0.2.11 führt die
+IT durch Gruppenkonto-Auswahl und Personensuche für den verpflichtenden E-Mail-Versand.
+Die Empfängerperson wird nicht mit dem Gerät verbunden. Die drei eng begrenzten Authentik-Policies sind ausgerollt. Automatisierte
 Tests und Live-Health-/Rollenprüfungen sind erfolgreich; **die Anmeldung und
 der Geräteersatz mit einem echten Gruppenkonto-Diensthandy sind noch nicht
 End-to-End abgenommen**.
@@ -12,7 +13,7 @@ End-to-End abgenommen**.
 Ein bestehendes, aktives und für interaktive Anmeldung freigegebenes
 `shared/mailbox`-Konto darf direkt auf einem dienstlichen Android-Handy
 angemeldet werden. Nur ein aktives Mitglied von `BR_IT_MANAGEMENT` darf dafür
-im Geräteportal einen QR-Code ausstellen. Dieser IT-exklusive Weg ist für
+im Geräteportal einen 30 Minuten gültigen Einrichtungslink per E-Mail ausstellen. Dieser IT-exklusive Weg ist für
 Firmengeräte vorgesehen; die Oberfläche verlangt dafür keine zusätzliche
 Checkbox. Das Konto wird nicht zusätzlich einer natürlichen Person
 zugeordnet. TOTP-Selbstregistrierung und App-Anmeldebestätigungen für dieses
@@ -28,8 +29,11 @@ Verzeichnisgruppe und kein zweiter OIDC-Client eingeführt.
 ## Technischer Weg
 
 1. Das Geräteportal filtert aktive interaktive `shared/mailbox`-Konten und
-   stellt die Auswahl ausschließlich der IT bereit. Der QR-Code gilt 30
-   Minuten und wird beim Einlösen verbraucht.
+   stellt die Auswahl ausschließlich der IT bereit. Danach sucht die IT eine
+   aktive physische Person mit dienstlicher E-Mail-Adresse als Empfänger. Nur
+   diese Person erhält den Link; der Code wird nicht am IT-Bildschirm gezeigt.
+   Der zweite QR-Code auf der Einrichtungsseite gilt 30 Minuten ab Link-Erstellung
+   und wird beim Einlösen verbraucht.
 2. Eine persönliche DeviceAccessGroup wird direkt an genau das Zielkonto
    gebunden. `mission-leben.de/handset-profile=shared-account` und
    `mission-leben.de/device-ownership=company` unterscheiden sie vom

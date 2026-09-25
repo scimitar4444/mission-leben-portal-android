@@ -148,14 +148,26 @@ def create_app(
         name = " ".join((raw.split(",", 1)[1] if "," in raw else raw).split())
         return name.split()[0] if name else ""
 
-    async def mail_enrollment(enrollment: IssuedEnrollment, recipient: str, greeting: str) -> str:
+    async def mail_enrollment(
+        enrollment: IssuedEnrollment, recipient: str, greeting: str, *, email_only: bool = False
+    ) -> str:
         salutation = f"Hallo {greeting}," if greeting else "Hallo,"
+        purpose = (
+            f"ich habe die Einrichtung eines Diensthandys für das Gruppenkonto {enrollment.target_label} vorbereitet. "
+            if email_only else
+            "ich habe die Einrichtung von Mission Leben Zentral für dich vorbereitet. "
+        )
+        connection = (
+            "Der zweite QR-Code verbindet das Diensthandy mit dem ausgewählten Gruppenkonto.\n\n"
+            if email_only else
+            "Der zweite QR-Code verbindet das Gerät mit deinem Zugang.\n\n"
+        )
         body = (
             f"{salutation}\n\n"
-            "ich habe die Einrichtung von Mission Leben Zentral für dich vorbereitet. "
+            f"{purpose}"
             "Öffne den folgenden Link an einem PC. Auf der Seite bereitest du zuerst dein Android- oder Samsung-Gerät vor, "
             "installierst die App mit dem ersten QR-Code und klickst dann auf „App installiert“. "
-            "Der zweite QR-Code verbindet das Gerät mit deinem Zugang.\n\n"
+            f"{connection}"
             f"{enrollment.setup_link(settings.public_origin)}\n\n"
             "Der Link gilt 30 Minuten ab seiner Erstellung und kann nur einmal zur Registrierung verwendet werden. "
             "Bitte leite ihn nicht weiter. Falls du keine Einrichtung erwartest, melde dich beim IT-Service.\n\n"
@@ -165,6 +177,8 @@ def create_app(
             await send_setup_mail(settings, recipient, "Mission Leben Zentral: Gerät einrichten", body)
         except Exception:
             LOGGER.exception("setup mail delivery failed")
+            if email_only:
+                raise HTTPException(502, "Die E-Mail konnte nicht versendet werden. Bitte später erneut versuchen.")
             return "E-Mail-Versand fehlgeschlagen. Bitte den Einrichtungslink selbst kopieren und sicher weitergeben."
         return f"Einrichtungslink an {recipient} versendet."
 
@@ -317,6 +331,18 @@ def create_app(
             **page_context(current, "issue-personal"),
         )
 
+    @app.get("/download/send", response_class=HTMLResponse)
+    async def download_send(request: Request, q: str = ""):
+        current = actor(request)
+        require_it_mail(current)
+        results = await client.employees(q, None) if len(q.strip()) >= 2 else []
+        return html(
+            "download_send.html",
+            query=q.strip(),
+            employees=results,
+            **page_context(current, "send-personal-download"),
+        )
+
     @app.post("/personal/enrollments", response_class=HTMLResponse)
     async def issue_personal(
         request: Request,
@@ -345,7 +371,7 @@ def create_app(
         csrf_token: str = Form(...),
     ):
         current = actor(request)
-        csrf.verify_request(request, current, "issue-personal", csrf_token)
+        csrf.verify_request(request, current, "send-personal-download", csrf_token)
         require_it_mail(current)
         user = await client.employee(employee_pk)
         recipient = mail_recipient(str(user.get("email") or ""))
@@ -370,14 +396,33 @@ def create_app(
     @app.get("/handset", response_class=HTMLResponse)
     async def handset(request: Request, q: str = ""):
         current = actor(request)
-        if not current.can_initialize_shared_handset:
-            raise HTTPException(403, "Nur die IT darf Gruppenkonten an Diensthandys binden.")
+        require_it_mail(current)
         accounts = await service.shared_handset_accounts_for(current, q) if len(q.strip()) >= 2 else []
         return html(
             "handset.html",
             query=q.strip(),
             accounts=accounts,
-            can_send_mail=bool(settings.smtp_host),
+            **page_context(current),
+        )
+
+    @app.get("/handset/recipient", response_class=HTMLResponse)
+    async def handset_recipient(request: Request, account_pk: int, q: str = ""):
+        current = actor(request)
+        require_it_mail(current)
+        account = await service.shared_handset_account_for(current, account_pk)
+        people = await client.employees(q, None) if len(q.strip()) >= 2 else []
+        recipients = []
+        for person in people:
+            try:
+                mail_recipient(str(person.get("email") or ""), corporate_only=True)
+            except HTTPException:
+                continue
+            recipients.append(person)
+        return html(
+            "handset_recipient.html",
+            account=account,
+            query=q.strip(),
+            recipients=recipients,
             **page_context(current, "issue-shared-handset"),
         )
 
@@ -385,21 +430,17 @@ def create_app(
     async def issue_handset(
         request: Request,
         account_pk: int = Form(...),
+        recipient_pk: int = Form(...),
         csrf_token: str = Form(...),
-        delivery: str = Form("screen"),
-        recipient_email: str = Form(""),
     ):
         current = actor(request)
         csrf.verify_request(request, current, "issue-shared-handset", csrf_token)
-        if delivery not in {"screen", "email"}:
-            raise HTTPException(400, "Ungültiger Versandweg.")
-        recipient = ""
-        if delivery == "email":
-            require_it_mail(current)
-            recipient = mail_recipient(recipient_email, corporate_only=True)
+        require_it_mail(current)
+        person = await client.employee(recipient_pk)
+        recipient = mail_recipient(str(person.get("email") or ""), corporate_only=True)
         enrollment = await service.issue_shared_handset(current, account_pk)
-        mail_status = await mail_enrollment(enrollment, recipient, "") if recipient else ""
-        return setup_page(enrollment, current, mail_status)
+        await mail_enrollment(enrollment, recipient, first_name(person), email_only=True)
+        return html("enrollment_sent.html", recipient=recipient, **page_context(current))
 
     @app.get("/shared", response_class=HTMLResponse)
     async def shared(request: Request):
