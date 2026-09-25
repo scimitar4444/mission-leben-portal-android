@@ -243,14 +243,11 @@ def create_app(
     async def issue_handset(
         request: Request,
         account_pk: int = Form(...),
-        company_owned: bool = Form(False),
         csrf_token: str = Form(...),
     ):
         current = actor(request)
         csrf.verify_request(request, current, "issue-shared-handset", csrf_token)
-        enrollment = await service.issue_shared_handset(
-            current, account_pk, company_owned=company_owned
-        )
+        enrollment = await service.issue_shared_handset(current, account_pk)
         return html(
             "qr.html",
             enrollment=enrollment,

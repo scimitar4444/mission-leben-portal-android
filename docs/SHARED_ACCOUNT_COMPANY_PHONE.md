@@ -1,7 +1,8 @@
 # Gruppenkonto auf einem Diensthandy
 
-Stand: 24.09.2026. Android 0.12.11, Geräteportal 0.2.8, Bridge 0.10.6
-und die drei eng begrenzten Authentik-Policies sind ausgerollt. Automatisierte
+Stand: 25.09.2026. Der Diensthandy-Weg ist seit Android 0.12.11,
+Geräteportal 0.2.8 und Bridge 0.10.6 umgesetzt; Portal 0.2.9 vereinfacht
+die IT-Oberfläche. Die drei eng begrenzten Authentik-Policies sind ausgerollt. Automatisierte
 Tests und Live-Health-/Rollenprüfungen sind erfolgreich; **die Anmeldung und
 der Geräteersatz mit einem echten Gruppenkonto-Diensthandy sind noch nicht
 End-to-End abgenommen**.
@@ -11,8 +12,9 @@ End-to-End abgenommen**.
 Ein bestehendes, aktives und für interaktive Anmeldung freigegebenes
 `shared/mailbox`-Konto darf direkt auf einem dienstlichen Android-Handy
 angemeldet werden. Nur ein aktives Mitglied von `BR_IT_MANAGEMENT` darf dafür
-im Geräteportal einen QR-Code ausstellen. Die IT bestätigt dabei, dass es ein
-Firmengerät ist. Das Konto wird nicht zusätzlich einer natürlichen Person
+im Geräteportal einen QR-Code ausstellen. Dieser IT-exklusive Weg ist für
+Firmengeräte vorgesehen; die Oberfläche verlangt dafür keine zusätzliche
+Checkbox. Das Konto wird nicht zusätzlich einer natürlichen Person
 zugeordnet. TOTP-Selbstregistrierung und App-Anmeldebestätigungen für dieses
 Konto sind ausgeschlossen. Die Einrichtung benötigt kein internes WLAN.
 
@@ -43,7 +45,7 @@ Verzeichnisgruppe und kein zweiter OIDC-Client eingeführt.
    Endpoint-Prüfung bleibt erforderlich. Der TOTP-only-Zweig gilt weiterhin
    ausschließlich für persönliche `person/person`-Konten; für das
    Gruppenkonto bleibt die Passwortanmeldung.
-5. Die App speichert das vom Portal bestätigte Profil und richtet keine
+5. Die App speichert das vom Portal zugewiesene Profil und richtet keine
    Anmeldebestätigung für das Gruppenkonto ein. Die Bridge weist eine
    entsprechende Registrierung zusätzlich serverseitig ab.
 

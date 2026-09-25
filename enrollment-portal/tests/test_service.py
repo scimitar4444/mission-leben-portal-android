@@ -341,13 +341,13 @@ async def test_it_enrolls_one_company_handset_for_interactive_shared_mailbox(set
     }
     service = EnrollmentService(settings, authentik)
 
-    for enrolling_actor, owned in ((actor(Role.EL), True), (actor(Role.PDL), True), (actor(Role.IT), False)):
+    for enrolling_actor in (actor(Role.EL), actor(Role.PDL)):
         with pytest.raises(AuthentikError) as error:
-            await service.issue_shared_handset(enrolling_actor, 42, company_owned=owned)
-        assert error.value.status in {400, 403}
+            await service.issue_shared_handset(enrolling_actor, 42)
+        assert error.value.status == 403
     assert authentik.created_groups == []
 
-    issued = await service.issue_shared_handset(actor(Role.IT), 42, company_owned=True)
+    issued = await service.issue_shared_handset(actor(Role.IT), 42)
     assert issued.mode == "personal"
     assert authentik.created_groups[0]["name"] == "Mission Leben Android - Personal - haus042"
     assert authentik.existing_group["attributes"][HANDSET_PROFILE_ATTRIBUTE] == "shared-account"
@@ -386,6 +386,50 @@ async def test_it_enrolls_one_company_handset_for_interactive_shared_mailbox(set
     with pytest.raises(AuthentikError) as error:
         await service.device_status("agent-device-token")
     assert error.value.status == 403
+
+
+def test_it_handset_page_issues_link_without_ownership_checkbox(settings):
+    authentik = FakeAuthentik(settings)
+    authentik.user["username"] = "haus042"
+    authentik.user["attributes"] = {
+        "iam_account_kind": "shared",
+        "iam_directory_class": "mailbox",
+        "iam_interactive_login_allowed": True,
+        "iam_noninteractive_account": False,
+    }
+
+    async def accounts(_search):
+        return [authentik.user]
+
+    authentik.shared_handset_accounts = accounts
+    app = create_app(settings, authentik)
+    headers = {
+        "x-authentik-meta-app": settings.proxy_app_slug,
+        "x-authentik-uid": "actor-id",
+        "x-authentik-username": "leitung.test",
+        "x-authentik-name": "Leitung Test",
+        "x-authentik-groups": "BR_IT_MANAGEMENT",
+    }
+    csrf_token = CsrfProtector(settings.csrf_secret, settings.public_origin).issue(
+        actor(Role.IT), "issue-shared-handset"
+    )
+
+    with TestClient(app) as client:
+        page = client.get("/handset?q=haus", headers=headers)
+        assert page.status_code == 200
+        assert "Diensthandy einrichten" in page.text
+        assert "Die Nutzung auf einem Tablet" not in page.text
+        assert "Ich bestätige" not in page.text
+        assert 'name="company_owned"' not in page.text
+
+        response = client.post(
+            "/handset/enrollments",
+            headers={**headers, "origin": settings.public_origin},
+            data={"account_pk": "42", "csrf_token": csrf_token},
+        )
+        assert response.status_code == 200
+        assert 'id="copy-enrollment-link"' in response.text
+        assert authentik.existing_group["attributes"]["mission-leben.de/device-ownership"] == "company"
 
 
 @pytest.mark.asyncio

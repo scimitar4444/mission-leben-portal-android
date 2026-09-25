@@ -189,13 +189,9 @@ class EnrollmentService:
             raise AuthentikError(403, "Nur die IT darf Gruppenkonten an Diensthandys binden.")
         return await self.authentik.shared_handset_account(user_pk)
 
-    async def issue_shared_handset(
-        self, actor: Actor, user_pk: int, *, company_owned: bool
-    ) -> IssuedEnrollment:
+    async def issue_shared_handset(self, actor: Actor, user_pk: int) -> IssuedEnrollment:
         if not actor.can_initialize_shared_handset:
             raise AuthentikError(403, "Nur die IT darf Gruppenkonten an Diensthandys binden.")
-        if not company_owned:
-            raise AuthentikError(400, "Bitte bestätigen Sie, dass es ein dienstliches Handy ist.")
         user = await self.authentik.shared_handset_account(user_pk)
         username = str(user["username"]).strip()
         user_uuid = str(user["uuid"])
