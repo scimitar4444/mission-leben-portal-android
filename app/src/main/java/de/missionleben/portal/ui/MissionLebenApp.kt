@@ -123,6 +123,7 @@ fun MissionLebenApp(
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
     onCheckForUpdates: () -> Unit,
+    onShowReleaseNotes: () -> Unit,
     onApproveLogin: () -> Unit,
     onDenyLogin: () -> Unit,
     onLoginApprovalExpired: (String) -> Unit,
@@ -141,6 +142,7 @@ fun MissionLebenApp(
                 onSelfEnrollment = onSelfEnrollment,
                 onDismissMessage = onDismissMessage,
                 onCheckForUpdates = onCheckForUpdates,
+                onShowReleaseNotes = onShowReleaseNotes,
                 currentLanguageTag = currentLanguageTag,
                 onLanguageChange = onLanguageChange,
             )
@@ -173,6 +175,7 @@ fun MissionLebenApp(
                 onResetProfile = onResetProfile,
                 onDismissMessage = onDismissMessage,
                 onCheckForUpdates = onCheckForUpdates,
+                onShowReleaseNotes = onShowReleaseNotes,
                 currentLanguageTag = currentLanguageTag,
                 onLanguageChange = onLanguageChange,
             )
@@ -283,6 +286,7 @@ private fun Onboarding(
     onSelfEnrollment: () -> Unit,
     onDismissMessage: () -> Unit,
     onCheckForUpdates: () -> Unit,
+    onShowReleaseNotes: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
@@ -334,6 +338,7 @@ private fun Onboarding(
                 status = state.updateStatus,
                 managedByFdroid = state.updatesManagedByFdroid,
                 onCheckForUpdates = onCheckForUpdates,
+                onShowReleaseNotes = onShowReleaseNotes,
             )
         }
     }
@@ -368,6 +373,7 @@ private fun Home(
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
     onCheckForUpdates: () -> Unit,
+    onShowReleaseNotes: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
@@ -410,6 +416,7 @@ private fun Home(
             onResetProfile = onResetProfile,
             onDismissMessage = onDismissMessage,
             onCheckForUpdates = onCheckForUpdates,
+            onShowReleaseNotes = onShowReleaseNotes,
             currentLanguageTag = currentLanguageTag,
             onLanguageChange = onLanguageChange,
         )
@@ -702,6 +709,7 @@ private fun SettingsScreen(
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
     onCheckForUpdates: () -> Unit,
+    onShowReleaseNotes: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
@@ -832,6 +840,7 @@ private fun SettingsScreen(
                 status = state.updateStatus,
                 managedByFdroid = state.updatesManagedByFdroid,
                 onCheckForUpdates = onCheckForUpdates,
+                onShowReleaseNotes = onShowReleaseNotes,
                 onResetProfile = if (PortalCapability.DEVICE_PROFILE_SWITCH in state.capabilities) {
                     onResetProfile
                 } else {
@@ -883,6 +892,7 @@ private fun UpdateFooter(
     status: UpdateStatus,
     managedByFdroid: Boolean,
     onCheckForUpdates: () -> Unit,
+    onShowReleaseNotes: () -> Unit,
     onResetProfile: (() -> Unit)? = null,
 ) {
     val checking = status == UpdateStatus.CHECKING
@@ -896,11 +906,12 @@ private fun UpdateFooter(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                stringResource(R.string.version_format, BuildConfig.VERSION_NAME),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 12.sp,
-            )
+            TextButton(onClick = onShowReleaseNotes, contentPadding = PaddingValues(0.dp)) {
+                Text(
+                    stringResource(R.string.version_format, BuildConfig.VERSION_NAME),
+                    fontSize = 12.sp,
+                )
+            }
             if (managedByFdroid) {
                 Text(
                     stringResource(R.string.update_managed_by_fdroid),

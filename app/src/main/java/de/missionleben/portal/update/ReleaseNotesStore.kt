@@ -15,25 +15,27 @@ object ReleaseNotesPolicy {
         (lastSeenVersion > 0 || (firstInstallTime > 0 && lastUpdateTime > firstInstallTime))
 }
 
+object ReleaseNotesCatalog {
+    private val notesByVersion = sortedMapOf(
+        76 to listOf(R.string.release_note_push_check, R.string.release_note_update_summary),
+        77 to listOf(R.string.release_note_compact_settings),
+    )
+
+    fun forVersion(versionCode: Int): List<Int> = notesByVersion[versionCode].orEmpty()
+
+    fun since(lastSeenVersion: Int, currentVersion: Int): List<Int> = notesByVersion
+        .filterKeys { it > lastSeenVersion && it <= currentVersion }
+        .values
+        .flatten()
+}
+
 class ReleaseNotesStore(context: Context) {
     private val preferences = context.getSharedPreferences("mission_leben_release_notes", Context.MODE_PRIVATE)
     private val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
 
     fun pendingNotes(): List<Int> {
         val lastSeen = preferences.getInt("last_seen_version_code", 0)
-        val notes = when (BuildConfig.VERSION_CODE) {
-            76 -> listOf(R.string.release_note_push_check, R.string.release_note_update_summary)
-            77 -> if (lastSeen >= 76) {
-                listOf(R.string.release_note_compact_settings)
-            } else {
-                listOf(
-                    R.string.release_note_push_check,
-                    R.string.release_note_update_summary,
-                    R.string.release_note_compact_settings,
-                )
-            }
-            else -> emptyList()
-        }
+        val notes = ReleaseNotesCatalog.since(lastSeen, BuildConfig.VERSION_CODE)
         if (!ReleaseNotesPolicy.shouldShow(
                 lastSeen,
                 BuildConfig.VERSION_CODE,
@@ -47,6 +49,8 @@ class ReleaseNotesStore(context: Context) {
         }
         return notes
     }
+
+    fun currentVersionNotes(): List<Int> = ReleaseNotesCatalog.forVersion(BuildConfig.VERSION_CODE)
 
     fun markSeen() {
         preferences.edit().putInt("last_seen_version_code", BuildConfig.VERSION_CODE).apply()

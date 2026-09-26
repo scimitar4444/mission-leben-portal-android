@@ -158,13 +158,13 @@ class MainActivity : FragmentActivity() {
                 val notificationPermissionRequested = remember(pushSettingsRevision.intValue, state.signedIn) {
                     PushRegistrationStore(this@MainActivity).permissionWasRequested
                 }
-                val pendingNotes = remember { mutableStateOf(releaseNotes.pendingNotes()) }
+                val notesToShow = remember { mutableStateOf(releaseNotes.pendingNotes()) }
                 val showPushPrompt = remember { mutableStateOf(false) }
                 LaunchedEffect(
                     state.signedIn, state.pushConfigured, pushStatus,
-                    notificationPermissionRequested, pendingNotes.value,
+                    notificationPermissionRequested, notesToShow.value,
                 ) {
-                    if (pendingNotes.value.isEmpty() && PushReliabilityPolicy.shouldPrompt(
+                    if (notesToShow.value.isEmpty() && PushReliabilityPolicy.shouldPrompt(
                             state.signedIn,
                             state.pushConfigured,
                             pushReliability.promptShown,
@@ -243,6 +243,7 @@ class MainActivity : FragmentActivity() {
                     },
                     onDismissMessage = viewModel::clearMessage,
                     onCheckForUpdates = { viewModel.checkForUpdates(force = true) },
+                    onShowReleaseNotes = { notesToShow.value = releaseNotes.currentVersionNotes() },
                     onApproveLogin = { viewModel.decideLoginApproval(true) },
                     onDenyLogin = { viewModel.decideLoginApproval(false) },
                     onLoginApprovalExpired = viewModel::expireLoginApproval,
@@ -251,10 +252,10 @@ class MainActivity : FragmentActivity() {
                     currentLanguageTag = currentLanguageTag(),
                     onLanguageChange = ::setAppLanguage,
                 )
-                if (pendingNotes.value.isNotEmpty()) {
-                    ReleaseNotesDialog(pendingNotes.value) {
+                if (notesToShow.value.isNotEmpty()) {
+                    ReleaseNotesDialog(notesToShow.value) {
                         releaseNotes.markSeen()
-                        pendingNotes.value = emptyList()
+                        notesToShow.value = emptyList()
                     }
                 } else if (showPushPrompt.value) {
                     PushReliabilityPrompt(

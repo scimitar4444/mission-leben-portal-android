@@ -55,6 +55,10 @@ bei gleicher APK-Signatur mit `adb install -r` direkt ersetzt werden. Danach
 Installationsquelle und GitHub-Updateprüfung am Gerät kontrollieren.
 
 Ab 0.12.18 zeigt die App nach dem ersten Öffnen einer neuen Version eine kurze
-Änderungsliste. Für jedes weitere Release die neuen Einträge in
-`ReleaseNotesStore.kt` und den lokalisierten String-Ressourcen ergänzen und
-den einmaligen Dialog auf einem aktualisierten Gerät testen.
+Änderungsliste. Ab dem nächsten Release öffnet ein Tipp auf die Versionsnummer
+in den Einstellungen oder auf der Einrichtungsseite die Änderungen der
+installierten Version erneut.
+Für jedes weitere Release die neuen Einträge in `ReleaseNotesCatalog` und den
+lokalisierten String-Ressourcen ergänzen und den einmaligen sowie den manuell
+geöffneten Dialog auf einem aktualisierten Gerät testen. Ein Unit-Test prüft,
+dass die aktuelle Build-Version eigene Änderungshinweise besitzt.
