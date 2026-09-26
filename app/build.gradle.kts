@@ -175,7 +175,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("net.openid:appauth:0.11.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
