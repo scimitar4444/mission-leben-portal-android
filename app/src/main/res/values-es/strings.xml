@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_reliability_title">Entrega de avisos</string>
+    <string name="push_reliability_description">Comprueba estos ajustes para recibir avisos con la pantalla apagada.</string>
+    <string name="push_reliability_not_registered">Los avisos aún no están configurados en este dispositivo.</string>
+    <string name="push_reliability_notifications_ok">Notificaciones: permitidas</string>
+    <string name="push_reliability_notifications_off">Notificaciones: desactivadas</string>
+    <string name="push_reliability_open_notifications">Abrir notificaciones</string>
+    <string name="push_reliability_battery_ok">Excepción de batería Android: activa</string>
+    <string name="push_reliability_battery_limited">El ahorro de batería puede retrasar o detener los avisos.</string>
+    <string name="push_reliability_allow_battery">Permitir excepción de batería</string>
+    <string name="push_reliability_samsung_hint">Samsung: Revisa también Aplicaciones que nunca duermen y añade Mission Leben Zentral si hace falta.</string>
+    <string name="push_reliability_tcl_hint">TCL: Protege también Mission Leben Zentral en las aplicaciones recientes si existe esa opción.</string>
+    <string name="push_reliability_open_manufacturer">Abrir ajustes del dispositivo</string>
+    <string name="push_reliability_limit">Esto comprueba permisos, no la conexión actual al servidor. El teléfono aún puede detener aplicaciones.</string>
+    <string name="push_reliability_prompt_title">Recibir avisos de forma fiable</string>
+    <string name="push_reliability_prompt_notifications">Las notificaciones están desactivadas. Abre los ajustes de Android para ver los avisos.</string>
+    <string name="push_reliability_prompt_battery">Android puede limitar la conexión de avisos en segundo plano. Puedes permitir una excepción de batería. Esto puede aumentar el consumo.</string>
+    <string name="push_reliability_check_now">Comprobar ahora</string>
+    <string name="release_notes_title">Novedades de esta versión</string>
+    <string name="release_note_push_check">En Ajustes puedes comprobar si Android permite avisos en segundo plano.</string>
+    <string name="release_note_update_summary">Después de actualizar, la app muestra una vez los cambios principales.</string>
+    <string name="release_notes_done">Entendido</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Ajustes</string>
@@ -98,6 +119,8 @@
     <string name="no_conference_device">No hay ningún dispositivo de conferencia autorizado en línea.</string>
     <string name="open_on_target_device">Abrir en el dispositivo de destino</string>
     <string name="notifications_title">Notificaciones</string>
+    <string name="settings_notifications_summary">%1$s · cita %2$d min. antes</string>
+    <string name="settings_notifications_off">Correo, citas y Talk desactivados</string>
     <string name="notifications_shared_description">Las tabletas compartidas nunca muestran remitentes, asuntos ni detalles de citas.</string>
     <string name="notifications_lockscreen_description">El contenido permanece oculto en la pantalla de bloqueo. Tras desbloquear se aplica esta opción:</string>
     <string name="privacy_minimal_label">Discreto</string>

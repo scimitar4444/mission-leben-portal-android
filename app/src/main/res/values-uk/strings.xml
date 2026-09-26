@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_reliability_title">Push-сповіщення</string>
+    <string name="push_reliability_description">Перевірте ці налаштування, щоб отримувати сповіщення навіть із вимкненим екраном.</string>
+    <string name="push_reliability_not_registered">Push-сповіщення ще не налаштовано на цьому пристрої.</string>
+    <string name="push_reliability_notifications_ok">Сповіщення: дозволено</string>
+    <string name="push_reliability_notifications_off">Сповіщення: вимкнено</string>
+    <string name="push_reliability_open_notifications">Відкрити налаштування сповіщень</string>
+    <string name="push_reliability_battery_ok">Виняток економії заряду Android: активний</string>
+    <string name="push_reliability_battery_limited">Економія заряду може затримати або зупинити сповіщення.</string>
+    <string name="push_reliability_allow_battery">Дозволити виняток економії заряду</string>
+    <string name="push_reliability_samsung_hint">Samsung: також перевірте список програм, що ніколи не переходять у сон, і за потреби додайте Mission Leben Zentral.</string>
+    <string name="push_reliability_tcl_hint">TCL: якщо можливо, захистіть Mission Leben Zentral також у списку останніх програм.</string>
+    <string name="push_reliability_open_manufacturer">Відкрити налаштування пристрою</string>
+    <string name="push_reliability_limit">Перевіряються дозволи, а не поточне з’єднання із сервером. Телефон усе ще може зупинити програму.</string>
+    <string name="push_reliability_prompt_title">Отримуйте сповіщення надійно</string>
+    <string name="push_reliability_prompt_notifications">Сповіщення вимкнено. Відкрийте налаштування Android, щоб їх увімкнути.</string>
+    <string name="push_reliability_prompt_battery">Android може обмежувати push-з’єднання у фоновому режимі. Ви можете дозволити виняток для Mission Leben Zentral. Це може збільшити витрату заряду.</string>
+    <string name="push_reliability_check_now">Перевірити зараз</string>
+    <string name="release_notes_title">Що нового в цій версії</string>
+    <string name="release_note_push_check">У налаштуваннях можна перевірити, чи дозволяє Android фонові push-сповіщення.</string>
+    <string name="release_note_update_summary">Після оновлення програма один раз показує головні зміни.</string>
+    <string name="release_notes_done">Зрозуміло</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Портал</string>
     <string name="settings_title">Налаштування</string>
@@ -98,6 +119,8 @@
     <string name="no_conference_device">Немає схваленого конференц-пристрою онлайн.</string>
     <string name="open_on_target_device">Відкрити на цільовому пристрої</string>
     <string name="notifications_title">Сповіщення</string>
+    <string name="settings_notifications_summary">%1$s · за %2$d хв до зустрічі</string>
+    <string name="settings_notifications_off">Пошта, зустрічі та Talk вимкнено</string>
     <string name="notifications_shared_description">На спільних планшетах ніколи не показуються відправники, теми чи подробиці зустрічей.</string>
     <string name="notifications_lockscreen_description">На екрані блокування вміст приховано. Після розблокування діє цей вибір:</string>
     <string name="privacy_minimal_label">Непомітно</string>

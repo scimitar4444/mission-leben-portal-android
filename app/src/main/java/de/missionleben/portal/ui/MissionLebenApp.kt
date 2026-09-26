@@ -85,6 +85,7 @@ import de.missionleben.portal.model.PortalCapability
 import de.missionleben.portal.model.PortalApplication
 import de.missionleben.portal.model.UiState
 import de.missionleben.portal.push.NotificationPrivacy
+import de.missionleben.portal.push.PushReliabilityStatus
 import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.update.UpdateStatus
 import kotlinx.coroutines.delay
@@ -114,6 +115,10 @@ fun MissionLebenApp(
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
     onQuietEndChange: (Int) -> Unit,
+    pushReliabilityStatus: PushReliabilityStatus,
+    onOpenNotificationSettings: () -> Unit,
+    onRequestBatteryExemption: () -> Unit,
+    onOpenManufacturerSettings: () -> Unit,
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
@@ -160,6 +165,10 @@ fun MissionLebenApp(
                 onQuietHoursChange = onQuietHoursChange,
                 onQuietStartChange = onQuietStartChange,
                 onQuietEndChange = onQuietEndChange,
+                pushReliabilityStatus = pushReliabilityStatus,
+                onOpenNotificationSettings = onOpenNotificationSettings,
+                onRequestBatteryExemption = onRequestBatteryExemption,
+                onOpenManufacturerSettings = onOpenManufacturerSettings,
                 onLogout = onLogout,
                 onResetProfile = onResetProfile,
                 onDismissMessage = onDismissMessage,
@@ -351,6 +360,10 @@ private fun Home(
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
     onQuietEndChange: (Int) -> Unit,
+    pushReliabilityStatus: PushReliabilityStatus,
+    onOpenNotificationSettings: () -> Unit,
+    onRequestBatteryExemption: () -> Unit,
+    onOpenManufacturerSettings: () -> Unit,
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
@@ -389,6 +402,10 @@ private fun Home(
             onQuietHoursChange = onQuietHoursChange,
             onQuietStartChange = onQuietStartChange,
             onQuietEndChange = onQuietEndChange,
+            pushReliabilityStatus = pushReliabilityStatus,
+            onOpenNotificationSettings = onOpenNotificationSettings,
+            onRequestBatteryExemption = onRequestBatteryExemption,
+            onOpenManufacturerSettings = onOpenManufacturerSettings,
             onLogout = onLogout,
             onResetProfile = onResetProfile,
             onDismissMessage = onDismissMessage,
@@ -677,6 +694,10 @@ private fun SettingsScreen(
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
     onQuietEndChange: (Int) -> Unit,
+    pushReliabilityStatus: PushReliabilityStatus,
+    onOpenNotificationSettings: () -> Unit,
+    onRequestBatteryExemption: () -> Unit,
+    onOpenManufacturerSettings: () -> Unit,
     onLogout: () -> Unit,
     onResetProfile: () -> Unit,
     onDismissMessage: () -> Unit,
@@ -684,6 +705,38 @@ private fun SettingsScreen(
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
+    var deviceDetailsOpen by rememberSaveable { mutableStateOf(state.enrollmentState != EnrollmentState.TRUSTED) }
+    var notificationDetailsOpen by rememberSaveable { mutableStateOf(false) }
+    var languageDetailsOpen by rememberSaveable { mutableStateOf(false) }
+    val deviceStatus = stringResource(when (state.enrollmentState) {
+        EnrollmentState.NOT_ENROLLED -> R.string.status_not_registered
+        EnrollmentState.PENDING -> R.string.status_pending
+        EnrollmentState.TRUSTED -> R.string.status_trusted
+        EnrollmentState.BLOCKED -> R.string.status_blocked
+    })
+    val notificationSummary = when {
+        !pushReliabilityStatus.notificationsAllowed -> stringResource(R.string.push_reliability_notifications_off)
+        !pushReliabilityStatus.batteryExempt -> stringResource(R.string.push_reliability_battery_limited)
+        state.mode == DeviceMode.SHARED -> stringResource(R.string.notifications_shared_description)
+        state.communicationNotificationsEnabled -> stringResource(
+            R.string.settings_notifications_summary,
+            stringResource(state.notificationPrivacy.labelRes),
+            state.calendarReminderMinutes,
+        )
+        else -> stringResource(R.string.settings_notifications_off)
+    }
+    val languageSummary = stringResource(when (currentLanguageTag) {
+        "de" -> R.string.language_german
+        "en" -> R.string.language_english
+        "tr" -> R.string.language_turkish
+        "hi" -> R.string.language_hindi
+        "es" -> R.string.language_spanish
+        "fr" -> R.string.language_french
+        "pl" -> R.string.language_polish
+        "ro" -> R.string.language_romanian
+        "uk" -> R.string.language_ukrainian
+        else -> R.string.language_system
+    })
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 24.dp),
@@ -704,21 +757,63 @@ private fun SettingsScreen(
             }
         }
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
-        item { DevicePanel(state, onSelfEnrollment, onRefreshDeviceStatus) }
-        if (state.signedIn) {
-            item {
-                NotificationPrivacyPanel(
-                    state,
-                    onNotificationPrivacyChange,
-                    onCalendarReminderChange,
-                    onCommunicationNotificationsChange,
-                    onQuietHoursChange,
-                    onQuietStartChange,
-                    onQuietEndChange,
-                )
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (state.enrollmentState == EnrollmentState.TRUSTED) {
+                    SettingsDisclosure(
+                        title = stringResource(R.string.device_identity),
+                        summary = deviceStatus,
+                        expanded = deviceDetailsOpen,
+                        onToggle = { deviceDetailsOpen = !deviceDetailsOpen },
+                    )
+                }
+                if (deviceDetailsOpen || state.enrollmentState != EnrollmentState.TRUSTED) {
+                    DevicePanel(state, onSelfEnrollment, onRefreshDeviceStatus)
+                }
             }
         }
-        item { LanguagePanel(currentLanguageTag, onLanguageChange) }
+        if (state.pushConfigured) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SettingsDisclosure(
+                        title = stringResource(R.string.notifications_title),
+                        summary = notificationSummary,
+                        expanded = notificationDetailsOpen,
+                        onToggle = { notificationDetailsOpen = !notificationDetailsOpen },
+                    )
+                    if (notificationDetailsOpen) {
+                        if (state.signedIn) {
+                            NotificationPrivacyPanel(
+                                state,
+                                onNotificationPrivacyChange,
+                                onCalendarReminderChange,
+                                onCommunicationNotificationsChange,
+                                onQuietHoursChange,
+                                onQuietStartChange,
+                                onQuietEndChange,
+                            )
+                        }
+                        PushReliabilityPanel(
+                            pushReliabilityStatus,
+                            onOpenNotificationSettings,
+                            onRequestBatteryExemption,
+                            onOpenManufacturerSettings,
+                        )
+                    }
+                }
+            }
+        }
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SettingsDisclosure(
+                    title = stringResource(R.string.language_title),
+                    summary = languageSummary,
+                    expanded = languageDetailsOpen,
+                    onToggle = { languageDetailsOpen = !languageDetailsOpen },
+                )
+                if (languageDetailsOpen) LanguagePanel(currentLanguageTag, onLanguageChange)
+            }
+        }
         if (state.signedIn) {
             item {
                 OutlinedButton(onClick = onLogout, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
@@ -742,6 +837,42 @@ private fun SettingsScreen(
                 } else {
                     null
                 },
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsDisclosure(
+    title: String,
+    summary: String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onToggle),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    summary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Text(
+                if (expanded) "⌃" else "⌄",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleLarge,
             )
         }
     }

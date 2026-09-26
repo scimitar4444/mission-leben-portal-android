@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_reliability_title">Anlık bildirimler</string>
+    <string name="push_reliability_description">Ekran kapalıyken de bildirim almak için bu ayarları kontrol edin.</string>
+    <string name="push_reliability_not_registered">Bu cihazda anlık bildirimler henüz kurulmadı.</string>
+    <string name="push_reliability_notifications_ok">Bildirimler: açık</string>
+    <string name="push_reliability_notifications_off">Bildirimler: kapalı</string>
+    <string name="push_reliability_open_notifications">Bildirim ayarlarını aç</string>
+    <string name="push_reliability_battery_ok">Android pil muafiyeti: etkin</string>
+    <string name="push_reliability_battery_limited">Android pil tasarrufu bildirimleri geciktirebilir veya durdurabilir.</string>
+    <string name="push_reliability_allow_battery">Pil muafiyetine izin ver</string>
+    <string name="push_reliability_samsung_hint">Samsung: Asla uyumayan uygulamaları da kontrol edin; gerekirse Mission Leben Zentral uygulamasını ekleyin.</string>
+    <string name="push_reliability_tcl_hint">TCL: Telefonunuz destekliyorsa Mission Leben Zentral uygulamasını son uygulamalar ekranında da koruyun.</string>
+    <string name="push_reliability_open_manufacturer">Cihaz ayarlarını aç</string>
+    <string name="push_reliability_limit">Bu kontrol izinleri gösterir, canlı sunucu bağlantısını değil. Telefon yine de uygulamaları durdurabilir.</string>
+    <string name="push_reliability_prompt_title">Bildirimleri güvenilir şekilde alın</string>
+    <string name="push_reliability_prompt_notifications">Bildirimler kapalı. Bildirimleri göstermek için Android ayarlarını açın.</string>
+    <string name="push_reliability_prompt_battery">Android arka plandaki bildirim bağlantısını kısıtlayabilir. Mission Leben Zentral için pil muafiyetine izin verebilirsiniz. Bu, pil tüketimini artırabilir.</string>
+    <string name="push_reliability_check_now">Şimdi kontrol et</string>
+    <string name="release_notes_title">Bu sürümde yenilikler</string>
+    <string name="release_note_push_check">Ayarlar bölümünde Android arka plan bildirim izinlerini kontrol edebilirsiniz.</string>
+    <string name="release_note_update_summary">Güncellemeden sonra önemli değişiklikler uygulamada bir kez gösterilir.</string>
+    <string name="release_notes_done">Anladım</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Ayarlar</string>
@@ -98,6 +119,8 @@
     <string name="no_conference_device">Onaylı çevrimiçi konferans cihazı yok.</string>
     <string name="open_on_target_device">Hedef cihazda aç</string>
     <string name="notifications_title">Bildirimler</string>
+    <string name="settings_notifications_summary">%1$s · randevudan %2$d dk. önce</string>
+    <string name="settings_notifications_off">E-posta, randevular ve Talk kapalı</string>
     <string name="notifications_shared_description">Ortak tabletlerde gönderen, konu veya randevu ayrıntıları hiçbir zaman gösterilmez.</string>
     <string name="notifications_lockscreen_description">Kilit ekranında içerik gizli kalır. Kilit açıldıktan sonra bu seçim geçerlidir:</string>
     <string name="privacy_minimal_label">Gizli</string>

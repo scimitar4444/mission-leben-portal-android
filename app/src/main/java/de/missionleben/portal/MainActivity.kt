@@ -18,6 +18,9 @@ import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import de.missionleben.portal.model.DeviceMode
@@ -27,9 +30,14 @@ import de.missionleben.portal.push.NotificationPresenter
 import de.missionleben.portal.push.PushCommand
 import de.missionleben.portal.push.PushEventDispatcher
 import de.missionleben.portal.push.PushManager
+import de.missionleben.portal.push.PushReliabilityPolicy
+import de.missionleben.portal.push.PushReliabilitySettings
 import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.ui.MissionLebenApp
 import de.missionleben.portal.ui.MissionLebenTheme
+import de.missionleben.portal.ui.PushReliabilityPrompt
+import de.missionleben.portal.ui.ReleaseNotesDialog
+import de.missionleben.portal.update.ReleaseNotesStore
 import de.missionleben.portal.update.UpdateInstaller
 import de.missionleben.portal.update.UpdateStatus
 import de.missionleben.portal.web.PortalBrowserActivity
@@ -38,11 +46,17 @@ private const val AUTH_LOG_TAG = "MissionLebenAuth"
 
 class MainActivity : FragmentActivity() {
     private val viewModel: MainViewModel by viewModels()
+    private val pushReliability by lazy { PushReliabilitySettings(this) }
+    private val releaseNotes by lazy { ReleaseNotesStore(this) }
+    private val pushSettingsRevision = mutableIntStateOf(0)
 
     private val pushRegistrationReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
-                PushEventDispatcher.ACTION_REGISTRATION_CHANGED -> viewModel.syncPushRegistration()
+                PushEventDispatcher.ACTION_REGISTRATION_CHANGED -> {
+                    viewModel.syncPushRegistration()
+                    pushSettingsRevision.intValue++
+                }
                 PushEventDispatcher.ACTION_LOGIN_APPROVAL_CHANGED -> {
                     handleLoginApprovalWake(intent)
                 }
@@ -60,6 +74,7 @@ class MainActivity : FragmentActivity() {
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
         if (granted) viewModel.syncPushRegistration()
+        pushSettingsRevision.intValue++
     }
 
     private val updatePermissionLauncher = registerForActivityResult(
@@ -137,6 +152,30 @@ class MainActivity : FragmentActivity() {
         setContent {
             MissionLebenTheme {
                 val state by viewModel.uiState.collectAsState()
+                val pushStatus = remember(pushSettingsRevision.intValue, state.signedIn) {
+                    pushReliability.status()
+                }
+                val notificationPermissionRequested = remember(pushSettingsRevision.intValue, state.signedIn) {
+                    PushRegistrationStore(this@MainActivity).permissionWasRequested
+                }
+                val pendingNotes = remember { mutableStateOf(releaseNotes.pendingNotes()) }
+                val showPushPrompt = remember { mutableStateOf(false) }
+                LaunchedEffect(
+                    state.signedIn, state.pushConfigured, pushStatus,
+                    notificationPermissionRequested, pendingNotes.value,
+                ) {
+                    if (pendingNotes.value.isEmpty() && PushReliabilityPolicy.shouldPrompt(
+                            state.signedIn,
+                            state.pushConfigured,
+                            pushReliability.promptShown,
+                            notificationPermissionRequested,
+                            pushStatus,
+                        )
+                    ) {
+                        pushReliability.promptShown = true
+                        showPushPrompt.value = true
+                    }
+                }
                 LaunchedEffect(state.vaultRequest) {
                     if (state.vaultRequest != VaultRequest.NONE) handleVaultRequest(state.vaultRequest)
                 }
@@ -192,6 +231,10 @@ class MainActivity : FragmentActivity() {
                     onQuietHoursChange = viewModel::setQuietHoursEnabled,
                     onQuietStartChange = viewModel::setQuietStartMinutes,
                     onQuietEndChange = viewModel::setQuietEndMinutes,
+                    pushReliabilityStatus = pushStatus,
+                    onOpenNotificationSettings = pushReliability::openNotificationSettings,
+                    onRequestBatteryExemption = pushReliability::requestBatteryExemption,
+                    onOpenManufacturerSettings = pushReliability::openManufacturerSettings,
                     onLogout = { viewModel.logout(::openLogout) },
                     onResetProfile = {
                         PortalBrowserActivity.clearLocalWebData(this@MainActivity) {
@@ -208,6 +251,25 @@ class MainActivity : FragmentActivity() {
                     currentLanguageTag = currentLanguageTag(),
                     onLanguageChange = ::setAppLanguage,
                 )
+                if (pendingNotes.value.isNotEmpty()) {
+                    ReleaseNotesDialog(pendingNotes.value) {
+                        releaseNotes.markSeen()
+                        pendingNotes.value = emptyList()
+                    }
+                } else if (showPushPrompt.value) {
+                    PushReliabilityPrompt(
+                        status = pushStatus,
+                        onOpen = {
+                            showPushPrompt.value = false
+                            if (pushStatus.notificationsAllowed) {
+                                pushReliability.requestBatteryExemption()
+                            } else {
+                                pushReliability.openNotificationSettings()
+                            }
+                        },
+                        onLater = { showPushPrompt.value = false },
+                    )
+                }
             }
         }
     }
@@ -225,6 +287,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onResume() {
         super.onResume()
+        pushSettingsRevision.intValue++
         viewModel.consumeSharedSessionScreenOffState()
     }
 

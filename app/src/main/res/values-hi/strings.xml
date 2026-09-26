@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_reliability_title">पुश सूचनाएँ</string>
+    <string name="push_reliability_description">स्क्रीन बंद होने पर भी सूचना पाने के लिए ये सेटिंग जाँचें।</string>
+    <string name="push_reliability_not_registered">इस डिवाइस पर पुश अभी सेट नहीं है।</string>
+    <string name="push_reliability_notifications_ok">सूचनाएँ: अनुमति है</string>
+    <string name="push_reliability_notifications_off">सूचनाएँ: बंद हैं</string>
+    <string name="push_reliability_open_notifications">सूचना सेटिंग खोलें</string>
+    <string name="push_reliability_battery_ok">Android बैटरी छूट: चालू</string>
+    <string name="push_reliability_battery_limited">बैटरी बचत पुश सूचना को देर से पहुँचा सकती है या रोक सकती है।</string>
+    <string name="push_reliability_allow_battery">बैटरी छूट की अनुमति दें</string>
+    <string name="push_reliability_samsung_hint">Samsung: कभी न सोने वाले ऐप भी जाँचें और जरूरत हो तो Mission Leben Zentral जोड़ें।</string>
+    <string name="push_reliability_tcl_hint">TCL: विकल्प हो तो हाल के ऐप की सूची में Mission Leben Zentral को सुरक्षित रखें।</string>
+    <string name="push_reliability_open_manufacturer">डिवाइस सेटिंग खोलें</string>
+    <string name="push_reliability_limit">यह अनुमति जाँचता है, चालू सर्वर कनेक्शन नहीं। फ़ोन फिर भी ऐप बंद कर सकता है।</string>
+    <string name="push_reliability_prompt_title">सूचनाएँ भरोसेमंद ढंग से पाएँ</string>
+    <string name="push_reliability_prompt_notifications">सूचनाएँ बंद हैं। उन्हें दिखाने के लिए Android सेटिंग खोलें।</string>
+    <string name="push_reliability_prompt_battery">Android पृष्ठभूमि पुश कनेक्शन सीमित कर सकता है। आप Mission Leben Zentral को बैटरी छूट दे सकते हैं। इससे बैटरी की खपत बढ़ सकती है।</string>
+    <string name="push_reliability_check_now">अभी जाँचें</string>
+    <string name="release_notes_title">इस संस्करण में नया</string>
+    <string name="release_note_push_check">सेटिंग में जाँचें कि Android पृष्ठभूमि पुश सूचनाओं को अनुमति देता है या नहीं।</string>
+    <string name="release_note_update_summary">अपडेट के बाद मुख्य बदलाव ऐप में एक बार दिखते हैं।</string>
+    <string name="release_notes_done">समझ गया</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  पोर्टल</string>
     <string name="settings_title">सेटिंग</string>
@@ -98,6 +119,8 @@
     <string name="no_conference_device">कोई स्वीकृत कॉन्फ़्रेंस डिवाइस ऑनलाइन नहीं है।</string>
     <string name="open_on_target_device">लक्षित डिवाइस पर खोलें</string>
     <string name="notifications_title">सूचनाएँ</string>
+    <string name="settings_notifications_summary">%1$s · अपॉइंटमेंट से %2$d मिनट पहले</string>
+    <string name="settings_notifications_off">ई-मेल, अपॉइंटमेंट और Talk बंद</string>
     <string name="notifications_shared_description">साझा टैबलेट पर भेजने वाला, विषय या अपॉइंटमेंट विवरण कभी नहीं दिखते।</string>
     <string name="notifications_lockscreen_description">लॉक स्क्रीन पर सामग्री छिपी रहती है। अनलॉक करने के बाद यह चयन लागू होगा:</string>
     <string name="privacy_minimal_label">गोपनीय</string>

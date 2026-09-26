@@ -49,4 +49,12 @@ Bestandsinstallationen ab 0.7.8 erkennen spätere reguläre Releases selbst. Ein
 
 Der Signierschlüssel ist die dauerhafte Vertrauenswurzel. Geht er verloren, können bestehende Installationen nicht mehr nahtlos aktualisiert werden. Er benötigt deshalb mindestens eine verschlüsselte Offline-Sicherung mit dokumentiertem Wiederherstellungstest.
 
-Ein getrenntes [F-Droid-Binärrepository befindet sich im Pilot](FDROID_PILOT.md). Es verwendet weiterhin dieselbe APK-Signatur und schaltet den GitHub-OTA-Check nur dann ab, wenn F-Droid als installierende App erkennbar ist. Die reguläre Veröffentlichung über `releases/latest` wird dadurch noch nicht ersetzt.
+Der [F-Droid-Pilot](FDROID_PILOT.md) ist beendet; GitHub bleibt der reguläre
+Installations- und Updateweg. Eine noch per F-Droid installierte Pilot-App kann
+bei gleicher APK-Signatur mit `adb install -r` direkt ersetzt werden. Danach
+Installationsquelle und GitHub-Updateprüfung am Gerät kontrollieren.
+
+Ab 0.12.18 zeigt die App nach dem ersten Öffnen einer neuen Version eine kurze
+Änderungsliste. Für jedes weitere Release die neuen Einträge in
+`ReleaseNotesStore.kt` und den lokalisierten String-Ressourcen ergänzen und
+den einmaligen Dialog auf einem aktualisierten Gerät testen.

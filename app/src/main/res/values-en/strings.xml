@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_reliability_title">Push delivery</string>
+    <string name="push_reliability_description">Check these settings so alerts can arrive while the screen is off.</string>
+    <string name="push_reliability_not_registered">Push is not set up on this device yet.</string>
+    <string name="push_reliability_notifications_ok">Notifications: allowed</string>
+    <string name="push_reliability_notifications_off">Notifications: off</string>
+    <string name="push_reliability_open_notifications">Open notifications</string>
+    <string name="push_reliability_battery_ok">Android battery exemption: active</string>
+    <string name="push_reliability_battery_limited">Android battery saving may delay or stop push.</string>
+    <string name="push_reliability_allow_battery">Allow battery exemption</string>
+    <string name="push_reliability_samsung_hint">Samsung: Also check Never sleeping apps and add Mission Leben Zentral if needed.</string>
+    <string name="push_reliability_tcl_hint">TCL: Also protect Mission Leben Zentral in recent apps if your phone offers this option.</string>
+    <string name="push_reliability_open_manufacturer">Open device settings</string>
+    <string name="push_reliability_limit">This checks permissions, not the live server connection. The phone may still stop apps.</string>
+    <string name="push_reliability_prompt_title">Receive alerts reliably</string>
+    <string name="push_reliability_prompt_notifications">Notifications are off. Open Android settings so alerts can be shown.</string>
+    <string name="push_reliability_prompt_battery">Android may restrict the push connection in the background. You can allow a battery exemption for Mission Leben Zentral now. This may use more battery.</string>
+    <string name="push_reliability_check_now">Check now</string>
+    <string name="release_notes_title">What’s new</string>
+    <string name="release_note_push_check">In Settings, you can check whether Android allows push alerts in the background.</string>
+    <string name="release_note_update_summary">After an update, the app shows the main changes once.</string>
+    <string name="release_notes_done">Got it</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Settings</string>
@@ -98,6 +119,8 @@
     <string name="no_conference_device">No approved conference device is online.</string>
     <string name="open_on_target_device">Open on target device</string>
     <string name="notifications_title">Notifications</string>
+    <string name="settings_notifications_summary">%1$s · appointment %2$d min. ahead</string>
+    <string name="settings_notifications_off">Mail, appointments and Talk off</string>
     <string name="notifications_shared_description">Shared tablets never show senders, subject lines or appointment details.</string>
     <string name="notifications_lockscreen_description">Content remains hidden on the lock screen. After unlocking, this setting applies:</string>
     <string name="privacy_minimal_label">Private</string>

@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_reliability_title">Powiadomienia push</string>
+    <string name="push_reliability_description">Sprawdź te ustawienia, aby otrzymywać powiadomienia przy wyłączonym ekranie.</string>
+    <string name="push_reliability_not_registered">Powiadomienia push nie są jeszcze skonfigurowane na tym urządzeniu.</string>
+    <string name="push_reliability_notifications_ok">Powiadomienia: dozwolone</string>
+    <string name="push_reliability_notifications_off">Powiadomienia: wyłączone</string>
+    <string name="push_reliability_open_notifications">Otwórz ustawienia powiadomień</string>
+    <string name="push_reliability_battery_ok">Wyjątek oszczędzania baterii Android: aktywny</string>
+    <string name="push_reliability_battery_limited">Oszczędzanie baterii może opóźnić lub zatrzymać powiadomienia.</string>
+    <string name="push_reliability_allow_battery">Zezwól na wyjątek baterii</string>
+    <string name="push_reliability_samsung_hint">Samsung: sprawdź też aplikacje nigdy nieuśpione i w razie potrzeby dodaj Mission Leben Zentral.</string>
+    <string name="push_reliability_tcl_hint">TCL: jeśli to możliwe, chroń Mission Leben Zentral także na liście ostatnich aplikacji.</string>
+    <string name="push_reliability_open_manufacturer">Otwórz ustawienia urządzenia</string>
+    <string name="push_reliability_limit">Sprawdzane są uprawnienia, nie bieżące połączenie z serwerem. Telefon nadal może zatrzymać aplikację.</string>
+    <string name="push_reliability_prompt_title">Otrzymuj powiadomienia niezawodnie</string>
+    <string name="push_reliability_prompt_notifications">Powiadomienia są wyłączone. Otwórz ustawienia Androida, aby je wyświetlać.</string>
+    <string name="push_reliability_prompt_battery">Android może ograniczać połączenie push w tle. Możesz zezwolić na wyjątek baterii dla Mission Leben Zentral. Może to zwiększyć zużycie baterii.</string>
+    <string name="push_reliability_check_now">Sprawdź teraz</string>
+    <string name="release_notes_title">Nowości w tej wersji</string>
+    <string name="release_note_push_check">W ustawieniach sprawdzisz, czy Android pozwala na powiadomienia w tle.</string>
+    <string name="release_note_update_summary">Po aktualizacji aplikacja jednorazowo pokazuje najważniejsze zmiany.</string>
+    <string name="release_notes_done">Rozumiem</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Ustawienia</string>
@@ -98,6 +119,8 @@
     <string name="no_conference_device">Brak zatwierdzonego urządzenia konferencyjnego online.</string>
     <string name="open_on_target_device">Otwórz na urządzeniu docelowym</string>
     <string name="notifications_title">Powiadomienia</string>
+    <string name="settings_notifications_summary">%1$s · spotkanie %2$d min. wcześniej</string>
+    <string name="settings_notifications_off">Poczta, spotkania i Talk wyłączone</string>
     <string name="notifications_shared_description">Współdzielone tablety nigdy nie pokazują nadawców, tematów ani szczegółów spotkań.</string>
     <string name="notifications_lockscreen_description">Treść pozostaje ukryta na ekranie blokady. Po odblokowaniu obowiązuje ten wybór:</string>
     <string name="privacy_minimal_label">Dyskretne</string>

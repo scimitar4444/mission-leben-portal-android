@@ -7,6 +7,27 @@
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Einstellungen</string>
     <string name="settings_back">Zurück</string>
+    <string name="push_reliability_title">Push-Zustellung</string>
+    <string name="push_reliability_description">Diese Prüfung hilft, damit Hinweise auch bei ausgeschaltetem Bildschirm ankommen.</string>
+    <string name="push_reliability_not_registered">Push ist auf diesem Gerät noch nicht eingerichtet.</string>
+    <string name="push_reliability_notifications_ok">Benachrichtigungen: erlaubt</string>
+    <string name="push_reliability_notifications_off">Benachrichtigungen: ausgeschaltet</string>
+    <string name="push_reliability_open_notifications">Benachrichtigungen öffnen</string>
+    <string name="push_reliability_battery_ok">Android-Akku-Ausnahme: aktiv</string>
+    <string name="push_reliability_battery_limited">Android-Akkusparen kann Push verzögern oder stoppen.</string>
+    <string name="push_reliability_allow_battery">Akku-Ausnahme erlauben</string>
+    <string name="push_reliability_samsung_hint">Samsung: Prüfe zusätzlich „Apps, die nie im Standby sind“ und füge Mission Leben Zentral bei Bedarf hinzu.</string>
+    <string name="push_reliability_tcl_hint">TCL: Schütze Mission Leben Zentral zusätzlich in der Übersicht der zuletzt verwendeten Apps, falls diese Option vorhanden ist.</string>
+    <string name="push_reliability_open_manufacturer">Hersteller-Einstellungen öffnen</string>
+    <string name="push_reliability_limit">Die Anzeige prüft Freigaben, nicht die aktuelle Serververbindung. Das Handy kann Apps trotzdem beenden.</string>
+    <string name="push_reliability_prompt_title">Hinweise zuverlässig empfangen</string>
+    <string name="push_reliability_prompt_notifications">Benachrichtigungen sind ausgeschaltet. Öffne die Android-Einstellung, damit Hinweise angezeigt werden können.</string>
+    <string name="push_reliability_prompt_battery">Android kann die Push-Verbindung im Hintergrund einschränken. Du kannst Mission Leben Zentral jetzt eine Akku-Ausnahme erlauben. Das kann den Akkuverbrauch erhöhen.</string>
+    <string name="push_reliability_check_now">Jetzt prüfen</string>
+    <string name="release_notes_title">Neu in dieser Version</string>
+    <string name="release_note_push_check">In Einstellungen kannst du prüfen, ob Android Push-Hinweise im Hintergrund zulässt.</string>
+    <string name="release_note_update_summary">Nach einem Update siehst du die wichtigsten Änderungen einmal direkt in der App.</string>
+    <string name="release_notes_done">Verstanden</string>
     <string name="open_action">Öffnen</string>
 
     <string name="language_title">Sprache</string>
@@ -116,6 +137,8 @@
     <string name="open_on_target_device">Auf Zielgerät öffnen</string>
 
     <string name="notifications_title">Benachrichtigungen</string>
+    <string name="settings_notifications_summary">%1$s · Termin %2$d Min. vorher</string>
+    <string name="settings_notifications_off">Mail, Termine und Talk ausgeschaltet</string>
     <string name="notifications_shared_description">Auf gemeinsam genutzten Tablets erscheinen grundsätzlich keine Absender, Betreffzeilen oder Termindetails.</string>
     <string name="notifications_lockscreen_description">Auf dem Sperrbildschirm bleiben Inhalte verborgen. Nach dem Entsperren gilt diese Auswahl:</string>
     <string name="privacy_minimal_label">Diskret</string>

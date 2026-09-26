@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_reliability_title">Notificări push</string>
+    <string name="push_reliability_description">Verifică aceste setări pentru a primi notificări și cu ecranul stins.</string>
+    <string name="push_reliability_not_registered">Notificările push nu sunt încă configurate pe acest dispozitiv.</string>
+    <string name="push_reliability_notifications_ok">Notificări: permise</string>
+    <string name="push_reliability_notifications_off">Notificări: dezactivate</string>
+    <string name="push_reliability_open_notifications">Deschide notificările</string>
+    <string name="push_reliability_battery_ok">Excepție baterie Android: activă</string>
+    <string name="push_reliability_battery_limited">Economisirea bateriei poate întârzia sau opri notificările.</string>
+    <string name="push_reliability_allow_battery">Permite excepția pentru baterie</string>
+    <string name="push_reliability_samsung_hint">Samsung: verifică și aplicațiile care nu intră niciodată în repaus; adaugă Mission Leben Zentral dacă este necesar.</string>
+    <string name="push_reliability_tcl_hint">TCL: protejează Mission Leben Zentral și în lista aplicațiilor recente, dacă există această opțiune.</string>
+    <string name="push_reliability_open_manufacturer">Deschide setările dispozitivului</string>
+    <string name="push_reliability_limit">Sunt verificate permisiunile, nu conexiunea curentă la server. Telefonul poate totuși opri aplicația.</string>
+    <string name="push_reliability_prompt_title">Primește notificări în mod fiabil</string>
+    <string name="push_reliability_prompt_notifications">Notificările sunt dezactivate. Deschide setările Android pentru a le afișa.</string>
+    <string name="push_reliability_prompt_battery">Android poate limita conexiunea push în fundal. Poți permite o excepție pentru bateria aplicației Mission Leben Zentral. Consumul bateriei poate crește.</string>
+    <string name="push_reliability_check_now">Verifică acum</string>
+    <string name="release_notes_title">Noutăți în această versiune</string>
+    <string name="release_note_push_check">În Setări poți verifica dacă Android permite notificări în fundal.</string>
+    <string name="release_note_update_summary">După actualizare, aplicația arată o singură dată schimbările principale.</string>
+    <string name="release_notes_done">Am înțeles</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Setări</string>
@@ -98,6 +119,8 @@
     <string name="no_conference_device">Niciun dispozitiv de conferință aprobat nu este online.</string>
     <string name="open_on_target_device">Deschide pe dispozitivul țintă</string>
     <string name="notifications_title">Notificări</string>
+    <string name="settings_notifications_summary">%1$s · întâlnire cu %2$d min. înainte</string>
+    <string name="settings_notifications_off">E-mail, întâlniri și Talk dezactivate</string>
     <string name="notifications_shared_description">Tabletele partajate nu afișează niciodată expeditori, subiecte sau detalii despre programări.</string>
     <string name="notifications_lockscreen_description">Conținutul rămâne ascuns pe ecranul de blocare. După deblocare se aplică această alegere:</string>
     <string name="privacy_minimal_label">Discret</string>

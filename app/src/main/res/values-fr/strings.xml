@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_reliability_title">Réception des notifications</string>
+    <string name="push_reliability_description">Vérifie ces réglages pour recevoir des alertes lorsque l’écran est éteint.</string>
+    <string name="push_reliability_not_registered">Les notifications ne sont pas encore configurées sur cet appareil.</string>
+    <string name="push_reliability_notifications_ok">Notifications : autorisées</string>
+    <string name="push_reliability_notifications_off">Notifications : désactivées</string>
+    <string name="push_reliability_open_notifications">Ouvrir les notifications</string>
+    <string name="push_reliability_battery_ok">Exception batterie Android : active</string>
+    <string name="push_reliability_battery_limited">L’économie de batterie peut retarder ou arrêter les alertes.</string>
+    <string name="push_reliability_allow_battery">Autoriser l’exception batterie</string>
+    <string name="push_reliability_samsung_hint">Samsung : vérifie aussi les applications jamais mises en veille et ajoute Mission Leben Zentral si nécessaire.</string>
+    <string name="push_reliability_tcl_hint">TCL : protège aussi Mission Leben Zentral dans les applications récentes si cette option existe.</string>
+    <string name="push_reliability_open_manufacturer">Ouvrir les réglages de l’appareil</string>
+    <string name="push_reliability_limit">Ce contrôle vérifie les autorisations, pas la connexion au serveur. Le téléphone peut encore arrêter les applications.</string>
+    <string name="push_reliability_prompt_title">Recevoir les alertes de façon fiable</string>
+    <string name="push_reliability_prompt_notifications">Les notifications sont désactivées. Ouvre les réglages Android pour afficher les alertes.</string>
+    <string name="push_reliability_prompt_battery">Android peut limiter la connexion en arrière-plan. Tu peux autoriser une exception batterie pour Mission Leben Zentral. Cela peut augmenter la consommation.</string>
+    <string name="push_reliability_check_now">Vérifier maintenant</string>
+    <string name="release_notes_title">Nouveautés de cette version</string>
+    <string name="release_note_push_check">Dans les réglages, tu peux vérifier si Android autorise les alertes en arrière-plan.</string>
+    <string name="release_note_update_summary">Après une mise à jour, les principaux changements s’affichent une fois.</string>
+    <string name="release_notes_done">Compris</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portail</string>
     <string name="settings_title">Paramètres</string>
@@ -98,6 +119,8 @@
     <string name="no_conference_device">Aucun appareil de conférence autorisé n’est en ligne.</string>
     <string name="open_on_target_device">Ouvrir sur l’appareil cible</string>
     <string name="notifications_title">Notifications</string>
+    <string name="settings_notifications_summary">%1$s · rendez-vous %2$d min. avant</string>
+    <string name="settings_notifications_off">E-mails, rendez-vous et Talk désactivés</string>
     <string name="notifications_shared_description">Les tablettes partagées n’affichent jamais les expéditeurs, objets ou détails de rendez-vous.</string>
     <string name="notifications_lockscreen_description">Le contenu reste masqué sur l’écran de verrouillage. Après déverrouillage, ce choix s’applique :</string>
     <string name="privacy_minimal_label">Discret</string>
