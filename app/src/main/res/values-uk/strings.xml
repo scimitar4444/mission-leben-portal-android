@@ -20,6 +20,7 @@
     <string name="release_notes_title">Що нового в цій версії</string>
     <string name="release_note_push_check">У налаштуваннях можна перевірити, чи дозволяє Android фонові push-сповіщення.</string>
     <string name="release_note_update_summary">Після оновлення програма один раз показує головні зміни.</string>
+    <string name="release_note_compact_settings">Налаштування стали зручнішими: окремо відкривай дані пристрою, сповіщення та мову.</string>
     <string name="release_notes_done">Зрозуміло</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Портал</string>

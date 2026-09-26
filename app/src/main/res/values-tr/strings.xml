@@ -20,6 +20,7 @@
     <string name="release_notes_title">Bu sürümde yenilikler</string>
     <string name="release_note_push_check">Ayarlar bölümünde Android arka plan bildirim izinlerini kontrol edebilirsiniz.</string>
     <string name="release_note_update_summary">Güncellemeden sonra önemli değişiklikler uygulamada bir kez gösterilir.</string>
+    <string name="release_note_compact_settings">Ayarlar artık daha düzenli: cihaz kimliği, bildirimler ve dili ayrı ayrı açabilirsin.</string>
     <string name="release_notes_done">Anladım</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>

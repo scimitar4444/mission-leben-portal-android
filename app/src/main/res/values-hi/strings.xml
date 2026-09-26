@@ -20,6 +20,7 @@
     <string name="release_notes_title">इस संस्करण में नया</string>
     <string name="release_note_push_check">सेटिंग में जाँचें कि Android पृष्ठभूमि पुश सूचनाओं को अनुमति देता है या नहीं।</string>
     <string name="release_note_update_summary">अपडेट के बाद मुख्य बदलाव ऐप में एक बार दिखते हैं।</string>
+    <string name="release_note_compact_settings">सेटिंग अब अधिक स्पष्ट हैं: डिवाइस पहचान, सूचनाएँ और भाषा अलग-अलग खोलें।</string>
     <string name="release_notes_done">समझ गया</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  पोर्टल</string>

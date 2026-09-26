@@ -20,6 +20,7 @@
     <string name="release_notes_title">Noutăți în această versiune</string>
     <string name="release_note_push_check">În Setări poți verifica dacă Android permite notificări în fundal.</string>
     <string name="release_note_update_summary">După actualizare, aplicația arată o singură dată schimbările principale.</string>
+    <string name="release_note_compact_settings">Setările sunt mai clare: extinde separat identitatea dispozitivului, notificările și limba.</string>
     <string name="release_notes_done">Am înțeles</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>

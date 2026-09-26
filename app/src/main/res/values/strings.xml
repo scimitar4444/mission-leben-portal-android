@@ -27,6 +27,7 @@
     <string name="release_notes_title">Neu in dieser Version</string>
     <string name="release_note_push_check">In Einstellungen kannst du prüfen, ob Android Push-Hinweise im Hintergrund zulässt.</string>
     <string name="release_note_update_summary">Nach einem Update siehst du die wichtigsten Änderungen einmal direkt in der App.</string>
+    <string name="release_note_compact_settings">Die Einstellungen sind jetzt übersichtlicher: Geräteidentität, Benachrichtigungen und Sprache lassen sich einzeln aufklappen.</string>
     <string name="release_notes_done">Verstanden</string>
     <string name="open_action">Öffnen</string>
 

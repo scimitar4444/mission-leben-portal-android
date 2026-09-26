@@ -20,6 +20,7 @@
     <string name="release_notes_title">Novedades de esta versión</string>
     <string name="release_note_push_check">En Ajustes puedes comprobar si Android permite avisos en segundo plano.</string>
     <string name="release_note_update_summary">Después de actualizar, la app muestra una vez los cambios principales.</string>
+    <string name="release_note_compact_settings">Los ajustes son más claros: despliega por separado la identidad del dispositivo, las notificaciones y el idioma.</string>
     <string name="release_notes_done">Entendido</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>

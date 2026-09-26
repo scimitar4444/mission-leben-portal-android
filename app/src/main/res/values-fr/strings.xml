@@ -20,6 +20,7 @@
     <string name="release_notes_title">Nouveautés de cette version</string>
     <string name="release_note_push_check">Dans les réglages, tu peux vérifier si Android autorise les alertes en arrière-plan.</string>
     <string name="release_note_update_summary">Après une mise à jour, les principaux changements s’affichent une fois.</string>
+    <string name="release_note_compact_settings">Les réglages sont plus clairs : dépliez séparément l’identité de l’appareil, les notifications et la langue.</string>
     <string name="release_notes_done">Compris</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portail</string>

@@ -20,6 +20,7 @@
     <string name="release_notes_title">What’s new</string>
     <string name="release_note_push_check">In Settings, you can check whether Android allows push alerts in the background.</string>
     <string name="release_note_update_summary">After an update, the app shows the main changes once.</string>
+    <string name="release_note_compact_settings">Settings are easier to navigate: expand device identity, notifications and language separately.</string>
     <string name="release_notes_done">Got it</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
