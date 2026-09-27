@@ -26,6 +26,11 @@
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Ajustes</string>
     <string name="settings_back">Atrás</string>
+    <string name="settings_privacy_title">Pantalla y privacidad</string>
+    <string name="settings_screenshots_blocked">Capturas bloqueadas</string>
+    <string name="settings_screenshots_allowed">Capturas permitidas</string>
+    <string name="settings_screenshots_label">Permitir capturas</string>
+    <string name="settings_screenshots_description">Permite capturas y grabaciones de las aplicaciones web en este dispositivo personal. El inicio de sesión y las tabletas compartidas siguen protegidos.</string>
     <string name="open_action">Abrir</string>
     <string name="language_title">Idioma</string>
     <string name="language_description">Usa automáticamente el idioma del teléfono o elige un idioma solo para esta aplicación.</string>

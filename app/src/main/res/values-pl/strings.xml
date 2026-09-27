@@ -26,6 +26,11 @@
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Ustawienia</string>
     <string name="settings_back">Wstecz</string>
+    <string name="settings_privacy_title">Ekran i prywatność</string>
+    <string name="settings_screenshots_blocked">Zrzuty ekranu zablokowane</string>
+    <string name="settings_screenshots_allowed">Zrzuty ekranu dozwolone</string>
+    <string name="settings_screenshots_label">Zezwól na zrzuty ekranu</string>
+    <string name="settings_screenshots_description">Zezwala na zrzuty i nagrania ekranu aplikacji internetowych na tym urządzeniu osobistym. Logowanie i współdzielone tablety pozostają chronione.</string>
     <string name="open_action">Otwórz</string>
     <string name="language_title">Język</string>
     <string name="language_description">Automatycznie używaj języka telefonu albo wybierz język tylko dla tej aplikacji.</string>

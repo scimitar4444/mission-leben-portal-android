@@ -17,7 +17,19 @@ class AppPreferences(context: Context) {
                 if (value != DeviceMode.SHARED) {
                     remove(KEY_SHARED_SESSION_SCREEN_TURNED_OFF)
                 }
+                if (value != DeviceMode.PERSONAL) {
+                    remove(KEY_ALLOW_PERSONAL_SCREENSHOTS)
+                }
             }.apply()
+        }
+
+    var allowPersonalScreenshots: Boolean
+        get() = deviceMode == DeviceMode.PERSONAL &&
+            preferences.getBoolean(KEY_ALLOW_PERSONAL_SCREENSHOTS, false)
+        set(value) {
+            preferences.edit()
+                .putBoolean(KEY_ALLOW_PERSONAL_SCREENSHOTS, value && deviceMode == DeviceMode.PERSONAL)
+                .apply()
         }
 
     var deviceId: String?
@@ -65,6 +77,7 @@ class AppPreferences(context: Context) {
         val screenTurnedOff = preferences.getBoolean(KEY_SHARED_SESSION_SCREEN_TURNED_OFF, false)
         preferences.edit()
             .remove(KEY_SHARED_SESSION_SCREEN_TURNED_OFF)
+            .remove(KEY_ALLOW_PERSONAL_SCREENSHOTS)
             .apply()
         return screenTurnedOff
     }
@@ -129,6 +142,7 @@ class AppPreferences(context: Context) {
         const val KEY_REAUTHENTICATION_HINT = "reauthentication_hint"
         const val KEY_REAUTHENTICATION_REQUIRED = "reauthentication_required"
         const val KEY_SHARED_SESSION_SCREEN_TURNED_OFF = "shared_session_screen_turned_off"
+        const val KEY_ALLOW_PERSONAL_SCREENSHOTS = "allow_personal_screenshots"
         const val KEY_ANNOUNCEMENTS_READ_PREFIX = "announcements_read_"
         const val MAX_READ_ANNOUNCEMENTS = 100
     }

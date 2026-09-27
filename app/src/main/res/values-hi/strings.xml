@@ -26,6 +26,11 @@
     <string name="browser_back">‹  पोर्टल</string>
     <string name="settings_title">सेटिंग</string>
     <string name="settings_back">वापस</string>
+    <string name="settings_privacy_title">स्क्रीन और गोपनीयता</string>
+    <string name="settings_screenshots_blocked">स्क्रीनशॉट बंद हैं</string>
+    <string name="settings_screenshots_allowed">स्क्रीनशॉट चालू हैं</string>
+    <string name="settings_screenshots_label">स्क्रीनशॉट की अनुमति दें</string>
+    <string name="settings_screenshots_description">इस निजी डिवाइस पर वेब ऐप के स्क्रीनशॉट और स्क्रीन रिकॉर्डिंग की अनुमति देता है। साइन-इन और साझा टैबलेट सुरक्षित रहते हैं।</string>
     <string name="open_action">खोलें</string>
     <string name="language_title">भाषा</string>
     <string name="language_description">फ़ोन की भाषा अपने-आप अपनाएँ या केवल इस ऐप के लिए भाषा चुनें।</string>

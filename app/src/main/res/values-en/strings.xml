@@ -26,6 +26,11 @@
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Settings</string>
     <string name="settings_back">Back</string>
+    <string name="settings_privacy_title">Screen &amp; privacy</string>
+    <string name="settings_screenshots_blocked">Screenshots blocked</string>
+    <string name="settings_screenshots_allowed">Screenshots allowed</string>
+    <string name="settings_screenshots_label">Allow screenshots</string>
+    <string name="settings_screenshots_description">Allows screenshots and screen recordings of web apps on this personal device. Sign-in and shared tablets remain protected.</string>
     <string name="open_action">Open</string>
     <string name="language_title">Language</string>
     <string name="language_description">Follow the phone language automatically or choose a language only for this app.</string>

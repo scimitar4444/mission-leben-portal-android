@@ -102,6 +102,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             quietStartMinutes = pushStore.quietStartMinutes,
             quietEndMinutes = pushStore.quietEndMinutes,
             quickUnlockEnabled = vault.hasSession(),
+            allowPersonalScreenshots = preferences.allowPersonalScreenshots,
             reauthenticationRequired = preferences.reauthenticationRequired,
             unreadNotificationBadges = unreadNotificationStore.counts(),
             news = newsRepository.cached(),
@@ -194,6 +195,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 announcementsStale = false,
                 readAnnouncementIds = emptySet(),
                 quickUnlockEnabled = false,
+                allowPersonalScreenshots = preferences.allowPersonalScreenshots,
                 reauthenticationRequired = false,
                 notificationPrivacy = effectiveNotificationPrivacy(mode),
                 calendarReminderMinutes = effectiveCalendarReminderMinutes(mode),
@@ -242,6 +244,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             unreadNotificationBadges = unreadNotificationStore.counts(),
             news = newsRepository.cached(),
         )
+    }
+
+    fun setPersonalScreenshotsAllowed(allowed: Boolean) {
+        if (_uiState.value.mode != DeviceMode.PERSONAL) return
+        preferences.allowPersonalScreenshots = allowed
+        _uiState.update { it.copy(allowPersonalScreenshots = preferences.allowPersonalScreenshots) }
     }
 
     private fun refreshNews() {

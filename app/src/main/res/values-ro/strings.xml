@@ -26,6 +26,11 @@
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Setări</string>
     <string name="settings_back">Înapoi</string>
+    <string name="settings_privacy_title">Ecran și confidențialitate</string>
+    <string name="settings_screenshots_blocked">Capturi de ecran blocate</string>
+    <string name="settings_screenshots_allowed">Capturi de ecran permise</string>
+    <string name="settings_screenshots_label">Permite capturi de ecran</string>
+    <string name="settings_screenshots_description">Permite capturi și înregistrări ale aplicațiilor web pe acest dispozitiv personal. Autentificarea și tabletele partajate rămân protejate.</string>
     <string name="open_action">Deschide</string>
     <string name="language_title">Limbă</string>
     <string name="language_description">Folosește automat limba telefonului sau alege o limbă doar pentru această aplicație.</string>

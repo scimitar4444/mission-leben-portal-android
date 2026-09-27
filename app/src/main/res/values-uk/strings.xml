@@ -26,6 +26,11 @@
     <string name="browser_back">‹  Портал</string>
     <string name="settings_title">Налаштування</string>
     <string name="settings_back">Назад</string>
+    <string name="settings_privacy_title">Екран і приватність</string>
+    <string name="settings_screenshots_blocked">Знімки екрана заблоковано</string>
+    <string name="settings_screenshots_allowed">Знімки екрана дозволено</string>
+    <string name="settings_screenshots_label">Дозволити знімки екрана</string>
+    <string name="settings_screenshots_description">Дозволяє знімки та запис екрана вебзастосунків на цьому особистому пристрої. Вхід і спільні планшети залишаються захищеними.</string>
     <string name="open_action">Відкрити</string>
     <string name="language_title">Мова</string>
     <string name="language_description">Автоматично використовуйте мову телефону або виберіть мову лише для цієї програми.</string>

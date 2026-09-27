@@ -107,6 +107,8 @@ fun MissionLebenApp(
     onMarkAnnouncementRead: (Long) -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
+    onPersonalScreenshotsChange: (Boolean) -> Unit,
+    onMoveToBackground: () -> Unit,
     onEnableQuickUnlock: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
@@ -159,6 +161,8 @@ fun MissionLebenApp(
                 onMarkAnnouncementRead = onMarkAnnouncementRead,
                 onSelfEnrollment = onSelfEnrollment,
                 onRefreshDeviceStatus = onRefreshDeviceStatus,
+                onPersonalScreenshotsChange = onPersonalScreenshotsChange,
+                onMoveToBackground = onMoveToBackground,
                 onEnableQuickUnlock = onEnableQuickUnlock,
                 onOpenTalk = onOpenTalk,
                 onNotificationPrivacyChange = onNotificationPrivacyChange,
@@ -357,6 +361,8 @@ private fun Home(
     onMarkAnnouncementRead: (Long) -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
+    onPersonalScreenshotsChange: (Boolean) -> Unit,
+    onMoveToBackground: () -> Unit,
     onEnableQuickUnlock: () -> Unit,
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
@@ -381,6 +387,11 @@ private fun Home(
     var talkDialogOpen by rememberSaveable { mutableStateOf(false) }
     var contactsOpen by remember(state.signedIn, state.user?.subject) { mutableStateOf(false) }
 
+    BackHandler(
+        enabled = state.mode == DeviceMode.PERSONAL && !settingsOpen && !contactsOpen && !talkDialogOpen,
+        onBack = onMoveToBackground,
+    )
+
     if (contactsOpen && state.signedIn) {
         ContactsScreen(
             onSearchContacts,
@@ -402,6 +413,7 @@ private fun Home(
             onBack = { settingsOpen = false },
             onSelfEnrollment = onSelfEnrollment,
             onRefreshDeviceStatus = onRefreshDeviceStatus,
+            onPersonalScreenshotsChange = onPersonalScreenshotsChange,
             onNotificationPrivacyChange = onNotificationPrivacyChange,
             onCalendarReminderChange = onCalendarReminderChange,
             onCommunicationNotificationsChange = onCommunicationNotificationsChange,
@@ -695,6 +707,7 @@ private fun SettingsScreen(
     onBack: () -> Unit,
     onSelfEnrollment: () -> Unit,
     onRefreshDeviceStatus: () -> Unit,
+    onPersonalScreenshotsChange: (Boolean) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onCalendarReminderChange: (Int) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
@@ -715,6 +728,7 @@ private fun SettingsScreen(
 ) {
     var deviceDetailsOpen by rememberSaveable { mutableStateOf(state.enrollmentState != EnrollmentState.TRUSTED) }
     var notificationDetailsOpen by rememberSaveable { mutableStateOf(false) }
+    var privacyDetailsOpen by rememberSaveable { mutableStateOf(false) }
     var languageDetailsOpen by rememberSaveable { mutableStateOf(false) }
     val deviceStatus = stringResource(when (state.enrollmentState) {
         EnrollmentState.NOT_ENROLLED -> R.string.status_not_registered
@@ -807,6 +821,47 @@ private fun SettingsScreen(
                             onRequestBatteryExemption,
                             onOpenManufacturerSettings,
                         )
+                    }
+                }
+            }
+        }
+        if (state.mode == DeviceMode.PERSONAL) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SettingsDisclosure(
+                        title = stringResource(R.string.settings_privacy_title),
+                        summary = stringResource(
+                            if (state.allowPersonalScreenshots) R.string.settings_screenshots_allowed
+                            else R.string.settings_screenshots_blocked,
+                        ),
+                        expanded = privacyDetailsOpen,
+                        onToggle = { privacyDetailsOpen = !privacyDetailsOpen },
+                    )
+                    if (privacyDetailsOpen) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(18.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(stringResource(R.string.settings_screenshots_label), fontWeight = FontWeight.SemiBold)
+                                    Text(
+                                        stringResource(R.string.settings_screenshots_description),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                                Spacer(Modifier.width(12.dp))
+                                Switch(
+                                    checked = state.allowPersonalScreenshots,
+                                    onCheckedChange = onPersonalScreenshotsChange,
+                                )
+                            }
+                        }
                     }
                 }
             }

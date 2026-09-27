@@ -135,6 +135,7 @@ class PortalBrowserActivity : FragmentActivity() {
             finish()
             return
         }
+        updateScreenCaptureProtection(startUrl)
         if (WebViewCompat.getCurrentWebViewPackage(this) == null) {
             Toast.makeText(this, R.string.browser_webview_missing, Toast.LENGTH_LONG).show()
             finish()
@@ -409,6 +410,7 @@ class PortalBrowserActivity : FragmentActivity() {
         override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = handleNavigation(url, true)
 
         override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+            updateScreenCaptureProtection(url)
             if (interceptExpiredSession(url)) return
             super.onPageStarted(view, url, favicon)
         }
@@ -481,6 +483,17 @@ class PortalBrowserActivity : FragmentActivity() {
             uri.port == configured.port
     }.getOrDefault(false)
 
+    private fun updateScreenCaptureProtection(url: String) {
+        val protect = ScreenCapturePolicy.protect(
+            mode = deviceMode,
+            personalOptIn = AppPreferences(this).allowPersonalScreenshots,
+            appContent = intent.getBooleanExtra(EXTRA_APP_CONTENT, false),
+            authentikPage = isAuthentikOrigin(url) || !policy.isTrustedWebUrl(url),
+        )
+        if (protect) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        else window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+    }
+
     private fun sameWebOrigin(first: String, second: String): Boolean = runCatching {
         val firstUri = Uri.parse(first)
         val secondUri = Uri.parse(second)
@@ -492,6 +505,7 @@ class PortalBrowserActivity : FragmentActivity() {
 
     private fun handleNavigation(url: String, isMainFrame: Boolean): Boolean {
         if (!isMainFrame) return false
+        updateScreenCaptureProtection(url)
         if (interceptExpiredSession(url)) return true
         if (intent.getBooleanExtra(EXTRA_SELF_ENROLLMENT, false)) {
             val enrollment = EnrollmentQrParser.parse(url)
@@ -653,6 +667,7 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_DEVICE_BLOCKED = "device_blocked"
         private const val EXTRA_SHARED_SESSION_ENDED = "shared_session_ended"
         private const val EXTRA_DEVICE_MODE = "device_mode"
+        private const val EXTRA_APP_CONTENT = "app_content"
         private const val EXTRA_CLEAR_BEFORE_LOAD = "clear_before_load"
         private const val EXTRA_LOGOUT = "logout"
         private const val EXTRA_SELF_ENROLLMENT = "self_enrollment"
@@ -694,6 +709,7 @@ class PortalBrowserActivity : FragmentActivity() {
             Intent(context, PortalBrowserActivity::class.java)
                 .putExtra(EXTRA_URL, url)
                 .putExtra(EXTRA_DEVICE_MODE, mode.name)
+                .putExtra(EXTRA_APP_CONTENT, true)
                 .putExtra(EXTRA_TITLE, title ?: context.getString(R.string.browser_web_application))
                 .apply {
                     notificationBadgeTarget?.let {
