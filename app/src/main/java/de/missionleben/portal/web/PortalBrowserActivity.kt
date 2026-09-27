@@ -43,6 +43,7 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import de.missionleben.portal.BuildConfig
+import de.missionleben.portal.MissionLebenApplication
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -127,6 +128,8 @@ class PortalBrowserActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
 
+        if (closePersonalContentAfterLock()) return
+
         val startUrl = intent.getStringExtra(EXTRA_URL).orEmpty()
         val redirectUri = intent.getStringExtra(EXTRA_REDIRECT_URI).orEmpty()
         policy = WebNavigationPolicy(BuildConfig.WEB_ALLOWED_HOST_SUFFIXES, redirectUri)
@@ -174,6 +177,7 @@ class PortalBrowserActivity : FragmentActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (closePersonalContentAfterLock()) return
         val screenTurnedOff = AppPreferences(this).consumeSharedSessionScreenTurnedOff()
         if (
             SharedSessionLifecyclePolicy.shouldInvalidate(
@@ -192,6 +196,17 @@ class PortalBrowserActivity : FragmentActivity() {
                 finish()
             }
         }
+    }
+
+    private fun closePersonalContentAfterLock(): Boolean {
+        if (deviceMode != DeviceMode.PERSONAL || !intent.getBooleanExtra(EXTRA_APP_CONTENT, false)) return false
+        if (!(application as MissionLebenApplication).personalSessionLockTracker.isLockRequired()) return false
+        if (::webView.isInitialized) {
+            webView.visibility = View.INVISIBLE
+            webView.stopLoading()
+        }
+        finish()
+        return true
     }
 
     override fun onStop() {

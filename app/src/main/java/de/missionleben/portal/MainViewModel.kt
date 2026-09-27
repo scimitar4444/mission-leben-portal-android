@@ -79,6 +79,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private var serializedAuthState: String? = null
     private var dataEncryptionKey: ByteArray? = null
+    private var sessionEpoch = 0L
     private var pendingVaultState: String? = null
     private var pendingPushAction: PendingPushAction? = null
     private var notificationNavigationJob: Job? = null
@@ -128,7 +129,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 },
                 onError = { failure ->
                     if (continuation.isActive) {
-                        if (failure.reauthenticationRequired) sessionExpired()
+                        if (failure.reauthenticationRequired &&
+                            _uiState.value.signedIn && _uiState.value.user?.subject == subject
+                        ) sessionExpired()
                         continuation.resumeWithException(IllegalStateException("Directory authentication failed"))
                     }
                 },
@@ -246,6 +249,40 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
+    /** Local lock only: keep the encrypted vault, web SSO cookies and push registration. */
+    fun lockPersonalSession() {
+        if (preferences.deviceMode != DeviceMode.PERSONAL || !_uiState.value.signedIn) return
+        sessionEpoch++
+        serializedAuthState = null
+        pendingVaultState = null
+        notificationNavigationJob?.cancel()
+        dataEncryptionKey?.fill(0)
+        dataEncryptionKey = null
+        val canUnlock = vault.hasSession()
+        _uiState.update {
+            it.copy(
+                signedIn = false,
+                user = null,
+                applications = emptyList(),
+                applicationsLoading = false,
+                announcements = emptyList(),
+                announcementsLoading = false,
+                announcementsStale = false,
+                readAnnouncementIds = emptySet(),
+                capabilities = emptySet(),
+                linkTargets = emptyList(),
+                requestedUrl = null,
+                requestedNotificationBadgeTarget = null,
+                loginApprovalRequest = null,
+                loginApprovalSubmitting = false,
+                quickUnlockEnabled = vault.hasSession(),
+                vaultRequest = if (canUnlock) VaultRequest.UNLOCK else VaultRequest.NONE,
+                busy = false,
+                message = null,
+            )
+        }
+    }
+
     fun setPersonalScreenshotsAllowed(allowed: Boolean) {
         if (_uiState.value.mode != DeviceMode.PERSONAL) return
         preferences.allowPersonalScreenshots = allowed
@@ -288,10 +325,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.update { it.copy(message = string(R.string.message_auth_cancelled)) }
             return
         }
+        val epoch = sessionEpoch
         _uiState.update { it.copy(busy = true, message = null) }
         authRepository.completeAuthorization(
             redirectUri = redirectUri,
             onSuccess = { serialized ->
+                if (epoch != sessionEpoch) return@completeAuthorization
                 serializedAuthState = serialized
                 val user = authRepository.identityFrom(serialized)
                 val personal = _uiState.value.mode == DeviceMode.PERSONAL
@@ -313,7 +352,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 loadApplications()
             },
-            onError = { message -> _uiState.update { it.copy(busy = false, message = message) } },
+            onError = { message ->
+                if (epoch == sessionEpoch) _uiState.update { it.copy(busy = false, message = message) }
+            },
         )
     }
 
@@ -327,7 +368,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         VaultRequest.NONE -> error("No vault operation requested")
     }
 
-    fun completeVaultRequest(request: VaultRequest, cipher: Cipher) {
+    fun currentSessionEpoch(): Long = sessionEpoch
+
+    fun completeVaultRequest(request: VaultRequest, cipher: Cipher, requestEpoch: Long) {
+        if (requestEpoch != sessionEpoch) return
         runCatching {
             when (request) {
                 VaultRequest.SEAL -> {
@@ -405,7 +449,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun vaultFailed(message: String) {
+    fun vaultFailed(message: String, requestEpoch: Long) {
+        if (requestEpoch != sessionEpoch) return
         _uiState.update {
             it.copy(
                 quickUnlockEnabled = vault.hasSession(),
@@ -417,21 +462,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun loadApplications() {
         if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
+        val epoch = sessionEpoch
         _uiState.update { it.copy(applicationsLoading = true) }
         authRepository.withFreshAccessToken(
             serializedState = state,
             onSuccess = { token, updatedState ->
+                if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
                 updateSerializedState(updatedState)
                 loadAnnouncementsWithToken(token)
                 viewModelScope.launch {
                     runCatching { portalRepository.applications(token) }
                         .onSuccess { applications ->
+                            if (epoch != sessionEpoch || !_uiState.value.signedIn) return@onSuccess
                             _uiState.update { it.copy(applications = applications, applicationsLoading = false) }
                             loadCapabilitiesWithToken(token)
                             syncPushRegistrationWithToken(token)
                             resolvePendingPushAction()
                         }
                         .onFailure { error ->
+                            if (epoch != sessionEpoch || !_uiState.value.signedIn) return@onFailure
                             if (error is PortalAuthenticationException) {
                                 sessionExpired()
                             } else {
@@ -443,6 +492,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             },
             onError = { failure ->
+                if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
                 handleAccessTokenFailure(failure) { it.copy(applicationsLoading = false) }
             },
         )
@@ -450,10 +500,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun loadAnnouncementsWithToken(token: String) {
         if (_uiState.value.announcementsLoading) return
+        val epoch = sessionEpoch
         _uiState.update { it.copy(announcementsLoading = true) }
         viewModelScope.launch {
             runCatching { deviceService.announcements(token) }
                 .onSuccess { result ->
+                    if (epoch != sessionEpoch || !_uiState.value.signedIn) return@onSuccess
                     _uiState.update {
                         it.copy(
                             announcements = result.items,
@@ -466,6 +518,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
                 .onFailure {
+                    if (epoch != sessionEpoch || !_uiState.value.signedIn) return@onFailure
                     _uiState.update { it.copy(announcementsLoading = false) }
                 }
         }
@@ -474,13 +527,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshAnnouncements() {
         if (!_uiState.value.signedIn || expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
+        val epoch = sessionEpoch
         authRepository.withFreshAccessToken(
             serializedState = state,
             onSuccess = { token, updatedState ->
+                if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
                 updateSerializedState(updatedState)
                 loadAnnouncementsWithToken(token)
             },
             onError = { failure ->
+                if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
                 handleAccessTokenFailure(failure) { it.copy(announcementsLoading = false) }
             },
         )
@@ -526,15 +582,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.update { it.copy(message = string(R.string.message_sign_in_to_open)) }
             return
         }
+        val epoch = sessionEpoch
         val badgeTarget = notificationBadgeTarget ?: _uiState.value.applications
             .firstOrNull { it.launchUrl == url }
             ?.let(NotificationBadgeTarget::fromApplication)
         _uiState.update { it.copy(busy = true, message = null) }
         viewModelScope.launch {
             if (!verifyDeviceBeforeProtectedAction()) return@launch
+            if (epoch != sessionEpoch || !_uiState.value.signedIn) return@launch
             authRepository.withFreshAccessToken(
                 serializedState = state,
                 onSuccess = { _, updatedState ->
+                    if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
                     updateSerializedState(updatedState)
                     if (badgeTarget != null) {
                         NotificationPresenter.dismissApplication(getApplication(), badgeTarget)
@@ -555,6 +614,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 },
                 onError = { failure ->
+                    if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
                     handleAccessTokenFailure(failure) { it.copy(busy = false) }
                 },
             )
@@ -631,20 +691,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun openTalkOn(targetId: String, talkUrl: String) {
         if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
+        val epoch = sessionEpoch
         _uiState.update { it.copy(busy = true, message = null) }
         viewModelScope.launch {
             if (!verifyDeviceBeforeProtectedAction()) return@launch
+            if (epoch != sessionEpoch || !_uiState.value.signedIn) return@launch
             authRepository.withFreshAccessToken(
                 serializedState = state,
                 onSuccess = { token, updatedState ->
+                    if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
                     updateSerializedState(updatedState)
                     viewModelScope.launch {
                         runCatching { deviceService.openTalk(token, targetId, talkUrl) }
-                            .onSuccess { _uiState.update { it.copy(busy = false, message = string(R.string.message_talk_opened)) } }
-                            .onFailure { error -> _uiState.update { it.copy(busy = false, message = error.message) } }
+                            .onSuccess {
+                                if (epoch == sessionEpoch && _uiState.value.signedIn) {
+                                    _uiState.update { it.copy(busy = false, message = string(R.string.message_talk_opened)) }
+                                }
+                            }
+                            .onFailure { error ->
+                                if (epoch == sessionEpoch && _uiState.value.signedIn) {
+                                    _uiState.update { it.copy(busy = false, message = error.message) }
+                                }
+                            }
                     }
                 },
                 onError = { failure ->
+                    if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
                     handleAccessTokenFailure(failure) { it.copy(busy = false) }
                 },
             )
@@ -970,6 +1042,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private suspend fun fetchLoginApproval(deviceId: String) {
         runCatching { deviceService.pendingLoginApproval(deviceId, identity) }
             .onSuccess { request ->
+                if (!_uiState.value.signedIn) return@onSuccess
                 val current = _uiState.value.loginApprovalRequest
                 if (request != current) {
                     _uiState.update { it.copy(loginApprovalRequest = request) }
@@ -1193,13 +1266,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun syncPushRegistration() {
         if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
+        val epoch = sessionEpoch
         authRepository.withFreshAccessToken(
             serializedState = state,
             onSuccess = { token, updatedState ->
+                if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
                 updateSerializedState(updatedState)
                 syncPushRegistrationWithToken(token)
             },
             onError = { failure ->
+                if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
                 if (failure.reauthenticationRequired) sessionExpired()
             },
         )
@@ -1207,9 +1283,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun loadCapabilitiesWithToken(accessToken: String) {
         if (!deviceService.communicationConfigured) return
+        val epoch = sessionEpoch
         viewModelScope.launch {
             val capabilities = runCatching { deviceService.capabilities(accessToken) }
                 .getOrDefault(emptySet())
+            if (epoch != sessionEpoch || !_uiState.value.signedIn) return@launch
             _uiState.update {
                 it.copy(
                     capabilities = capabilities,
@@ -1218,6 +1296,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             if (PortalCapability.OPEN_TALK in capabilities) {
                 val targets = runCatching { deviceService.linkTargets(accessToken) }.getOrDefault(emptyList())
+                if (epoch != sessionEpoch || !_uiState.value.signedIn) return@launch
                 _uiState.update { it.copy(linkTargets = targets) }
             }
         }
@@ -1380,6 +1459,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         failure: AccessTokenFailure,
         onTransientFailure: (UiState) -> UiState,
     ) {
+        if (!_uiState.value.signedIn) return
         if (failure.reauthenticationRequired) {
             sessionExpired()
         } else {
@@ -1397,6 +1477,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun updateSerializedState(value: String) {
+        if (!_uiState.value.signedIn) return
         serializedAuthState = value
         val key = dataEncryptionKey
         if (_uiState.value.mode == DeviceMode.PERSONAL && key != null) {

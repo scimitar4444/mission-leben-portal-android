@@ -77,7 +77,6 @@ class AppPreferences(context: Context) {
         val screenTurnedOff = preferences.getBoolean(KEY_SHARED_SESSION_SCREEN_TURNED_OFF, false)
         preferences.edit()
             .remove(KEY_SHARED_SESSION_SCREEN_TURNED_OFF)
-            .remove(KEY_ALLOW_PERSONAL_SCREENSHOTS)
             .apply()
         return screenTurnedOff
     }
@@ -124,6 +123,7 @@ class AppPreferences(context: Context) {
             .remove(KEY_REAUTHENTICATION_HINT)
             .remove(KEY_REAUTHENTICATION_REQUIRED)
             .remove(KEY_SHARED_SESSION_SCREEN_TURNED_OFF)
+            .remove(KEY_ALLOW_PERSONAL_SCREENSHOTS)
             .apply()
         clearAnnouncementReadState()
     }

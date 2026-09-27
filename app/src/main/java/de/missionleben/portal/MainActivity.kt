@@ -279,6 +279,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        applyPersonalSessionLockIfNeeded()
         setIntent(intent)
         viewModel.acceptEnrollmentLink(intent.data)
         viewModel.acceptPushAction(
@@ -290,8 +291,14 @@ class MainActivity : FragmentActivity() {
 
     override fun onResume() {
         super.onResume()
+        applyPersonalSessionLockIfNeeded()
         pushSettingsRevision.intValue++
         viewModel.consumeSharedSessionScreenOffState()
+    }
+
+    private fun applyPersonalSessionLockIfNeeded() {
+        val tracker = (application as MissionLebenApplication).personalSessionLockTracker
+        if (tracker.consumeLockRequired()) viewModel.lockPersonalSession()
     }
 
     override fun onStart() {
@@ -381,15 +388,16 @@ class MainActivity : FragmentActivity() {
 
     private fun handleVaultRequest(request: VaultRequest) {
         viewModel.consumeVaultRequest()
+        val requestEpoch = viewModel.currentSessionEpoch()
         val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or
             BiometricManager.Authenticators.DEVICE_CREDENTIAL
         if (BiometricManager.from(this).canAuthenticate(authenticators) != BiometricManager.BIOMETRIC_SUCCESS) {
-            viewModel.vaultFailed(getString(R.string.biometric_setup_required))
+            viewModel.vaultFailed(getString(R.string.biometric_setup_required), requestEpoch)
             return
         }
 
         val cipher = runCatching { viewModel.createVaultCipher(request) }.getOrElse {
-            viewModel.vaultFailed(getString(R.string.secure_storage_unavailable, it.message.orEmpty()))
+            viewModel.vaultFailed(getString(R.string.secure_storage_unavailable, it.message.orEmpty()), requestEpoch)
             return
         }
         val prompt = BiometricPrompt(
@@ -399,14 +407,14 @@ class MainActivity : FragmentActivity() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     val authorizedCipher = result.cryptoObject?.cipher
                     if (authorizedCipher == null) {
-                        viewModel.vaultFailed(getString(R.string.secure_key_not_released))
+                        viewModel.vaultFailed(getString(R.string.secure_key_not_released), requestEpoch)
                     } else {
-                        viewModel.completeVaultRequest(request, authorizedCipher)
+                        viewModel.completeVaultRequest(request, authorizedCipher, requestEpoch)
                     }
                 }
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    viewModel.vaultFailed(getString(R.string.quick_access_failed, errString))
+                    viewModel.vaultFailed(getString(R.string.quick_access_failed, errString), requestEpoch)
                 }
             },
         )

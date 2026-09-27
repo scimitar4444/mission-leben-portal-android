@@ -21,6 +21,7 @@
     <string name="release_note_push_check">सेटिंग में जाँचें कि Android पृष्ठभूमि पुश सूचनाओं को अनुमति देता है या नहीं।</string>
     <string name="release_note_update_summary">अपडेट के बाद मुख्य बदलाव ऐप में एक बार दिखते हैं।</string>
     <string name="release_note_compact_settings">सेटिंग अब अधिक स्पष्ट हैं: डिवाइस पहचान, सूचनाएँ और भाषा अलग-अलग खोलें।</string>
+    <string name="release_note_personal_lock">निजी डिवाइस: थोड़ी देर के लिए दूसरी ऐप में जाने पर दोबारा बायोमेट्रिक जाँच नहीं होगी। स्क्रीन बंद होने या 10 मिनट पृष्ठभूमि में रहने के बाद फिर से अनलॉक करें। सेटिंग में स्क्रीनशॉट की अनुमति दे सकते हैं।</string>
     <string name="release_notes_done">समझ गया</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  पोर्टल</string>

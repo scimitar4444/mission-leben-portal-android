@@ -21,6 +21,10 @@ class ReleaseNotesPolicyTest {
             ReleaseNotesCatalog.forVersion(76) + ReleaseNotesCatalog.forVersion(77),
             ReleaseNotesCatalog.since(75, 77),
         )
+        assertEquals(
+            listOf(R.string.release_note_personal_lock),
+            ReleaseNotesCatalog.since(77, 78),
+        )
     }
 
     @Test fun appearsOnceAfterUpdateButNotFreshInstall() {

@@ -21,6 +21,7 @@
     <string name="release_note_push_check">In Settings, you can check whether Android allows push alerts in the background.</string>
     <string name="release_note_update_summary">After an update, the app shows the main changes once.</string>
     <string name="release_note_compact_settings">Settings are easier to navigate: expand device identity, notifications and language separately.</string>
+    <string name="release_note_personal_lock">Personal devices: Brief app switches need no new biometric check. After screen-off or 10 minutes in the background, unlock again. You can allow screenshots in Settings.</string>
     <string name="release_notes_done">Got it</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>

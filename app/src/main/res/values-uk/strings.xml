@@ -21,6 +21,7 @@
     <string name="release_note_push_check">У налаштуваннях можна перевірити, чи дозволяє Android фонові push-сповіщення.</string>
     <string name="release_note_update_summary">Після оновлення програма один раз показує головні зміни.</string>
     <string name="release_note_compact_settings">Налаштування стали зручнішими: окремо відкривай дані пристрою, сповіщення та мову.</string>
+    <string name="release_note_personal_lock">Особисті пристрої: коротке перемикання між застосунками не вимагає повторної біометрії. Після вимкнення екрана або 10 хвилин у фоні розблокуй знову. Знімки екрана можна дозволити в налаштуваннях.</string>
     <string name="release_notes_done">Зрозуміло</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Портал</string>
