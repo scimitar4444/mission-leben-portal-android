@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 SOAP = "http://www.w3.org/2003/05/soap-envelope"
 ZIMBRA = "urn:zimbra"
 ADMIN = "urn:zimbraAdmin"
+ACCOUNT = "urn:zimbraAccount"
 MAIL = "urn:zimbraMail"
 
 
@@ -89,14 +90,30 @@ class ZimbraSoapClient:
         return self._required_attribute(response, "waitSet"), response.attrib.get("seq", "0")
 
     def account_id(self, email: str) -> str:
-        request = ET.Element(f"{{{ADMIN}}}GetAccountRequest", {"applyCos": "0"})
-        ET.SubElement(request, f"{{{ADMIN}}}account", {"by": "name"}).text = email
-        response = self._post(self.admin_soap_url, request)
-        account = next(
-            (node for node in response.iter() if _local_name(node.tag) == "account"),
-            response,
+        # Admin GetAccountRequest is denied for per-mailbox delegated admins,
+        # even when adminLoginAs is granted. The account endpoint exposes the
+        # UUID through GetAccountInfoRequest without a domain-wide admin grant.
+        request = ET.Element(f"{{{ACCOUNT}}}GetAccountInfoRequest")
+        ET.SubElement(request, f"{{{ACCOUNT}}}account", {"by": "name"}).text = email
+        response = self._post(self.mail_soap_url, request)
+        returned_name = next(
+            (node.text or "" for node in response if _local_name(node.tag) == "name"),
+            "",
+        ).strip()
+        if returned_name.lower() != email.strip().lower():
+            raise ZimbraSoapError("Zimbra account-info response did not match requested email")
+        account_id = next(
+            (
+                (node.text or "").strip()
+                for node in response
+                if _local_name(node.tag) in {"a", "attr"}
+                and (node.attrib.get("n") or node.attrib.get("name")) == "zimbraId"
+            ),
+            "",
         )
-        return self._required_attribute(account, "id")
+        if not account_id:
+            raise ZimbraSoapError("Zimbra account-info response is missing zimbraId")
+        return account_id
 
     def wait(self, waitset_id: str, sequence: str, timeout_seconds: int = 60) -> tuple[str, list[str]]:
         request = ET.Element(

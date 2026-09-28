@@ -5,6 +5,7 @@ After=docker.service mission-leben-device-offboarding.service
 
 [Service]
 Type=oneshot
+EnvironmentFile=/opt/mission-leben-communication-sync/grant-sync.env
 ExecStart=/opt/mission-leben-communication-sync/sync-communication-assignments.sh
 User=root
 Group=root
@@ -13,4 +14,4 @@ PrivateTmp=true
 ProtectHome=true
 ProtectSystem=strict
 ReadWritePaths=/run/lock /opt/mission-leben-bridge/secrets /opt/mission-leben-bridge/directory-data
-RestrictAddressFamilies=AF_UNIX
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

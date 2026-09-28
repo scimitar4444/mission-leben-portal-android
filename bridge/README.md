@@ -144,7 +144,7 @@ Beim Ausscheiden wird das Benutzerkonto in Authentik deaktiviert. Geräte- und B
 
 ## Zimbra-Zuordnung
 
-Die Mapping-Datei enthält keine Kennwörter. Sie ordnet nur Zimbra-Konto-ID zu Authentik-Subject. Im produktiven Betrieb wird sie alle fünf Minuten automatisch aus drei Bedingungen aufgebaut: aktive Push-Registrierung, aktiver Authentik-Benutzer und wirksamer Zugriff auf `zimbra-mail` über die kanonische Gruppe `APP_ZIMBRA_USER`. Neu registrierte berechtigte Benutzer kommen hinzu; deaktivierte Benutzer, entfernte Berechtigungen und abgemeldete Geräte fallen heraus. Die vorhandene Zimbra-Konto-ID wird wiederverwendet, sodass nur neue E-Mail-Adressen per Admin-SOAP aufgelöst werden.
+Die Mapping-Datei enthält keine Kennwörter. Sie ordnet nur Zimbra-Konto-ID zu Authentik-Subject. Im produktiven Betrieb wird sie alle fünf Minuten automatisch aus drei Bedingungen aufgebaut: aktive Push-Registrierung, aktiver Authentik-Benutzer und wirksamer Zugriff auf `zimbra-mail` über die kanonische Gruppe `APP_ZIMBRA_USER`. Neu registrierte berechtigte Benutzer kommen hinzu; deaktivierte Benutzer, entfernte Berechtigungen und abgemeldete Geräte fallen heraus. Die vorhandene Zimbra-Konto-ID wird wiederverwendet, sodass nur neue E-Mail-Adressen über Zimbras Account-SOAP `GetAccountInfoRequest` aufgelöst werden. Dafür ist kein zusätzliches `getAccount`-Adminrecht nötig.
 
 ```json
 {
@@ -157,6 +157,10 @@ Die Mapping-Datei enthält keine Kennwörter. Sie ordnet nur Zimbra-Konto-ID zu 
 
 Das Zimbra-Kennwort wird als gemountete Secret-Datei gelesen. Es darf weder in `.env` noch in Git abgelegt werden.
 
+Der Connector benötigt für Mail- und Terminsuche ausschließlich `adminLoginAs` auf jedem aktuell zugeordneten Postfach. Der versionierte Rechteabgleich in `authentik/deploy/reconcile-zimbra-mailbox-grants.py` läuft als erzwungenes SSH-Kommando auf dem Zimbra-Host. Der Schlüssel ist auf die IP des Authentik-Hosts, dieses Kommando und SSH ohne Weiterleitung begrenzt. Es wird weder ein Domain- noch ein Globalrecht vergeben. Der Abgleich fügt Berechtigungen vor der Mapping-Aktualisierung hinzu und entzieht nicht mehr benötigte erst danach. Ein erfolgreicher Authentik-Export mit leerer Liste entzieht auch die letzte Berechtigung. Der zuletzt veränderte Rechtebestand bleibt als root-lesbare Rückweg-Datei auf dem Zimbra-Host erhalten.
+
+Für die Erstinstallation werden Host-IP und ED25519-Host-Fingerprint unabhängig geprüft und nur serverseitig in `grant-sync.env` und `keys/known_hosts` hinterlegt. Der private SSH-Schlüssel liegt nur auf dem Authentik-Host; die öffentliche Schlüsselhälfte wird mit `install-zimbra-grant-command.py` als eine zusätzliche, klar markierte Zeile in `root`-`authorized_keys` installiert. Die beiden Installationsskripte sind idempotent und lassen andere SSH-Schlüssel unverändert. Weder Schlüssel noch produktive Postfachlisten gehören ins öffentliche Repository.
+
 Die Automatik wird auf dem Authentik-/Bridge-Host installiert mit:
 
 ```bash
@@ -164,6 +168,8 @@ sudo authentik/deploy/install-communication-sync.sh
 systemctl start mission-leben-communication-sync.service
 systemctl status mission-leben-communication-sync.timer
 ```
+
+Nach einem Authentik- oder Zimbra-Update: Hash und Installation der beiden versionierten Skripte und der Systemd-Unit vergleichen; den gepinnten Host-Key, `zmprov gg -g usr mobile-push-connector@mission-leben.de`, `systemctl start mission-leben-communication-sync.service`, den gemeldeten Mapping-Zähler und `Zimbra WaitSet created for ... mapped accounts` prüfen. Bei Rücknahme zuerst die alte Skript-/Worker-Version aus dem gesicherten Stand wiederherstellen und die Unit neu laden; die erzwungene SSH-Zeile lässt sich mit `install-zimbra-grant-command.py --remove` gezielt entfernen. Vor einer Rechte-Rücknahme den root-lesbaren letzten Rechtebestand prüfen. Ein grüner Worker beweist noch keine tatsächlich zugestellte Handy-Benachrichtigung.
 
 `ZIMBRA_DYNAMIC_ACCOUNT_MAP=true` erlaubt dabei auch den korrekten Zustand mit null aktiven Mobilgeräten. Der Worker bleibt gesund und nimmt Konten nach der nächsten Synchronisation automatisch wieder auf.
 

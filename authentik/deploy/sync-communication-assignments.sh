@@ -50,6 +50,39 @@ if [[ -z "${assignments_json}" ]]; then
     exit 1
 fi
 
+# The root SSH key is restricted on Zimbra to the versioned grant reconciler.
+# Keep this separate from the notification connector's mailbox-read credential.
+grant_host="${ML_ZIMBRA_GRANT_SSH_HOST:?ML_ZIMBRA_GRANT_SSH_HOST must be configured}"
+grant_key="${ML_ZIMBRA_GRANT_SSH_KEY:-/opt/mission-leben-communication-sync/keys/zimbra-grant-sync}"
+grant_known_hosts="${ML_ZIMBRA_GRANT_KNOWN_HOSTS:-/opt/mission-leben-communication-sync/keys/known_hosts}"
+if [[ ! "${grant_host}" =~ ^[a-zA-Z0-9.-]+$ || ! -r "${grant_key}" || ! -r "${grant_known_hosts}" ]]; then
+    echo "ML_COMMUNICATION_SYNC_STATUS=zimbra-grant-ssh-preflight-failed" >&2
+    exit 1
+fi
+grant_emails_json="$(
+    python3 -c 'import json,sys; value=json.load(sys.stdin); print(json.dumps(sorted({str(x["email"]).strip().lower() for x in value["assignments"] if x.get("zimbra")})))' \
+        <<< "${assignments_json}"
+)"
+reconcile_zimbra_grants() {
+    local mode="$1" output
+    output="$(
+        printf '{"mode":"%s","emails":%s}\n' "${mode}" "${grant_emails_json}" \
+            | ssh -F /dev/null -T -o BatchMode=yes -o IdentitiesOnly=yes \
+                -o StrictHostKeyChecking=yes -o ConnectTimeout=10 \
+                -o HostKeyAlgorithms=ssh-ed25519 \
+                -o "UserKnownHostsFile=${grant_known_hosts}" \
+                -i "${grant_key}" "root@${grant_host}"
+    )" || {
+        echo "ML_COMMUNICATION_SYNC_STATUS=zimbra-grant-${mode}-failed" >&2
+        return 1
+    }
+    [[ "${output}" == ML_ZIMBRA_GRANT_SYNC_STATUS=* ]] || {
+        echo "ML_COMMUNICATION_SYNC_STATUS=zimbra-grant-${mode}-response-invalid" >&2
+        return 1
+    }
+    echo "${output}"
+}
+
 directory_candidate="$(mktemp)"
 trap 'rm -f "${directory_candidate}"' EXIT
 chmod 0600 "${directory_candidate}"
@@ -88,6 +121,8 @@ talk_sync_status="$(
     exit 1
 }
 
+grant_prepare_status="$(reconcile_zimbra_grants prepare)" || exit 1
+
 candidate_map="$(
     printf '%s' "${assignments_json}" \
         | docker exec -i "${zimbra_container}" \
@@ -114,7 +149,8 @@ raise SystemExit(0 if old == new else 1)
 PY
 then
     count="$(python3 -c 'import json,sys; print(len(json.load(sys.stdin)))' <<< "${candidate_map}")"
-    echo "ML_COMMUNICATION_SYNC_STATUS=unchanged accounts=${count} directory=${directory_status} ${talk_sync_status}"
+    grant_final_status="$(reconcile_zimbra_grants finalize)" || exit 1
+    echo "ML_COMMUNICATION_SYNC_STATUS=unchanged accounts=${count} directory=${directory_status} ${talk_sync_status} ${grant_prepare_status} ${grant_final_status}"
     exit 0
 fi
 
@@ -126,6 +162,7 @@ temporary="$(mktemp "${bridge_dir}/secrets/.zimbra-account-map.XXXXXX")"
 trap 'rm -f "${candidate_file}" "${temporary}"' EXIT
 printf '%s\n' "${candidate_map}" > "${temporary}"
 chmod 0640 "${temporary}"
+chown 0:10001 "${temporary}"
 mv -f "${temporary}" "${map_file}"
 trap - EXIT
 rm -f "${candidate_file}"
@@ -136,4 +173,5 @@ docker compose --project-name mission-leben-device \
     up -d --no-deps --force-recreate zimbra-worker >/dev/null
 
 count="$(python3 -c 'import json,sys; print(len(json.load(sys.stdin)))' <<< "${candidate_map}")"
-echo "ML_COMMUNICATION_SYNC_STATUS=updated accounts=${count} directory=${directory_status} ${talk_sync_status}"
+grant_final_status="$(reconcile_zimbra_grants finalize)" || exit 1
+echo "ML_COMMUNICATION_SYNC_STATUS=updated accounts=${count} directory=${directory_status} ${talk_sync_status} ${grant_prepare_status} ${grant_final_status}"
