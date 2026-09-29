@@ -271,7 +271,6 @@ class MainActivity : FragmentActivity() {
                         )
                     },
                     onRefreshDeviceStatus = viewModel::refreshDeviceStatus,
-                    onPersonalScreenshotsChange = viewModel::setPersonalScreenshotsAllowed,
                     onMoveToBackground = { moveTaskToBack(true) },
                     onEnableQuickUnlock = viewModel::retryQuickUnlockSetup,
                     onOpenTalk = viewModel::openTalkOn,

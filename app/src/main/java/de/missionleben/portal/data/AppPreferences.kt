@@ -9,6 +9,14 @@ import java.security.MessageDigest
 class AppPreferences(context: Context) {
     private val preferences = context.getSharedPreferences("mission_leben_settings", Context.MODE_PRIVATE)
 
+    init {
+        // A previous pilot allowed screenshots of personal WebViews. Revoke that
+        // opt-in on upgrade so no stale preference can re-enable capture.
+        if (preferences.contains(KEY_ALLOW_PERSONAL_SCREENSHOTS)) {
+            preferences.edit().remove(KEY_ALLOW_PERSONAL_SCREENSHOTS).apply()
+        }
+    }
+
     var deviceMode: DeviceMode?
         get() = preferences.getString(KEY_DEVICE_MODE, null)?.let(DeviceMode::valueOf)
         set(value) {
@@ -17,19 +25,7 @@ class AppPreferences(context: Context) {
                 if (value != DeviceMode.SHARED) {
                     remove(KEY_SHARED_SESSION_SCREEN_TURNED_OFF)
                 }
-                if (value != DeviceMode.PERSONAL) {
-                    remove(KEY_ALLOW_PERSONAL_SCREENSHOTS)
-                }
             }.apply()
-        }
-
-    var allowPersonalScreenshots: Boolean
-        get() = deviceMode == DeviceMode.PERSONAL &&
-            preferences.getBoolean(KEY_ALLOW_PERSONAL_SCREENSHOTS, false)
-        set(value) {
-            preferences.edit()
-                .putBoolean(KEY_ALLOW_PERSONAL_SCREENSHOTS, value && deviceMode == DeviceMode.PERSONAL)
-                .apply()
         }
 
     var deviceId: String?

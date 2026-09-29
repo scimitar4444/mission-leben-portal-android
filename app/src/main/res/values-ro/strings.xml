@@ -19,7 +19,7 @@
     <string name="release_note_push_check">În Setări poți verifica dacă Android permite notificări în fundal.</string>
     <string name="release_note_update_summary">După actualizare, aplicația arată o singură dată schimbările principale.</string>
     <string name="release_note_compact_settings">Setările sunt mai clare: extinde separat identitatea dispozitivului, notificările și limba.</string>
-    <string name="release_note_personal_lock">Dispozitive personale: schimbarea scurtă a aplicației nu cere din nou biometrie. După stingerea ecranului sau 10 minute în fundal, deblochează din nou. Poți permite capturile de ecran din Setări.</string>
+    <string name="release_note_personal_lock">Dispozitive personale: schimbarea scurtă a aplicației nu cere din nou biometrie. După stingerea ecranului sau 10 minute în fundal, deblochează din nou.</string>
     <string name="release_notes_done">Am înțeles</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
@@ -41,11 +41,6 @@
     <string name="setup_assistant_next">Continuă</string>
     <string name="talk_meeting_native_failed">Aplicația Talk instalată nu a putut deschide acest link de întâlnire. Verifică Talk sau încearcă din nou mai târziu.</string>
     <string name="settings_back">Înapoi</string>
-    <string name="settings_privacy_title">Ecran și confidențialitate</string>
-    <string name="settings_screenshots_blocked">Capturi de ecran blocate</string>
-    <string name="settings_screenshots_allowed">Capturi de ecran permise</string>
-    <string name="settings_screenshots_label">Permite capturi de ecran</string>
-    <string name="settings_screenshots_description">Permite capturi și înregistrări ale aplicațiilor web pe acest dispozitiv personal. Autentificarea și tabletele partajate rămân protejate.</string>
     <string name="open_action">Deschide</string>
     <string name="language_title">Limbă</string>
     <string name="language_description">Folosește automat limba telefonului sau alege o limbă doar pentru această aplicație.</string>
@@ -268,6 +263,7 @@
     <string name="release_note_calendar_pilot">Nou în proiectul-pilot: afișează evenimentele Zimbra în calendarul telefonului prin sincronizare într-un singur sens. Creează evenimente doar în Zimbra.</string>
     <string name="release_note_talk_calendar">Întâlnirile Talk deschise din Zimbra folosesc acum aplicația Talk. Perioada calendarului se derulează orizontal; setările Zimbra apar doar dacă ai acces.</string>
     <string name="release_note_setup_assistant">Nou: asistentul ajută la setarea alertelor, bateriei și aplicațiilor permise. Întâlnirile Talk folosesc cu prioritate aplicația Talk.</string>
+    <string name="release_note_screenshots_disabled">Corecție de securitate: capturile și înregistrările de ecran ale conținutului aplicațiilor web sunt din nou blocate.</string>
     <string name="privacy_minimal_description_talk_only">Afișează doar o notificare pentru un mesaj Talk nou.</string>
     <string name="privacy_standard_description_talk_only">Afișează expeditorul și o scurtă previzualizare Talk.</string>
     <string name="privacy_detailed_description_talk_only">Afișează expeditorul și o previzualizare Talk mai lungă.</string>

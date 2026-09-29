@@ -138,7 +138,6 @@ class PortalBrowserActivity : FragmentActivity() {
             finish()
             return
         }
-        updateScreenCaptureProtection(startUrl)
         if (WebViewCompat.getCurrentWebViewPackage(this) == null) {
             Toast.makeText(this, R.string.browser_webview_missing, Toast.LENGTH_LONG).show()
             finish()
@@ -425,7 +424,6 @@ class PortalBrowserActivity : FragmentActivity() {
         override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = handleNavigation(url, true)
 
         override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
-            updateScreenCaptureProtection(url)
             if (interceptExpiredSession(url)) return
             super.onPageStarted(view, url, favicon)
         }
@@ -498,17 +496,6 @@ class PortalBrowserActivity : FragmentActivity() {
             uri.port == configured.port
     }.getOrDefault(false)
 
-    private fun updateScreenCaptureProtection(url: String) {
-        val protect = ScreenCapturePolicy.protect(
-            mode = deviceMode,
-            personalOptIn = AppPreferences(this).allowPersonalScreenshots,
-            appContent = intent.getBooleanExtra(EXTRA_APP_CONTENT, false),
-            authentikPage = isAuthentikOrigin(url) || !policy.isTrustedWebUrl(url),
-        )
-        if (protect) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        else window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-    }
-
     private fun sameWebOrigin(first: String, second: String): Boolean = runCatching {
         val firstUri = Uri.parse(first)
         val secondUri = Uri.parse(second)
@@ -520,7 +507,6 @@ class PortalBrowserActivity : FragmentActivity() {
 
     private fun handleNavigation(url: String, isMainFrame: Boolean): Boolean {
         if (!isMainFrame) return false
-        updateScreenCaptureProtection(url)
         if (interceptExpiredSession(url)) return true
         if (intent.getBooleanExtra(EXTRA_SELF_ENROLLMENT, false)) {
             val enrollment = EnrollmentQrParser.parse(url)

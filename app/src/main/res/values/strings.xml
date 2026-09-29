@@ -23,11 +23,6 @@
     <string name="setup_assistant_next">Weiter</string>
     <string name="talk_meeting_native_failed">Die installierte Talk-App konnte diesen Besprechungslink nicht öffnen. Bitte prüfe die Talk-App oder versuche es später erneut.</string>
     <string name="settings_back">Zurück</string>
-    <string name="settings_privacy_title">Bildschirm &amp; Datenschutz</string>
-    <string name="settings_screenshots_blocked">Screenshots gesperrt</string>
-    <string name="settings_screenshots_allowed">Screenshots erlaubt</string>
-    <string name="settings_screenshots_label">Screenshots erlauben</string>
-    <string name="settings_screenshots_description">Erlaubt Screenshots und Bildschirmaufnahmen von Web-Apps auf diesem persönlichen Gerät. Anmeldung und gemeinsame Tablets bleiben geschützt.</string>
     <string name="push_reliability_title">Push-Zustellung</string>
     <string name="push_reliability_description">Diese Prüfung hilft, damit Hinweise auch bei ausgeschaltetem Bildschirm ankommen.</string>
     <string name="push_reliability_not_registered">Push ist auf diesem Gerät noch nicht eingerichtet.</string>
@@ -47,10 +42,11 @@
     <string name="release_note_push_check">In Einstellungen kannst du prüfen, ob Android Push-Hinweise im Hintergrund zulässt.</string>
     <string name="release_note_update_summary">Nach einem Update siehst du die wichtigsten Änderungen einmal direkt in der App.</string>
     <string name="release_note_compact_settings">Die Einstellungen sind jetzt übersichtlicher: Geräteidentität, Benachrichtigungen und Sprache lassen sich einzeln aufklappen.</string>
-    <string name="release_note_personal_lock">Persönliche Geräte: Kurze App-Wechsel bleiben ohne neue Biometrie. Nach Bildschirm aus oder 10 Minuten im Hintergrund wird erneut entsperrt. Screenshots kannst du in den Einstellungen erlauben.</string>
+    <string name="release_note_personal_lock">Persönliche Geräte: Kurze App-Wechsel bleiben ohne neue Biometrie. Nach Bildschirm aus oder 10 Minuten im Hintergrund wird erneut entsperrt.</string>
     <string name="release_note_calendar_pilot" tools:ignore="MissingTranslation">Neu im Pilot: Zimbra-Termine können als Einweg-Sync im Handy-Kalender angezeigt werden. Termine legst du weiterhin nur in Zimbra an.</string>
     <string name="release_note_talk_calendar">Talk-Besprechungen aus Zimbra öffnen jetzt die Talk-App. Die Kalender-Auswahl scrollt seitlich; Zimbra-Einstellungen erscheinen nur mit Freigabe.</string>
     <string name="release_note_setup_assistant">Neu: Der Einrichtungsassistent hilft bei Hinweisen, Akku und freigegebenen Anwendungen. Talk-Besprechungen öffnen bevorzugt die Talk-App.</string>
+    <string name="release_note_screenshots_disabled">Sicherheitskorrektur: Screenshots und Bildschirmaufnahmen von Web-App-Inhalten sind wieder gesperrt.</string>
     <string name="release_notes_done">Verstanden</string>
     <string name="open_action">Öffnen</string>
 

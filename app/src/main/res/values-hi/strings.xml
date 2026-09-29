@@ -19,7 +19,7 @@
     <string name="release_note_push_check">सेटिंग में जाँचें कि Android पृष्ठभूमि पुश सूचनाओं को अनुमति देता है या नहीं।</string>
     <string name="release_note_update_summary">अपडेट के बाद मुख्य बदलाव ऐप में एक बार दिखते हैं।</string>
     <string name="release_note_compact_settings">सेटिंग अब अधिक स्पष्ट हैं: डिवाइस पहचान, सूचनाएँ और भाषा अलग-अलग खोलें।</string>
-    <string name="release_note_personal_lock">निजी डिवाइस: थोड़ी देर के लिए दूसरी ऐप में जाने पर दोबारा बायोमेट्रिक जाँच नहीं होगी। स्क्रीन बंद होने या 10 मिनट पृष्ठभूमि में रहने के बाद फिर से अनलॉक करें। सेटिंग में स्क्रीनशॉट की अनुमति दे सकते हैं।</string>
+    <string name="release_note_personal_lock">निजी डिवाइस: थोड़ी देर के लिए दूसरी ऐप में जाने पर दोबारा बायोमेट्रिक जाँच नहीं होगी। स्क्रीन बंद होने या 10 मिनट पृष्ठभूमि में रहने के बाद फिर से अनलॉक करें।</string>
     <string name="release_notes_done">समझ गया</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  पोर्टल</string>
@@ -41,11 +41,6 @@
     <string name="setup_assistant_next">आगे</string>
     <string name="talk_meeting_native_failed">इंस्टॉल किया गया Talk ऐप यह मीटिंग लिंक नहीं खोल सका। Talk ऐप जाँचें या बाद में फिर कोशिश करें।</string>
     <string name="settings_back">वापस</string>
-    <string name="settings_privacy_title">स्क्रीन और गोपनीयता</string>
-    <string name="settings_screenshots_blocked">स्क्रीनशॉट बंद हैं</string>
-    <string name="settings_screenshots_allowed">स्क्रीनशॉट चालू हैं</string>
-    <string name="settings_screenshots_label">स्क्रीनशॉट की अनुमति दें</string>
-    <string name="settings_screenshots_description">इस निजी डिवाइस पर वेब ऐप के स्क्रीनशॉट और स्क्रीन रिकॉर्डिंग की अनुमति देता है। साइन-इन और साझा टैबलेट सुरक्षित रहते हैं।</string>
     <string name="open_action">खोलें</string>
     <string name="language_title">भाषा</string>
     <string name="language_description">फ़ोन की भाषा अपने-आप अपनाएँ या केवल इस ऐप के लिए भाषा चुनें।</string>
@@ -267,6 +262,7 @@
     <string name="release_note_calendar_pilot">पायलट में नया: एकतरफ़ा सिंक से Zimbra के अपॉइंटमेंट फ़ोन कैलेंडर में दिखाएँ। अपॉइंटमेंट केवल Zimbra में बनाएँ।</string>
     <string name="release_note_talk_calendar">Zimbra से खोली गई Talk मीटिंग अब Talk ऐप में खुलती है। कैलेंडर अवधि को बगल में स्क्रॉल किया जा सकता है; Zimbra सेटिंग केवल अनुमति होने पर दिखती है।</string>
     <string name="release_note_setup_assistant">नया: सेटअप सहायक सूचनाएँ, बैटरी और अनुमति प्राप्त ऐप सेट करने में मदद करता है। Talk मीटिंग के लिए Talk ऐप को प्राथमिकता दी जाती है।</string>
+    <string name="release_note_screenshots_disabled">सुरक्षा सुधार: वेब ऐप की सामग्री के स्क्रीनशॉट और स्क्रीन रिकॉर्डिंग फिर से बंद हैं।</string>
     <string name="privacy_minimal_description_talk_only">केवल नए Talk संदेश की सूचना दिखाएँ।</string>
     <string name="privacy_standard_description_talk_only">भेजने वाला और Talk का छोटा पूर्वावलोकन दिखाएँ।</string>
     <string name="privacy_detailed_description_talk_only">भेजने वाला और Talk का लंबा पूर्वावलोकन दिखाएँ।</string>

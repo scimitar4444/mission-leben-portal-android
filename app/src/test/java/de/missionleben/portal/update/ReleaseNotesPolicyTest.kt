@@ -25,6 +25,10 @@ class ReleaseNotesPolicyTest {
             listOf(R.string.release_note_personal_lock),
             ReleaseNotesCatalog.since(77, 78),
         )
+        assertEquals(
+            listOf(R.string.release_note_screenshots_disabled),
+            ReleaseNotesCatalog.since(81, 82),
+        )
     }
 
     @Test fun appearsOnceAfterUpdateButNotFreshInstall() {

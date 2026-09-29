@@ -19,7 +19,7 @@
     <string name="release_note_push_check">Ayarlar bölümünde Android arka plan bildirim izinlerini kontrol edebilirsiniz.</string>
     <string name="release_note_update_summary">Güncellemeden sonra önemli değişiklikler uygulamada bir kez gösterilir.</string>
     <string name="release_note_compact_settings">Ayarlar artık daha düzenli: cihaz kimliği, bildirimler ve dili ayrı ayrı açabilirsin.</string>
-    <string name="release_note_personal_lock">Kişisel cihazlar: Kısa uygulama geçişlerinde yeniden biyometrik doğrulama gerekmez. Ekran kapandıktan veya uygulama 10 dakika arka planda kaldıktan sonra yeniden kilit açılır. Ekran görüntülerine Ayarlar’dan izin verebilirsin.</string>
+    <string name="release_note_personal_lock">Kişisel cihazlar: Kısa uygulama geçişlerinde yeniden biyometrik doğrulama gerekmez. Ekran kapandıktan veya uygulama 10 dakika arka planda kaldıktan sonra yeniden kilit açılır.</string>
     <string name="release_notes_done">Anladım</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
@@ -41,11 +41,6 @@
     <string name="setup_assistant_next">Devam et</string>
     <string name="talk_meeting_native_failed">Yüklü Talk uygulaması bu toplantı bağlantısını açamadı. Talk uygulamasını kontrol edin veya daha sonra tekrar deneyin.</string>
     <string name="settings_back">Geri</string>
-    <string name="settings_privacy_title">Ekran ve gizlilik</string>
-    <string name="settings_screenshots_blocked">Ekran görüntüsü engelli</string>
-    <string name="settings_screenshots_allowed">Ekran görüntüsü serbest</string>
-    <string name="settings_screenshots_label">Ekran görüntüsüne izin ver</string>
-    <string name="settings_screenshots_description">Bu kişisel cihazdaki web uygulamalarının ekran görüntüsüne ve kaydına izin verir. Giriş ekranı ve ortak tabletler korunmaya devam eder.</string>
     <string name="open_action">Aç</string>
     <string name="language_title">Dil</string>
     <string name="language_description">Telefon dilini otomatik kullanın veya yalnızca bu uygulama için bir dil seçin.</string>
@@ -267,6 +262,7 @@
     <string name="release_note_calendar_pilot">Pilot yenilik: Zimbra randevularını tek yönlü eşitlemeyle telefon takviminde göster. Randevuları yalnızca Zimbra’da oluştur.</string>
     <string name="release_note_talk_calendar">Zimbra’dan açılan Talk toplantıları artık Talk uygulamasını kullanıyor. Takvim aralığı yatay kaydırılabilir; Zimbra ayarları yalnızca erişim varsa görünür.</string>
     <string name="release_note_setup_assistant">Yeni: Kurulum yardımcısı bildirim, pil ve izinli uygulama ayarlarında yardımcı olur. Talk toplantıları öncelikle Talk uygulamasında açılır.</string>
+    <string name="release_note_screenshots_disabled">Güvenlik düzeltmesi: Web uygulaması içeriğinin ekran görüntüleri ve ekran kayıtları yeniden engellendi.</string>
     <string name="privacy_minimal_description_talk_only">Yalnızca yeni Talk mesajı bildirimini göster.</string>
     <string name="privacy_standard_description_talk_only">Göndereni ve kısa bir Talk önizlemesini göster.</string>
     <string name="privacy_detailed_description_talk_only">Göndereni ve daha uzun bir Talk önizlemesini göster.</string>

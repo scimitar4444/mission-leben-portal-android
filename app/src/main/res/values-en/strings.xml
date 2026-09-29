@@ -19,10 +19,11 @@
     <string name="release_note_push_check">In Settings, you can check whether Android allows push alerts in the background.</string>
     <string name="release_note_update_summary">After an update, the app shows the main changes once.</string>
     <string name="release_note_compact_settings">Settings are easier to navigate: expand device identity, notifications and language separately.</string>
-    <string name="release_note_personal_lock">Personal devices: Brief app switches need no new biometric check. After screen-off or 10 minutes in the background, unlock again. You can allow screenshots in Settings.</string>
+    <string name="release_note_personal_lock">Personal devices: Brief app switches need no new biometric check. After screen-off or 10 minutes in the background, unlock again.</string>
     <string name="release_note_calendar_pilot">New in the pilot: show Zimbra events in the phone calendar through one-way sync. Continue creating events in Zimbra only.</string>
     <string name="release_note_talk_calendar">Talk meetings opened from Zimbra now use the Talk app. The calendar period scrolls sideways; Zimbra settings appear only with access.</string>
     <string name="release_note_setup_assistant">New: The setup assistant helps with alerts, battery settings, and approved apps. Talk meetings prefer the Talk app.</string>
+    <string name="release_note_screenshots_disabled">Security fix: Screenshots and screen recordings of web app content are blocked again.</string>
     <string name="release_notes_done">Got it</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
@@ -44,11 +45,6 @@
     <string name="setup_assistant_next">Continue</string>
     <string name="talk_meeting_native_failed">The installed Talk app could not open this meeting link. Check the Talk app or try again later.</string>
     <string name="settings_back">Back</string>
-    <string name="settings_privacy_title">Screen &amp; privacy</string>
-    <string name="settings_screenshots_blocked">Screenshots blocked</string>
-    <string name="settings_screenshots_allowed">Screenshots allowed</string>
-    <string name="settings_screenshots_label">Allow screenshots</string>
-    <string name="settings_screenshots_description">Allows screenshots and screen recordings of web apps on this personal device. Sign-in and shared tablets remain protected.</string>
     <string name="open_action">Open</string>
     <string name="language_title">Language</string>
     <string name="language_description">Follow the phone language automatically or choose a language only for this app.</string>

@@ -19,7 +19,7 @@
     <string name="release_note_push_check">W ustawieniach sprawdzisz, czy Android pozwala na powiadomienia w tle.</string>
     <string name="release_note_update_summary">Po aktualizacji aplikacja jednorazowo pokazuje najważniejsze zmiany.</string>
     <string name="release_note_compact_settings">Ustawienia są bardziej przejrzyste: osobno rozwiń tożsamość urządzenia, powiadomienia i język.</string>
-    <string name="release_note_personal_lock">Urządzenia osobiste: krótka zmiana aplikacji nie wymaga ponownej biometrii. Po wyłączeniu ekranu lub 10 minutach w tle odblokuj ponownie. Zrzuty ekranu można włączyć w ustawieniach.</string>
+    <string name="release_note_personal_lock">Urządzenia osobiste: krótka zmiana aplikacji nie wymaga ponownej biometrii. Po wyłączeniu ekranu lub 10 minutach w tle odblokuj ponownie.</string>
     <string name="release_notes_done">Rozumiem</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
@@ -41,11 +41,6 @@
     <string name="setup_assistant_next">Dalej</string>
     <string name="talk_meeting_native_failed">Zainstalowana aplikacja Talk nie mogła otworzyć tego linku do spotkania. Sprawdź Talk lub spróbuj ponownie później.</string>
     <string name="settings_back">Wstecz</string>
-    <string name="settings_privacy_title">Ekran i prywatność</string>
-    <string name="settings_screenshots_blocked">Zrzuty ekranu zablokowane</string>
-    <string name="settings_screenshots_allowed">Zrzuty ekranu dozwolone</string>
-    <string name="settings_screenshots_label">Zezwól na zrzuty ekranu</string>
-    <string name="settings_screenshots_description">Zezwala na zrzuty i nagrania ekranu aplikacji internetowych na tym urządzeniu osobistym. Logowanie i współdzielone tablety pozostają chronione.</string>
     <string name="open_action">Otwórz</string>
     <string name="language_title">Język</string>
     <string name="language_description">Automatycznie używaj języka telefonu albo wybierz język tylko dla tej aplikacji.</string>
@@ -269,6 +264,7 @@
     <string name="release_note_calendar_pilot">Nowość w pilotażu: wyświetlaj wydarzenia Zimbra w kalendarzu telefonu dzięki synchronizacji jednokierunkowej. Wydarzenia nadal twórz tylko w Zimbra.</string>
     <string name="release_note_talk_calendar">Spotkania Talk otwierane z Zimbra korzystają teraz z aplikacji Talk. Wybór okresu kalendarza przewija się poziomo; ustawienia Zimbra widać tylko z odpowiednim dostępem.</string>
     <string name="release_note_setup_assistant">Nowość: asystent pomaga ustawić powiadomienia, baterię i dozwolone aplikacje. Spotkania Talk otwierają się przede wszystkim w aplikacji Talk.</string>
+    <string name="release_note_screenshots_disabled">Poprawka bezpieczeństwa: zrzuty i nagrania ekranu treści aplikacji webowych są ponownie zablokowane.</string>
     <string name="privacy_minimal_description_talk_only">Pokazuj tylko informację o nowej wiadomości Talk.</string>
     <string name="privacy_standard_description_talk_only">Pokazuj nadawcę i krótki podgląd Talk.</string>
     <string name="privacy_detailed_description_talk_only">Pokazuj nadawcę i dłuższy podgląd Talk.</string>

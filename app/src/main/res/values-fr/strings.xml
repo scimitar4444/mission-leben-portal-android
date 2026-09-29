@@ -19,7 +19,7 @@
     <string name="release_note_push_check">Dans les réglages, tu peux vérifier si Android autorise les alertes en arrière-plan.</string>
     <string name="release_note_update_summary">Après une mise à jour, les principaux changements s’affichent une fois.</string>
     <string name="release_note_compact_settings">Les réglages sont plus clairs : dépliez séparément l’identité de l’appareil, les notifications et la langue.</string>
-    <string name="release_note_personal_lock">Appareils personnels : un bref changement d’application ne redemande pas la biométrie. Après extinction de l’écran ou 10 minutes en arrière-plan, déverrouillez à nouveau. Les captures peuvent être autorisées dans les réglages.</string>
+    <string name="release_note_personal_lock">Appareils personnels : un bref changement d’application ne redemande pas la biométrie. Après extinction de l’écran ou 10 minutes en arrière-plan, déverrouillez à nouveau.</string>
     <string name="release_notes_done">Compris</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portail</string>
@@ -41,11 +41,6 @@
     <string name="setup_assistant_next">Continuer</string>
     <string name="talk_meeting_native_failed">L’application Talk installée n’a pas pu ouvrir ce lien de réunion. Vérifiez Talk ou réessayez plus tard.</string>
     <string name="settings_back">Retour</string>
-    <string name="settings_privacy_title">Écran et confidentialité</string>
-    <string name="settings_screenshots_blocked">Captures bloquées</string>
-    <string name="settings_screenshots_allowed">Captures autorisées</string>
-    <string name="settings_screenshots_label">Autoriser les captures</string>
-    <string name="settings_screenshots_description">Autorise les captures et enregistrements des applications web sur cet appareil personnel. La connexion et les tablettes partagées restent protégées.</string>
     <string name="open_action">Ouvrir</string>
     <string name="language_title">Langue</string>
     <string name="language_description">Suivez automatiquement la langue du téléphone ou choisissez une langue uniquement pour cette application.</string>
@@ -267,6 +262,7 @@
     <string name="release_note_calendar_pilot">Nouveau dans le pilote : afficher les rendez-vous Zimbra dans le calendrier du téléphone grâce à une synchronisation à sens unique. Continue de créer les rendez-vous uniquement dans Zimbra.</string>
     <string name="release_note_talk_calendar">Les réunions Talk ouvertes depuis Zimbra utilisent désormais l’application Talk. La période du calendrier défile horizontalement ; les réglages Zimbra n’apparaissent qu’avec l’accès requis.</string>
     <string name="release_note_setup_assistant">Nouveau : l’assistant aide à régler les alertes, la batterie et les applications autorisées. Les réunions Talk privilégient l’application Talk.</string>
+    <string name="release_note_screenshots_disabled">Correctif de sécurité : les captures et enregistrements d’écran du contenu des applications web sont de nouveau bloqués.</string>
     <string name="privacy_minimal_description_talk_only">Afficher seulement une alerte de nouveau message Talk.</string>
     <string name="privacy_standard_description_talk_only">Afficher l’expéditeur et un court aperçu Talk.</string>
     <string name="privacy_detailed_description_talk_only">Afficher l’expéditeur et un aperçu Talk plus long.</string>

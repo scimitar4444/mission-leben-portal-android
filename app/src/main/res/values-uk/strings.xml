@@ -19,7 +19,7 @@
     <string name="release_note_push_check">У налаштуваннях можна перевірити, чи дозволяє Android фонові push-сповіщення.</string>
     <string name="release_note_update_summary">Після оновлення програма один раз показує головні зміни.</string>
     <string name="release_note_compact_settings">Налаштування стали зручнішими: окремо відкривай дані пристрою, сповіщення та мову.</string>
-    <string name="release_note_personal_lock">Особисті пристрої: коротке перемикання між застосунками не вимагає повторної біометрії. Після вимкнення екрана або 10 хвилин у фоні розблокуй знову. Знімки екрана можна дозволити в налаштуваннях.</string>
+    <string name="release_note_personal_lock">Особисті пристрої: коротке перемикання між застосунками не вимагає повторної біометрії. Після вимкнення екрана або 10 хвилин у фоні розблокуй знову.</string>
     <string name="release_notes_done">Зрозуміло</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Портал</string>
@@ -41,11 +41,6 @@
     <string name="setup_assistant_next">Далі</string>
     <string name="talk_meeting_native_failed">Установлений застосунок Talk не зміг відкрити це посилання на зустріч. Перевірте Talk або спробуйте пізніше.</string>
     <string name="settings_back">Назад</string>
-    <string name="settings_privacy_title">Екран і приватність</string>
-    <string name="settings_screenshots_blocked">Знімки екрана заблоковано</string>
-    <string name="settings_screenshots_allowed">Знімки екрана дозволено</string>
-    <string name="settings_screenshots_label">Дозволити знімки екрана</string>
-    <string name="settings_screenshots_description">Дозволяє знімки та запис екрана вебзастосунків на цьому особистому пристрої. Вхід і спільні планшети залишаються захищеними.</string>
     <string name="open_action">Відкрити</string>
     <string name="language_title">Мова</string>
     <string name="language_description">Автоматично використовуйте мову телефону або виберіть мову лише для цієї програми.</string>
@@ -269,6 +264,7 @@
     <string name="release_note_calendar_pilot">Нове в пілоті: показуй події Zimbra в календарі телефона завдяки односторонній синхронізації. Створюй події лише в Zimbra.</string>
     <string name="release_note_talk_calendar">Зустрічі Talk, відкриті з Zimbra, тепер запускаються в застосунку Talk. Період календаря прокручується горизонтально; налаштування Zimbra видно лише за наявності доступу.</string>
     <string name="release_note_setup_assistant">Нове: помічник допомагає налаштувати сповіщення, батарею та дозволені застосунки. Зустрічі Talk передусім відкриваються в застосунку Talk.</string>
+    <string name="release_note_screenshots_disabled">Виправлення безпеки: знімки та записи екрана вмісту вебзастосунків знову заблоковано.</string>
     <string name="privacy_minimal_description_talk_only">Показувати лише сповіщення про нове повідомлення Talk.</string>
     <string name="privacy_standard_description_talk_only">Показувати відправника й короткий попередній перегляд Talk.</string>
     <string name="privacy_detailed_description_talk_only">Показувати відправника й довший попередній перегляд Talk.</string>
