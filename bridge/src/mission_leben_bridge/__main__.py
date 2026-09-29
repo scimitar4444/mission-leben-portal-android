@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import logging
 import threading
 
@@ -7,6 +9,7 @@ from .authentik import AuthentikClient
 from .employee_directory import EmployeeDirectory
 from .config import Settings
 from .duo_compat import DuoCompatApi, DuoCompatSettings
+from .communication_directory import CommunicationDirectory
 from .http_api import BridgeHttpServer
 from .nextcloud_announcements import NextcloudAnnouncementClient
 from .ntfy import NtfyManager, NullNtfyManager
@@ -51,6 +54,7 @@ def main() -> None:
         settings.announcement_cache_ttl_seconds,
         settings.announcement_stale_ttl_seconds,
         EmployeeDirectory(settings.employee_directory_file) if settings.employee_directory_file else None,
+        CommunicationDirectory(settings.communication_directory_file) if settings.communication_directory_file else None,
     )
     duo_api = None
     if settings.duo_configured and settings.duo_secret_key is not None:

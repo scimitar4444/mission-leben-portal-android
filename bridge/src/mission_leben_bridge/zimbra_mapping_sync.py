@@ -11,15 +11,15 @@ from .zimbra_worker import _password, _required_env
 
 def build_account_map(
     assignments: list[dict[str, Any]],
-    existing: dict[str, dict[str, str]],
+    existing: dict[str, dict[str, Any]],
     soap: ZimbraSoapClient,
-) -> dict[str, dict[str, str]]:
+) -> dict[str, dict[str, Any]]:
     existing_by_email = {
         str(mapping.get("email", "")).strip().lower(): (str(account_id), mapping)
         for account_id, mapping in existing.items()
         if isinstance(mapping, dict) and str(mapping.get("email", "")).strip()
     }
-    candidates: dict[str, dict[str, str]] = {}
+    candidates: dict[str, dict[str, Any]] = {}
     for value in assignments:
         if not isinstance(value, dict) or not bool(value.get("zimbra")):
             continue
@@ -29,9 +29,13 @@ def build_account_map(
             raise RuntimeError("every Zimbra assignment needs an Authentik subject and email")
         if email in candidates and candidates[email]["subject"] != subject:
             raise RuntimeError(f"duplicate Zimbra email assignment: {email}")
-        candidates[email] = {"subject": subject, "email": email}
+        candidates[email] = {
+            "subject": subject,
+            "email": email,
+            "personal_calendar": value.get("personal_calendar") is True,
+        }
 
-    result: dict[str, dict[str, str]] = {}
+    result: dict[str, dict[str, Any]] = {}
     unresolved = [email for email in sorted(candidates) if email not in existing_by_email]
     if unresolved:
         soap.authenticate()
@@ -50,7 +54,7 @@ def main() -> None:
     if not isinstance(assignments, list):
         raise RuntimeError("assignments must be a list")
     path = Path(_required_env("ZIMBRA_ACCOUNT_MAP_FILE"))
-    existing: dict[str, dict[str, str]] = {}
+    existing: dict[str, dict[str, Any]] = {}
     if path.is_file():
         value = json.loads(path.read_text(encoding="utf-8"))
         if isinstance(value, dict):

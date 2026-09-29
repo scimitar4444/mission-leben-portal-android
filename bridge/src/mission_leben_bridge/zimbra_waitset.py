@@ -59,6 +59,7 @@ class ZimbraAppointment:
     location: str
     invite_id: str = ""
     recurrence_id: str = ""
+    all_day: bool = False
 
 
 class ZimbraSoapClient:
@@ -169,7 +170,7 @@ class ZimbraSoapClient:
     def upcoming_appointments(self, account_id: str, limit: int = 100) -> list[ZimbraAppointment]:
         request = ET.Element(
             f"{{{MAIL}}}SearchRequest",
-            {"types": "appointment", "limit": str(limit), "sortBy": "dateAsc", "calExpandInstStart": str(int(time.time() * 1000)), "calExpandInstEnd": str(int((time.time() + 14 * 86_400) * 1000))},
+            {"types": "appointment", "limit": str(limit), "sortBy": "dateAsc", "calExpandInstStart": str(int((time.time() - 86_400) * 1000)), "calExpandInstEnd": str(int((time.time() + 15 * 86_400) * 1000))},
         )
         ET.SubElement(request, f"{{{MAIL}}}query").text = "in:calendar"
         response = self._post(self.mail_soap_url, request, account_id=account_id)
@@ -190,6 +191,7 @@ class ZimbraSoapClient:
                         location=location,
                         invite_id=_local_item_id(instance.attrib.get("invId") or node.attrib.get("invId", ""), account_id),
                         recurrence_id=instance.attrib.get("ridZ", ""),
+                        all_day=(instance.attrib.get("allDay") or node.attrib.get("allDay", "0")).lower() in {"1", "true"},
                     )
                 )
         return appointments

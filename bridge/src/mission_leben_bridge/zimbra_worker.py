@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import logging
 import os
 import signal
@@ -30,10 +31,10 @@ class ZimbraWorker:
         self,
         soap: ZimbraSoapClient,
         bridge: BridgeSourceClient,
-        account_map: dict[str, dict[str, str]],
+        account_map: dict[str, dict[str, Any]],
         timezone_name: str = "Europe/Berlin",
         heartbeat_path: Path | None = None,
-        account_map_loader: Callable[[], dict[str, dict[str, str]]] | None = None,
+        account_map_loader: Callable[[], dict[str, dict[str, Any]]] | None = None,
     ):
         self.soap = soap
         self.bridge = bridge
@@ -66,6 +67,7 @@ class ZimbraWorker:
                 self._touch_heartbeat()
                 LOGGER.info("Zimbra WaitSet created for %d mapped accounts", len(self.account_map))
                 self._initial_calendar_scan()
+                next_calendar_scan = time.monotonic() + 3600
                 backoff = 2
                 while not self.stop_event.is_set():
                     sequence, changed_accounts = self.soap.wait(waitset_id, sequence, timeout_seconds=60)
@@ -73,6 +75,9 @@ class ZimbraWorker:
                     for account_id in changed_accounts:
                         if account_id in self.account_map:
                             self._scan_account(account_id)
+                    if time.monotonic() >= next_calendar_scan:
+                        self._initial_calendar_scan()
+                        next_calendar_scan = time.monotonic() + 3600
                     if (
                         self.account_map_loader is not None
                         and self.account_map_loader() != self.account_map
@@ -102,7 +107,7 @@ class ZimbraWorker:
             if self.stop_event.is_set():
                 return
             try:
-                self._publish_appointments(account_id, self.soap.upcoming_appointments(account_id))
+                self._scan_calendar(account_id)
             except Exception:
                 LOGGER.exception("initial calendar scan failed for account %s", account_id)
 
@@ -111,7 +116,7 @@ class ZimbraWorker:
             cutoff = int((time.time() - 20 * 60) * 1000)
             messages = [message for message in self.soap.recent_messages(account_id) if message.received_millis >= cutoff]
             self._publish_messages(account_id, messages)
-            self._publish_appointments(account_id, self.soap.upcoming_appointments(account_id))
+            self._scan_calendar(account_id)
         except Exception:
             LOGGER.exception("Zimbra change scan failed for account %s", account_id)
 
@@ -132,6 +137,33 @@ class ZimbraWorker:
                     "expires_at": (received + timedelta(days=7)).isoformat().replace("+00:00", "Z"),
                 }
             )
+
+    def _scan_calendar(self, account_id: str) -> None:
+        appointments = self.soap.upcoming_appointments(account_id)
+        self._publish_appointments(account_id, appointments)
+        if self.account_map[account_id].get("personal_calendar") is not True:
+            return
+        # At the SOAP result limit we cannot prove that this is a complete
+        # snapshot. Never replace the phone calendar with a truncated list.
+        if len(appointments) >= 100:
+            LOGGER.warning("Zimbra calendar snapshot reached the result limit for account %s", account_id)
+            return
+        events = []
+        for appointment in appointments:
+            key = f"{account_id}:{appointment.appointment_id}:{appointment.start_millis}"
+            event_id = hashlib.sha256(key.encode()).hexdigest()[:32]
+            events.append({
+                "id": event_id,
+                "title": appointment.subject or "Termin",
+                "location": appointment.location,
+                "start_millis": appointment.start_millis,
+                "end_millis": appointment.start_millis + max(appointment.duration_millis, 60_000),
+                "all_day": appointment.all_day,
+            })
+        self.bridge.publish_calendar_snapshot({
+            "user_subject": self.account_map[account_id]["subject"],
+            "events": events,
+        })
 
     def _publish_appointments(self, account_id: str, appointments: list[ZimbraAppointment]) -> None:
         subject = self.account_map[account_id]["subject"]
@@ -178,16 +210,22 @@ def _password() -> str:
     return _required_env("ZIMBRA_ADMIN_PASSWORD")
 
 
-def _account_map(path: Path | None = None) -> dict[str, dict[str, str]]:
+def _account_map(path: Path | None = None) -> dict[str, dict[str, Any]]:
     map_path = path or Path(_required_env("ZIMBRA_ACCOUNT_MAP_FILE"))
     value: Any = json.loads(map_path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise RuntimeError("ZIMBRA_ACCOUNT_MAP_FILE must contain an object")
-    result: dict[str, dict[str, str]] = {}
+    result: dict[str, dict[str, Any]] = {}
     for account_id, mapping in value.items():
         if not isinstance(mapping, dict) or not str(mapping.get("subject", "")).strip():
             raise RuntimeError(f"Zimbra account mapping {account_id!r} has no Authentik subject")
-        result[str(account_id)] = {"subject": str(mapping["subject"]), "email": str(mapping.get("email", ""))}
+        if "personal_calendar" in mapping and type(mapping["personal_calendar"]) is not bool:
+            raise RuntimeError(f"Zimbra account mapping {account_id!r} has invalid calendar assignment")
+        result[str(account_id)] = {
+            "subject": str(mapping["subject"]),
+            "email": str(mapping.get("email", "")),
+            "personal_calendar": mapping.get("personal_calendar") is True,
+        }
     return result
 
 

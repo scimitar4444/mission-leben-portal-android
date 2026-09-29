@@ -18,7 +18,7 @@ from mission_leben_bridge.zimbra_waitset import (
     ZimbraSoapError,
     format_appointment_summary,
 )
-from mission_leben_bridge.zimbra_worker import ZimbraWorker
+from mission_leben_bridge.zimbra_worker import ZimbraWorker, _account_map
 from mission_leben_bridge.zimbra_mapping_sync import build_account_map
 
 
@@ -152,7 +152,7 @@ class ZimbraSoapClientTest(unittest.TestCase):
         ]
         result = build_account_map(
             [
-                {"subject": "subject-a", "email": "old@example.invalid", "zimbra": True},
+                {"subject": "subject-a", "email": "old@example.invalid", "zimbra": True, "personal_calendar": True},
                 {"subject": "subject-b", "email": "new@example.invalid", "zimbra": True},
                 {"subject": "subject-c", "email": "talk@example.invalid", "talk": True},
             ],
@@ -161,12 +161,27 @@ class ZimbraSoapClientTest(unittest.TestCase):
         )
         self.assertEqual(
             {
-                "account-a": {"subject": "subject-a", "email": "old@example.invalid"},
-                "account-b": {"subject": "subject-b", "email": "new@example.invalid"},
+                "account-a": {"subject": "subject-a", "email": "old@example.invalid", "personal_calendar": True},
+                "account-b": {"subject": "subject-b", "email": "new@example.invalid", "personal_calendar": False},
             },
             result,
         )
         self.assertEqual(2, len(self.client.calls))
+
+    def test_mapping_loader_preserves_calendar_entitlement_and_defaults_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "accounts.json"
+            path.write_text(
+                '{"person":{"subject":"subject-a","personal_calendar":true},'
+                '"shared":{"subject":"subject-b"}}',
+                encoding="utf-8",
+            )
+            mapping = _account_map(path)
+            self.assertIs(mapping["person"]["personal_calendar"], True)
+            self.assertIs(mapping["shared"]["personal_calendar"], False)
+            path.write_text('{"person":{"subject":"subject-a","personal_calendar":"true"}}', encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "invalid calendar assignment"):
+                _account_map(path)
 
 
 class ZimbraWorkerTest(unittest.TestCase):

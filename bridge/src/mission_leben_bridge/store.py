@@ -125,10 +125,16 @@ CREATE TABLE IF NOT EXISTS announcement_cache (
     fetched_at INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS calendar_snapshots (
+    subject TEXT PRIMARY KEY REFERENCES users(subject) ON DELETE CASCADE,
+    payload_ciphertext TEXT NOT NULL,
+    fetched_at INTEGER NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS auth_requests_subject_status
 ON auth_requests(subject, status, expires_at);
 
-PRAGMA user_version=8;
+PRAGMA user_version=9;
 """
 
 
@@ -195,7 +201,7 @@ class Store:
                 """,
                 (int(time.time()),),
             )
-            connection.execute("PRAGMA user_version=8")
+            connection.execute("PRAGMA user_version=9")
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path, timeout=15, factory=ClosingConnection)
@@ -346,6 +352,9 @@ class Store:
                 "announcement_cache": connection.execute(
                     "SELECT COUNT(*) FROM announcement_cache WHERE subject = ?", (subject,)
                 ).fetchone()[0],
+                "calendar_snapshots": connection.execute(
+                    "SELECT COUNT(*) FROM calendar_snapshots WHERE subject = ?", (subject,)
+                ).fetchone()[0],
             }
             user_exists = connection.execute(
                 "SELECT 1 FROM users WHERE subject = ?", (subject,)
@@ -371,6 +380,7 @@ class Store:
             connection.execute("DELETE FROM handoffs WHERE subject = ?", (subject,))
             connection.execute("DELETE FROM auth_requests WHERE subject = ?", (subject,))
             connection.execute("DELETE FROM announcement_cache WHERE subject = ?", (subject,))
+            connection.execute("DELETE FROM calendar_snapshots WHERE subject = ?", (subject,))
             connection.execute(
                 """
                 INSERT INTO users(subject, email, display_name, active, verified_at)
@@ -419,6 +429,35 @@ class Store:
             return None
         if not isinstance(payload, list) or not all(isinstance(item, dict) for item in payload):
             return None
+        return payload, int(row["fetched_at"])
+
+    def put_calendar_snapshot(self, subject: str, events: list[dict[str, Any]], fetched_at: int) -> None:
+        payload = self.secret_box.encrypt(json.dumps(events, ensure_ascii=False, separators=(",", ":")))
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO calendar_snapshots(subject, payload_ciphertext, fetched_at)
+                SELECT subject, ?, ? FROM users WHERE subject = ? AND active = 1
+                ON CONFLICT(subject) DO UPDATE SET
+                    payload_ciphertext=excluded.payload_ciphertext,
+                    fetched_at=excluded.fetched_at
+                """,
+                (payload, fetched_at, subject),
+            )
+
+    def get_calendar_snapshot(self, subject: str) -> tuple[list[dict[str, Any]], int] | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT s.payload_ciphertext, s.fetched_at FROM calendar_snapshots s
+                JOIN users u ON u.subject = s.subject AND u.active = 1
+                WHERE s.subject = ?
+                """,
+                (subject,),
+            ).fetchone()
+        if row is None:
+            return None
+        payload = json.loads(self.secret_box.decrypt(row["payload_ciphertext"]))
         return payload, int(row["fetched_at"])
 
     def register_push(

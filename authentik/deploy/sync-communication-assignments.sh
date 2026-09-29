@@ -22,7 +22,7 @@ rows = connection.execute(
     SELECT DISTINCT r.subject
     FROM push_registrations r
     JOIN users u ON u.subject = r.subject
-    WHERE r.push_enabled = 1 AND u.active = 1
+    WHERE u.active = 1 AND (r.push_enabled = 1 OR r.mode = 'personal')
     ORDER BY r.subject
     """
 ).fetchall()

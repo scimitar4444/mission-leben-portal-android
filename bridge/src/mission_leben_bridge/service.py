@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .authentik import AuthenticationError, AuthentikClient, UserInfo
 from .calendar_target import valid_calendar_target
+from .communication_directory import CommunicationDirectory
 from .employee_directory import EmployeeDirectory, DirectoryDenied, DirectoryUnavailable
 from .nextcloud_announcements import AnnouncementFetchError, NextcloudAnnouncementClient
 from .ntfy import NtfyCredentials, NtfyError, NtfyManager, NullNtfyManager
@@ -103,6 +104,7 @@ class BridgeService:
         announcement_cache_ttl_seconds: int = 300,
         announcement_stale_ttl_seconds: int = 86_400,
         employee_directory: EmployeeDirectory | None = None,
+        communication_directory: CommunicationDirectory | None = None,
     ):
         self.store = store
         self.authentik = authentik
@@ -113,6 +115,90 @@ class BridgeService:
         self.announcement_stale_ttl_seconds = announcement_stale_ttl_seconds
         self._dispatch_lock = threading.Lock()
         self.employee_directory = employee_directory
+        self.communication_directory = communication_directory
+
+    def put_calendar_snapshot(self, source: str, payload: dict[str, Any]) -> None:
+        if source != "zimbra":
+            raise ApiError(403, "calendar snapshots require the Zimbra source")
+        subject = _text(payload.get("user_subject"), 128, required=True)
+        if self.communication_directory is None:
+            raise ApiError(503, "communication assignments are unavailable")
+        try:
+            allowed = self.communication_directory.allows_personal_calendar(subject)
+        except RuntimeError as error:
+            raise ApiError(503, "communication assignments are unavailable") from error
+        if not allowed:
+            raise ApiError(403, "calendar snapshots require a personal Zimbra assignment")
+        raw_events = payload.get("events")
+        if not isinstance(raw_events, list) or len(raw_events) > 100:
+            raise ApiError(400, "calendar snapshot must contain at most 100 events")
+        events: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for item in raw_events:
+            if not isinstance(item, dict):
+                raise ApiError(400, "invalid calendar event")
+            event_id = _text(item.get("id"), 128, required=True)
+            if not EVENT_ID.fullmatch(event_id) or event_id in seen:
+                raise ApiError(400, "invalid calendar event id")
+            seen.add(event_id)
+            start = item.get("start_millis")
+            end = item.get("end_millis")
+            if type(start) is not int or type(end) is not int or end <= start:
+                raise ApiError(400, "invalid calendar event time")
+            events.append({
+                "id": event_id,
+                "title": _text(item.get("title"), 200, required=True),
+                "location": _text(item.get("location"), 200),
+                "start_millis": start,
+                "end_millis": end,
+                "all_day": _boolean(item.get("all_day", False), name="all_day"),
+            })
+        self.store.put_calendar_snapshot(subject, events, int(time.time()))
+
+    def calendar_snapshot(self, *, device_id: str, key_id: str, timestamp: str,
+                          nonce: str, signature: str, path: str) -> dict[str, Any]:
+        registration = self._calendar_registration(
+            device_id=device_id, key_id=key_id, timestamp=timestamp,
+            nonce=nonce, signature=signature, path=path,
+        )
+        subject = registration["subject"]
+        snapshot = self.store.get_calendar_snapshot(subject)
+        if snapshot is None:
+            raise ApiError(503, "Zimbra calendar has not been scanned yet")
+        events, fetched_at = snapshot
+        if int(time.time()) - fetched_at > 2 * 3600:
+            raise ApiError(503, "Zimbra calendar snapshot is stale")
+        return {"events": events, "fetched_at": fetched_at}
+
+    def calendar_access(self, *, device_id: str, key_id: str, timestamp: str,
+                        nonce: str, signature: str, path: str) -> dict[str, bool]:
+        registration = self._verify_device_request(
+            method="GET", path=path, device_id=device_id, key_id=key_id,
+            timestamp=timestamp, nonce=nonce, signature=signature,
+        )
+        return {"available": self._calendar_allowed(registration)}
+
+    def _calendar_registration(self, *, device_id: str, key_id: str, timestamp: str,
+                               nonce: str, signature: str, path: str) -> dict[str, Any]:
+        registration = self._verify_device_request(
+            method="GET", path=path, device_id=device_id, key_id=key_id,
+            timestamp=timestamp, nonce=nonce, signature=signature,
+        )
+        if not self._calendar_allowed(registration):
+            raise ApiError(403, "Zimbra calendar is not assigned to this personal device")
+        return registration
+
+    def _calendar_allowed(self, registration: dict[str, Any]) -> bool:
+        subject = registration["subject"]
+        if registration["mode"] != "personal":
+            return False
+        if self.communication_directory is None:
+            raise ApiError(503, "communication assignments are unavailable")
+        try:
+            allowed = self.communication_directory.allows_personal_calendar(subject)
+        except RuntimeError as error:
+            raise ApiError(503, "communication assignments are unavailable") from error
+        return allowed
 
     def contacts(self, bearer: str, agent_token: str, query: str, mine: bool, offset: int,
                  facility: str = "", initial: str = "") -> dict[str, Any]:

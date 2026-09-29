@@ -12,6 +12,7 @@ class CommunicationDirectory:
         self._lock = threading.Lock()
         self._mtime_ns = -1
         self._users: dict[str, str] = {}
+        self._calendar_subjects: frozenset[str] = frozenset()
 
     def talk_subjects(self, nextcloud_user_ids: set[str]) -> tuple[str, ...]:
         users = self._load()
@@ -24,6 +25,10 @@ class CommunicationDirectory:
                 }
             )
         )
+
+    def allows_personal_calendar(self, subject: str) -> bool:
+        self._load()
+        return subject in self._calendar_subjects
 
     def _load(self) -> dict[str, str]:
         try:
@@ -41,16 +46,24 @@ class CommunicationDirectory:
             if not isinstance(assignments, list):
                 raise RuntimeError("communication directory has no assignments")
             users: dict[str, str] = {}
+            calendar_subjects: set[str] = set()
             for value in assignments:
-                if not isinstance(value, dict) or not bool(value.get("talk")):
+                if not isinstance(value, dict):
+                    continue
+                subject = str(value.get("subject", "")).strip()
+                if value.get("personal_calendar") is True and value.get("zimbra") is True:
+                    if not subject:
+                        raise RuntimeError("calendar assignment has no subject")
+                    calendar_subjects.add(subject)
+                if not bool(value.get("talk")):
                     continue
                 user_id = str(value.get("nextcloud_user_id", "")).strip()
-                subject = str(value.get("subject", "")).strip()
                 if not user_id or not subject:
                     raise RuntimeError("Talk assignment has no user id or subject")
                 if user_id in users and users[user_id] != subject:
                     raise RuntimeError("Talk user id is assigned more than once")
                 users[user_id] = subject
             self._users = users
+            self._calendar_subjects = frozenset(calendar_subjects)
             self._mtime_ns = mtime_ns
             return self._users

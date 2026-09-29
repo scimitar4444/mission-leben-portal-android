@@ -59,6 +59,11 @@ for user in users:
     if not zimbra and not talk:
         continue
     attributes = user.attributes or {}
+    personal_calendar = (
+        zimbra
+        and attributes.get("iam_account_kind") == "person"
+        and attributes.get("iam_directory_class") == "person"
+    )
     assignments.append(
         {
             "subject": str(user.uid),
@@ -66,6 +71,7 @@ for user in users:
             "nextcloud_user_id": str(attributes.get("nextcloudUid") or user.uid).strip(),
             "zimbra": zimbra,
             "talk": talk,
+            "personal_calendar": personal_calendar,
         }
     )
 

@@ -194,6 +194,28 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                 self._json(200, self.server.service.announcements(self._bearer()))
                 return
 
+            if method == "GET" and path == "/v1/calendar/snapshot":
+                self._json(200, self.server.service.calendar_snapshot(
+                    device_id=self.headers.get("X-ML-Device-ID", ""),
+                    key_id=self.headers.get("X-ML-Key-ID", ""),
+                    timestamp=self.headers.get("X-ML-Timestamp", ""),
+                    nonce=self.headers.get("X-ML-Nonce", ""),
+                    signature=self.headers.get("X-ML-Signature", ""),
+                    path=path,
+                ))
+                return
+
+            if method == "GET" and path == "/v1/calendar/access":
+                self._json(200, self.server.service.calendar_access(
+                    device_id=self.headers.get("X-ML-Device-ID", ""),
+                    key_id=self.headers.get("X-ML-Key-ID", ""),
+                    timestamp=self.headers.get("X-ML-Timestamp", ""),
+                    nonce=self.headers.get("X-ML-Nonce", ""),
+                    signature=self.headers.get("X-ML-Signature", ""),
+                    path=path,
+                ))
+                return
+
             if method == "POST" and path == "/v1/contacts/search":
                 _, params = self._body_json()
                 mine = params.get("mine", False)
@@ -241,6 +263,13 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                 raw, payload = self._body_json()
                 source = self._verify_internal(raw)
                 self._json(202, self.server.service.ingest_event(source, payload))
+                return
+
+            if method == "POST" and path == "/internal/v1/calendar/snapshot":
+                raw, payload = self._body_json()
+                source = self._verify_internal(raw)
+                self.server.service.put_calendar_snapshot(source, payload)
+                self._empty(204)
                 return
 
             if method == "POST" and path == "/sources/nextcloud-talk":
