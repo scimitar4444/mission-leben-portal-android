@@ -130,6 +130,7 @@ fun MissionLebenApp(
     onCheckForUpdates: () -> Unit,
     onShowReleaseNotes: () -> Unit,
     onApproveLogin: () -> Unit,
+    onOpenSetupAssistant: () -> Unit,
     onDenyLogin: () -> Unit,
     onLoginApprovalExpired: (String) -> Unit,
     onInstallUpdate: () -> Unit,
@@ -185,6 +186,7 @@ fun MissionLebenApp(
                 onDismissMessage = onDismissMessage,
                 onCheckForUpdates = onCheckForUpdates,
                 onShowReleaseNotes = onShowReleaseNotes,
+                onOpenSetupAssistant = onOpenSetupAssistant,
                 currentLanguageTag = currentLanguageTag,
                 onLanguageChange = onLanguageChange,
             )
@@ -387,6 +389,7 @@ private fun Home(
     onDismissMessage: () -> Unit,
     onCheckForUpdates: () -> Unit,
     onShowReleaseNotes: () -> Unit,
+    onOpenSetupAssistant: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
@@ -443,6 +446,7 @@ private fun Home(
             onDismissMessage = onDismissMessage,
             onCheckForUpdates = onCheckForUpdates,
             onShowReleaseNotes = onShowReleaseNotes,
+            onOpenSetupAssistant = onOpenSetupAssistant,
             currentLanguageTag = currentLanguageTag,
             onLanguageChange = onLanguageChange,
         )
@@ -739,6 +743,7 @@ private fun SettingsScreen(
     onDismissMessage: () -> Unit,
     onCheckForUpdates: () -> Unit,
     onShowReleaseNotes: () -> Unit,
+    onOpenSetupAssistant: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
@@ -921,6 +926,14 @@ private fun SettingsScreen(
                 if (languageDetailsOpen) LanguagePanel(currentLanguageTag, onLanguageChange)
             }
         }
+        if (state.signedIn && (state.pushConfigured ||
+                (state.mode == DeviceMode.PERSONAL && zimbraAvailable && state.calendarAvailable))) {
+            item {
+                OutlinedButton(onClick = onOpenSetupAssistant, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.setup_assistant_title))
+                }
+            }
+        }
         if (state.signedIn) {
             item {
                 OutlinedButton(onClick = onLogout, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
@@ -987,17 +1000,18 @@ private fun SettingsDisclosure(
 }
 
 @Composable
-private fun CalendarSyncPanel(
+internal fun CalendarSyncPanel(
     state: UiState,
     onEnabledChange: (Boolean) -> Unit,
     onDaysChange: (Int) -> Unit,
+    compact: Boolean = false,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.padding(if (compact) 12.dp else 18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.calendar_sync_label), fontWeight = FontWeight.SemiBold)
@@ -1010,32 +1024,44 @@ private fun CalendarSyncPanel(
                 Spacer(Modifier.width(12.dp))
                 Switch(checked = state.calendarSyncEnabled, onCheckedChange = onEnabledChange)
             }
-            if (state.calendarSyncEnabled) {
-                Text(stringResource(R.string.calendar_sync_period), fontWeight = FontWeight.SemiBold)
-                Row(
-                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    listOf(
-                        1 to R.string.calendar_sync_1_day,
-                        3 to R.string.calendar_sync_3_days,
-                        7 to R.string.calendar_sync_1_week,
-                        14 to R.string.calendar_sync_2_weeks,
-                    ).forEach { (days, label) ->
-                        if (state.calendarSyncDays == days) {
-                            Button(onClick = { onDaysChange(days) }) { Text(stringResource(label)) }
-                        } else {
-                            OutlinedButton(onClick = { onDaysChange(days) }) { Text(stringResource(label)) }
-                        }
-                    }
-                }
-                Text(
-                    stringResource(R.string.calendar_sync_web_only),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
-                )
+            Text(stringResource(R.string.calendar_sync_period), fontWeight = FontWeight.SemiBold)
+            CalendarSyncDayChoices(state.calendarSyncDays, onDaysChange, compact)
+            Text(
+                stringResource(R.string.calendar_sync_web_only),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CalendarSyncDayChoices(selectedDays: Int, onDaysChange: (Int) -> Unit, compact: Boolean) {
+    val choices: @Composable () -> Unit = {
+        listOf(
+            1 to R.string.calendar_sync_1_day,
+            3 to R.string.calendar_sync_3_days,
+            7 to R.string.calendar_sync_1_week,
+            14 to R.string.calendar_sync_2_weeks,
+        ).forEach { (days, label) ->
+            if (selectedDays == days) {
+                Button(onClick = { onDaysChange(days) }) { Text(stringResource(label)) }
+            } else {
+                OutlinedButton(onClick = { onDaysChange(days) }) { Text(stringResource(label)) }
             }
         }
+    }
+    if (compact) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) { choices() }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) { choices() }
     }
 }
 
@@ -1607,7 +1633,7 @@ private fun TalkHandoffDialog(
 }
 
 @Composable
-private fun NotificationPrivacyPanel(
+internal fun NotificationPrivacyPanel(
     state: UiState,
     zimbraAvailable: Boolean,
     talkAvailable: Boolean,
@@ -1617,6 +1643,7 @@ private fun NotificationPrivacyPanel(
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
     onQuietEndChange: (Int) -> Unit,
+    compact: Boolean = false,
 ) {
     if (!state.pushConfigured) return
     Card(
@@ -1624,7 +1651,7 @@ private fun NotificationPrivacyPanel(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
-        Column(Modifier.padding(20.dp)) {
+        Column(Modifier.padding(if (compact) 12.dp else 20.dp)) {
             Text(stringResource(R.string.notifications_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(4.dp))
             if (state.mode == DeviceMode.SHARED) {
@@ -1671,22 +1698,7 @@ private fun NotificationPrivacyPanel(
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Spacer(Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    listOf(
-                        NotificationPrivacy.STANDARD,
-                        NotificationPrivacy.DETAILED,
-                        NotificationPrivacy.MINIMAL,
-                    ).forEach { privacy ->
-                        if (state.notificationPrivacy == privacy) {
-                            Button(onClick = { onChange(privacy) }) { Text(stringResource(privacy.labelRes)) }
-                        } else {
-                            OutlinedButton(onClick = { onChange(privacy) }) { Text(stringResource(privacy.labelRes)) }
-                        }
-                    }
-                }
+                NotificationPrivacyChoices(state.notificationPrivacy, onChange, compact)
                 Spacer(Modifier.height(8.dp))
                 Text(
                     stringResource(when {
@@ -1719,19 +1731,7 @@ private fun NotificationPrivacyPanel(
                         style = MaterialTheme.typography.bodySmall,
                     )
                     Spacer(Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        PushRegistrationStore.SUPPORTED_CALENDAR_REMINDER_MINUTES.forEach { minutes ->
-                            val label = stringResource(R.string.calendar_reminder_minutes, minutes)
-                            if (state.calendarReminderMinutes == minutes) {
-                                Button(onClick = { onCalendarReminderChange(minutes) }) { Text(label) }
-                            } else {
-                                OutlinedButton(onClick = { onCalendarReminderChange(minutes) }) { Text(label) }
-                            }
-                        }
-                    }
+                    CalendarReminderChoices(state.calendarReminderMinutes, onCalendarReminderChange, compact)
                 }
                 Spacer(Modifier.height(18.dp))
                 Row(
@@ -1772,12 +1772,14 @@ private fun NotificationPrivacyPanel(
                             minutes = state.quietStartMinutes,
                             onChange = onQuietStartChange,
                             modifier = Modifier.weight(1f),
+                            compact = compact,
                         )
                         QuietTimeButton(
                             label = stringResource(R.string.quiet_hours_until),
                             minutes = state.quietEndMinutes,
                             onChange = onQuietEndChange,
                             modifier = Modifier.weight(1f),
+                            compact = compact,
                         )
                     }
                     Spacer(Modifier.height(6.dp))
@@ -1800,11 +1802,68 @@ private fun NotificationPrivacyPanel(
 }
 
 @Composable
+private fun NotificationPrivacyChoices(
+    selected: NotificationPrivacy,
+    onChange: (NotificationPrivacy) -> Unit,
+    compact: Boolean,
+) {
+    val choices: @Composable () -> Unit = {
+        listOf(NotificationPrivacy.STANDARD, NotificationPrivacy.DETAILED, NotificationPrivacy.MINIMAL)
+            .forEach { privacy ->
+                if (selected == privacy) {
+                    Button(onClick = { onChange(privacy) }) { Text(stringResource(privacy.labelRes)) }
+                } else {
+                    OutlinedButton(onClick = { onChange(privacy) }) { Text(stringResource(privacy.labelRes)) }
+                }
+            }
+    }
+    if (compact) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) { choices() }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) { choices() }
+    }
+}
+
+@Composable
+private fun CalendarReminderChoices(selected: Int, onChange: (Int) -> Unit, compact: Boolean) {
+    val choices: @Composable () -> Unit = {
+        PushRegistrationStore.SUPPORTED_CALENDAR_REMINDER_MINUTES.forEach { minutes ->
+            val label = stringResource(R.string.calendar_reminder_minutes, minutes)
+            if (selected == minutes) {
+                Button(onClick = { onChange(minutes) }) { Text(label) }
+            } else {
+                OutlinedButton(onClick = { onChange(minutes) }) { Text(label) }
+            }
+        }
+    }
+    if (compact) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) { choices() }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) { choices() }
+    }
+}
+
+@Composable
 private fun QuietTimeButton(
     label: String,
     minutes: Int,
     onChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     val context = LocalContext.current
     val hour = minutes / 60
@@ -1821,7 +1880,8 @@ private fun QuietTimeButton(
             ).show()
         },
     ) {
-        Text("$label ${String.format(Locale.getDefault(), "%02d:%02d", hour, minute)}")
+        val time = String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
+        Text(if (compact) "$label\n$time" else "$label $time", maxLines = if (compact) 2 else 1)
     }
 }
 

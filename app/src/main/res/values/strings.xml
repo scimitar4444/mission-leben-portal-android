@@ -6,6 +6,22 @@
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Einstellungen</string>
+    <string name="setup_assistant_title">Einrichtungsassistent</string>
+    <string name="setup_assistant_intro">Wähle einen Schritt. Du kannst diese Einstellungen später erneut öffnen.</string>
+    <string name="setup_notifications_short">Hinweise</string>
+    <string name="setup_battery_short">Akku</string>
+    <string name="setup_messages_short">Nachrichten</string>
+    <string name="setup_calendar_short">Kalender</string>
+    <string name="setup_battery_title">Akku und Hintergrund</string>
+    <string name="setup_battery_samsung">Falls sich die Liste nicht direkt öffnet: Einstellungen → Akku und Gerätewartung → Akku → Grenzen der Hintergrundnutzung → Nie im Standby. Dort Mission Leben Zentral hinzufügen. Die Bezeichnungen können je nach Samsung-Version leicht abweichen.</string>
+    <string name="setup_battery_tcl">Falls nur die App-Info geöffnet wird: In Smart Manager die automatische Verwaltung für Mission Leben Zentral ausschalten und Hintergrundbetrieb erlauben. Unter Akku darf die App nicht im Tiefschlaf stehen. Falls vorhanden, schütze sie auch in „Letzte Apps“ vor „Alle schließen“.</string>
+    <string name="setup_battery_other">Falls nur die App-Info geöffnet wird: Unter Akku den Hintergrundbetrieb erlauben und die App auf „Uneingeschränkt“ stellen, sofern vorhanden. Manche Handys haben zusätzlich eine Sperre in „Letzte Apps“.</string>
+    <string name="setup_messages_explain">Hier legst du die Hinweise deiner freigegebenen Anwendungen fest: was erscheint, wie viel Text sichtbar ist und wann Ruhezeit gilt. Anmeldeanfragen und Sicherheitsmeldungen kommen weiterhin an.</string>
+    <string name="setup_push_explain">Falls nötig, fragt Android nach der Erlaubnis für Benachrichtigungen. Danach können Hinweise auf diesem Handy angezeigt werden. Was du sehen möchtest, stellst du im Schritt „Nachrichten“ ein.</string>
+    <string name="setup_calendar_explain">Wenn du den Kalender einschaltest, fragt Android nach Zugriff. Danach erscheinen Zimbra-Termine im Handy-Kalender – nur zur Anzeige, niemals zurück zu Zimbra.</string>
+    <string name="setup_assistant_step">Schritt %1$d von %2$d</string>
+    <string name="setup_assistant_next">Weiter</string>
+    <string name="talk_meeting_native_failed">Die installierte Talk-App konnte diesen Besprechungslink nicht öffnen. Bitte prüfe die Talk-App oder versuche es später erneut.</string>
     <string name="settings_back">Zurück</string>
     <string name="settings_privacy_title">Bildschirm &amp; Datenschutz</string>
     <string name="settings_screenshots_blocked">Screenshots gesperrt</string>
@@ -34,6 +50,7 @@
     <string name="release_note_personal_lock">Persönliche Geräte: Kurze App-Wechsel bleiben ohne neue Biometrie. Nach Bildschirm aus oder 10 Minuten im Hintergrund wird erneut entsperrt. Screenshots kannst du in den Einstellungen erlauben.</string>
     <string name="release_note_calendar_pilot" tools:ignore="MissingTranslation">Neu im Pilot: Zimbra-Termine können als Einweg-Sync im Handy-Kalender angezeigt werden. Termine legst du weiterhin nur in Zimbra an.</string>
     <string name="release_note_talk_calendar">Talk-Besprechungen aus Zimbra öffnen jetzt die Talk-App. Die Kalender-Auswahl scrollt seitlich; Zimbra-Einstellungen erscheinen nur mit Freigabe.</string>
+    <string name="release_note_setup_assistant">Neu: Der Einrichtungsassistent hilft bei Hinweisen, Akku und freigegebenen Anwendungen. Talk-Besprechungen öffnen bevorzugt die Talk-App.</string>
     <string name="release_notes_done">Verstanden</string>
     <string name="open_action">Öffnen</string>
 
