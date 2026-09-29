@@ -9,10 +9,8 @@
     <string name="push_reliability_battery_ok">Виняток економії заряду Android: активний</string>
     <string name="push_reliability_battery_limited">Економія заряду може затримати або зупинити сповіщення.</string>
     <string name="push_reliability_allow_battery">Дозволити виняток економії заряду</string>
-    <string name="push_reliability_samsung_hint">Samsung: також перевірте список програм, що ніколи не переходять у сон, і за потреби додайте Mission Leben Zentral.</string>
-    <string name="push_reliability_tcl_hint">TCL: якщо можливо, захистіть Mission Leben Zentral також у списку останніх програм.</string>
     <string name="push_reliability_open_manufacturer">Відкрити налаштування пристрою</string>
-    <string name="push_reliability_limit">Перевіряються дозволи, а не поточне з’єднання із сервером. Телефон усе ще може зупинити програму.</string>
+    <string name="push_reliability_limit">Ця перевірка не показує активне з’єднання або обмеження виробника. Якщо сповіщення не надходять, дозвольте роботу у фоні та, якщо можливо, захистіть застосунок від «Закрити всі» у списку нещодавніх застосунків. Це не блокування екрана.</string>
     <string name="push_reliability_prompt_title">Отримуйте сповіщення надійно</string>
     <string name="push_reliability_prompt_notifications">Сповіщення вимкнено. Відкрийте налаштування Android, щоб їх увімкнути.</string>
     <string name="push_reliability_prompt_battery">Android може обмежувати push-з’єднання у фоновому режимі. Ви можете дозволити виняток для Mission Leben Zentral. Це може збільшити витрату заряду.</string>
@@ -124,10 +122,12 @@
     <string name="talk_handoff_description">Передається лише токен кімнати Talk — ніколи довільна URL-адреса чи пароль.</string>
     <string name="talk_link">Посилання Nextcloud Talk</string>
     <string name="no_conference_device">Немає схваленого конференц-пристрою онлайн.</string>
+    <string name="talk_meeting_open_where">Відкрити зустріч Talk</string>
+    <string name="talk_meeting_on_phone">На цьому телефоні</string>
     <string name="open_on_target_device">Відкрити на цільовому пристрої</string>
     <string name="notifications_title">Сповіщення</string>
     <string name="settings_notifications_summary">%1$s · за %2$d хв до зустрічі</string>
-    <string name="settings_notifications_off">Пошта, зустрічі та Talk вимкнено</string>
+    <string name="settings_notifications_off">Сповіщення служб зв’язку вимкнено</string>
     <string name="notifications_shared_description">На спільних планшетах ніколи не показуються відправники, теми чи подробиці зустрічей.</string>
     <string name="notifications_lockscreen_description">На екрані блокування вміст приховано. Після розблокування діє цей вибір:</string>
     <string name="privacy_minimal_label">Непомітно</string>
@@ -250,4 +250,16 @@
     <string name="login_approval_personal_only">Запити на вхід можна підтверджувати лише на особистих пристроях.</string>
     <string name="login_approval_invalid">Недійсний запит на вхід.</string>
     <string name="announcements_unread">Нове</string>
+    <string name="release_note_calendar_pilot">Нове в пілоті: показуй події Zimbra в календарі телефона завдяки односторонній синхронізації. Створюй події лише в Zimbra.</string>
+    <string name="release_note_talk_calendar">Зустрічі Talk, відкриті з Zimbra, тепер запускаються в застосунку Talk. Період календаря прокручується горизонтально; налаштування Zimbra видно лише за наявності доступу.</string>
+    <string name="privacy_minimal_description_talk_only">Показувати лише сповіщення про нове повідомлення Talk.</string>
+    <string name="privacy_standard_description_talk_only">Показувати відправника й короткий попередній перегляд Talk.</string>
+    <string name="privacy_detailed_description_talk_only">Показувати відправника й довший попередній перегляд Talk.</string>
+    <string name="communication_notifications_talk_only">Talk</string>
+    <string name="quiet_hours_description_talk_only">У цей час сповіщення Talk не показуються.</string>
+    <string name="privacy_minimal_description_zimbra_only">Показувати лише сповіщення про пошту або зустріч.</string>
+    <string name="privacy_standard_description_zimbra_only">Показувати відправника й тему або час і місце зустрічі.</string>
+    <string name="privacy_detailed_description_zimbra_only">Також показувати короткий попередній перегляд пошти.</string>
+    <string name="communication_notifications_zimbra_only">Пошта та зустрічі</string>
+    <string name="quiet_hours_description_zimbra_only">У цей час сповіщення про пошту та зустрічі не показуються.</string>
 </resources>

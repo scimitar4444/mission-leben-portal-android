@@ -1,12 +1,14 @@
 package de.missionleben.portal
 
 import android.Manifest
+import android.app.AlertDialog
 import android.app.LocaleManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.LocaleList
 import android.util.Log
@@ -23,7 +25,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import de.missionleben.portal.model.DeviceMode
+import de.missionleben.portal.model.EnrollmentState
+import de.missionleben.portal.calendar.LocalCalendarStore
 import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.NotificationBadgeTarget
 import de.missionleben.portal.push.NotificationPresenter
@@ -41,6 +46,8 @@ import de.missionleben.portal.update.ReleaseNotesStore
 import de.missionleben.portal.update.UpdateInstaller
 import de.missionleben.portal.update.UpdateStatus
 import de.missionleben.portal.web.PortalBrowserActivity
+import de.missionleben.portal.web.TalkMeetingLinkPolicy
+import kotlinx.coroutines.launch
 
 private const val AUTH_LOG_TAG = "MissionLebenAuth"
 
@@ -75,6 +82,12 @@ class MainActivity : FragmentActivity() {
     ) { granted ->
         if (granted) viewModel.syncPushRegistration()
         pushSettingsRevision.intValue++
+    }
+
+    private val calendarPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) {
+        viewModel.setCalendarSyncEnabled(true)
     }
 
     private val updatePermissionLauncher = registerForActivityResult(
@@ -113,6 +126,10 @@ class MainActivity : FragmentActivity() {
         if (result.resultCode == RESULT_OK) {
             PortalBrowserActivity.visitedNotificationTarget(result.data)
                 ?.let(viewModel::markApplicationVisited)
+            PortalBrowserActivity.talkMeetingUrl(result.data)?.let { talkUrl ->
+                routeTalkMeeting(talkUrl)
+                return@registerForActivityResult
+            }
             when {
                 PortalBrowserActivity.sharedSessionEnded(result.data) -> {
                     viewModel.endSharedSessionAfterScreenOff()
@@ -229,6 +246,8 @@ class MainActivity : FragmentActivity() {
                     onOpenTalk = viewModel::openTalkOn,
                     onNotificationPrivacyChange = viewModel::setNotificationPrivacy,
                     onCalendarReminderChange = viewModel::setCalendarReminderMinutes,
+                    onCalendarSyncEnabledChange = ::setCalendarSyncEnabled,
+                    onCalendarSyncDaysChange = viewModel::setCalendarSyncDays,
                     onCommunicationNotificationsChange = viewModel::setCommunicationNotificationsEnabled,
                     onQuietHoursChange = viewModel::setQuietHoursEnabled,
                     onQuietStartChange = viewModel::setQuietStartMinutes,
@@ -351,8 +370,64 @@ class MainActivity : FragmentActivity() {
         notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
+    private fun setCalendarSyncEnabled(enabled: Boolean) {
+        if (!enabled || LocalCalendarStore(this).hasPermission()) {
+            viewModel.setCalendarSyncEnabled(enabled)
+        } else {
+            calendarPermissionLauncher.launch(
+                arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR),
+            )
+        }
+    }
+
     private fun openUrl(url: String) {
         openUrl(url, notificationBadgeTarget = null)
+    }
+
+    private fun routeTalkMeeting(url: String) {
+        if (TalkMeetingLinkPolicy.parse(url) == null) return
+        lifecycleScope.launch {
+            val targets = viewModel.onlineTalkTargets()
+            if (isFinishing || isDestroyed || viewModel.uiState.value.enrollmentState == EnrollmentState.BLOCKED) {
+                return@launch
+            }
+            if (targets.isEmpty()) {
+                openTalkMeetingOnPhone(url)
+                return@launch
+            }
+            val choices = arrayOf(getString(R.string.talk_meeting_on_phone)) +
+                targets.map { it.name }.toTypedArray()
+            AlertDialog.Builder(this@MainActivity)
+                .setTitle(R.string.talk_meeting_open_where)
+                .setItems(choices) { _, index ->
+                    if (index == 0) openTalkMeetingOnPhone(url)
+                    else viewModel.openTalkOn(targets[index - 1].id, url)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+
+    private fun openTalkMeetingOnPhone(url: String) {
+        val meeting = TalkMeetingLinkPolicy.parse(url) ?: return
+        val talk = Intent(Intent.ACTION_VIEW, Uri.parse(meeting.appUrl))
+            .addCategory(Intent.CATEGORY_BROWSABLE)
+            .setPackage("com.nextcloud.talk2")
+        runCatching { startActivity(talk) }
+            .onFailure { openTalkMeetingInChrome(meeting.webUrl) }
+    }
+
+    private fun openTalkMeetingInChrome(url: String) {
+        val chrome = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            .addCategory(Intent.CATEGORY_BROWSABLE)
+            .setPackage("com.android.chrome")
+        runCatching { startActivity(chrome) }
+            .onFailure {
+                runCatching {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        .addCategory(Intent.CATEGORY_BROWSABLE))
+                }
+            }
     }
 
     private fun openUrl(

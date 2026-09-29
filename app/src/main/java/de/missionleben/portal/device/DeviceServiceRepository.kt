@@ -3,6 +3,7 @@ package de.missionleben.portal.device
 import android.content.Context
 import android.os.Build
 import de.missionleben.portal.BuildConfig
+import de.missionleben.portal.calendar.CalendarSnapshot
 import de.missionleben.portal.R
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentProfile
@@ -44,6 +45,8 @@ class NotificationFetchException(
     message: String,
 ) : Exception(message)
 
+class CalendarAccessException(val status: Int) : Exception("Kalenderabgleich nicht verfügbar (HTTP $status)")
+
 class DeviceServiceRepository(context: Context? = null) {
     private val context = context?.applicationContext
     private val credentialVault = context?.let(::DeviceCredentialVault)
@@ -53,6 +56,20 @@ class DeviceServiceRepository(context: Context? = null) {
 
     val communicationConfigured: Boolean
         get() = BuildConfig.DEVICE_SERVICE_BASE_URL.startsWith("https://")
+
+    suspend fun calendarAvailable(deviceId: String, identity: DeviceIdentity): Boolean = withContext(Dispatchers.IO) {
+        val path = "/v1/calendar/access"
+        val response = performRequest(path, "GET", null, null, signedHeaders("GET", path, null, deviceId, identity))
+        if (response.status != 200) throw CalendarAccessException(response.status)
+        JSONObject(response.body).getBoolean("available")
+    }
+
+    suspend fun calendarSnapshot(deviceId: String, identity: DeviceIdentity): CalendarSnapshot = withContext(Dispatchers.IO) {
+        val path = "/v1/calendar/snapshot"
+        val response = performRequest(path, "GET", null, null, signedHeaders("GET", path, null, deviceId, identity))
+        if (response.status != 200) throw CalendarAccessException(response.status)
+        CalendarSnapshot.fromJson(JSONObject(response.body))
+    }
 
     suspend fun enroll(
         enrollment: EnrollmentQrPayload,

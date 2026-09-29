@@ -9,10 +9,8 @@
     <string name="push_reliability_battery_ok">Wyjątek oszczędzania baterii Android: aktywny</string>
     <string name="push_reliability_battery_limited">Oszczędzanie baterii może opóźnić lub zatrzymać powiadomienia.</string>
     <string name="push_reliability_allow_battery">Zezwól na wyjątek baterii</string>
-    <string name="push_reliability_samsung_hint">Samsung: sprawdź też aplikacje nigdy nieuśpione i w razie potrzeby dodaj Mission Leben Zentral.</string>
-    <string name="push_reliability_tcl_hint">TCL: jeśli to możliwe, chroń Mission Leben Zentral także na liście ostatnich aplikacji.</string>
     <string name="push_reliability_open_manufacturer">Otwórz ustawienia urządzenia</string>
-    <string name="push_reliability_limit">Sprawdzane są uprawnienia, nie bieżące połączenie z serwerem. Telefon nadal może zatrzymać aplikację.</string>
+    <string name="push_reliability_limit">Ta kontrola nie wykrywa bieżącego połączenia ani ograniczeń producenta. Gdy brak powiadomień, zezwól na pracę w tle i, jeśli można, chroń aplikację przed „Zamknij wszystkie” na liście ostatnich aplikacji. To nie jest blokada ekranu.</string>
     <string name="push_reliability_prompt_title">Otrzymuj powiadomienia niezawodnie</string>
     <string name="push_reliability_prompt_notifications">Powiadomienia są wyłączone. Otwórz ustawienia Androida, aby je wyświetlać.</string>
     <string name="push_reliability_prompt_battery">Android może ograniczać połączenie push w tle. Możesz zezwolić na wyjątek baterii dla Mission Leben Zentral. Może to zwiększyć zużycie baterii.</string>
@@ -124,10 +122,12 @@
     <string name="talk_handoff_description">Przesyłany jest wyłącznie token pokoju Talk — nigdy dowolny adres URL ani hasło użytkownika.</string>
     <string name="talk_link">Łącze Nextcloud Talk</string>
     <string name="no_conference_device">Brak zatwierdzonego urządzenia konferencyjnego online.</string>
+    <string name="talk_meeting_open_where">Otwórz spotkanie Talk</string>
+    <string name="talk_meeting_on_phone">Na tym telefonie</string>
     <string name="open_on_target_device">Otwórz na urządzeniu docelowym</string>
     <string name="notifications_title">Powiadomienia</string>
     <string name="settings_notifications_summary">%1$s · spotkanie %2$d min. wcześniej</string>
-    <string name="settings_notifications_off">Poczta, spotkania i Talk wyłączone</string>
+    <string name="settings_notifications_off">Powiadomienia komunikacyjne wyłączone</string>
     <string name="notifications_shared_description">Współdzielone tablety nigdy nie pokazują nadawców, tematów ani szczegółów spotkań.</string>
     <string name="notifications_lockscreen_description">Treść pozostaje ukryta na ekranie blokady. Po odblokowaniu obowiązuje ten wybór:</string>
     <string name="privacy_minimal_label">Dyskretne</string>
@@ -250,4 +250,16 @@
     <string name="login_approval_personal_only">Żądania logowania można zatwierdzać tylko na urządzeniach osobistych.</string>
     <string name="login_approval_invalid">Nieprawidłowe żądanie logowania.</string>
     <string name="announcements_unread">Nowe</string>
+    <string name="release_note_calendar_pilot">Nowość w pilotażu: wyświetlaj wydarzenia Zimbra w kalendarzu telefonu dzięki synchronizacji jednokierunkowej. Wydarzenia nadal twórz tylko w Zimbra.</string>
+    <string name="release_note_talk_calendar">Spotkania Talk otwierane z Zimbra korzystają teraz z aplikacji Talk. Wybór okresu kalendarza przewija się poziomo; ustawienia Zimbra widać tylko z odpowiednim dostępem.</string>
+    <string name="privacy_minimal_description_talk_only">Pokazuj tylko informację o nowej wiadomości Talk.</string>
+    <string name="privacy_standard_description_talk_only">Pokazuj nadawcę i krótki podgląd Talk.</string>
+    <string name="privacy_detailed_description_talk_only">Pokazuj nadawcę i dłuższy podgląd Talk.</string>
+    <string name="communication_notifications_talk_only">Talk</string>
+    <string name="quiet_hours_description_talk_only">W tym czasie powiadomienia Talk są wyciszone.</string>
+    <string name="privacy_minimal_description_zimbra_only">Pokazuj tylko informację o poczcie lub spotkaniu.</string>
+    <string name="privacy_standard_description_zimbra_only">Pokazuj nadawcę i temat albo czas i miejsce spotkania.</string>
+    <string name="privacy_detailed_description_zimbra_only">Pokazuj także krótki podgląd wiadomości e-mail.</string>
+    <string name="communication_notifications_zimbra_only">Poczta i spotkania</string>
+    <string name="quiet_hours_description_zimbra_only">W tym czasie powiadomienia o poczcie i spotkaniach są wyciszone.</string>
 </resources>

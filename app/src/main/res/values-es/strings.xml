@@ -9,10 +9,8 @@
     <string name="push_reliability_battery_ok">Excepción de batería Android: activa</string>
     <string name="push_reliability_battery_limited">El ahorro de batería puede retrasar o detener los avisos.</string>
     <string name="push_reliability_allow_battery">Permitir excepción de batería</string>
-    <string name="push_reliability_samsung_hint">Samsung: Revisa también Aplicaciones que nunca duermen y añade Mission Leben Zentral si hace falta.</string>
-    <string name="push_reliability_tcl_hint">TCL: Protege también Mission Leben Zentral en las aplicaciones recientes si existe esa opción.</string>
     <string name="push_reliability_open_manufacturer">Abrir ajustes del dispositivo</string>
-    <string name="push_reliability_limit">Esto comprueba permisos, no la conexión actual al servidor. El teléfono aún puede detener aplicaciones.</string>
+    <string name="push_reliability_limit">Esta comprobación no detecta la conexión activa ni las restricciones del fabricante. Si faltan avisos, permite el uso en segundo plano y, si existe la opción, protege la app de «Cerrar todo» en Aplicaciones recientes. No es el bloqueo de pantalla.</string>
     <string name="push_reliability_prompt_title">Recibir avisos de forma fiable</string>
     <string name="push_reliability_prompt_notifications">Las notificaciones están desactivadas. Abre los ajustes de Android para ver los avisos.</string>
     <string name="push_reliability_prompt_battery">Android puede limitar la conexión de avisos en segundo plano. Puedes permitir una excepción de batería. Esto puede aumentar el consumo.</string>
@@ -124,10 +122,12 @@
     <string name="talk_handoff_description">Solo se transmite el token de la sala de Talk, nunca una URL cualquiera ni una contraseña.</string>
     <string name="talk_link">Enlace de Nextcloud Talk</string>
     <string name="no_conference_device">No hay ningún dispositivo de conferencia autorizado en línea.</string>
+    <string name="talk_meeting_open_where">Abrir reunión de Talk</string>
+    <string name="talk_meeting_on_phone">En este teléfono</string>
     <string name="open_on_target_device">Abrir en el dispositivo de destino</string>
     <string name="notifications_title">Notificaciones</string>
     <string name="settings_notifications_summary">%1$s · cita %2$d min. antes</string>
-    <string name="settings_notifications_off">Correo, citas y Talk desactivados</string>
+    <string name="settings_notifications_off">Avisos de comunicación desactivados</string>
     <string name="notifications_shared_description">Las tabletas compartidas nunca muestran remitentes, asuntos ni detalles de citas.</string>
     <string name="notifications_lockscreen_description">El contenido permanece oculto en la pantalla de bloqueo. Tras desbloquear se aplica esta opción:</string>
     <string name="privacy_minimal_label">Discreto</string>
@@ -248,4 +248,16 @@
     <string name="login_approval_personal_only">Las solicitudes de inicio de sesión solo pueden confirmarse en dispositivos personales.</string>
     <string name="login_approval_invalid">Solicitud de inicio de sesión no válida.</string>
     <string name="announcements_unread">Nuevo</string>
+    <string name="release_note_calendar_pilot">Nuevo en el piloto: muestra las citas de Zimbra en el calendario del móvil mediante sincronización unidireccional. Sigue creando las citas solo en Zimbra.</string>
+    <string name="release_note_talk_calendar">Las reuniones de Talk abiertas desde Zimbra ahora usan la app Talk. El periodo del calendario se desplaza horizontalmente; los ajustes de Zimbra solo aparecen con acceso.</string>
+    <string name="privacy_minimal_description_talk_only">Mostrar solo un aviso de nuevo mensaje de Talk.</string>
+    <string name="privacy_standard_description_talk_only">Mostrar el remitente y una vista previa breve de Talk.</string>
+    <string name="privacy_detailed_description_talk_only">Mostrar el remitente y una vista previa más larga de Talk.</string>
+    <string name="communication_notifications_talk_only">Talk</string>
+    <string name="quiet_hours_description_talk_only">Durante este periodo no se muestran avisos de Talk.</string>
+    <string name="privacy_minimal_description_zimbra_only">Mostrar solo un aviso de correo o cita.</string>
+    <string name="privacy_standard_description_zimbra_only">Mostrar remitente y asunto, u hora y lugar de la cita.</string>
+    <string name="privacy_detailed_description_zimbra_only">Mostrar también una vista previa breve del correo.</string>
+    <string name="communication_notifications_zimbra_only">Correo y citas</string>
+    <string name="quiet_hours_description_zimbra_only">Durante este periodo no se muestran avisos de correo ni citas.</string>
 </resources>

@@ -9,10 +9,8 @@
     <string name="push_reliability_battery_ok">Android बैटरी छूट: चालू</string>
     <string name="push_reliability_battery_limited">बैटरी बचत पुश सूचना को देर से पहुँचा सकती है या रोक सकती है।</string>
     <string name="push_reliability_allow_battery">बैटरी छूट की अनुमति दें</string>
-    <string name="push_reliability_samsung_hint">Samsung: कभी न सोने वाले ऐप भी जाँचें और जरूरत हो तो Mission Leben Zentral जोड़ें।</string>
-    <string name="push_reliability_tcl_hint">TCL: विकल्प हो तो हाल के ऐप की सूची में Mission Leben Zentral को सुरक्षित रखें।</string>
     <string name="push_reliability_open_manufacturer">डिवाइस सेटिंग खोलें</string>
-    <string name="push_reliability_limit">यह अनुमति जाँचता है, चालू सर्वर कनेक्शन नहीं। फ़ोन फिर भी ऐप बंद कर सकता है।</string>
+    <string name="push_reliability_limit">यह जाँच चालू सर्वर कनेक्शन या निर्माता की पाबंदियाँ नहीं दिखाती। सूचना न मिले तो बैकग्राउंड में चलने दें और विकल्प हो तो हाल के ऐप में “सभी बंद करें” से ऐप को बचाएँ। यह स्क्रीन लॉक नहीं है।</string>
     <string name="push_reliability_prompt_title">सूचनाएँ भरोसेमंद ढंग से पाएँ</string>
     <string name="push_reliability_prompt_notifications">सूचनाएँ बंद हैं। उन्हें दिखाने के लिए Android सेटिंग खोलें।</string>
     <string name="push_reliability_prompt_battery">Android पृष्ठभूमि पुश कनेक्शन सीमित कर सकता है। आप Mission Leben Zentral को बैटरी छूट दे सकते हैं। इससे बैटरी की खपत बढ़ सकती है।</string>
@@ -124,10 +122,12 @@
     <string name="talk_handoff_description">केवल Talk कमरे का टोकन भेजा जाता है—कोई मनमाना URL या उपयोगकर्ता पासवर्ड नहीं।</string>
     <string name="talk_link">Nextcloud Talk लिंक</string>
     <string name="no_conference_device">कोई स्वीकृत कॉन्फ़्रेंस डिवाइस ऑनलाइन नहीं है।</string>
+    <string name="talk_meeting_open_where">Talk मीटिंग खोलें</string>
+    <string name="talk_meeting_on_phone">इस फ़ोन पर</string>
     <string name="open_on_target_device">लक्षित डिवाइस पर खोलें</string>
     <string name="notifications_title">सूचनाएँ</string>
     <string name="settings_notifications_summary">%1$s · अपॉइंटमेंट से %2$d मिनट पहले</string>
-    <string name="settings_notifications_off">ई-मेल, अपॉइंटमेंट और Talk बंद</string>
+    <string name="settings_notifications_off">संचार सूचनाएँ बंद</string>
     <string name="notifications_shared_description">साझा टैबलेट पर भेजने वाला, विषय या अपॉइंटमेंट विवरण कभी नहीं दिखते।</string>
     <string name="notifications_lockscreen_description">लॉक स्क्रीन पर सामग्री छिपी रहती है। अनलॉक करने के बाद यह चयन लागू होगा:</string>
     <string name="privacy_minimal_label">गोपनीय</string>
@@ -248,4 +248,16 @@
     <string name="login_approval_personal_only">लॉगिन अनुरोध केवल निजी डिवाइस पर स्वीकार किए जा सकते हैं।</string>
     <string name="login_approval_invalid">अमान्य लॉगिन अनुरोध।</string>
     <string name="announcements_unread">नया</string>
+    <string name="release_note_calendar_pilot">पायलट में नया: एकतरफ़ा सिंक से Zimbra के अपॉइंटमेंट फ़ोन कैलेंडर में दिखाएँ। अपॉइंटमेंट केवल Zimbra में बनाएँ।</string>
+    <string name="release_note_talk_calendar">Zimbra से खोली गई Talk मीटिंग अब Talk ऐप में खुलती है। कैलेंडर अवधि को बगल में स्क्रॉल किया जा सकता है; Zimbra सेटिंग केवल अनुमति होने पर दिखती है।</string>
+    <string name="privacy_minimal_description_talk_only">केवल नए Talk संदेश की सूचना दिखाएँ।</string>
+    <string name="privacy_standard_description_talk_only">भेजने वाला और Talk का छोटा पूर्वावलोकन दिखाएँ।</string>
+    <string name="privacy_detailed_description_talk_only">भेजने वाला और Talk का लंबा पूर्वावलोकन दिखाएँ।</string>
+    <string name="communication_notifications_talk_only">Talk</string>
+    <string name="quiet_hours_description_talk_only">इस समय Talk सूचनाएँ नहीं दिखाई जाएँगी।</string>
+    <string name="privacy_minimal_description_zimbra_only">केवल ई-मेल या अपॉइंटमेंट की सूचना दिखाएँ।</string>
+    <string name="privacy_standard_description_zimbra_only">भेजने वाला और विषय, या अपॉइंटमेंट का समय और स्थान दिखाएँ।</string>
+    <string name="privacy_detailed_description_zimbra_only">ई-मेल का छोटा पूर्वावलोकन भी दिखाएँ।</string>
+    <string name="communication_notifications_zimbra_only">ई-मेल और अपॉइंटमेंट</string>
+    <string name="quiet_hours_description_zimbra_only">इस समय ई-मेल और अपॉइंटमेंट की सूचनाएँ नहीं दिखाई जाएँगी।</string>
 </resources>

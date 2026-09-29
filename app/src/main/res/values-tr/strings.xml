@@ -9,10 +9,8 @@
     <string name="push_reliability_battery_ok">Android pil muafiyeti: etkin</string>
     <string name="push_reliability_battery_limited">Android pil tasarrufu bildirimleri geciktirebilir veya durdurabilir.</string>
     <string name="push_reliability_allow_battery">Pil muafiyetine izin ver</string>
-    <string name="push_reliability_samsung_hint">Samsung: Asla uyumayan uygulamaları da kontrol edin; gerekirse Mission Leben Zentral uygulamasını ekleyin.</string>
-    <string name="push_reliability_tcl_hint">TCL: Telefonunuz destekliyorsa Mission Leben Zentral uygulamasını son uygulamalar ekranında da koruyun.</string>
     <string name="push_reliability_open_manufacturer">Cihaz ayarlarını aç</string>
-    <string name="push_reliability_limit">Bu kontrol izinleri gösterir, canlı sunucu bağlantısını değil. Telefon yine de uygulamaları durdurabilir.</string>
+    <string name="push_reliability_limit">Bu kontrol canlı sunucu bağlantısını veya üretici kısıtlamalarını göstermez. Bildirim gelmezse arka planda çalışmaya izin verin ve varsa Son uygulamalar’da “Tümünü kapat” işlemine karşı uygulamayı koruyun. Bu ekran kilidi değildir.</string>
     <string name="push_reliability_prompt_title">Bildirimleri güvenilir şekilde alın</string>
     <string name="push_reliability_prompt_notifications">Bildirimler kapalı. Bildirimleri göstermek için Android ayarlarını açın.</string>
     <string name="push_reliability_prompt_battery">Android arka plandaki bildirim bağlantısını kısıtlayabilir. Mission Leben Zentral için pil muafiyetine izin verebilirsiniz. Bu, pil tüketimini artırabilir.</string>
@@ -124,10 +122,12 @@
     <string name="talk_handoff_description">Yalnızca Talk oda belirteci aktarılır; rastgele URL veya kullanıcı parolası aktarılmaz.</string>
     <string name="talk_link">Nextcloud Talk bağlantısı</string>
     <string name="no_conference_device">Onaylı çevrimiçi konferans cihazı yok.</string>
+    <string name="talk_meeting_open_where">Talk toplantısını aç</string>
+    <string name="talk_meeting_on_phone">Bu telefonda</string>
     <string name="open_on_target_device">Hedef cihazda aç</string>
     <string name="notifications_title">Bildirimler</string>
     <string name="settings_notifications_summary">%1$s · randevudan %2$d dk. önce</string>
-    <string name="settings_notifications_off">E-posta, randevular ve Talk kapalı</string>
+    <string name="settings_notifications_off">İletişim bildirimleri kapalı</string>
     <string name="notifications_shared_description">Ortak tabletlerde gönderen, konu veya randevu ayrıntıları hiçbir zaman gösterilmez.</string>
     <string name="notifications_lockscreen_description">Kilit ekranında içerik gizli kalır. Kilit açıldıktan sonra bu seçim geçerlidir:</string>
     <string name="privacy_minimal_label">Gizli</string>
@@ -248,4 +248,16 @@
     <string name="login_approval_personal_only">Oturum açma istekleri yalnızca kişisel cihazlarda onaylanabilir.</string>
     <string name="login_approval_invalid">Geçersiz oturum açma isteği.</string>
     <string name="announcements_unread">Yeni</string>
+    <string name="release_note_calendar_pilot">Pilot yenilik: Zimbra randevularını tek yönlü eşitlemeyle telefon takviminde göster. Randevuları yalnızca Zimbra’da oluştur.</string>
+    <string name="release_note_talk_calendar">Zimbra’dan açılan Talk toplantıları artık Talk uygulamasını kullanıyor. Takvim aralığı yatay kaydırılabilir; Zimbra ayarları yalnızca erişim varsa görünür.</string>
+    <string name="privacy_minimal_description_talk_only">Yalnızca yeni Talk mesajı bildirimini göster.</string>
+    <string name="privacy_standard_description_talk_only">Göndereni ve kısa bir Talk önizlemesini göster.</string>
+    <string name="privacy_detailed_description_talk_only">Göndereni ve daha uzun bir Talk önizlemesini göster.</string>
+    <string name="communication_notifications_talk_only">Talk</string>
+    <string name="quiet_hours_description_talk_only">Bu sürede Talk bildirimleri gösterilmez.</string>
+    <string name="privacy_minimal_description_zimbra_only">Yalnızca e-posta veya randevu bildirimini göster.</string>
+    <string name="privacy_standard_description_zimbra_only">Göndereni ve konuyu veya randevu saatini ve yerini göster.</string>
+    <string name="privacy_detailed_description_zimbra_only">Kısa bir e-posta önizlemesi de göster.</string>
+    <string name="communication_notifications_zimbra_only">E-posta ve randevular</string>
+    <string name="quiet_hours_description_zimbra_only">Bu sürede e-posta ve randevu bildirimleri gösterilmez.</string>
 </resources>

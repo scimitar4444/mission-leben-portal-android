@@ -3,6 +3,7 @@ package de.missionleben.portal.security
 import android.content.Context
 import androidx.core.app.NotificationManagerCompat
 import de.missionleben.portal.data.AppPreferences
+import de.missionleben.portal.calendar.CalendarSyncCoordinator
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.push.PushManager
 import de.missionleben.portal.push.UnreadNotificationStore
@@ -24,6 +25,7 @@ object DeviceSecurityLock {
         UnreadNotificationStore(applicationContext).clearAll()
         NotificationManagerCompat.from(applicationContext).cancelAll()
         PushManager.stop(applicationContext)
+        runCatching { CalendarSyncCoordinator(applicationContext).clearAndDisable() }
     }
 
     suspend fun clearWebData(context: Context) {

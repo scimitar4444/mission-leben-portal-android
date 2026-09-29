@@ -13,6 +13,12 @@ import androidx.lifecycle.viewModelScope
 import de.missionleben.portal.auth.AccessTokenFailure
 import de.missionleben.portal.auth.AuthRepository
 import de.missionleben.portal.auth.ReauthenticationPolicy
+import de.missionleben.portal.calendar.CalendarSyncCoordinator
+import de.missionleben.portal.calendar.CalendarSyncOutcome
+import de.missionleben.portal.calendar.CalendarSyncPolicy
+import de.missionleben.portal.calendar.CalendarSyncScheduler
+import de.missionleben.portal.calendar.CalendarSyncSettings
+import de.missionleben.portal.calendar.LocalCalendarStore
 import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.data.NewsRepository
 import de.missionleben.portal.data.PortalAuthenticationException
@@ -26,6 +32,7 @@ import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentProfile
 import de.missionleben.portal.model.EnrollmentState
+import de.missionleben.portal.model.LinkTarget
 import de.missionleben.portal.model.PortalCapability
 import de.missionleben.portal.model.UiState
 import de.missionleben.portal.model.VaultRequest
@@ -76,6 +83,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val updateRepository = UpdateRepository(application)
     private val updatesManagedByFdroid = UpdateChannel.managedByFdroid(application)
     private val unreadNotificationStore = UnreadNotificationStore(application)
+    private val calendarSettings = CalendarSyncSettings(application)
+    private val calendarCoordinator = CalendarSyncCoordinator(application)
 
     private var serializedAuthState: String? = null
     private var dataEncryptionKey: ByteArray? = null
@@ -98,6 +107,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             pushConfigured = PushManager.configured,
             notificationPrivacy = effectiveNotificationPrivacy(preferences.deviceMode),
             calendarReminderMinutes = effectiveCalendarReminderMinutes(preferences.deviceMode),
+            calendarSyncEnabled = calendarSettings.enabled,
+            calendarSyncDays = calendarSettings.days,
+            calendarLastSyncMillis = calendarSettings.lastSuccessMillis,
             communicationNotificationsEnabled = effectiveCommunicationNotificationsEnabled(preferences.deviceMode),
             quietHoursEnabled = effectiveQuietHoursEnabled(preferences.deviceMode),
             quietStartMinutes = pushStore.quietStartMinutes,
@@ -150,6 +162,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
         val storedDeviceId = preferences.deviceId
         if (storedDeviceId != null && !deviceService.hasDeviceCredential(storedDeviceId)) {
+            runCatching { calendarCoordinator.clearAndDisable() }
             preferences.deviceId = null
             preferences.enrollmentProfile = null
             preferences.enrollmentState = EnrollmentState.NOT_ENROLLED
@@ -169,11 +182,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (preferences.deviceMode == DeviceMode.PERSONAL && vault.hasSession()) {
             _uiState.update { it.copy(vaultRequest = VaultRequest.UNLOCK) }
         }
+        if (calendarSettings.enabled && preferences.deviceMode == DeviceMode.PERSONAL) {
+            CalendarSyncScheduler.schedule(application)
+        }
         refreshNews()
     }
 
     private fun selectMode(mode: DeviceMode) {
         if (preferences.deviceMode != mode) {
+            runCatching { calendarCoordinator.clearAndDisable() }
             serializedAuthState = null
             dataEncryptionKey = null
             vault.clear()
@@ -202,6 +219,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 reauthenticationRequired = false,
                 notificationPrivacy = effectiveNotificationPrivacy(mode),
                 calendarReminderMinutes = effectiveCalendarReminderMinutes(mode),
+                calendarAvailable = false,
+                calendarSyncEnabled = calendarSettings.enabled,
+                calendarSyncDays = calendarSettings.days,
+                calendarLastSyncMillis = calendarSettings.lastSuccessMillis,
                 communicationNotificationsEnabled = effectiveCommunicationNotificationsEnabled(mode),
                 quietHoursEnabled = effectiveQuietHoursEnabled(mode),
                 quietStartMinutes = pushStore.quietStartMinutes,
@@ -218,6 +239,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun resetProfile() {
+        runCatching { calendarCoordinator.clearAndDisable() }
         val oldState = serializedAuthState
         if (oldState != null) disconnectPushAndRevoke(oldState)
         serializedAuthState = null
@@ -475,6 +497,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         .onSuccess { applications ->
                             if (epoch != sessionEpoch || !_uiState.value.signedIn) return@onSuccess
                             _uiState.update { it.copy(applications = applications, applicationsLoading = false) }
+                            refreshCalendarAccess(applications)
                             loadCapabilitiesWithToken(token)
                             syncPushRegistrationWithToken(token)
                             resolvePendingPushAction()
@@ -496,6 +519,43 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 handleAccessTokenFailure(failure) { it.copy(applicationsLoading = false) }
             },
         )
+    }
+
+    private fun refreshCalendarAccess(applications: List<de.missionleben.portal.model.PortalApplication>) {
+        val current = _uiState.value
+        val subject = current.user?.subject ?: return
+        if (current.mode != DeviceMode.PERSONAL ||
+            !CalendarSyncPolicy.zimbraVisible(applications.map { it.slug })) {
+            if (calendarSettings.enabled) runCatching { calendarCoordinator.clearAndDisable() }
+            _uiState.update { it.copy(calendarAvailable = false, calendarSyncEnabled = false) }
+            return
+        }
+        if (calendarSettings.ownerSubject.isNotBlank() && calendarSettings.ownerSubject != subject) {
+            runCatching { calendarCoordinator.clearAndDisable() }
+        }
+        val deviceId = current.deviceId ?: return
+        val epoch = sessionEpoch
+        viewModelScope.launch {
+            val availability = runCatching { deviceService.calendarAvailable(deviceId, identity) }
+            if (epoch != sessionEpoch || !_uiState.value.signedIn || _uiState.value.user?.subject != subject) return@launch
+            val available = availability.getOrNull()
+            if (available == null) {
+                val accessRevoked = (availability.exceptionOrNull() as? de.missionleben.portal.device.CalendarAccessException)
+                    ?.status in setOf(401, 403)
+                if (accessRevoked && calendarSettings.enabled) runCatching { calendarCoordinator.clearAndDisable() }
+                _uiState.update {
+                    it.copy(calendarAvailable = false, calendarSyncEnabled = calendarSettings.enabled,
+                        calendarLastSyncMillis = calendarSettings.lastSuccessMillis)
+                }
+                return@launch
+            }
+            if (!available && calendarSettings.enabled) runCatching { calendarCoordinator.clearAndDisable() }
+            _uiState.update {
+                it.copy(calendarAvailable = available, calendarSyncEnabled = calendarSettings.enabled,
+                    calendarLastSyncMillis = calendarSettings.lastSuccessMillis)
+            }
+            if (available && calendarSettings.enabled) syncCalendar(force = false)
+        }
     }
 
     private fun loadAnnouncementsWithToken(token: String) {
@@ -688,6 +748,43 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         enrollDevice(enrollment)
     }
 
+    suspend fun onlineTalkTargets(): List<LinkTarget> {
+        if (expireAtAbsoluteDeadline() || !_uiState.value.signedIn || !deviceService.communicationConfigured) {
+            return emptyList()
+        }
+        if (!verifyDeviceBeforeProtectedAction()) return emptyList()
+        val subject = _uiState.value.user?.subject ?: return emptyList()
+        val state = serializedAuthState ?: return emptyList()
+        val epoch = sessionEpoch
+        val token = runCatching {
+            suspendCancellableCoroutine<String> { continuation ->
+                authRepository.withFreshAccessToken(
+                    serializedState = state,
+                    onSuccess = { accessToken, updatedState ->
+                        if (!continuation.isActive) return@withFreshAccessToken
+                        if (epoch != sessionEpoch || !_uiState.value.signedIn ||
+                            _uiState.value.user?.subject != subject
+                        ) {
+                            continuation.resumeWithException(PortalAuthenticationException())
+                        } else {
+                            updateSerializedState(updatedState)
+                            continuation.resume(accessToken)
+                        }
+                    },
+                    onError = {
+                        if (continuation.isActive) continuation.resumeWithException(PortalAuthenticationException())
+                    },
+                )
+            }
+        }.getOrNull() ?: return emptyList()
+        val capabilities = runCatching { deviceService.capabilities(token) }.getOrNull() ?: return emptyList()
+        if (PortalCapability.OPEN_TALK !in capabilities) return emptyList()
+        val targets = runCatching { deviceService.linkTargets(token) }.getOrDefault(emptyList())
+        return if (epoch == sessionEpoch && _uiState.value.signedIn &&
+            _uiState.value.user?.subject == subject
+        ) targets.filter(LinkTarget::online) else emptyList()
+    }
+
     fun openTalkOn(targetId: String, talkUrl: String) {
         if (expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
@@ -724,6 +821,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun sessionExpired() {
+        runCatching { calendarCoordinator.clearAndDisable() }
         val expiredState = _uiState.value
         val boundDeviceReauthenticationAvailable = ReauthenticationPolicy.canOfferBoundDeviceReauthentication(
             mode = expiredState.mode,
@@ -753,6 +851,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 quickUnlockEnabled = false,
                 vaultRequest = VaultRequest.NONE,
                 applications = emptyList(),
+                calendarAvailable = false,
+                calendarSyncEnabled = false,
                 applicationsLoading = false,
                 announcements = emptyList(),
                 announcementsLoading = false,
@@ -775,6 +875,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun logout(onBrowserLogout: (String) -> Unit) {
+        runCatching { calendarCoordinator.clearAndDisable() }
         val oldState = serializedAuthState
         if (oldState != null) disconnectPushAndRevoke(oldState)
         serializedAuthState = null
@@ -791,6 +892,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 user = null,
                 reauthenticationRequired = false,
                 applications = emptyList(),
+                calendarAvailable = false,
+                calendarSyncEnabled = false,
                 announcements = emptyList(),
                 announcementsLoading = false,
                 announcementsStale = false,
@@ -1195,6 +1298,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     user = null,
                     reauthenticationRequired = false,
                     applications = emptyList(),
+                    calendarAvailable = false,
+                    calendarSyncEnabled = false,
                     linkTargets = emptyList(),
                     capabilities = emptySet(),
                     quickUnlockEnabled = false,
@@ -1227,6 +1332,50 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         pushStore.calendarReminderMinutes = value
         _uiState.update { it.copy(calendarReminderMinutes = value) }
         syncPushRegistration()
+    }
+
+    fun setCalendarSyncEnabled(enabled: Boolean) {
+        if (!enabled) {
+            runCatching { calendarCoordinator.clearAndDisable() }
+            _uiState.update { it.copy(calendarSyncEnabled = false, calendarLastSyncMillis = 0L) }
+            return
+        }
+        val state = _uiState.value
+        if (!state.signedIn || state.mode != DeviceMode.PERSONAL || !state.calendarAvailable) return
+        if (!LocalCalendarStore(getApplication()).hasPermission()) {
+            _uiState.update { it.copy(message = string(R.string.calendar_permission_needed)) }
+            return
+        }
+        calendarSettings.ownerSubject = state.user?.subject.orEmpty()
+        calendarSettings.enabled = true
+        CalendarSyncScheduler.schedule(getApplication())
+        _uiState.update { it.copy(calendarSyncEnabled = true, message = null) }
+        syncCalendar(force = true)
+    }
+
+    fun setCalendarSyncDays(value: Int) {
+        if (value !in CalendarSyncPolicy.availableDays) return
+        calendarSettings.days = value
+        _uiState.update { it.copy(calendarSyncDays = value) }
+        if (calendarSettings.enabled) syncCalendar(force = true)
+    }
+
+    private fun syncCalendar(force: Boolean) {
+        viewModelScope.launch {
+            val result = calendarCoordinator.sync(force)
+            _uiState.update {
+                it.copy(
+                    calendarSyncEnabled = calendarSettings.enabled,
+                    calendarLastSyncMillis = calendarSettings.lastSuccessMillis,
+                    message = when (result) {
+                        CalendarSyncOutcome.PERMISSION_MISSING -> string(R.string.calendar_permission_needed)
+                        CalendarSyncOutcome.ACCESS_REVOKED -> string(R.string.calendar_access_removed)
+                        CalendarSyncOutcome.TEMPORARILY_UNAVAILABLE -> string(R.string.calendar_sync_unavailable)
+                        else -> it.message
+                    },
+                )
+            }
+        }
     }
 
     fun setCommunicationNotificationsEnabled(value: Boolean) {

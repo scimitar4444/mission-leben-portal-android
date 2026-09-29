@@ -69,14 +69,6 @@ internal fun PushReliabilityPanel(
             }
             if (status.samsung || status.tcl) {
                 Spacer(Modifier.height(2.dp))
-                Text(
-                    androidx.compose.ui.res.stringResource(
-                        if (status.samsung) R.string.push_reliability_samsung_hint
-                        else R.string.push_reliability_tcl_hint,
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
                 OutlinedButton(onClick = onManufacturer) {
                     Text(androidx.compose.ui.res.stringResource(R.string.push_reliability_open_manufacturer))
                 }

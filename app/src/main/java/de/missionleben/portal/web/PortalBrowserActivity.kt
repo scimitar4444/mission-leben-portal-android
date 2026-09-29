@@ -553,6 +553,20 @@ class PortalBrowserActivity : FragmentActivity() {
             }
             return true
         }
+        // A meeting link opened from Zimbra needs media-capable Talk, not the chat-only WebView.
+        // Talk's own chat navigation stays inside this WebView.
+        if (intent.getBooleanExtra(EXTRA_APP_CONTENT, false) &&
+            sameWebOrigin(webView.url.orEmpty(), BuildConfig.ZIMBRA_WEB_BASE_URL) &&
+            TalkMeetingLinkPolicy.parse(url) != null
+        ) {
+            val result = Intent().putExtra(EXTRA_TALK_MEETING_URL, url)
+            intent.getStringExtra(EXTRA_NOTIFICATION_BADGE_TARGET)?.let { target ->
+                result.putExtra(EXTRA_VISITED_NOTIFICATION_BADGE_TARGET, target)
+            }
+            setResult(RESULT_OK, result)
+            finish()
+            return true
+        }
         if (policy.isTrustedWebUrl(url)) return false
         if (policy.canOpenExternally(url)) {
             runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
@@ -690,6 +704,7 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_CONTACT_EMAIL = "contact_email"
         private const val EXTRA_NOTIFICATION_BADGE_TARGET = "notification_badge_target"
         private const val EXTRA_VISITED_NOTIFICATION_BADGE_TARGET = "visited_notification_badge_target"
+        private const val EXTRA_TALK_MEETING_URL = "talk_meeting_url"
         private const val DOWNLOAD_PREFERENCES = "protected_web_downloads"
         private const val DOWNLOAD_IDS = "download_ids"
         private const val ENDPOINT_BRIDGE_NAME = "MissionLebenEndpoint"
@@ -787,6 +802,10 @@ class PortalBrowserActivity : FragmentActivity() {
             NotificationBadgeTarget.fromSerialized(
                 intent?.getStringExtra(EXTRA_VISITED_NOTIFICATION_BADGE_TARGET),
             )
+
+        fun talkMeetingUrl(intent: Intent?): String? =
+            intent?.getStringExtra(EXTRA_TALK_MEETING_URL)
+                ?.takeIf { TalkMeetingLinkPolicy.parse(it) != null }
 
         fun logoutIntent(context: Context, url: String, mode: DeviceMode): Intent =
             Intent(context, PortalBrowserActivity::class.java)

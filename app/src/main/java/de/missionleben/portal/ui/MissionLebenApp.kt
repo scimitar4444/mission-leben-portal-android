@@ -77,6 +77,7 @@ import de.missionleben.portal.R
 import de.missionleben.portal.auth.IdentityBirthday
 import de.missionleben.portal.auth.ReauthenticationPolicy
 import de.missionleben.portal.model.DeviceMode
+import de.missionleben.portal.model.AppFeaturePolicy
 import de.missionleben.portal.model.AnnouncementItem
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
@@ -113,6 +114,8 @@ fun MissionLebenApp(
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onCalendarReminderChange: (Int) -> Unit,
+    onCalendarSyncEnabledChange: (Boolean) -> Unit,
+    onCalendarSyncDaysChange: (Int) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
@@ -167,6 +170,8 @@ fun MissionLebenApp(
                 onOpenTalk = onOpenTalk,
                 onNotificationPrivacyChange = onNotificationPrivacyChange,
                 onCalendarReminderChange = onCalendarReminderChange,
+                onCalendarSyncEnabledChange = onCalendarSyncEnabledChange,
+                onCalendarSyncDaysChange = onCalendarSyncDaysChange,
                 onCommunicationNotificationsChange = onCommunicationNotificationsChange,
                 onQuietHoursChange = onQuietHoursChange,
                 onQuietStartChange = onQuietStartChange,
@@ -367,6 +372,8 @@ private fun Home(
     onOpenTalk: (String, String) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onCalendarReminderChange: (Int) -> Unit,
+    onCalendarSyncEnabledChange: (Boolean) -> Unit,
+    onCalendarSyncDaysChange: (Int) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
@@ -386,6 +393,11 @@ private fun Home(
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
     var talkDialogOpen by rememberSaveable { mutableStateOf(false) }
     var contactsOpen by remember(state.signedIn, state.user?.subject) { mutableStateOf(false) }
+    val canHandoffTalk = AppFeaturePolicy.from(state.applications).canHandoffTalk(state.capabilities)
+
+    LaunchedEffect(canHandoffTalk) {
+        if (!canHandoffTalk) talkDialogOpen = false
+    }
 
     BackHandler(
         enabled = state.mode == DeviceMode.PERSONAL && !settingsOpen && !contactsOpen && !talkDialogOpen,
@@ -416,6 +428,8 @@ private fun Home(
             onPersonalScreenshotsChange = onPersonalScreenshotsChange,
             onNotificationPrivacyChange = onNotificationPrivacyChange,
             onCalendarReminderChange = onCalendarReminderChange,
+            onCalendarSyncEnabledChange = onCalendarSyncEnabledChange,
+            onCalendarSyncDaysChange = onCalendarSyncDaysChange,
             onCommunicationNotificationsChange = onCommunicationNotificationsChange,
             onQuietHoursChange = onQuietHoursChange,
             onQuietStartChange = onQuietStartChange,
@@ -452,7 +466,7 @@ private fun Home(
         onDismissMessage = onDismissMessage,
     )
 
-    if (talkDialogOpen) {
+    if (talkDialogOpen && canHandoffTalk) {
         TalkHandoffDialog(
             state = state,
             onOpenTalk = { target, url ->
@@ -586,7 +600,7 @@ internal fun HomeOverview(
                     }
                 }
             }
-            if (PortalCapability.OPEN_TALK in state.capabilities) {
+            if (AppFeaturePolicy.from(state.applications).canHandoffTalk(state.capabilities)) {
                 item { TalkToolCard(onTalkHandoff) }
             }
             if (state.newsLoading || state.news.isNotEmpty()) {
@@ -710,6 +724,8 @@ private fun SettingsScreen(
     onPersonalScreenshotsChange: (Boolean) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onCalendarReminderChange: (Int) -> Unit,
+    onCalendarSyncEnabledChange: (Boolean) -> Unit,
+    onCalendarSyncDaysChange: (Int) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
@@ -728,6 +744,7 @@ private fun SettingsScreen(
 ) {
     var deviceDetailsOpen by rememberSaveable { mutableStateOf(state.enrollmentState != EnrollmentState.TRUSTED) }
     var notificationDetailsOpen by rememberSaveable { mutableStateOf(false) }
+    var calendarDetailsOpen by rememberSaveable { mutableStateOf(false) }
     var privacyDetailsOpen by rememberSaveable { mutableStateOf(false) }
     var languageDetailsOpen by rememberSaveable { mutableStateOf(false) }
     val deviceStatus = stringResource(when (state.enrollmentState) {
@@ -736,16 +753,22 @@ private fun SettingsScreen(
         EnrollmentState.TRUSTED -> R.string.status_trusted
         EnrollmentState.BLOCKED -> R.string.status_blocked
     })
+    val appFeatures = AppFeaturePolicy.from(state.applications)
+    val zimbraAvailable = appFeatures.zimbra
+    val talkAvailable = appFeatures.talk
+    val communicationAvailable = appFeatures.communication
     val notificationSummary = when {
         !pushReliabilityStatus.notificationsAllowed -> stringResource(R.string.push_reliability_notifications_off)
         !pushReliabilityStatus.batteryExempt -> stringResource(R.string.push_reliability_battery_limited)
         state.mode == DeviceMode.SHARED -> stringResource(R.string.notifications_shared_description)
-        state.communicationNotificationsEnabled -> stringResource(
+        !communicationAvailable -> stringResource(R.string.push_reliability_title)
+        !state.communicationNotificationsEnabled -> stringResource(R.string.settings_notifications_off)
+        zimbraAvailable -> stringResource(
             R.string.settings_notifications_summary,
             stringResource(state.notificationPrivacy.labelRes),
             state.calendarReminderMinutes,
         )
-        else -> stringResource(R.string.settings_notifications_off)
+        else -> "Talk · ${stringResource(state.notificationPrivacy.labelRes)}"
     }
     val languageSummary = stringResource(when (currentLanguageTag) {
         "de" -> R.string.language_german
@@ -804,9 +827,11 @@ private fun SettingsScreen(
                         onToggle = { notificationDetailsOpen = !notificationDetailsOpen },
                     )
                     if (notificationDetailsOpen) {
-                        if (state.signedIn) {
+                        if (state.signedIn && communicationAvailable) {
                             NotificationPrivacyPanel(
                                 state,
+                                zimbraAvailable,
+                                talkAvailable,
                                 onNotificationPrivacyChange,
                                 onCalendarReminderChange,
                                 onCommunicationNotificationsChange,
@@ -821,6 +846,25 @@ private fun SettingsScreen(
                             onRequestBatteryExemption,
                             onOpenManufacturerSettings,
                         )
+                    }
+                }
+            }
+        }
+        if (state.mode == DeviceMode.PERSONAL && state.signedIn && zimbraAvailable &&
+            (state.calendarAvailable || state.calendarSyncEnabled)) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SettingsDisclosure(
+                        title = stringResource(R.string.calendar_sync_title),
+                        summary = stringResource(
+                            if (state.calendarSyncEnabled) R.string.calendar_sync_active
+                            else R.string.calendar_sync_inactive,
+                        ),
+                        expanded = calendarDetailsOpen,
+                        onToggle = { calendarDetailsOpen = !calendarDetailsOpen },
+                    )
+                    if (calendarDetailsOpen) {
+                        CalendarSyncPanel(state, onCalendarSyncEnabledChange, onCalendarSyncDaysChange)
                     }
                 }
             }
@@ -938,6 +982,59 @@ private fun SettingsDisclosure(
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleLarge,
             )
+        }
+    }
+}
+
+@Composable
+private fun CalendarSyncPanel(
+    state: UiState,
+    onEnabledChange: (Boolean) -> Unit,
+    onDaysChange: (Int) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.calendar_sync_label), fontWeight = FontWeight.SemiBold)
+                    Text(
+                        stringResource(R.string.calendar_sync_description),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Switch(checked = state.calendarSyncEnabled, onCheckedChange = onEnabledChange)
+            }
+            if (state.calendarSyncEnabled) {
+                Text(stringResource(R.string.calendar_sync_period), fontWeight = FontWeight.SemiBold)
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    listOf(
+                        1 to R.string.calendar_sync_1_day,
+                        3 to R.string.calendar_sync_3_days,
+                        7 to R.string.calendar_sync_1_week,
+                        14 to R.string.calendar_sync_2_weeks,
+                    ).forEach { (days, label) ->
+                        if (state.calendarSyncDays == days) {
+                            Button(onClick = { onDaysChange(days) }) { Text(stringResource(label)) }
+                        } else {
+                            OutlinedButton(onClick = { onDaysChange(days) }) { Text(stringResource(label)) }
+                        }
+                    }
+                }
+                Text(
+                    stringResource(R.string.calendar_sync_web_only),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         }
     }
 }
@@ -1512,6 +1609,8 @@ private fun TalkHandoffDialog(
 @Composable
 private fun NotificationPrivacyPanel(
     state: UiState,
+    zimbraAvailable: Boolean,
+    talkAvailable: Boolean,
     onChange: (NotificationPrivacy) -> Unit,
     onCalendarReminderChange: (Int) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
@@ -1545,7 +1644,11 @@ private fun NotificationPrivacyPanel(
                 ) {
                     Column(Modifier.weight(1f)) {
                         Text(
-                            stringResource(R.string.communication_notifications_title),
+                            stringResource(when {
+                                zimbraAvailable && talkAvailable -> R.string.communication_notifications_title
+                                zimbraAvailable -> R.string.communication_notifications_zimbra_only
+                                else -> R.string.communication_notifications_talk_only
+                            }),
                             fontWeight = FontWeight.SemiBold,
                             style = MaterialTheme.typography.bodyMedium,
                         )
@@ -1586,33 +1689,47 @@ private fun NotificationPrivacyPanel(
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    stringResource(state.notificationPrivacy.descriptionRes),
+                    stringResource(when {
+                        zimbraAvailable && talkAvailable -> state.notificationPrivacy.descriptionRes
+                        zimbraAvailable -> when (state.notificationPrivacy) {
+                            NotificationPrivacy.MINIMAL -> R.string.privacy_minimal_description_zimbra_only
+                            NotificationPrivacy.STANDARD -> R.string.privacy_standard_description_zimbra_only
+                            NotificationPrivacy.DETAILED -> R.string.privacy_detailed_description_zimbra_only
+                        }
+                        else -> when (state.notificationPrivacy) {
+                            NotificationPrivacy.MINIMAL -> R.string.privacy_minimal_description_talk_only
+                            NotificationPrivacy.STANDARD -> R.string.privacy_standard_description_talk_only
+                            NotificationPrivacy.DETAILED -> R.string.privacy_detailed_description_talk_only
+                        }
+                    }),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                 )
-                Spacer(Modifier.height(18.dp))
-                Text(
-                    stringResource(R.string.calendar_reminder_title),
-                    fontWeight = FontWeight.SemiBold,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Spacer(Modifier.height(3.dp))
-                Text(
-                    stringResource(R.string.calendar_reminder_description),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                Spacer(Modifier.height(10.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    PushRegistrationStore.SUPPORTED_CALENDAR_REMINDER_MINUTES.forEach { minutes ->
-                        val label = stringResource(R.string.calendar_reminder_minutes, minutes)
-                        if (state.calendarReminderMinutes == minutes) {
-                            Button(onClick = { onCalendarReminderChange(minutes) }) { Text(label) }
-                        } else {
-                            OutlinedButton(onClick = { onCalendarReminderChange(minutes) }) { Text(label) }
+                if (zimbraAvailable) {
+                    Spacer(Modifier.height(18.dp))
+                    Text(
+                        stringResource(R.string.calendar_reminder_title),
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        stringResource(R.string.calendar_reminder_description),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        PushRegistrationStore.SUPPORTED_CALENDAR_REMINDER_MINUTES.forEach { minutes ->
+                            val label = stringResource(R.string.calendar_reminder_minutes, minutes)
+                            if (state.calendarReminderMinutes == minutes) {
+                                Button(onClick = { onCalendarReminderChange(minutes) }) { Text(label) }
+                            } else {
+                                OutlinedButton(onClick = { onCalendarReminderChange(minutes) }) { Text(label) }
+                            }
                         }
                     }
                 }
@@ -1630,7 +1747,11 @@ private fun NotificationPrivacyPanel(
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Text(
-                            stringResource(R.string.quiet_hours_description),
+                            stringResource(when {
+                                zimbraAvailable && talkAvailable -> R.string.quiet_hours_description
+                                zimbraAvailable -> R.string.quiet_hours_description_zimbra_only
+                                else -> R.string.quiet_hours_description_talk_only
+                            }),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall,
                         )
