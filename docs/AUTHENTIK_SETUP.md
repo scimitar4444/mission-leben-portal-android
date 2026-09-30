@@ -145,6 +145,20 @@ Anleitung liefert ohne Sitzung HTTP 200; `/` und `/self` verlangen weiterhin
 die geschützte Anmeldung. Die Rücknahme betrifft nur diese Metadatenfelder
 und die zugehörige Bootstrap-Datei, nicht Gruppen, Flows oder Geräte.
 
+Nachkorrektur am selben Tag: Portal 0.2.13 blendet auf `/download` den
+Button **Weiteres Gerät einrichten** aus; im Einrichterablauf bleibt er
+vorhanden. 152 Portaltests und 17 Bootstrap-/Transfer-Tests erfolgreich;
+GitHub-CI `36731965581` zum Quellcommit
+`0343fa5379943e21b2b117481c9097cf38a66ff2` vollständig erfolgreich.
+Produktiver Container gesund, öffentliche Anleitung ohne den Button geprüft,
+Verwaltungsroot weiterhin geschützt. `open_in_new_tab=true` ist produktiv
+gespeichert. Portal-Bootstrap SHA-256 jetzt
+`bf99966acc9b2c291b46aa5f6b19f6971db3c54e4aa5d19450cde2895bfe9f79`;
+geprüfte Serverübertragung weiterhin ohne Ausführung eines Bootstraps.
+Das vorherige Portal-Image 0.2.12 bleibt als
+`mission-leben-device-enrollment:rollback-0.2.12-20260930` erhalten.
+Die APK 0.21.3 und ihr OTA-Manifest ändern sich dadurch nicht.
+
 Die App-Version 0.8.1 öffnet für die Selbstregistrierung `/self` im geschützten WebView und löscht vorher alle alten Webdaten. Der anwendungsbezogene Authorization Flow des Proxy-Providers akzeptiert ausschließlich ein bereits eingerichtetes TOTP, einen Passkey oder die App-Bestätigung eines schon registrierten persönlichen Geräts (`not_configured_action=deny`). Nach der Bestätigung leitet der Container einen persönlichen Zehn-Minuten-Link zurück zur App; diese registriert den Endpoint und startet anschließend den normalen OIDC-Flow in derselben Authentik-Sitzung.
 
 Der angezeigte QR-Code ist zehn Minuten gültig und enthält Token, Token-UUID und den festgelegten Modus im Fragment eines verifizierten HTTPS-App-Links. Das Fragment wird nicht an den Webserver übertragen. Ist die App installiert, öffnet Android sie direkt; andernfalls führt die öffentliche Installationsseite durch Download und Übergabe an die App. Nach erfolgreichem Enrollment löscht der Container den Authentik-Enrollment-Token, bevor er den Device Token an die App zurückgibt. Der QR-Code darf trotzdem weder fotografiert noch in Tickets oder Dateifreigaben abgelegt werden.
