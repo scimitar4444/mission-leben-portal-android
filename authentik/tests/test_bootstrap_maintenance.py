@@ -72,6 +72,7 @@ class SourceTests(unittest.TestCase):
         defaults = next(keyword.value for keyword in application_call.keywords if keyword.arg == "defaults")
         values = {ast.literal_eval(key): value for key, value in zip(defaults.keys, defaults.values)}
         self.assertEqual(ast.unparse(values["meta_launch_url"]), "external_host + '/download'")
+        self.assertTrue(ast.literal_eval(values["open_in_new_tab"]))
         self.assertFalse(ast.literal_eval(values["meta_hide"]))
 
     def test_group_model_never_creates_or_mutates_groups(self):

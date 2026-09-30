@@ -244,6 +244,7 @@ application, _ = Application.objects.update_or_create(
         # self-enrollment authentication entry. The app still uses /self.
         "meta_launch_url": external_host + "/download",
         "meta_description": "App installieren und persönliches Gerät einrichten",
+        "open_in_new_tab": True,
         "meta_publisher": "Mission Leben",
         "meta_hide": False,
         "policy_engine_mode": PolicyEngineMode.MODE_ANY,

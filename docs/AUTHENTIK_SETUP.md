@@ -132,16 +132,17 @@ Der reguläre Einrichtungsweg ist der separate Container in `enrollment-portal/`
 
 Für persönliche Benutzerbindungen erzwingt das Portal genau einen aktiven Endpoint. Ein vorhandenes Handy wird in der Oberfläche angezeigt, bleibt bis zum erfolgreichen Enrollment des neuen Geräts aktiv und erhält erst danach den dauerhaften Attributstatus `disabled` samt Zeitpunkt und Grund. Es wird nicht gelöscht und erhält bewusst kein sofortiges Ablaufdatum, weil Authentik abgelaufene Endpoint-Datensätze bereinigen kann. Dieselbe Gerätekennung kann sich erneut registrieren, ohne sich dabei selbst zu sperren. Shared Tablets bleiben mehrgerätefähig und werden von dieser Logik nicht verändert.
 
-Die Mitarbeiter-Kachel **Gerät einrichten** führt zur öffentlichen Installationsanleitung `https://geraete.mission-leben.de/download`, nicht zur geschützten Geräteverwaltung. Eine zusätzliche Anmeldung ist zum Lesen dieser Anleitung nicht erforderlich. Verwaltungsseiten und die eigentliche Selbstregistrierung bleiben unverändert geschützt.
+Die Mitarbeiter-Kachel **Gerät einrichten** führt in einem neuen Tab (`open_in_new_tab=true`) zur öffentlichen Installationsanleitung `https://geraete.mission-leben.de/download`, nicht zur geschützten Geräteverwaltung. Eine zusätzliche Anmeldung ist zum Lesen dieser Anleitung nicht erforderlich. Verwaltungsseiten und die eigentliche Selbstregistrierung bleiben unverändert geschützt.
 
-Am 30.09.2026 wurde ausschließlich `meta_launch_url` samt Beschreibung der
-bestehenden Anwendung `mission-leben-device-init` produktiv angepasst.
+Am 30.09.2026 wurden ausschließlich `meta_launch_url`, die Beschreibung und
+`open_in_new_tab` der bestehenden Anwendung `mission-leben-device-init`
+angepasst.
 Provider, Sichtbarkeit und Policy-Bindings blieben unverändert. Der gepflegte
 Portal-Bootstrap und sein Hashmanifest enthalten dasselbe Ziel; die
 Serverdatei wurde geprüft übertragen, ohne einen Bootstrap auszuführen.
 Offline-Regression: 17 Bootstrap-/Transfer-Tests erfolgreich. Die öffentliche
 Anleitung liefert ohne Sitzung HTTP 200; `/` und `/self` verlangen weiterhin
-die geschützte Anmeldung. Die Rücknahme betrifft nur diese zwei Metadatenfelder
+die geschützte Anmeldung. Die Rücknahme betrifft nur diese Metadatenfelder
 und die zugehörige Bootstrap-Datei, nicht Gruppen, Flows oder Geräte.
 
 Die App-Version 0.8.1 öffnet für die Selbstregistrierung `/self` im geschützten WebView und löscht vorher alle alten Webdaten. Der anwendungsbezogene Authorization Flow des Proxy-Providers akzeptiert ausschließlich ein bereits eingerichtetes TOTP, einen Passkey oder die App-Bestätigung eines schon registrierten persönlichen Geräts (`not_configured_action=deny`). Nach der Bestätigung leitet der Container einen persönlichen Zehn-Minuten-Link zurück zur App; diese registriert den Endpoint und startet anschließend den normalen OIDC-Flow in derselben Authentik-Sitzung.

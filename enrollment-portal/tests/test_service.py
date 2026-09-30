@@ -1140,6 +1140,7 @@ def test_management_setup_has_download_first_and_registration_after_confirmation
         assert response.text.index("Handy vorbereiten") < response.text.index("App installieren")
         assert response.text.index("App installieren") < response.text.index("Gerät registrieren")
         assert "App installiert" in response.text
+        assert "Weiteres Gerät einrichten" in response.text
         assert settings.apk_download_url in response.text
         assert "<svg" in response.text
         assert 'id="copy-enrollment-link"' in response.text
@@ -1164,6 +1165,7 @@ def test_management_setup_has_download_first_and_registration_after_confirmation
         assert "App selbst installieren" in self_install.text
         assert "App öffnen und anmelden" in self_install.text
         assert "Du brauchst keinen zweiten QR-Code" in self_install.text
+        assert "Weiteres Gerät einrichten" not in self_install.text
         assert settings.apk_download_url in self_install.text
         assert "script-src 'self'" in self_install.headers["content-security-policy"]
 

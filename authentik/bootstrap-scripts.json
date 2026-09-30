@@ -2,7 +2,7 @@
   "schema": 1,
   "reviewed_authentik_version": "2026.8.3",
   "files": {
-    "bootstrap_enrollment_portal.py": "2f5dd1744d63a106814fdff1b92237a43e32e5bb7ab203441a2951d7daeb670d",
+    "bootstrap_enrollment_portal.py": "bf99966acc9b2c291b46aa5f6b19f6971db3c54e4aa5d19450cde2895bfe9f79",
     "bootstrap_e2e_debug.py": "32c9823d22ffda5cfa7f8f645ed3d12a0d38588099ae21d8117efcac447199f9"
   }
 }

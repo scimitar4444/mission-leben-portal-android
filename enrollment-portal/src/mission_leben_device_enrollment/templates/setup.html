@@ -58,7 +58,9 @@
     {% if self_service %}<p><a class="download-link" href="/download/send">Für IT: Person suchen und Installationslink per E-Mail senden →</a></p>{% endif %}
   </div>
 </section>
+{% if not self_service %}
 <div class="actions"><a class="button secondary" href="/">Weiteres Gerät einrichten</a></div>
+{% endif %}
 <noscript><section class="notice error-notice">Für den zweiten QR-Code muss JavaScript im PC-Browser aktiviert sein.</section></noscript>
 {% endblock %}
 {% block scripts %}<script src="/static/setup.js" defer></script>{% endblock %}
