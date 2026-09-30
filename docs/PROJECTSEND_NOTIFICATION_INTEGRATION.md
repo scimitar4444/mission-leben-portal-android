@@ -1,9 +1,12 @@
 # ProjectSend-Dokumentenhinweise
 
 Stand: 30.09.2026. Der ProjectSend-Helfer läuft außerhalb des ProjectSend-Cores.
-Bridge 0.10.9, App-OTA 0.21.0 und der Helper sind ausgerollt. Die technische
-400/401-Schnittstellenprobe ist bestanden; physischer Push-Empfang und Öffnen
-auf einem aktualisierten Handy sind noch nicht abgenommen.
+Bridge 0.10.10 und App-OTA 0.21.1 sind ausgerollt; der Helper ist aktiv. Die
+technische 400/401-Schnittstellenprobe ist bestanden. Beim ersten realen Test
+hat App 0.21.0 den ntfy-Weckruf und die signierten Details empfangen, aber
+wegen des fehlenden Android-Kanals `documents` keinen sichtbaren Hinweis
+angezeigt. App 0.21.1 legt den Kanal an. Empfang und direktes Öffnen des
+Postfachs auf einem mit 0.21.1 aktualisierten Handy sind noch nicht abgenommen.
 
 ## Vertrag
 
@@ -18,6 +21,9 @@ auf einem aktualisierten Handy sind noch nicht abgenommen.
 - Die Bridge erzeugt selbst den festen Hinweis „Ein neues Dokument liegt in
   deinem persönlichen Postfach.“ und öffnet nur die berechtigte ProjectSend-Kachel
   aus dem Authentik-Katalog (`projectsend-ml-dokumente-test`).
+- Ein Tipp auf den Hinweis öffnet direkt die aktuelle `meta_launch_url` dieser
+  freigegebenen Kachel im App-WebView; es gibt keine zusätzliche Kachelauswahl.
+  Der Push enthält weder eine URL noch eine Datei-ID.
 - Mehrfachlieferungen derselben Quell-ID sind idempotent. Der Helper wertet
   `202` mit `created:false` als bestätigte Wiederholung.
 
@@ -25,7 +31,8 @@ auf einem aktualisierten Handy sind noch nicht abgenommen.
 
 Die Bridge stellt Dokumentenereignisse nur an aktive, persönlich registrierte
 Geräte mit Authentik-`enrollment_profile=personal-employee` und App-Version ab
-`0.21.0` zu. Ein `shared-account-handset` ist trotz technischem `mode=personal`
+`0.21.1` zu. Die fehlerhafte App 0.21.0 erhält keine weiteren Dokumentenereignisse.
+Ein `shared-account-handset` ist trotz technischem `mode=personal`
 ausgeschlossen; gemeinsame Tablets ebenfalls. Ältere Apps erhalten keinen ihnen
 unbekannten Push. Noch gültige Ereignisse werden nach Registrierung der
 kompatiblen App höchstens einmal je Gerät nachgereicht; die Aufbewahrung ist auf
@@ -39,7 +46,7 @@ bleiben erhalten; `calendar_snapshots` aus Schema v9 werden nicht verändert.
 
 ## Aktivierungsreihenfolge
 
-1. App 0.21.0 signiert veröffentlichen; Zertifikat, `versionCode`, Manifest,
+1. App 0.21.1 signiert veröffentlichen; Zertifikat, `versionCode`, Manifest,
    öffentliches APK und OTA-Pfad vergleichen. Alte Geräte erhalten bis zum
    Update keinen Dokumenten-Push; noch gültige Ereignisse werden danach
    nachgereicht. Die physische Annahmeprüfung bleibt ein eigener Schritt.
