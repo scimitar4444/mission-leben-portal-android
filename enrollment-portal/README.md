@@ -19,6 +19,15 @@ Der Button **Weiteres Gerät einrichten** wird auf der öffentlichen
 Selbstinstallationsseite nicht angezeigt. Er bleibt im Einrichterablauf
 erhalten.
 
+Alle Installationsansichten (`/download`, `/setup`, `/install`) verwenden
+denselben Hinweis zu Google-Play-Protect-Scans und späteren GitHub-Updates.
+Er erklärt, dass eine Scan-Anfrage allein kein Angriffs-/Fehlernachweis ist,
+die angeforderte Prüfung bestätigt und das Ergebnis abgewartet werden soll.
+Echte Schadsoftwarewarnungen werden ausdrücklich nicht übergangen; Play
+Protect bleibt eingeschaltet. Bei einem normalen Update wird die bestehende
+App aktualisiert, nicht vorab gelöscht. Grundlage der Scan-Erklärung ist
+die [offizielle Google-Play-Protect-Hilfe](https://support.google.com/googleplay/answer/2812853?hl=de).
+
 Für Mitarbeiter mit vorhandenem TOTP, Passkey oder bereits registrierter App-Bestätigung öffnet die App direkt `/self`. Nach Benutzername, Passwort und dem gewählten Faktor bestätigt die Person nur noch „Gerät jetzt registrieren“. Der Container bindet das Gerät an genau dieses angemeldete Konto und leitet automatisch zur App zurück. Beim allerersten persönlichen Gerät steht noch keine App-Bestätigung zur Verfügung; dafür bleibt TOTP oder Passkey erforderlich.
 
 Für eine Einrichtung im Auftrag:

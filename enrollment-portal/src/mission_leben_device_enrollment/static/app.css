@@ -118,6 +118,10 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .copy-enrollment button { width: 100%; }
 .copy-enrollment p { margin: 9px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.4; }
 .actions { display: flex; justify-content: center; margin-top: 22px; }
+.install-update-help { margin: 16px 0; padding: 14px 16px; border-left: 3px solid var(--berry); border-radius: 8px; background: var(--wash); }
+.install-update-help h3 { margin: 0 0 8px; font-size: 1.05rem; }
+.install-update-help h3:not(:first-child) { margin-top: 16px; }
+.install-update-help p { margin: 8px 0; line-height: 1.5; }
 .error-card { max-width: 620px; margin: 40px auto; text-align: center; }
 .error-symbol { display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; background: #fde8e8; color: #a11e2b; font-size: 2rem; font-weight: 900; }
 .ready-card { max-width: 620px; }

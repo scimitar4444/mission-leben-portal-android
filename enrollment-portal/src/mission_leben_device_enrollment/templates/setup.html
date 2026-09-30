@@ -30,6 +30,7 @@
     <div>
       <h2>App installieren</h2>
       <p>Mit dem Handy diesen QR-Code scannen, die APK von GitHub herunterladen und die Installation auf dem Handy bestätigen.</p>
+      {% include "install_update_help.html" %}
       <div class="setup-qr" aria-label="QR-Code für den App-Download">{{ download_qr_svg | safe }}</div>
       <p class="hint">Falls die Kamera nicht funktioniert: <a href="{{ apk_download_url }}" rel="noreferrer">APK-Download öffnen</a> – auf dem Handy.</p>
       <button type="button" class="primary" id="show-registration">App installiert</button>

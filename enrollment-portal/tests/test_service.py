@@ -1238,6 +1238,24 @@ def test_management_setup_has_download_first_and_registration_after_confirmation
         assert invalid_redeem.json() == {"error": "Registrierungscode ist ungültig."}
 
 
+def test_public_install_pages_explain_update_scans_without_bypassing_warnings(settings):
+    app = create_app(settings, FakeAuthentik(settings))
+    with TestClient(app) as client:
+        for path in ("/download", "/setup", "/install"):
+            response = client.get(path)
+            assert response.status_code == 200
+            assert "Sicherheitsprüfung ist normal" in response.text
+            assert "Diese Scan-Anfrage allein bedeutet keinen Angriff und keinen Fehler" in response.text
+            assert "Zur Überprüfung senden" in response.text
+            assert "Das Ergebnis abwarten" in response.text
+            assert "Spätere Updates" in response.text
+            assert "Herunterladen und installieren" in response.text
+            assert "Play Protect nicht ausschalten" in response.text
+            assert "Bei einer echten Warnung vor einer schädlichen App nicht fortfahren" in response.text
+            assert "Die App nicht vorher löschen" in response.text
+            assert response.text.count('aria-label="Sicherheitsprüfung und spätere Updates"') == 1
+
+
 def test_it_can_send_personal_enrollment_and_nonexpiring_totp_download(settings, monkeypatch):
     settings = replace(settings, smtp_host="mail.mission-leben.de", smtp_sender="it-service@mission-leben.de")
     authentik = FakeAuthentik(settings)
