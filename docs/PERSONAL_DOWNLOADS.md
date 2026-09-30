@@ -33,3 +33,17 @@ app-eigene Download-IDs sowie den Erhalt fertiger Dateien beim Abmelden.
 Physisch zu prüfen: PDF im Vordergrund öffnen; im Hintergrund die Fertigmeldung
 antippen; ohne passenden Viewer Hinweis und Dateiablage; Abmelden während eines
 Downloads; erfolgreiche Datei nach Abmeldung weiterhin vorhanden.
+
+## Bestehende Registrierungen ab 0.21.3
+
+Registrierungen aus Versionen vor Einführung von `EnrollmentProfile` hatten
+teilweise kein lokal gespeichertes Profil. 0.21.2 ließ sie deshalb korrekt
+nicht in den öffentlichen Exportweg und speicherte weiterhin App-privat.
+
+Ab 0.21.3 übernimmt der normale authentifizierte Geräte-Statusabruf das bereits
+vom Portal zurückgegebene `enrollment_profile`. Erst nach Prüfung der exakten
+Geräte-ID und der Übereinstimmung mit dem Gerätemodus wird das Profil lokal
+gespeichert. Es ist keine neue Registrierung und keine Serveränderung nötig.
+Ein fehlender Marker erzeugt keine Mitarbeiterberechtigung; unbekannte oder
+widersprüchliche Profile werden abgewiesen. Gruppenkonto- und Tabletprofile
+bleiben ausdrücklich getrennt.

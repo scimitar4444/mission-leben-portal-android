@@ -282,4 +282,5 @@
     <string name="browser_download_open_failed">फ़ाइल नहीं खुल सकी। यह फ़ाइलें → डाउनलोड में है।</string>
     <string name="browser_download_no_viewer">इस फ़ाइल के लिए उपयुक्त ऐप इंस्टॉल नहीं है। यह फ़ाइलें → डाउनलोड में है।</string>
     <string name="browser_download_transfer_failed">डाउनलोड विफल हुआ। फ़ाइल फिर से चुनें।</string>
+    <string name="release_note_existing_device_download_fix">ऐप के पुराने संस्करणों से रजिस्टर किए गए व्यक्तिगत कर्मचारी फ़ोन पर भी डाउनलोड की गई फ़ाइलें अब अपने आप खुलती हैं।</string>
 </resources>

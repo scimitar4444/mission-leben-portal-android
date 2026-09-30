@@ -294,10 +294,7 @@ class DeviceServiceRepository(context: Context? = null) {
         )
         when (response.status) {
             in 200..299 -> {
-                val verifiedDeviceId = runCatching {
-                    JSONObject(response.body).getString("device_id")
-                }.getOrElse { return@withContext EnrollmentState.BLOCKED }
-                if (verifiedDeviceId != credential.deviceId) {
+                if (!DeviceStatusProfileSync.accept(context, response.body, credential.deviceId, mode)) {
                     return@withContext EnrollmentState.BLOCKED
                 }
                 runCatching { checkIn(credential.token, credential.identifier, mode, identity) }

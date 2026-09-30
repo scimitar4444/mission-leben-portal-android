@@ -282,4 +282,5 @@
     <string name="browser_download_open_failed">Dosya açılamadı. Dosyalar → İndirilenler bölümündedir.</string>
     <string name="browser_download_no_viewer">Bu dosya için uygun bir uygulama yüklü değil. Dosya, Dosyalar → İndirilenler bölümündedir.</string>
     <string name="browser_download_transfer_failed">İndirme başarısız oldu. Dosyayı yeniden seç.</string>
+    <string name="release_note_existing_device_download_fix">Önceki uygulama sürümleriyle kaydedilmiş kişisel çalışan telefonlarında indirilen dosyalar artık otomatik açılıyor.</string>
 </resources>

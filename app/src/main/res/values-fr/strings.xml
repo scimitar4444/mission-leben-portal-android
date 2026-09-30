@@ -282,4 +282,5 @@
     <string name="browser_download_open_failed">Impossible d’ouvrir le fichier. Il se trouve dans Fichiers → Téléchargements.</string>
     <string name="browser_download_no_viewer">Aucune application adaptée à ce fichier n’est installée. Il se trouve dans Fichiers → Téléchargements.</string>
     <string name="browser_download_transfer_failed">Le téléchargement a échoué. Sélectionne à nouveau le fichier.</string>
+    <string name="release_note_existing_device_download_fix">Les fichiers téléchargés s’ouvrent maintenant automatiquement sur les téléphones personnels enregistrés avec les anciennes versions.</string>
 </resources>

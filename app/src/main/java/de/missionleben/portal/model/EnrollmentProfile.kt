@@ -12,6 +12,13 @@ enum class EnrollmentProfile {
     }
 
     companion object {
+        /** Missing legacy status markers must not create an employee export permission. */
+        fun fromDeviceStatus(marker: String?, mode: DeviceMode): EnrollmentProfile? {
+            if (marker == null) return null
+            require(marker.isNotBlank()) { "Empty device status profile" }
+            return fromPortalResponse(marker, mode)
+        }
+
         fun defaultFor(mode: DeviceMode): EnrollmentProfile = when (mode) {
             DeviceMode.PERSONAL -> PERSONAL_EMPLOYEE
             DeviceMode.SHARED -> FACILITY_TABLET

@@ -282,4 +282,5 @@
     <string name="browser_download_open_failed">No se pudo abrir el archivo. Está en Archivos → Descargas.</string>
     <string name="browser_download_no_viewer">No hay una aplicación adecuada para este archivo. Está en Archivos → Descargas.</string>
     <string name="browser_download_transfer_failed">La descarga falló. Selecciona el archivo de nuevo.</string>
+    <string name="release_note_existing_device_download_fix">Los archivos descargados ahora se abren automáticamente también en teléfonos personales registrados con versiones anteriores.</string>
 </resources>

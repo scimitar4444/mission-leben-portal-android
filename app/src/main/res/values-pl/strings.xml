@@ -284,4 +284,5 @@
     <string name="browser_download_open_failed">Nie można otworzyć pliku. Znajdziesz go w Pliki → Pobrane.</string>
     <string name="browser_download_no_viewer">Nie ma zainstalowanej odpowiedniej aplikacji. Plik znajdziesz w Pliki → Pobrane.</string>
     <string name="browser_download_transfer_failed">Pobieranie nie powiodło się. Wybierz plik ponownie.</string>
+    <string name="release_note_existing_device_download_fix">Pobrane pliki otwierają się teraz automatycznie także na osobistych telefonach zarejestrowanych w starszych wersjach aplikacji.</string>
 </resources>

@@ -296,4 +296,5 @@
     <string name="browser_download_open_failed">The file could not be opened. Find it in Files → Downloads.</string>
     <string name="browser_download_no_viewer">No suitable app is installed for this file. Find it in Files → Downloads.</string>
     <string name="browser_download_transfer_failed">The download failed. Select the file again.</string>
+    <string name="release_note_existing_device_download_fix">Downloaded files now open automatically on personal employee phones registered with earlier app versions.</string>
 </resources>
