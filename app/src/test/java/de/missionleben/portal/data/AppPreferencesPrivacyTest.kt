@@ -3,6 +3,7 @@ package de.missionleben.portal.data
 import android.app.Application
 import android.content.Context
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,5 +26,23 @@ class AppPreferencesPrivacyTest {
         settings.edit().putBoolean("allow_personal_screenshots", true).commit()
         AppPreferences(context)
         assertFalse(settings.contains("allow_personal_screenshots"))
+    }
+
+    @Test fun downloadAutoOpenDefaultsToOnAndSurvivesReload() {
+        val context = RuntimeEnvironment.getApplication()
+        val preferences = AppPreferences(context)
+        assertTrue(preferences.downloadsAutoOpenEnabled)
+        preferences.downloadsAutoOpenEnabled = false
+        assertFalse(AppPreferences(context).downloadsAutoOpenEnabled)
+        preferences.downloadsAutoOpenEnabled = true
+        assertTrue(AppPreferences(context).downloadsAutoOpenEnabled)
+    }
+
+    @Test fun clearingTheDeviceProfileResetsDownloadAutoOpenPreference() {
+        val context = RuntimeEnvironment.getApplication()
+        val preferences = AppPreferences(context)
+        preferences.downloadsAutoOpenEnabled = false
+        preferences.clearProfile()
+        assertTrue(AppPreferences(context).downloadsAutoOpenEnabled)
     }
 }

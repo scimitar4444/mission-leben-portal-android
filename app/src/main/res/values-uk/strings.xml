@@ -285,4 +285,8 @@
     <string name="browser_download_no_viewer">Відповідної програми немає. Файл у Файли → Завантаження.</string>
     <string name="browser_download_transfer_failed">Завантаження не вдалося. Вибери файл ще раз.</string>
     <string name="release_note_existing_device_download_fix">Завантажені файли тепер автоматично відкриваються також на особистих телефонах, зареєстрованих у попередніх версіях.</string>
+    <string name="downloads_settings_title">Документи</string>
+    <string name="downloads_auto_open_title">Відкривати завантаження автоматично</string>
+    <string name="downloads_auto_open_description">Відкривати файли після завантаження. Якщо вимкнено, шукай їх у Файли → Завантаження.</string>
+    <string name="release_note_download_auto_open_setting">У Налаштування → Документи можна вимкнути автоматичне відкриття завантажень. Файли й надалі зберігаються.</string>
 </resources>

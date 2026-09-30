@@ -108,6 +108,8 @@ data class UiState(
     val announcementsStale: Boolean = false,
     val readAnnouncementIds: Set<Long> = emptySet(),
     val enrollmentState: EnrollmentState = EnrollmentState.NOT_ENROLLED,
+    val enrollmentProfile: EnrollmentProfile? = null,
+    val downloadsAutoOpenEnabled: Boolean = true,
     val deviceId: String? = null,
     val deviceKeyId: String = "",
     val deviceServiceConfigured: Boolean = false,

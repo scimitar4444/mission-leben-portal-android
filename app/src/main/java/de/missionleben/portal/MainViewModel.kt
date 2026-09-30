@@ -54,6 +54,8 @@ import de.missionleben.portal.security.SharedSessionLifecyclePolicy
 import de.missionleben.portal.update.UpdateRepository
 import de.missionleben.portal.update.UpdateChannel
 import de.missionleben.portal.update.UpdateStatus
+import de.missionleben.portal.web.PersonalDownloadPolicy
+import de.missionleben.portal.web.PersonalDownloads
 import java.io.File
 import java.time.ZoneId
 import kotlinx.coroutines.Job
@@ -100,6 +102,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         UiState(
             mode = preferences.deviceMode,
             enrollmentState = preferences.enrollmentState,
+            enrollmentProfile = preferences.enrollmentProfile,
+            downloadsAutoOpenEnabled = preferences.downloadsAutoOpenEnabled,
             deviceId = preferences.deviceId,
             deviceKeyId = identity.keyId(),
             deviceServiceConfigured = deviceService.endpointDevicesConfigured,
@@ -173,6 +177,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 it.copy(
                     deviceId = null,
                     enrollmentState = EnrollmentState.NOT_ENROLLED,
+                    enrollmentProfile = null,
                     quickUnlockEnabled = false,
                     clearWebDataRequested = true,
                 )
@@ -206,6 +211,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update {
             it.copy(
                 mode = mode,
+                enrollmentProfile = preferences.enrollmentProfile,
                 signedIn = false,
                 user = null,
                 applications = emptyList(),
@@ -251,6 +257,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         PushManager.stop(getApplication())
         preferences.deviceMode = null
         preferences.enrollmentProfile = null
+        preferences.downloadsAutoOpenEnabled = true
         _uiState.value = UiState(
             enrollmentState = preferences.enrollmentState,
             deviceId = preferences.deviceId,
@@ -702,6 +709,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             busy = false,
                             deviceId = result.deviceId,
                             enrollmentState = preferences.enrollmentState,
+                            enrollmentProfile = preferences.enrollmentProfile,
                             message = if (result.trusted) {
                                 string(R.string.message_device_approved)
                             } else {
@@ -1304,7 +1312,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
         } else {
-            _uiState.update { it.copy(enrollmentState = status, busy = if (keepBusy) it.busy else false) }
+            _uiState.update {
+                it.copy(
+                    enrollmentState = status,
+                    enrollmentProfile = preferences.enrollmentProfile,
+                    busy = if (keepBusy) it.busy else false,
+                )
+            }
             if (status == EnrollmentState.TRUSTED && oldStatus != EnrollmentState.TRUSTED) {
                 syncPushRegistration()
             }
@@ -1316,6 +1330,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         NotificationPresenter.setPersonalPrivacy(getApplication(), value)
         _uiState.update { it.copy(notificationPrivacy = value) }
         syncPushRegistration()
+    }
+
+    fun setDownloadsAutoOpenEnabled(enabled: Boolean) {
+        val state = _uiState.value
+        if (!state.signedIn || !PersonalDownloadPolicy.allowsExport(
+                browserMode = state.mode,
+                registeredMode = preferences.deviceMode,
+                profile = preferences.enrollmentProfile,
+                state = preferences.enrollmentState,
+                applicationContent = true,
+                reauthenticationRequired = preferences.reauthenticationRequired,
+                locked = false,
+            )) return
+        preferences.downloadsAutoOpenEnabled = enabled
+        // Toggling never replays files completed before the setting was changed.
+        PersonalDownloads.forgetCompleted(getApplication())
+        _uiState.update { it.copy(downloadsAutoOpenEnabled = enabled) }
     }
 
     fun setCalendarReminderMinutes(value: Int) {

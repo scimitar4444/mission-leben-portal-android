@@ -297,4 +297,8 @@
     <string name="browser_download_no_viewer">No suitable app is installed for this file. Find it in Files → Downloads.</string>
     <string name="browser_download_transfer_failed">The download failed. Select the file again.</string>
     <string name="release_note_existing_device_download_fix">Downloaded files now open automatically on personal employee phones registered with earlier app versions.</string>
+    <string name="downloads_settings_title">Documents</string>
+    <string name="downloads_auto_open_title">Open downloads automatically</string>
+    <string name="downloads_auto_open_description">Open files after downloading. When off, find them in Files → Downloads.</string>
+    <string name="release_note_download_auto_open_setting">In Settings → Documents, you can turn off automatic opening of downloads. Files are still saved.</string>
 </resources>

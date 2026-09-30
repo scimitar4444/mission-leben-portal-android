@@ -60,6 +60,29 @@ class PersonalDownloadsTest {
         assertNotNull(Shadows.shadowOf(manager).getRequest(unrelated))
     }
 
+    @Test fun `disabled auto open consumes completed job without opening or deleting export`() {
+        val manager = context.getSystemService(DownloadManager::class.java)
+        val complete = download(DownloadManager.STATUS_SUCCESSFUL)
+        assertNull(PersonalDownloads.takeCompletedViewIntent(context, complete, autoOpenEnabled = false))
+        assertFalse(complete in PersonalDownloads.pending(context))
+        assertNotNull(Shadows.shadowOf(manager).getRequest(complete))
+    }
+
+    @Test fun `turning off auto open forgets completed jobs and retains running jobs for cleanup`() {
+        val manager = context.getSystemService(DownloadManager::class.java)
+        val complete = download(DownloadManager.STATUS_SUCCESSFUL)
+        val failed = download(DownloadManager.STATUS_FAILED)
+        val running = download(DownloadManager.STATUS_RUNNING)
+        val unrelated = manager.enqueue(DownloadManager.Request(Uri.parse("https://example.org/file")))
+        PersonalDownloads.forgetCompleted(context)
+        assertEquals(setOf(running), PersonalDownloads.pending(context))
+        assertNotNull(Shadows.shadowOf(manager).getRequest(complete))
+        assertNotNull(Shadows.shadowOf(manager).getRequest(failed))
+        assertNotNull(Shadows.shadowOf(manager).getRequest(running))
+        assertNotNull(Shadows.shadowOf(manager).getRequest(unrelated))
+        assertNull(PersonalDownloads.takeCompletedViewIntent(context, unrelated, autoOpenEnabled = true))
+    }
+
     @Test fun `viewer receives a file content uri and read access without portal data`() {
         val uri = Uri.parse("content://downloads/all_downloads/42")
         val intent = requireNotNull(PersonalDownloads.viewIntent(uri, "application/pdf; charset=utf-8"))

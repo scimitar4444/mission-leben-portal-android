@@ -285,4 +285,8 @@
     <string name="browser_download_no_viewer">Nie ma zainstalowanej odpowiedniej aplikacji. Plik znajdziesz w Pliki → Pobrane.</string>
     <string name="browser_download_transfer_failed">Pobieranie nie powiodło się. Wybierz plik ponownie.</string>
     <string name="release_note_existing_device_download_fix">Pobrane pliki otwierają się teraz automatycznie także na osobistych telefonach zarejestrowanych w starszych wersjach aplikacji.</string>
+    <string name="downloads_settings_title">Dokumenty</string>
+    <string name="downloads_auto_open_title">Automatycznie otwieraj pobrane pliki</string>
+    <string name="downloads_auto_open_description">Otwieraj pliki po pobraniu. Gdy wyłączone, znajdziesz je w Pliki → Pobrane.</string>
+    <string name="release_note_download_auto_open_setting">W Ustawienia → Dokumenty możesz wyłączyć automatyczne otwieranie pobranych plików. Pliki nadal są zapisywane.</string>
 </resources>

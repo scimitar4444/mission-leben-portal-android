@@ -283,4 +283,8 @@
     <string name="browser_download_no_viewer">Bu dosya için uygun bir uygulama yüklü değil. Dosya, Dosyalar → İndirilenler bölümündedir.</string>
     <string name="browser_download_transfer_failed">İndirme başarısız oldu. Dosyayı yeniden seç.</string>
     <string name="release_note_existing_device_download_fix">Önceki uygulama sürümleriyle kaydedilmiş kişisel çalışan telefonlarında indirilen dosyalar artık otomatik açılıyor.</string>
+    <string name="downloads_settings_title">Belgeler</string>
+    <string name="downloads_auto_open_title">İndirilenleri otomatik aç</string>
+    <string name="downloads_auto_open_description">Dosyaları indirdikten sonra aç. Kapalıyken Dosyalar → İndirilenler altında bulabilirsin.</string>
+    <string name="release_note_download_auto_open_setting">Ayarlar → Belgeler bölümünde indirilenlerin otomatik açılmasını kapatabilirsin. Dosyalar kaydedilmeye devam eder.</string>
 </resources>

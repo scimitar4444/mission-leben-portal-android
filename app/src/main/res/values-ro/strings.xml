@@ -284,4 +284,8 @@
     <string name="browser_download_no_viewer">Nu este instalată o aplicație potrivită. Fișierul este în Fișiere → Descărcări.</string>
     <string name="browser_download_transfer_failed">Descărcarea a eșuat. Selectează din nou fișierul.</string>
     <string name="release_note_existing_device_download_fix">Fișierele descărcate se deschid acum automat și pe telefoanele personale înregistrate cu versiuni mai vechi.</string>
+    <string name="downloads_settings_title">Documente</string>
+    <string name="downloads_auto_open_title">Deschide automat descărcările</string>
+    <string name="downloads_auto_open_description">Deschide fișierele după descărcare. Dacă este oprit, le găsești în Fișiere → Descărcări.</string>
+    <string name="release_note_download_auto_open_setting">În Setări → Documente poți opri deschiderea automată a descărcărilor. Fișierele sunt salvate în continuare.</string>
 </resources>

@@ -321,4 +321,8 @@
     <string name="browser_download_no_viewer">Für diese Datei ist kein passendes Programm installiert. Sie liegt unter Dateien → Downloads.</string>
     <string name="browser_download_transfer_failed">Der Download ist fehlgeschlagen. Wähle die Datei erneut.</string>
     <string name="release_note_existing_device_download_fix">Das automatische Öffnen heruntergeladener Dateien funktioniert jetzt auch auf schon länger registrierten persönlichen Mitarbeiterhandys.</string>
+    <string name="downloads_settings_title">Dokumente</string>
+    <string name="downloads_auto_open_title">Downloads automatisch öffnen</string>
+    <string name="downloads_auto_open_description">Dateien nach dem Download öffnen. Ausgeschaltet findest du sie unter Dateien → Downloads.</string>
+    <string name="release_note_download_auto_open_setting">Unter Einstellungen → Dokumente kannst du das automatische Öffnen von Downloads ausschalten. Die Dateien werden weiterhin gespeichert.</string>
 </resources>

@@ -283,4 +283,8 @@
     <string name="browser_download_no_viewer">इस फ़ाइल के लिए उपयुक्त ऐप इंस्टॉल नहीं है। यह फ़ाइलें → डाउनलोड में है।</string>
     <string name="browser_download_transfer_failed">डाउनलोड विफल हुआ। फ़ाइल फिर से चुनें।</string>
     <string name="release_note_existing_device_download_fix">ऐप के पुराने संस्करणों से रजिस्टर किए गए व्यक्तिगत कर्मचारी फ़ोन पर भी डाउनलोड की गई फ़ाइलें अब अपने आप खुलती हैं।</string>
+    <string name="downloads_settings_title">दस्तावेज़</string>
+    <string name="downloads_auto_open_title">डाउनलोड अपने आप खोलें</string>
+    <string name="downloads_auto_open_description">डाउनलोड के बाद फ़ाइलें खोलें। बंद होने पर वे फ़ाइलें → डाउनलोड में मिलेंगी।</string>
+    <string name="release_note_download_auto_open_setting">सेटिंग्स → दस्तावेज़ में डाउनलोड अपने आप खोलना बंद कर सकते हैं। फ़ाइलें फिर भी सहेजी जाएँगी।</string>
 </resources>

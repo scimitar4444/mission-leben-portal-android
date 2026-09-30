@@ -29,6 +29,22 @@ object PersonalDownloads {
             .putStringSet(IDS, (pending(context) - id).map(Long::toString).toSet()).apply()
     }
 
+    /** Stop tracking finished jobs without deleting their exported files or active transfers. */
+    fun forgetCompleted(context: Context) {
+        pending(context).forEach { id ->
+            if (status(context, id) in setOf(DownloadManager.STATUS_SUCCESSFUL, DownloadManager.STATUS_FAILED)) {
+                forget(context, id)
+            }
+        }
+    }
+
+    fun takeCompletedViewIntent(context: Context, id: Long, autoOpenEnabled: Boolean): Intent? {
+        if (status(context, id) != DownloadManager.STATUS_SUCCESSFUL) return null
+        val intent = if (autoOpenEnabled) viewIntent(context, id) else null
+        forget(context, id)
+        return intent
+    }
+
     fun status(context: Context, id: Long): Int? {
         if (id !in pending(context)) return null
         val manager = context.getSystemService(DownloadManager::class.java)

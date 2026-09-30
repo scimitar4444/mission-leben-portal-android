@@ -89,6 +89,7 @@ import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.push.PushReliabilityStatus
 import de.missionleben.portal.push.PushRegistrationStore
 import de.missionleben.portal.update.UpdateStatus
+import de.missionleben.portal.web.PersonalDownloadPolicy
 import kotlinx.coroutines.delay
 import java.text.DateFormat
 import java.time.LocalDate
@@ -115,6 +116,7 @@ fun MissionLebenApp(
     onCalendarReminderChange: (Int) -> Unit,
     onCalendarSyncEnabledChange: (Boolean) -> Unit,
     onCalendarSyncDaysChange: (Int) -> Unit,
+    onDownloadsAutoOpenChange: (Boolean) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
@@ -171,6 +173,7 @@ fun MissionLebenApp(
                 onCalendarReminderChange = onCalendarReminderChange,
                 onCalendarSyncEnabledChange = onCalendarSyncEnabledChange,
                 onCalendarSyncDaysChange = onCalendarSyncDaysChange,
+                onDownloadsAutoOpenChange = onDownloadsAutoOpenChange,
                 onCommunicationNotificationsChange = onCommunicationNotificationsChange,
                 onQuietHoursChange = onQuietHoursChange,
                 onQuietStartChange = onQuietStartChange,
@@ -373,6 +376,7 @@ private fun Home(
     onCalendarReminderChange: (Int) -> Unit,
     onCalendarSyncEnabledChange: (Boolean) -> Unit,
     onCalendarSyncDaysChange: (Int) -> Unit,
+    onDownloadsAutoOpenChange: (Boolean) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
@@ -429,6 +433,7 @@ private fun Home(
             onCalendarReminderChange = onCalendarReminderChange,
             onCalendarSyncEnabledChange = onCalendarSyncEnabledChange,
             onCalendarSyncDaysChange = onCalendarSyncDaysChange,
+            onDownloadsAutoOpenChange = onDownloadsAutoOpenChange,
             onCommunicationNotificationsChange = onCommunicationNotificationsChange,
             onQuietHoursChange = onQuietHoursChange,
             onQuietStartChange = onQuietStartChange,
@@ -725,6 +730,7 @@ private fun SettingsScreen(
     onCalendarReminderChange: (Int) -> Unit,
     onCalendarSyncEnabledChange: (Boolean) -> Unit,
     onCalendarSyncDaysChange: (Int) -> Unit,
+    onDownloadsAutoOpenChange: (Boolean) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
@@ -868,6 +874,17 @@ private fun SettingsScreen(
                 }
             }
         }
+        if (state.signedIn && PersonalDownloadPolicy.allowsExport(
+                browserMode = state.mode,
+                registeredMode = state.mode,
+                profile = state.enrollmentProfile,
+                state = state.enrollmentState,
+                applicationContent = true,
+                reauthenticationRequired = state.reauthenticationRequired,
+                locked = false,
+            )) {
+            item { DownloadSettingsPanel(state.downloadsAutoOpenEnabled, onDownloadsAutoOpenChange) }
+        }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SettingsDisclosure(
@@ -912,6 +929,35 @@ private fun SettingsScreen(
                     null
                 },
             )
+        }
+    }
+}
+
+@Composable
+private fun DownloadSettingsPanel(autoOpenEnabled: Boolean, onAutoOpenChange: (Boolean) -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.downloads_settings_title), fontWeight = FontWeight.Bold)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.downloads_auto_open_title), fontWeight = FontWeight.SemiBold)
+                    Text(
+                        stringResource(R.string.downloads_auto_open_description),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Switch(
+                    checked = autoOpenEnabled,
+                    onCheckedChange = onAutoOpenChange,
+                    modifier = Modifier.testTag("downloads_auto_open"),
+                )
+            }
         }
     }
 }

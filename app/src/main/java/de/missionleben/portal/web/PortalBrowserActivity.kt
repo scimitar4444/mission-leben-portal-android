@@ -262,8 +262,9 @@ class PortalBrowserActivity : FragmentActivity() {
         for (id in PersonalDownloads.pending(this).sorted()) {
             when (PersonalDownloads.status(this, id)) {
                 DownloadManager.STATUS_SUCCESSFUL -> {
-                    val open = PersonalDownloads.viewIntent(this, id)
-                    PersonalDownloads.forget(this, id)
+                    val autoOpen = AppPreferences(this).downloadsAutoOpenEnabled
+                    val open = PersonalDownloads.takeCompletedViewIntent(this, id, autoOpen)
+                    if (!autoOpen) continue
                     if (open == null) {
                         Toast.makeText(this, R.string.browser_download_open_failed, Toast.LENGTH_LONG).show()
                         continue

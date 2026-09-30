@@ -52,6 +52,10 @@ class AppPreferences(context: Context) {
             ?: EnrollmentState.NOT_ENROLLED
         set(value) = preferences.edit().putString(KEY_ENROLLMENT_STATE, value.name).apply()
 
+    var downloadsAutoOpenEnabled: Boolean
+        get() = preferences.getBoolean(KEY_DOWNLOADS_AUTO_OPEN, true)
+        set(value) = preferences.edit().putBoolean(KEY_DOWNLOADS_AUTO_OPEN, value).apply()
+
     var reauthenticationHint: String?
         get() = preferences.getString(KEY_REAUTHENTICATION_HINT, null)
         set(value) {
@@ -120,6 +124,7 @@ class AppPreferences(context: Context) {
             .remove(KEY_REAUTHENTICATION_REQUIRED)
             .remove(KEY_SHARED_SESSION_SCREEN_TURNED_OFF)
             .remove(KEY_ALLOW_PERSONAL_SCREENSHOTS)
+            .remove(KEY_DOWNLOADS_AUTO_OPEN)
             .apply()
         clearAnnouncementReadState()
     }
@@ -135,6 +140,7 @@ class AppPreferences(context: Context) {
         const val KEY_DEVICE_ID = "device_id"
         const val KEY_ENROLLMENT_PROFILE = "enrollment_profile"
         const val KEY_ENROLLMENT_STATE = "enrollment_state"
+        const val KEY_DOWNLOADS_AUTO_OPEN = "downloads_auto_open"
         const val KEY_REAUTHENTICATION_HINT = "reauthentication_hint"
         const val KEY_REAUTHENTICATION_REQUIRED = "reauthentication_required"
         const val KEY_SHARED_SESSION_SCREEN_TURNED_OFF = "shared_session_screen_turned_off"

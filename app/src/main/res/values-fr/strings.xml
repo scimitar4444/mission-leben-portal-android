@@ -283,4 +283,8 @@
     <string name="browser_download_no_viewer">Aucune application adaptée à ce fichier n’est installée. Il se trouve dans Fichiers → Téléchargements.</string>
     <string name="browser_download_transfer_failed">Le téléchargement a échoué. Sélectionne à nouveau le fichier.</string>
     <string name="release_note_existing_device_download_fix">Les fichiers téléchargés s’ouvrent maintenant automatiquement sur les téléphones personnels enregistrés avec les anciennes versions.</string>
+    <string name="downloads_settings_title">Documents</string>
+    <string name="downloads_auto_open_title">Ouvrir les téléchargements automatiquement</string>
+    <string name="downloads_auto_open_description">Ouvrir les fichiers après téléchargement. Sinon, retrouve-les dans Fichiers → Téléchargements.</string>
+    <string name="release_note_download_auto_open_setting">Dans Paramètres → Documents, tu peux désactiver l’ouverture automatique des téléchargements. Les fichiers sont toujours enregistrés.</string>
 </resources>

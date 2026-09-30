@@ -47,3 +47,20 @@ gespeichert. Es ist keine neue Registrierung und keine Serveränderung nötig.
 Ein fehlender Marker erzeugt keine Mitarbeiterberechtigung; unbekannte oder
 widersprüchliche Profile werden abgewiesen. Gruppenkonto- und Tabletprofile
 bleiben ausdrücklich getrennt.
+
+## Automatisches Öffnen einstellen
+
+Angemeldete, bestätigte persönliche Mitarbeiterhandys zeigen unter
+**Einstellungen → Dokumente** den Schalter **Downloads automatisch öffnen**.
+Er ist standardmäßig eingeschaltet und bleibt bei App-Neustarts und Updates
+erhalten. Gemeinsame Tablets und Gruppenkonto-Diensthandys sehen ihn nicht.
+
+Ausgeschaltet speichert die App dieselben bewusst angeforderten Exporte in
+Android Downloads; die Android-Fertigmeldung und manuelles Öffnen bleiben
+verfügbar. Es wird kein externer Viewer automatisch gestartet. Bereits fertige
+Downloads werden aus der automatischen Öffnungswarteschlange genommen, nicht
+gelöscht. Noch laufende Jobs bleiben für die bestehende Abmelde-/Sperrbereinigung
+erfasst. Die aktuelle Schalterstellung wird beim Abschluss geprüft, nicht nur
+beim Start des Downloads. Erneutes Einschalten öffnet keine zuvor erledigten
+Dateien nachträglich. Die Exportberechtigung wird durch den Schalter niemals
+erweitert.
