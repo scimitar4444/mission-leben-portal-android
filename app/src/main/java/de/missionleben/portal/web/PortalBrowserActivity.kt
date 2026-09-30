@@ -2,6 +2,7 @@ package de.missionleben.portal.web
 
 import android.app.DownloadManager
 import android.content.Context
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.IntentFilter
@@ -39,6 +40,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
@@ -113,6 +115,17 @@ class PortalBrowserActivity : FragmentActivity() {
         }
     }
 
+    private val downloadCompleteReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action != DownloadManager.ACTION_DOWNLOAD_COMPLETE) return
+            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            // The broadcast is only a hint. Status and URI come from our owned DownloadManager ID.
+            if (id in PersonalDownloads.pending(this@PortalBrowserActivity)) {
+                openCompletedPersonalDownload()
+            }
+        }
+    }
+
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
@@ -172,6 +185,12 @@ class PortalBrowserActivity : FragmentActivity() {
             IntentFilter(PushEventDispatcher.ACTION_SECURITY_STATE_CHANGED),
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
+        ContextCompat.registerReceiver(
+            this,
+            downloadCompleteReceiver,
+            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+            ContextCompat.RECEIVER_EXPORTED,
+        )
     }
 
     override fun onResume() {
@@ -195,6 +214,8 @@ class PortalBrowserActivity : FragmentActivity() {
                 finish()
             }
         }
+        // Also catch a completion delivered while this activity was stopped or recreated.
+        window.decorView.post { openCompletedPersonalDownload() }
     }
 
     private fun closePersonalContentAfterLock(): Boolean {
@@ -210,7 +231,59 @@ class PortalBrowserActivity : FragmentActivity() {
 
     override fun onStop() {
         unregisterReceiver(securityStateReceiver)
+        unregisterReceiver(downloadCompleteReceiver)
         super.onStop()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) openCompletedPersonalDownload()
+    }
+
+    private fun canExportPersonalDownload(): Boolean {
+        val preferences = AppPreferences(this)
+        return PersonalDownloadPolicy.allowsExport(
+            browserMode = deviceMode,
+            registeredMode = preferences.deviceMode,
+            profile = preferences.enrollmentProfile,
+            state = preferences.enrollmentState,
+            applicationContent = intent.getBooleanExtra(EXTRA_APP_CONTENT, false),
+            reauthenticationRequired = preferences.reauthenticationRequired,
+            locked = (application as MissionLebenApplication).personalSessionLockTracker.isLockRequired(),
+        ) && !logoutFinished && !sessionExpiredResultDelivered &&
+            !sharedSessionResultDelivered &&
+            !intent.getBooleanExtra(EXTRA_LOGOUT, false)
+    }
+
+    private fun openCompletedPersonalDownload() {
+        if (isFinishing || isDestroyed || !hasWindowFocus() ||
+            !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) || !canExportPersonalDownload()
+        ) return
+        for (id in PersonalDownloads.pending(this).sorted()) {
+            when (PersonalDownloads.status(this, id)) {
+                DownloadManager.STATUS_SUCCESSFUL -> {
+                    val open = PersonalDownloads.viewIntent(this, id)
+                    PersonalDownloads.forget(this, id)
+                    if (open == null) {
+                        Toast.makeText(this, R.string.browser_download_open_failed, Toast.LENGTH_LONG).show()
+                        continue
+                    }
+                    try {
+                        startActivity(open)
+                    } catch (_: ActivityNotFoundException) {
+                        Toast.makeText(this, R.string.browser_download_no_viewer, Toast.LENGTH_LONG).show()
+                    } catch (_: SecurityException) {
+                        Toast.makeText(this, R.string.browser_download_open_failed, Toast.LENGTH_LONG).show()
+                    }
+                    // Open one document at a time; remaining completed downloads are in Downloads.
+                    return
+                }
+                DownloadManager.STATUS_FAILED -> {
+                    PersonalDownloads.forget(this, id)
+                    Toast.makeText(this, R.string.browser_download_transfer_failed, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 
     private fun buildLayout(initialTitle: String) {
@@ -632,22 +705,34 @@ class PortalBrowserActivity : FragmentActivity() {
                 return
             }
             val filename = URLUtil.guessFileName(url, contentDisposition, mimeType)
-                .replace(Regex("[^A-Za-z0-9._ -]"), "_")
+                .replace(Regex("[^\\p{L}\\p{N}._ -]"), "_")
                 .take(120)
                 .ifBlank { "Download" }
+            val publicExport = canExportPersonalDownload()
             val request = DownloadManager.Request(Uri.parse(url)).apply {
                 setMimeType(mimeType)
                 addRequestHeader("User-Agent", userAgent)
                 CookieManager.getInstance().getCookie(url)?.let { addRequestHeader("Cookie", it) }
                 setTitle(filename)
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                setDestinationInExternalFilesDir(this@PortalBrowserActivity, Environment.DIRECTORY_DOWNLOADS, filename)
+                if (publicExport) {
+                    setDestinationInExternalPublicDir(
+                        Environment.DIRECTORY_DOWNLOADS, PersonalDownloads.uniqueFilename(filename),
+                    )
+                } else {
+                    setDestinationInExternalFilesDir(this@PortalBrowserActivity, Environment.DIRECTORY_DOWNLOADS, filename)
+                }
             }
             val manager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
             runCatching { manager.enqueue(request) }
                 .onSuccess { downloadId ->
-                    recordDownload(this@PortalBrowserActivity, downloadId)
-                    Toast.makeText(this@PortalBrowserActivity, R.string.browser_download_saved, Toast.LENGTH_SHORT).show()
+                    if (publicExport) PersonalDownloads.record(this@PortalBrowserActivity, downloadId)
+                    else recordDownload(this@PortalBrowserActivity, downloadId)
+                    Toast.makeText(
+                        this@PortalBrowserActivity,
+                        if (publicExport) R.string.browser_download_started else R.string.browser_download_saved,
+                        Toast.LENGTH_SHORT,
+                    ).show()
                 }
                 .onFailure { Toast.makeText(this@PortalBrowserActivity, R.string.browser_download_failed, Toast.LENGTH_LONG).show() }
         }
@@ -819,6 +904,7 @@ class PortalBrowserActivity : FragmentActivity() {
                         }
                     }
                     cancelDownloads(context)
+                    PersonalDownloads.cancelPending(context)
                     context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
                         ?.takeIf(File::exists)
                         ?.deleteRecursively()

@@ -277,4 +277,9 @@
     <string name="privacy_detailed_description_zimbra_only">Mostrar también una vista previa breve del correo.</string>
     <string name="communication_notifications_zimbra_only">Correo y citas</string>
     <string name="quiet_hours_description_zimbra_only">Durante este periodo no se muestran avisos de correo ni citas.</string>
+    <string name="release_note_personal_downloads">Los archivos de tu teléfono personal de empleado se guardan en Descargas y se abren con una aplicación adecuada. Permanecen en el teléfono al cerrar sesión.</string>
+    <string name="browser_download_started">Descargando el archivo en Descargas.</string>
+    <string name="browser_download_open_failed">No se pudo abrir el archivo. Está en Archivos → Descargas.</string>
+    <string name="browser_download_no_viewer">No hay una aplicación adecuada para este archivo. Está en Archivos → Descargas.</string>
+    <string name="browser_download_transfer_failed">La descarga falló. Selecciona el archivo de nuevo.</string>
 </resources>

@@ -315,4 +315,9 @@
     <string name="calendar_permission_needed" tools:ignore="MissingTranslation">Für den Abgleich muss der Zugriff auf den Handy-Kalender erlaubt sein.</string>
     <string name="calendar_access_removed" tools:ignore="MissingTranslation">Der Zimbra-Kalenderzugriff wurde entzogen. Lokale Termine wurden entfernt.</string>
     <string name="calendar_sync_unavailable" tools:ignore="MissingTranslation">Der Kalenderabgleich ist gerade nicht erreichbar. Vorhandene Termine bleiben vorerst sichtbar.</string>
+    <string name="release_note_personal_downloads">Dateien auf deinem persönlichen Mitarbeiterhandy werden jetzt in Downloads gespeichert und mit einem passenden Programm geöffnet. Diese Dateien bleiben auch nach dem Abmelden auf dem Handy.</string>
+    <string name="browser_download_started">Datei wird in Downloads geladen.</string>
+    <string name="browser_download_open_failed">Die Datei konnte nicht geöffnet werden. Du findest sie unter Dateien → Downloads.</string>
+    <string name="browser_download_no_viewer">Für diese Datei ist kein passendes Programm installiert. Sie liegt unter Dateien → Downloads.</string>
+    <string name="browser_download_transfer_failed">Der Download ist fehlgeschlagen. Wähle die Datei erneut.</string>
 </resources>

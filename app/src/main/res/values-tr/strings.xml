@@ -277,4 +277,9 @@
     <string name="privacy_detailed_description_zimbra_only">Kısa bir e-posta önizlemesi de göster.</string>
     <string name="communication_notifications_zimbra_only">E-posta ve randevular</string>
     <string name="quiet_hours_description_zimbra_only">Bu sürede e-posta ve randevu bildirimleri gösterilmez.</string>
+    <string name="release_note_personal_downloads">Kişisel çalışan telefonundaki dosyalar İndirilenler klasörüne kaydedilir ve uygun bir uygulamayla açılır. Oturum kapatıldığında telefonda kalırlar.</string>
+    <string name="browser_download_started">Dosya İndirilenler klasörüne indiriliyor.</string>
+    <string name="browser_download_open_failed">Dosya açılamadı. Dosyalar → İndirilenler bölümündedir.</string>
+    <string name="browser_download_no_viewer">Bu dosya için uygun bir uygulama yüklü değil. Dosya, Dosyalar → İndirilenler bölümündedir.</string>
+    <string name="browser_download_transfer_failed">İndirme başarısız oldu. Dosyayı yeniden seç.</string>
 </resources>

@@ -291,4 +291,9 @@
     <string name="calendar_permission_needed">Allow calendar access to enable sync.</string>
     <string name="calendar_access_removed">Zimbra calendar access was removed. Local events were deleted.</string>
     <string name="calendar_sync_unavailable">Calendar sync is temporarily unavailable. Existing events remain visible for now.</string>
+    <string name="release_note_personal_downloads">Files on your personal employee phone are now saved in Downloads and opened with a suitable app. These files remain on your phone after signing out.</string>
+    <string name="browser_download_started">Downloading file to Downloads.</string>
+    <string name="browser_download_open_failed">The file could not be opened. Find it in Files → Downloads.</string>
+    <string name="browser_download_no_viewer">No suitable app is installed for this file. Find it in Files → Downloads.</string>
+    <string name="browser_download_transfer_failed">The download failed. Select the file again.</string>
 </resources>

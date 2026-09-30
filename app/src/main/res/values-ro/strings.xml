@@ -278,4 +278,9 @@
     <string name="privacy_detailed_description_zimbra_only">Afișează și o scurtă previzualizare a e-mailului.</string>
     <string name="communication_notifications_zimbra_only">E-mail și întâlniri</string>
     <string name="quiet_hours_description_zimbra_only">În acest interval nu sunt afișate notificări pentru e-mail sau întâlniri.</string>
+    <string name="release_note_personal_downloads">Fișierele de pe telefonul personal al angajatului sunt salvate în Descărcări și deschise cu o aplicație potrivită. Rămân pe telefon după deconectare.</string>
+    <string name="browser_download_started">Fișierul se descarcă în Descărcări.</string>
+    <string name="browser_download_open_failed">Fișierul nu a putut fi deschis. Îl găsești în Fișiere → Descărcări.</string>
+    <string name="browser_download_no_viewer">Nu este instalată o aplicație potrivită. Fișierul este în Fișiere → Descărcări.</string>
+    <string name="browser_download_transfer_failed">Descărcarea a eșuat. Selectează din nou fișierul.</string>
 </resources>

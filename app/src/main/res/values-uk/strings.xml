@@ -279,4 +279,9 @@
     <string name="privacy_detailed_description_zimbra_only">Також показувати короткий попередній перегляд пошти.</string>
     <string name="communication_notifications_zimbra_only">Пошта та зустрічі</string>
     <string name="quiet_hours_description_zimbra_only">У цей час сповіщення про пошту та зустрічі не показуються.</string>
+    <string name="release_note_personal_downloads">Файли на особистому телефоні працівника зберігаються в Завантаженнях і відкриваються відповідною програмою. Вони залишаються на телефоні після виходу.</string>
+    <string name="browser_download_started">Файл завантажується в Завантаження.</string>
+    <string name="browser_download_open_failed">Не вдалося відкрити файл. Він у Файли → Завантаження.</string>
+    <string name="browser_download_no_viewer">Відповідної програми немає. Файл у Файли → Завантаження.</string>
+    <string name="browser_download_transfer_failed">Завантаження не вдалося. Вибери файл ще раз.</string>
 </resources>

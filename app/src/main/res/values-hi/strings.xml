@@ -277,4 +277,9 @@
     <string name="privacy_detailed_description_zimbra_only">ई-मेल का छोटा पूर्वावलोकन भी दिखाएँ।</string>
     <string name="communication_notifications_zimbra_only">ई-मेल और अपॉइंटमेंट</string>
     <string name="quiet_hours_description_zimbra_only">इस समय ई-मेल और अपॉइंटमेंट की सूचनाएँ नहीं दिखाई जाएँगी।</string>
+    <string name="release_note_personal_downloads">आपके व्यक्तिगत कर्मचारी फ़ोन पर फ़ाइलें अब डाउनलोड में सेव होती हैं और उपयुक्त ऐप से खुलती हैं। साइन आउट करने के बाद भी ये फ़ाइलें फ़ोन पर रहती हैं।</string>
+    <string name="browser_download_started">फ़ाइल डाउनलोड फ़ोल्डर में डाउनलोड हो रही है।</string>
+    <string name="browser_download_open_failed">फ़ाइल नहीं खुल सकी। यह फ़ाइलें → डाउनलोड में है।</string>
+    <string name="browser_download_no_viewer">इस फ़ाइल के लिए उपयुक्त ऐप इंस्टॉल नहीं है। यह फ़ाइलें → डाउनलोड में है।</string>
+    <string name="browser_download_transfer_failed">डाउनलोड विफल हुआ। फ़ाइल फिर से चुनें।</string>
 </resources>

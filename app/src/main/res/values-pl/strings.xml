@@ -279,4 +279,9 @@
     <string name="privacy_detailed_description_zimbra_only">Pokazuj także krótki podgląd wiadomości e-mail.</string>
     <string name="communication_notifications_zimbra_only">Poczta i spotkania</string>
     <string name="quiet_hours_description_zimbra_only">W tym czasie powiadomienia o poczcie i spotkaniach są wyciszone.</string>
+    <string name="release_note_personal_downloads">Pliki na osobistym telefonie pracownika są zapisywane w Pobranych i otwierane odpowiednią aplikacją. Pozostają na telefonie po wylogowaniu.</string>
+    <string name="browser_download_started">Pobieranie pliku do Pobranych.</string>
+    <string name="browser_download_open_failed">Nie można otworzyć pliku. Znajdziesz go w Pliki → Pobrane.</string>
+    <string name="browser_download_no_viewer">Nie ma zainstalowanej odpowiedniej aplikacji. Plik znajdziesz w Pliki → Pobrane.</string>
+    <string name="browser_download_transfer_failed">Pobieranie nie powiodło się. Wybierz plik ponownie.</string>
 </resources>

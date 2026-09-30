@@ -277,4 +277,9 @@
     <string name="privacy_detailed_description_zimbra_only">Afficher aussi un court aperçu de l’e-mail.</string>
     <string name="communication_notifications_zimbra_only">E-mails et rendez-vous</string>
     <string name="quiet_hours_description_zimbra_only">Les alertes e-mail et rendez-vous sont masquées pendant cette période.</string>
+    <string name="release_note_personal_downloads">Les fichiers sur ton téléphone personnel sont enregistrés dans Téléchargements et ouverts avec une application adaptée. Ils restent sur le téléphone après la déconnexion.</string>
+    <string name="browser_download_started">Téléchargement du fichier dans Téléchargements.</string>
+    <string name="browser_download_open_failed">Impossible d’ouvrir le fichier. Il se trouve dans Fichiers → Téléchargements.</string>
+    <string name="browser_download_no_viewer">Aucune application adaptée à ce fichier n’est installée. Il se trouve dans Fichiers → Téléchargements.</string>
+    <string name="browser_download_transfer_failed">Le téléchargement a échoué. Sélectionne à nouveau le fichier.</string>
 </resources>
