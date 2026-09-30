@@ -289,4 +289,6 @@
     <string name="downloads_auto_open_title">Automatycznie otwieraj pobrane pliki</string>
     <string name="downloads_auto_open_description">Otwieraj pliki po pobraniu. Gdy wyłączone, znajdziesz je w Pliki → Pobrane.</string>
     <string name="release_note_download_auto_open_setting">W Ustawienia → Dokumenty możesz wyłączyć automatyczne otwieranie pobranych plików. Pliki nadal są zapisywane.</string>
+    <string name="downloads_auto_open_on">Automatyczne otwieranie: włączone</string>
+    <string name="downloads_auto_open_off">Automatyczne otwieranie: wyłączone</string>
 </resources>

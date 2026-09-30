@@ -301,4 +301,6 @@
     <string name="downloads_auto_open_title">Open downloads automatically</string>
     <string name="downloads_auto_open_description">Open files after downloading. When off, find them in Files → Downloads.</string>
     <string name="release_note_download_auto_open_setting">In Settings → Documents, you can turn off automatic opening of downloads. Files are still saved.</string>
+    <string name="downloads_auto_open_on">Automatic opening: on</string>
+    <string name="downloads_auto_open_off">Automatic opening: off</string>
 </resources>

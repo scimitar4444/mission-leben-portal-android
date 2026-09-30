@@ -751,6 +751,7 @@ private fun SettingsScreen(
     var deviceDetailsOpen by rememberSaveable { mutableStateOf(state.enrollmentState != EnrollmentState.TRUSTED) }
     var notificationDetailsOpen by rememberSaveable { mutableStateOf(false) }
     var calendarDetailsOpen by rememberSaveable { mutableStateOf(false) }
+    var downloadDetailsOpen by rememberSaveable { mutableStateOf(false) }
     var languageDetailsOpen by rememberSaveable { mutableStateOf(false) }
     val deviceStatus = stringResource(when (state.enrollmentState) {
         EnrollmentState.NOT_ENROLLED -> R.string.status_not_registered
@@ -883,7 +884,22 @@ private fun SettingsScreen(
                 reauthenticationRequired = state.reauthenticationRequired,
                 locked = false,
             )) {
-            item { DownloadSettingsPanel(state.downloadsAutoOpenEnabled, onDownloadsAutoOpenChange) }
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SettingsDisclosure(
+                        title = stringResource(R.string.downloads_settings_title),
+                        summary = stringResource(
+                            if (state.downloadsAutoOpenEnabled) R.string.downloads_auto_open_on
+                            else R.string.downloads_auto_open_off,
+                        ),
+                        expanded = downloadDetailsOpen,
+                        onToggle = { downloadDetailsOpen = !downloadDetailsOpen },
+                    )
+                    if (downloadDetailsOpen) {
+                        DownloadSettingsPanel(state.downloadsAutoOpenEnabled, onDownloadsAutoOpenChange)
+                    }
+                }
+            }
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -941,7 +957,6 @@ private fun DownloadSettingsPanel(autoOpenEnabled: Boolean, onAutoOpenChange: (B
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.downloads_settings_title), fontWeight = FontWeight.Bold)
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.downloads_auto_open_title), fontWeight = FontWeight.SemiBold)

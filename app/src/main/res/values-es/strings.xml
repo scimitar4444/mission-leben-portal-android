@@ -287,4 +287,6 @@
     <string name="downloads_auto_open_title">Abrir descargas automáticamente</string>
     <string name="downloads_auto_open_description">Abrir archivos tras descargarlos. Si está desactivado, los encontrarás en Archivos → Descargas.</string>
     <string name="release_note_download_auto_open_setting">En Ajustes → Documentos puedes desactivar la apertura automática de las descargas. Los archivos se siguen guardando.</string>
+    <string name="downloads_auto_open_on">Apertura automática: activada</string>
+    <string name="downloads_auto_open_off">Apertura automática: desactivada</string>
 </resources>

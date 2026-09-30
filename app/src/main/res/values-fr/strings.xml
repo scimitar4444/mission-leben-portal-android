@@ -287,4 +287,6 @@
     <string name="downloads_auto_open_title">Ouvrir les téléchargements automatiquement</string>
     <string name="downloads_auto_open_description">Ouvrir les fichiers après téléchargement. Sinon, retrouve-les dans Fichiers → Téléchargements.</string>
     <string name="release_note_download_auto_open_setting">Dans Paramètres → Documents, tu peux désactiver l’ouverture automatique des téléchargements. Les fichiers sont toujours enregistrés.</string>
+    <string name="downloads_auto_open_on">Ouverture automatique : activée</string>
+    <string name="downloads_auto_open_off">Ouverture automatique : désactivée</string>
 </resources>

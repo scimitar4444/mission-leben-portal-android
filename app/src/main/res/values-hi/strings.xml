@@ -287,4 +287,6 @@
     <string name="downloads_auto_open_title">डाउनलोड अपने आप खोलें</string>
     <string name="downloads_auto_open_description">डाउनलोड के बाद फ़ाइलें खोलें। बंद होने पर वे फ़ाइलें → डाउनलोड में मिलेंगी।</string>
     <string name="release_note_download_auto_open_setting">सेटिंग्स → दस्तावेज़ में डाउनलोड अपने आप खोलना बंद कर सकते हैं। फ़ाइलें फिर भी सहेजी जाएँगी।</string>
+    <string name="downloads_auto_open_on">अपने आप खोलना: चालू</string>
+    <string name="downloads_auto_open_off">अपने आप खोलना: बंद</string>
 </resources>

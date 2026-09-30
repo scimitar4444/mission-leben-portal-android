@@ -288,4 +288,6 @@
     <string name="downloads_auto_open_title">Deschide automat descărcările</string>
     <string name="downloads_auto_open_description">Deschide fișierele după descărcare. Dacă este oprit, le găsești în Fișiere → Descărcări.</string>
     <string name="release_note_download_auto_open_setting">În Setări → Documente poți opri deschiderea automată a descărcărilor. Fișierele sunt salvate în continuare.</string>
+    <string name="downloads_auto_open_on">Deschidere automată: pornită</string>
+    <string name="downloads_auto_open_off">Deschidere automată: oprită</string>
 </resources>

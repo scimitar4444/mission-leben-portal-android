@@ -52,6 +52,8 @@ bleiben ausdrücklich getrennt.
 
 Angemeldete, bestätigte persönliche Mitarbeiterhandys zeigen unter
 **Einstellungen → Dokumente** den Schalter **Downloads automatisch öffnen**.
+Der Bereich ist zunächst zugeklappt und zeigt nur den aktuellen Status.
+Antippen klappt Schalter und Erklärung auf; erneutes Antippen klappt sie zu.
 Er ist standardmäßig eingeschaltet und bleibt bei App-Neustarts und Updates
 erhalten. Gemeinsame Tablets und Gruppenkonto-Diensthandys sehen ihn nicht.
 

@@ -325,4 +325,6 @@
     <string name="downloads_auto_open_title">Downloads automatisch öffnen</string>
     <string name="downloads_auto_open_description">Dateien nach dem Download öffnen. Ausgeschaltet findest du sie unter Dateien → Downloads.</string>
     <string name="release_note_download_auto_open_setting">Unter Einstellungen → Dokumente kannst du das automatische Öffnen von Downloads ausschalten. Die Dateien werden weiterhin gespeichert.</string>
+    <string name="downloads_auto_open_on">Automatisches Öffnen: an</string>
+    <string name="downloads_auto_open_off">Automatisches Öffnen: aus</string>
 </resources>
