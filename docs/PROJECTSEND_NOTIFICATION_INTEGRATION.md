@@ -1,7 +1,9 @@
 # ProjectSend-Dokumentenhinweise
 
-Stand: 30.09.2026. Der ProjectSend-Helfer läuft außerhalb des ProjectSend-Cores und
-bleibt bis zur geprüften Bridge- und App-Auslieferung ausgeschaltet.
+Stand: 30.09.2026. Der ProjectSend-Helfer läuft außerhalb des ProjectSend-Cores.
+Bridge 0.10.9, App-OTA 0.21.0 und der Helper sind ausgerollt. Die technische
+400/401-Schnittstellenprobe ist bestanden; physischer Push-Empfang und Öffnen
+auf einem aktualisierten Handy sind noch nicht abgenommen.
 
 ## Vertrag
 
@@ -38,8 +40,9 @@ bleiben erhalten; `calendar_snapshots` aus Schema v9 werden nicht verändert.
 ## Aktivierungsreihenfolge
 
 1. App 0.21.0 signiert veröffentlichen; Zertifikat, `versionCode`, Manifest,
-   öffentliches APK und OTA-Pfad vergleichen. Mindestens ein kompatibles
-   persönliches Gerät muss die Version nachweislich registriert haben.
+   öffentliches APK und OTA-Pfad vergleichen. Alte Geräte erhalten bis zum
+   Update keinen Dokumenten-Push; noch gültige Ereignisse werden danach
+   nachgereicht. Die physische Annahmeprüfung bleibt ein eigener Schritt.
 2. Vor Bridge-Start eine konsistente SQLite-Sicherung sowie Kopien der
    auszutauschenden Dateien und das derzeitige Container-Image für den Rückweg
    auf dem Host vorhalten. Nur die geprüften Bridge-Dateien aus dem aktuellen
