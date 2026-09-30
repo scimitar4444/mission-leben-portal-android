@@ -240,8 +240,10 @@ application, _ = Application.objects.update_or_create(
     defaults={
         "name": APPLICATION_NAME,
         "provider": provider,
-        "meta_launch_url": external_host + "/self",
-        "meta_description": "Eigenes Gerät per TOTP oder Passkey registrieren",
+        # The employee-facing tile is a public guide, not an initializer or
+        # self-enrollment authentication entry. The app still uses /self.
+        "meta_launch_url": external_host + "/download",
+        "meta_description": "App installieren und persönliches Gerät einrichten",
         "meta_publisher": "Mission Leben",
         "meta_hide": False,
         "policy_engine_mode": PolicyEngineMode.MODE_ANY,

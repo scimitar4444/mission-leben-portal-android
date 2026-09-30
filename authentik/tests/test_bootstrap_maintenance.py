@@ -63,6 +63,17 @@ class SourceTests(unittest.TestCase):
                 values["roles"] = ast.literal_eval(node.value)
         self.assertEqual(values["roles"], ("BR_IT_MANAGEMENT", "BR_EINRICHTUNGSLEITUNG", "BR_PFLEGEDIENSTLEITUNG"))
 
+    def test_employee_tile_opens_public_installation_guide(self):
+        application_call = next(
+            node for node in ast.walk(self.tree(NAMES[0]))
+            if isinstance(node, ast.Call)
+            and ast.unparse(node.func) == "Application.objects.update_or_create"
+        )
+        defaults = next(keyword.value for keyword in application_call.keywords if keyword.arg == "defaults")
+        values = {ast.literal_eval(key): value for key, value in zip(defaults.keys, defaults.values)}
+        self.assertEqual(ast.unparse(values["meta_launch_url"]), "external_host + '/download'")
+        self.assertFalse(ast.literal_eval(values["meta_hide"]))
+
     def test_group_model_never_creates_or_mutates_groups(self):
         for name in NAMES:
             source = (ROOT / "authentik" / name).read_text()

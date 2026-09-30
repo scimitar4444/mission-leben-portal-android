@@ -6,6 +6,14 @@ Der Container stellt die bewusst einfache Oberfläche **Gerät einrichten** bere
 
 Für die reine Selbstinstallation steht die öffentliche, nicht ablaufende PC-Seite `/download` bereit. Ihr QR-Code führt direkt zur aktuellen GitHub-Release-APK. Nach „App installiert“ zeigt die Seite statt eines zweiten QR-Codes die Anmeldung mit persönlichem Benutzernamen, Passwort und vorhandenem TOTP in der App. Der Link enthält keinen Enrollment-Token. Die IT sucht unter `/download/send` eine aktive physische Person und kann ihr diesen Link direkt per E-Mail senden; dabei wird noch kein Gerät oder Registrierungstoken angelegt.
 
+Die Mitarbeiter-Kachel **Gerät einrichten** im Authentik-Portal verweist auf
+`https://geraete.mission-leben.de/download`. Diese Installationsanleitung ist
+ohne zusätzliche Anmeldung erreichbar. Die geschützte Verwaltungsseite `/`
+bleibt ein getrennter Einstieg für berechtigte Einrichter; die App nutzt für
+die eigentliche Selbstregistrierung weiterhin den geschützten Weg `/self`.
+Die öffentliche Anleitung erteilt keine Einrichterrechte und registriert
+allein durch ihren Aufruf kein Gerät.
+
 Für Mitarbeiter mit vorhandenem TOTP, Passkey oder bereits registrierter App-Bestätigung öffnet die App direkt `/self`. Nach Benutzername, Passwort und dem gewählten Faktor bestätigt die Person nur noch „Gerät jetzt registrieren“. Der Container bindet das Gerät an genau dieses angemeldete Konto und leitet automatisch zur App zurück. Beim allerersten persönlichen Gerät steht noch keine App-Bestätigung zur Verfügung; dafür bleibt TOTP oder Passkey erforderlich.
 
 Für eine Einrichtung im Auftrag:
