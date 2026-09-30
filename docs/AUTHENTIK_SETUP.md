@@ -159,6 +159,18 @@ Das vorherige Portal-Image 0.2.12 bleibt als
 `mission-leben-device-enrollment:rollback-0.2.12-20260930` erhalten.
 Die APK 0.21.3 und ihr OTA-Manifest ändern sich dadurch nicht.
 
+Portal 0.2.14 ergänzt in sämtlichen Installationsansichten (`/download`,
+`/setup`, `/install`) einen gemeinsamen Hinweis zu angeforderten
+Play-Protect-Scans und späteren GitHub-Updates. Eine Scan-Anfrage allein wird
+von einer tatsächlichen Schadsoftwarewarnung unterschieden; kein Abschalten
+von Play Protect oder Übergehen schädlicher Ergebnisse. 153 Portaltests und
+GitHub-CI `36746550206` zum Code-Commit
+`efeb98e0d826af249c4fbcb8380e182d48169ca4` erfolgreich. Alle drei Ansichten
+öffentlich mit dem Hinweis ausgeliefert, `/download` im Browser visuell
+geprüft; Container 0.2.14 gesund. Vorheriges Image als
+`mission-leben-device-enrollment:rollback-0.2.13-20260930` erhalten.
+Keine Authentik-, Gruppen-, Flow-, Berechtigungs- oder Android-Änderung.
+
 Die App-Version 0.8.1 öffnet für die Selbstregistrierung `/self` im geschützten WebView und löscht vorher alle alten Webdaten. Der anwendungsbezogene Authorization Flow des Proxy-Providers akzeptiert ausschließlich ein bereits eingerichtetes TOTP, einen Passkey oder die App-Bestätigung eines schon registrierten persönlichen Geräts (`not_configured_action=deny`). Nach der Bestätigung leitet der Container einen persönlichen Zehn-Minuten-Link zurück zur App; diese registriert den Endpoint und startet anschließend den normalen OIDC-Flow in derselben Authentik-Sitzung.
 
 Der angezeigte QR-Code ist zehn Minuten gültig und enthält Token, Token-UUID und den festgelegten Modus im Fragment eines verifizierten HTTPS-App-Links. Das Fragment wird nicht an den Webserver übertragen. Ist die App installiert, öffnet Android sie direkt; andernfalls führt die öffentliche Installationsseite durch Download und Übergabe an die App. Nach erfolgreichem Enrollment löscht der Container den Authentik-Enrollment-Token, bevor er den Device Token an die App zurückgibt. Der QR-Code darf trotzdem weder fotografiert noch in Tickets oder Dateifreigaben abgelegt werden.
