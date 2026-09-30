@@ -11,6 +11,7 @@ class PushActionTest {
         assertEquals(PushAction.OPEN_MAIL, PushAction.fromWireName("open_mail"))
         assertEquals(PushAction.OPEN_CALENDAR, PushAction.fromWireName("open_calendar"))
         assertEquals(PushAction.OPEN_TALK, PushAction.fromWireName("open_talk"))
+        assertEquals(PushAction.OPEN_DOCUMENTS, PushAction.fromWireName("open_documents"))
         assertEquals(PushAction.REFRESH_SECURITY_STATE, PushAction.fromWireName("refresh_security_state"))
     }
 
@@ -28,5 +29,6 @@ class PushActionTest {
         assertEquals(R.string.push_mail_body, PushAction.OPEN_MAIL.bodyRes)
         assertEquals(R.string.push_calendar_body, PushAction.OPEN_CALENDAR.bodyRes)
         assertEquals(R.string.push_talk_body, PushAction.OPEN_TALK.bodyRes)
+        assertEquals(R.string.push_documents_body, PushAction.OPEN_DOCUMENTS.bodyRes)
     }
 }

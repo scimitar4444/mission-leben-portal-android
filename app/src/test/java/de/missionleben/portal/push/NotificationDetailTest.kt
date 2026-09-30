@@ -20,5 +20,6 @@ class NotificationDetailTest {
         assertEquals("room_1", NotificationDetail.notificationTarget(PushAction.OPEN_TALK, "room_1"))
         assertEquals("", NotificationDetail.notificationTarget(PushAction.OPEN_MAIL, "../../42"))
         assertEquals("", NotificationDetail.notificationTarget(PushAction.OPEN_TALK, "https://evil.invalid"))
+        assertEquals("", NotificationDetail.notificationTarget(PushAction.OPEN_DOCUMENTS, "https://evil.invalid"))
     }
 }

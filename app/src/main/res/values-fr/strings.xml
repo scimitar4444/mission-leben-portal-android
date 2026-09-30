@@ -227,6 +227,8 @@
     <string name="push_calendar_body">Un rendez-vous approche.</string>
     <string name="push_talk_title">Talk</string>
     <string name="push_talk_body">Nouvelle activité Talk.</string>
+    <string name="push_documents_title">Documents ML</string>
+    <string name="push_documents_body">Un nouveau document est disponible dans votre boîte personnelle.</string>
     <string name="push_security_title">Sécurité de l’appareil</string>
     <string name="push_security_body">Vérifiez le statut de sécurité dans l’application.</string>
     <string name="channel_mail_name">E-mail</string>
@@ -263,6 +265,7 @@
     <string name="release_note_talk_calendar">Les réunions Talk ouvertes depuis Zimbra utilisent désormais l’application Talk. La période du calendrier défile horizontalement ; les réglages Zimbra n’apparaissent qu’avec l’accès requis.</string>
     <string name="release_note_setup_assistant">Nouveau : l’assistant aide à régler les alertes, la batterie et les applications autorisées. Les réunions Talk privilégient l’application Talk.</string>
     <string name="release_note_screenshots_disabled">Correctif de sécurité : les captures et enregistrements d’écran du contenu des applications web sont de nouveau bloqués.</string>
+    <string name="release_note_documents">Mission Leben Zentral peut désormais vous avertir lorsqu’un nouveau document personnel est disponible. L’avis n’affiche pas son contenu.</string>
     <string name="privacy_minimal_description_talk_only">Afficher seulement une alerte de nouveau message Talk.</string>
     <string name="privacy_standard_description_talk_only">Afficher l’expéditeur et un court aperçu Talk.</string>
     <string name="privacy_detailed_description_talk_only">Afficher l’expéditeur et un aperçu Talk plus long.</string>

@@ -1,0 +1,7 @@
+# Opt-in overlay. Do not enable until the distinct secret exists on the host.
+services:
+  bridge:
+    environment:
+      BRIDGE_PROJECTSEND_HMAC_SECRET_FILE: /run/secrets/projectsend-hmac-secret
+    volumes:
+      - ./secrets/projectsend-hmac-secret:/run/secrets/projectsend-hmac-secret:ro

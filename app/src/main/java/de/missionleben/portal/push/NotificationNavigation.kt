@@ -29,7 +29,7 @@ object NotificationNavigation {
         return when (action) {
             PushAction.OPEN_MAIL -> zimbraMessageUrl(zimbraWebBaseUrl, validated)
             PushAction.OPEN_TALK -> talkRoomUrl(applicationLaunchUrl, validated)
-            PushAction.OPEN_CALENDAR, PushAction.REFRESH_SECURITY_STATE -> applicationLaunchUrl
+            PushAction.OPEN_CALENDAR, PushAction.OPEN_DOCUMENTS, PushAction.REFRESH_SECURITY_STATE -> applicationLaunchUrl
         }
     }
 

@@ -57,6 +57,7 @@ class Settings:
     duo_approval_timeout_seconds: int
     dev_mode: bool
     employee_directory_file: Path | None = None
+    projectsend_hmac_secret: bytes | None = None
 
     @property
     def ntfy_configured(self) -> bool:
@@ -76,6 +77,13 @@ class Settings:
         hmac_value = _required("BRIDGE_INTERNAL_HMAC_SECRET", dev_mode)
         if not dev_mode and len(hmac_value) < 32:
             raise RuntimeError("Bridge HMAC secret must contain at least 32 characters")
+        projectsend_secret_file = os.getenv("BRIDGE_PROJECTSEND_HMAC_SECRET_FILE", "").strip()
+        projectsend_secret = (
+            Path(projectsend_secret_file).read_bytes().strip()
+            if projectsend_secret_file else None
+        )
+        if projectsend_secret is not None and len(projectsend_secret) < 32:
+            raise RuntimeError("ProjectSend HMAC secret must contain at least 32 bytes")
 
         data_key_value = os.getenv("BRIDGE_DATA_KEY", "").strip()
         if data_key_value:
@@ -237,4 +245,5 @@ class Settings:
                 Path(os.environ["BRIDGE_EMPLOYEE_DIRECTORY_FILE"])
                 if os.getenv("BRIDGE_EMPLOYEE_DIRECTORY_FILE") else None
             ),
+            projectsend_hmac_secret=projectsend_secret,
         )

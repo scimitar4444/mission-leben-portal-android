@@ -8,6 +8,20 @@ import org.junit.Test
 
 class NotificationNavigationTest {
     @Test
+    fun `document notification opens only the approved catalog launch url`() {
+        val launch = "https://dokumente.mission-leben.de/auth/oidc/redirect"
+        assertEquals(
+            launch,
+            NotificationNavigation.resolve(
+                action = PushAction.OPEN_DOCUMENTS,
+                targetId = "https://evil.example/secret.pdf",
+                applicationLaunchUrl = launch,
+                zimbraWebBaseUrl = "https://mail.mission-leben.de",
+            ),
+        )
+    }
+
+    @Test
     fun `talk notification replaces oidc redirect with target room`() {
         val result = NotificationNavigation.resolve(
             action = PushAction.OPEN_TALK,

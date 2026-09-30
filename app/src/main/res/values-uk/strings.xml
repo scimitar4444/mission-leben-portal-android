@@ -227,6 +227,8 @@
     <string name="push_calendar_body">Наближається зустріч.</string>
     <string name="push_talk_title">Talk</string>
     <string name="push_talk_body">Нова активність Talk.</string>
+    <string name="push_documents_title">Документи ML</string>
+    <string name="push_documents_body">У вашій особистій скриньці з’явився новий документ.</string>
     <string name="push_security_title">Безпека пристрою</string>
     <string name="push_security_body">Перевірте стан безпеки в програмі.</string>
     <string name="channel_mail_name">Пошта</string>
@@ -265,6 +267,7 @@
     <string name="release_note_talk_calendar">Зустрічі Talk, відкриті з Zimbra, тепер запускаються в застосунку Talk. Період календаря прокручується горизонтально; налаштування Zimbra видно лише за наявності доступу.</string>
     <string name="release_note_setup_assistant">Нове: помічник допомагає налаштувати сповіщення, батарею та дозволені застосунки. Зустрічі Talk передусім відкриваються в застосунку Talk.</string>
     <string name="release_note_screenshots_disabled">Виправлення безпеки: знімки та записи екрана вмісту вебзастосунків знову заблоковано.</string>
+    <string name="release_note_documents">Mission Leben Zentral тепер може сповіщати вас про новий особистий документ. Сповіщення не показує вміст документа.</string>
     <string name="privacy_minimal_description_talk_only">Показувати лише сповіщення про нове повідомлення Talk.</string>
     <string name="privacy_standard_description_talk_only">Показувати відправника й короткий попередній перегляд Talk.</string>
     <string name="privacy_detailed_description_talk_only">Показувати відправника й довший попередній перегляд Talk.</string>

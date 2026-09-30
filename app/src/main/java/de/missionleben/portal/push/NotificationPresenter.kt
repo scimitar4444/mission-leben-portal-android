@@ -280,12 +280,12 @@ object NotificationPresenter {
         300_000_000 + (requestId.hashCode() and 0x00ffffff)
 
     private fun category(action: PushAction): String = when (action) {
-        PushAction.OPEN_MAIL, PushAction.OPEN_TALK -> NotificationCompat.CATEGORY_MESSAGE
+        PushAction.OPEN_MAIL, PushAction.OPEN_TALK, PushAction.OPEN_DOCUMENTS -> NotificationCompat.CATEGORY_MESSAGE
         PushAction.OPEN_CALENDAR -> NotificationCompat.CATEGORY_EVENT
         PushAction.REFRESH_SECURITY_STATE -> NotificationCompat.CATEGORY_STATUS
     }
 
-    private val COMMUNICATION_CHANNELS = setOf("mail", "calendar", "talk")
+    private val COMMUNICATION_CHANNELS = setOf("mail", "calendar", "talk", "documents")
     private const val EXTRA_PRIVACY = "de.missionleben.portal.notification_privacy"
     private const val EXTRA_SAFE_SUMMARY = "de.missionleben.portal.notification_summary"
     private const val EXTRA_CONTENT_POLICY = "de.missionleben.portal.notification_content_policy"

@@ -13,7 +13,8 @@ class NotificationPrivacyTest {
             assertEquals("", NotificationPrivacy.MINIMAL.visiblePreview(action, text))
             assertEquals(if (action == PushAction.OPEN_TALK) "x".repeat(120) else "",
                 NotificationPrivacy.STANDARD.visiblePreview(action, text))
-            assertEquals("x".repeat(280), NotificationPrivacy.DETAILED.visiblePreview(action, text))
+            assertEquals(if (action == PushAction.OPEN_DOCUMENTS) "" else "x".repeat(280),
+                NotificationPrivacy.DETAILED.visiblePreview(action, text))
         }
     }
 

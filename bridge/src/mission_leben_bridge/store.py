@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS notification_events (
     source TEXT NOT NULL,
     source_event_id TEXT NOT NULL,
     subject TEXT NOT NULL,
-    event_type TEXT NOT NULL CHECK (event_type IN ('open_mail', 'open_calendar', 'open_talk')),
+    event_type TEXT NOT NULL CHECK (event_type IN ('open_mail', 'open_calendar', 'open_talk', 'open_documents')),
     title TEXT NOT NULL,
     summary TEXT NOT NULL,
     preview TEXT NOT NULL,
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS calendar_snapshots (
 CREATE INDEX IF NOT EXISTS auth_requests_subject_status
 ON auth_requests(subject, status, expires_at);
 
-PRAGMA user_version=9;
+PRAGMA user_version=10;
 """
 
 
@@ -189,6 +189,7 @@ class Store:
                 connection.execute(
                     "ALTER TABLE notification_events ADD COLUMN target_id TEXT NOT NULL DEFAULT ''"
                 )
+            self._ensure_document_event_schema(connection)
             connection.execute(
                 """
                 INSERT OR IGNORE INTO event_delivery_queue(event_id, device_id, deliver_epoch, created_at)
@@ -198,10 +199,67 @@ class Store:
                 LEFT JOIN event_deliveries d
                   ON d.event_id = e.event_id AND d.device_id = r.device_id
                 WHERE e.delivered_at IS NULL AND d.event_id IS NULL
+                  AND e.event_type != 'open_documents'
                 """,
                 (int(time.time()),),
             )
-            connection.execute("PRAGMA user_version=9")
+            connection.execute("PRAGMA user_version=10")
+
+    @staticmethod
+    def _ensure_document_event_schema(connection: sqlite3.Connection) -> None:
+        row = connection.execute(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'notification_events'"
+        ).fetchone()
+        if row is None or "'open_documents'" in row["sql"]:
+            return
+        # SQLite cannot extend a CHECK constraint in place. Preserve event IDs
+        # and delivery FKs while replacing only this table in one transaction.
+        connection.commit()
+        connection.execute("PRAGMA foreign_keys=OFF")
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute("""
+                CREATE TABLE notification_events_v10 (
+                    event_id TEXT PRIMARY KEY,
+                    source TEXT NOT NULL,
+                    source_event_id TEXT NOT NULL,
+                    subject TEXT NOT NULL,
+                    event_type TEXT NOT NULL CHECK (event_type IN (
+                        'open_mail', 'open_calendar', 'open_talk', 'open_documents'
+                    )),
+                    title TEXT NOT NULL,
+                    summary TEXT NOT NULL,
+                    preview TEXT NOT NULL,
+                    target_id TEXT NOT NULL DEFAULT '',
+                    display_at TEXT,
+                    expires_at TEXT,
+                    expires_epoch INTEGER,
+                    deliver_epoch INTEGER NOT NULL,
+                    delivered_at INTEGER,
+                    revision INTEGER NOT NULL,
+                    created_at INTEGER NOT NULL,
+                    UNIQUE(source, source_event_id)
+                )
+            """)
+            columns = (
+                "event_id, source, source_event_id, subject, event_type, title, "
+                "summary, preview, target_id, display_at, expires_at, expires_epoch, "
+                "deliver_epoch, delivered_at, revision, created_at"
+            )
+            connection.execute(
+                f"INSERT INTO notification_events_v10 ({columns}) "
+                f"SELECT {columns} FROM notification_events"
+            )
+            connection.execute("DROP TABLE notification_events")
+            connection.execute("ALTER TABLE notification_events_v10 RENAME TO notification_events")
+            if connection.execute("PRAGMA foreign_key_check").fetchone() is not None:
+                raise RuntimeError("notification event migration would break a foreign key")
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.execute("PRAGMA foreign_keys=ON")
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path, timeout=15, factory=ClosingConnection)
@@ -916,6 +974,36 @@ class Store:
                 """,
                 (event_id, device_id, deliver_epoch, int(time.time())),
             )
+
+    def queue_pending_document_events(self, subject: str, device_id: str) -> int:
+        """Replay recent document alerts after a compatible personal app registers.
+
+        Older app versions never receive these events. The per-device delivery
+        record prevents a second push when a compatible app registers again.
+        """
+        now = int(time.time())
+        with self._connect() as connection:
+            cursor = connection.execute(
+                """
+                INSERT OR IGNORE INTO event_delivery_queue(
+                    event_id, device_id, deliver_epoch, created_at
+                )
+                SELECT e.event_id, r.device_id, e.deliver_epoch, ?
+                FROM push_registrations r
+                JOIN users u ON u.subject = r.subject AND u.active = 1
+                JOIN notification_events e ON e.subject = r.subject
+                LEFT JOIN event_deliveries d
+                  ON d.event_id = e.event_id AND d.device_id = r.device_id
+                WHERE r.device_id = ? AND r.subject = ?
+                  AND r.mode = 'personal' AND r.push_enabled = 1
+                  AND e.source = 'projectsend' AND e.event_type = 'open_documents'
+                  AND e.created_at >= ?
+                  AND (e.expires_epoch IS NULL OR e.expires_epoch > ?)
+                  AND d.event_id IS NULL
+                """,
+                (now, device_id, subject, now - 7 * 86_400, now),
+            )
+            return cursor.rowcount
 
     def due_delivery_queue(
         self, *, event_id: str | None = None, limit: int = 100

@@ -1519,6 +1519,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun resolvePendingPushAction() {
         val pending = pendingPushAction ?: return
         val action = pending.action
+        if (action == PushAction.OPEN_DOCUMENTS && preferences.deviceMode != DeviceMode.PERSONAL) {
+            pendingPushAction = null
+            return
+        }
         if (action == PushAction.REFRESH_SECURITY_STATE) {
             pendingPushAction = null
             refreshDeviceStatus()
@@ -1545,6 +1549,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 it.slug.contains("talk", ignoreCase = true) || it.name.contains("talk", ignoreCase = true)
             } ?: applications.firstOrNull {
                 it.slug.contains("nextcloud", ignoreCase = true) || it.name.contains("nextcloud", ignoreCase = true)
+            }
+            PushAction.OPEN_DOCUMENTS -> applications.firstOrNull {
+                it.slug == "projectsend-ml-dokumente-test"
             }
             PushAction.REFRESH_SECURITY_STATE -> null
         }

@@ -5,12 +5,14 @@ import de.missionleben.portal.model.PortalApplication
 
 enum class NotificationBadgeTarget {
     ZIMBRA,
-    TALK;
+    TALK,
+    DOCUMENTS;
 
     companion object {
         fun fromAction(action: PushAction): NotificationBadgeTarget? = when (action) {
             PushAction.OPEN_MAIL, PushAction.OPEN_CALENDAR -> ZIMBRA
             PushAction.OPEN_TALK -> TALK
+            PushAction.OPEN_DOCUMENTS -> DOCUMENTS
             PushAction.REFRESH_SECURITY_STATE -> null
         }
 
@@ -28,6 +30,7 @@ enum class NotificationBadgeTarget {
 
         private fun fromMarker(marker: String): NotificationBadgeTarget? {
             return when {
+                "projectsend-ml-dokumente-test" in marker -> DOCUMENTS
                 "zimbra" in marker -> ZIMBRA
                 "talk" in marker || "/apps/spreed" in marker -> TALK
                 else -> null
@@ -39,12 +42,14 @@ enum class NotificationBadgeTarget {
 data class NotificationBadgeCounts(
     val zimbra: Int = 0,
     val talk: Int = 0,
+    val documents: Int = 0,
 ) {
     fun countFor(application: PortalApplication): Int = when (
         NotificationBadgeTarget.fromApplication(application)
     ) {
         NotificationBadgeTarget.ZIMBRA -> zimbra
         NotificationBadgeTarget.TALK -> talk
+        NotificationBadgeTarget.DOCUMENTS -> documents
         null -> 0
     }
 }
@@ -105,6 +110,7 @@ class UnreadNotificationStore(context: Context) {
     fun counts(): NotificationBadgeCounts = NotificationBadgeCounts(
         zimbra = unread(NotificationBadgeTarget.ZIMBRA).size,
         talk = unread(NotificationBadgeTarget.TALK).size,
+        documents = unread(NotificationBadgeTarget.DOCUMENTS).size,
     )
 
     fun isUnread(action: PushAction, eventId: String): Boolean =

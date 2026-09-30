@@ -332,8 +332,15 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
 
     def _verify_internal(self, body: bytes) -> str:
         source = self.headers.get("X-ML-Source", "")
+        secret = (
+            self.server.settings.projectsend_hmac_secret
+            if source == "projectsend"
+            else self.server.settings.internal_hmac_secret
+        )
+        if secret is None:
+            raise ApiError(401, "invalid source signature")
         if not verify_source_request(
-            self.server.settings.internal_hmac_secret,
+            secret,
             source,
             self.headers.get("X-ML-Timestamp", ""),
             body,

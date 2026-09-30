@@ -23,7 +23,9 @@ from mission_leben_bridge.security import (
 from mission_leben_bridge.nextcloud_talk import NextcloudTalkWebhook
 from mission_leben_bridge.nextcloud_announcements import AnnouncementFetchError
 from mission_leben_bridge.ntfy import NtfyCredentials
-from mission_leben_bridge.service import BridgeService
+from mission_leben_bridge.service import (
+    ApiError, BridgeService, PROJECTSEND_ISSUER, supports_document_push,
+)
 from mission_leben_bridge.store import Store
 
 
@@ -50,6 +52,13 @@ class FakeAuthentik:
             "device_id": self.device_id(agent_token),
             "enrollment_profile": self.enrollment_profile,
         }
+
+
+class FakeProjectSendAuthentik(FakeAuthentik):
+    def user_info(self, access_token: str) -> UserInfo:
+        if access_token != "valid-token":
+            raise AssertionError("unexpected test token")
+        return UserInfo("a" * 64, "user@example.invalid", "Test User", frozenset())
 
 
 class FakeNtfy:
@@ -113,6 +122,116 @@ class ServiceTest(unittest.TestCase):
 
     def tearDown(self) -> None:
         self.directory.cleanup()
+
+    def test_projectsend_event_has_fixed_copy_and_strict_identity(self) -> None:
+        subject = "a" * 64
+        payload = {
+            "source_event_id": "notification:42",
+            "issuer": PROJECTSEND_ISSUER,
+            "user_subject": subject,
+            "event_type": "open_documents",
+        }
+        result = self.service.ingest_event("projectsend", payload)
+        event = self.store.get_event(result["event_id"])
+        self.assertTrue(result["created"])
+        self.assertEqual("ML Dokumente", event["title"])
+        self.assertEqual("Ein neues Dokument liegt in deinem persönlichen Postfach.", event["summary"])
+        self.assertEqual("", event["preview"])
+        self.assertEqual("", event["target_id"])
+        self.assertFalse(self.service.ingest_event("projectsend", payload)["created"])
+        for invalid in (
+            {**payload, "issuer": "https://evil.invalid/"},
+            {**payload, "user_subject": "someone@example.invalid"},
+            {**payload, "preview": "confidential"},
+            {**payload, "source_event_id": "notification:0"},
+        ):
+            with self.assertRaises(ApiError):
+                self.service.ingest_event("projectsend", invalid)
+        with self.assertRaises(ApiError):
+            self.service.ingest_event("test", payload)
+
+    def test_document_push_waits_for_compatible_personal_app_and_replays_once(self) -> None:
+        self.assertFalse(supports_document_push("0.20.1"))
+        self.assertFalse(supports_document_push("invalid"))
+        self.assertTrue(supports_document_push("0.21.0"))
+        service = BridgeService(self.store, FakeProjectSendAuthentik(), self.ntfy, ())
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        numbers = private_key.public_key().public_numbers()
+        jwk = {
+            "kty": "EC", "crv": "P-256",
+            "x": base64url_encode(numbers.x.to_bytes(32, "big")),
+            "y": base64url_encode(numbers.y.to_bytes(32, "big")),
+        }
+        jwk["kid"] = device_key_id(jwk)
+        registration = {
+            "provider": "ntfy", "authentik_device_token": "valid-agent-token",
+            "mode": "personal", "notification_privacy": "standard",
+            "app_version": "0.20.1", "key_id": jwk["kid"], "public_key_jwk": jwk,
+        }
+        device_id = "11111111-1111-1111-1111-111111111111"
+        service.register_push(device_id, "valid-token", registration)
+        result = service.ingest_event("projectsend", {
+            "source_event_id": "notification:42", "issuer": PROJECTSEND_ISSUER,
+            "user_subject": "a" * 64, "event_type": "open_documents",
+        })
+        self.assertEqual(0, result["dispatched"])
+        self.assertEqual([], self.ntfy.messages)
+        self.assertIsNone(self.store.get_event(result["event_id"])["delivered_at"])
+
+        registration["app_version"] = "0.21.0"
+        service.register_push(device_id, "valid-token", registration)
+        self.assertEqual(1, service.dispatch_due_events())
+        self.assertEqual("open_documents", self.ntfy.messages[0][2]["event_type"])
+        service.register_push(device_id, "valid-token", registration)
+        self.assertEqual(0, service.dispatch_due_events())
+        self.assertEqual(1, len(self.ntfy.messages))
+
+    def test_document_push_is_never_sent_to_shared_registration(self) -> None:
+        service = BridgeService(self.store, FakeProjectSendAuthentik(), self.ntfy, ())
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        numbers = private_key.public_key().public_numbers()
+        jwk = {
+            "kty": "EC", "crv": "P-256",
+            "x": base64url_encode(numbers.x.to_bytes(32, "big")),
+            "y": base64url_encode(numbers.y.to_bytes(32, "big")),
+        }
+        jwk["kid"] = device_key_id(jwk)
+        service.register_push("11111111-1111-1111-1111-111111111111", "valid-token", {
+            "provider": "ntfy", "authentik_device_token": "valid-agent-token",
+            "mode": "shared", "notification_privacy": "minimal",
+            "app_version": "0.21.0", "key_id": jwk["kid"], "public_key_jwk": jwk,
+        })
+        result = service.ingest_event("projectsend", {
+            "source_event_id": "notification:43", "issuer": PROJECTSEND_ISSUER,
+            "user_subject": "a" * 64, "event_type": "open_documents",
+        })
+        self.assertEqual(0, result["dispatched"])
+        self.assertEqual(0, service.dispatch_due_events())
+        self.assertEqual([], self.ntfy.messages)
+
+    def test_document_push_is_not_sent_to_personal_mode_group_handset(self) -> None:
+        authentik = FakeProjectSendAuthentik()
+        authentik.enrollment_profile = "shared-account-handset"
+        service = BridgeService(self.store, authentik, self.ntfy, ())
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        numbers = private_key.public_key().public_numbers()
+        jwk = {
+            "kty": "EC", "crv": "P-256",
+            "x": base64url_encode(numbers.x.to_bytes(32, "big")),
+            "y": base64url_encode(numbers.y.to_bytes(32, "big")),
+        }
+        jwk["kid"] = device_key_id(jwk)
+        service.register_push("11111111-1111-1111-1111-111111111111", "valid-token", {
+            "provider": "ntfy", "authentik_device_token": "valid-agent-token",
+            "mode": "personal", "notification_privacy": "minimal",
+            "app_version": "0.21.0", "key_id": jwk["kid"], "public_key_jwk": jwk,
+        })
+        result = service.ingest_event("projectsend", {
+            "source_event_id": "notification:44", "issuer": PROJECTSEND_ISSUER,
+            "user_subject": "a" * 64, "event_type": "open_documents",
+        })
+        self.assertEqual(0, result["dispatched"])
+        self.assertEqual([], self.ntfy.messages)
 
     def test_authentik_device_registration_and_minimal_ntfy_payload(self) -> None:
         private_key = ec.generate_private_key(ec.SECP256R1())

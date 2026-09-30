@@ -27,6 +27,7 @@ enum class NotificationPrivacy(
 
     /** Local ceiling, independent of what a delayed/server-side response contains. */
     fun visiblePreview(action: PushAction, preview: String): String = when {
+        action == PushAction.OPEN_DOCUMENTS -> ""
         this == DETAILED -> preview.take(280)
         this == STANDARD && action == PushAction.OPEN_TALK -> preview.take(120)
         else -> ""

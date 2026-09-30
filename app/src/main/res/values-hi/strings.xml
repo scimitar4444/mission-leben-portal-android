@@ -227,6 +227,8 @@
     <string name="push_calendar_body">एक अपॉइंटमेंट आने वाला है।</string>
     <string name="push_talk_title">Talk</string>
     <string name="push_talk_body">नई Talk गतिविधि।</string>
+    <string name="push_documents_title">ML दस्तावेज़</string>
+    <string name="push_documents_body">आपके व्यक्तिगत इनबॉक्स में एक नया दस्तावेज़ है।</string>
     <string name="push_security_title">डिवाइस सुरक्षा</string>
     <string name="push_security_body">ऐप में सुरक्षा स्थिति जाँचें।</string>
     <string name="channel_mail_name">मेल</string>
@@ -263,6 +265,7 @@
     <string name="release_note_talk_calendar">Zimbra से खोली गई Talk मीटिंग अब Talk ऐप में खुलती है। कैलेंडर अवधि को बगल में स्क्रॉल किया जा सकता है; Zimbra सेटिंग केवल अनुमति होने पर दिखती है।</string>
     <string name="release_note_setup_assistant">नया: सेटअप सहायक सूचनाएँ, बैटरी और अनुमति प्राप्त ऐप सेट करने में मदद करता है। Talk मीटिंग के लिए Talk ऐप को प्राथमिकता दी जाती है।</string>
     <string name="release_note_screenshots_disabled">सुरक्षा सुधार: वेब ऐप की सामग्री के स्क्रीनशॉट और स्क्रीन रिकॉर्डिंग फिर से बंद हैं।</string>
+    <string name="release_note_documents">नया व्यक्तिगत दस्तावेज़ उपलब्ध होने पर Mission Leben Zentral अब आपको सूचना दे सकता है। सूचना में दस्तावेज़ की सामग्री नहीं दिखाई जाती।</string>
     <string name="privacy_minimal_description_talk_only">केवल नए Talk संदेश की सूचना दिखाएँ।</string>
     <string name="privacy_standard_description_talk_only">भेजने वाला और Talk का छोटा पूर्वावलोकन दिखाएँ।</string>
     <string name="privacy_detailed_description_talk_only">भेजने वाला और Talk का लंबा पूर्वावलोकन दिखाएँ।</string>

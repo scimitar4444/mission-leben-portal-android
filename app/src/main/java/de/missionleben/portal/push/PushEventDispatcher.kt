@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.app.job.JobScheduler
 import de.missionleben.portal.MissionLebenApplication
+import de.missionleben.portal.data.AppPreferences
+import de.missionleben.portal.model.DeviceMode
 
 object PushEventDispatcher {
     fun dispatch(context: Context, command: PushCommand) {
@@ -11,6 +13,10 @@ object PushEventDispatcher {
             is PushCommand.Legacy -> synchronized(NotificationPresenter) {
                 if (command.action == PushAction.REFRESH_SECURITY_STATE) {
                     DeviceSecurityRefreshJobService.schedule(context)
+                } else if (command.action == PushAction.OPEN_DOCUMENTS &&
+                    AppPreferences(context).deviceMode != DeviceMode.PERSONAL
+                ) {
+                    return@synchronized
                 } else if (PushRegistrationStore(context).communicationAllowed()) {
                     val eventId = "legacy-${command.action.wireName}-${System.nanoTime()}"
                     recordUnread(context, command.action, eventId)
@@ -20,6 +26,9 @@ object PushEventDispatcher {
             // Serialize receive+record+post+schedule with application dismissal
             // and late rich responses; do not leave a job behind after clearing.
             is PushCommand.Fetch -> synchronized(NotificationPresenter) {
+                if (command.eventType == PushAction.OPEN_DOCUMENTS &&
+                    AppPreferences(context).deviceMode != DeviceMode.PERSONAL
+                ) return@synchronized
                 if (!PushRegistrationStore(context).communicationAllowed()) return@synchronized
                 recordUnread(context, command.eventType, command.eventId)
                 if (!UnreadNotificationStore(context).isUnread(command.eventType, command.eventId)) {

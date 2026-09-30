@@ -24,6 +24,7 @@
     <string name="release_note_talk_calendar">Talk meetings opened from Zimbra now use the Talk app. The calendar period scrolls sideways; Zimbra settings appear only with access.</string>
     <string name="release_note_setup_assistant">New: The setup assistant helps with alerts, battery settings, and approved apps. Talk meetings prefer the Talk app.</string>
     <string name="release_note_screenshots_disabled">Security fix: Screenshots and screen recordings of web app content are blocked again.</string>
+    <string name="release_note_documents">Mission Leben Zentral can now notify you when a new personal document is available. The notification does not show document contents.</string>
     <string name="release_notes_done">Got it</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
@@ -241,6 +242,8 @@
     <string name="push_calendar_body">An appointment is coming up.</string>
     <string name="push_talk_title">Talk</string>
     <string name="push_talk_body">New Talk activity.</string>
+    <string name="push_documents_title">ML Documents</string>
+    <string name="push_documents_body">A new document is available in your personal inbox.</string>
     <string name="push_security_title">Device security</string>
     <string name="push_security_body">Check the security status in the app.</string>
     <string name="channel_mail_name">Mail</string>

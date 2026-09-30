@@ -24,11 +24,21 @@ KEY_ID = re.compile(r"^[a-f0-9]{24}$")
 ROOM_TOKEN = re.compile(r"^[A-Za-z0-9_-]{6,128}$")
 TALK_NOTIFICATION_TARGET = re.compile(r"^[A-Za-z0-9_-]{4,128}$")
 ZIMBRA_ITEM_ID = re.compile(r"^(?:[A-Za-z0-9_-]{1,64}:)?[0-9]{1,20}$")
-EVENT_TYPES = {"open_mail", "open_calendar", "open_talk"}
+EVENT_TYPES = {"open_mail", "open_calendar", "open_talk", "open_documents"}
+PROJECTSEND_ISSUER = "https://id.mission-leben.de/application/o/projectsend-ml-dokumente-test/"
+PROJECTSEND_SUBJECT = re.compile(r"^[a-f0-9]{64}$")
+PROJECTSEND_EVENT_ID = re.compile(r"^notification:[1-9][0-9]{0,19}$")
+APP_VERSION = re.compile(r"^(\d+)\.(\d+)\.(\d+)(?:[-+][A-Za-z0-9.-]+)?$")
+DOCUMENT_PUSH_MIN_VERSION = (0, 21, 0)
 PRIVACY_LEVELS = {"minimal", "standard", "detailed"}
 CALENDAR_REMINDER_MINUTES = {5, 10, 15, 30}
 DEFAULT_CALENDAR_REMINDER_MINUTES = 15
 KNOWN_CAPABILITIES = {"open_talk", "device_profile_switch"}
+
+
+def supports_document_push(app_version: str) -> bool:
+    match = APP_VERSION.fullmatch(app_version)
+    return match is not None and tuple(int(part) for part in match.groups()) >= DOCUMENT_PUSH_MIN_VERSION
 
 
 class ApiError(Exception):
@@ -356,9 +366,10 @@ class BridgeService:
         if derived_key_id != key_id or jwk.get("kid") != key_id:
             raise ApiError(400, "key_id does not match the communication public key")
         try:
-            verified_device_id = self.authentik.device_id(agent_token)
+            device_status = self.authentik.device_status(agent_token)
         except AuthenticationError as error:
             raise ApiError(403 if error.permanent else 503, str(error)) from error
+        verified_device_id = str(device_status.get("device_id") or "")
         if verified_device_id != device_id:
             raise ApiError(403, "Authentik device token does not match the device id")
         existing = self.store.get_registration(device_id)
@@ -410,6 +421,10 @@ class BridgeService:
                 quiet_end_minutes=quiet_end_minutes,
                 timezone_name=timezone_name,
             )
+            if mode == "personal" and device_status.get("enrollment_profile") == "personal-employee" and supports_document_push(
+                _text(payload.get("app_version"), 30)
+            ):
+                self.store.queue_pending_document_events(user.subject, device_id)
         except PermissionError as error:
             if created:
                 try:
@@ -505,8 +520,19 @@ class BridgeService:
         return {"handoff_id": handoff_id, "status": "accepted"}
 
     def ingest_event(self, source: str, payload: dict[str, Any]) -> dict[str, Any]:
-        if source not in {"zimbra", "nextcloud", "test"}:
+        if source not in {"zimbra", "nextcloud", "test", "projectsend"}:
             raise ApiError(400, "unknown event source")
+        if source == "projectsend":
+            if set(payload) != {"source_event_id", "issuer", "user_subject", "event_type"}:
+                raise ApiError(400, "invalid ProjectSend event fields")
+            if payload.get("issuer") != PROJECTSEND_ISSUER or payload.get("event_type") != "open_documents":
+                raise ApiError(400, "invalid ProjectSend identity or event type")
+            if not PROJECTSEND_EVENT_ID.fullmatch(str(payload.get("source_event_id", ""))):
+                raise ApiError(400, "invalid ProjectSend event id")
+            if not PROJECTSEND_SUBJECT.fullmatch(str(payload.get("user_subject", ""))):
+                raise ApiError(400, "invalid ProjectSend subject")
+        elif payload.get("event_type") == "open_documents":
+            raise ApiError(400, "document events require the ProjectSend source")
         event_type = str(payload.get("event_type", ""))
         if event_type not in EVENT_TYPES:
             raise ApiError(400, "invalid event type")
@@ -528,9 +554,12 @@ class BridgeService:
                 "source_event_id": source_event_id,
                 "subject": subject,
                 "event_type": event_type,
-                "title": _text(payload.get("title"), 80),
-                "summary": _text(payload.get("summary"), 160),
-                "preview": _text(payload.get("preview"), 280),
+                "title": "ML Dokumente" if source == "projectsend" else _text(payload.get("title"), 80),
+                "summary": (
+                    "Ein neues Dokument liegt in deinem persönlichen Postfach."
+                    if source == "projectsend" else _text(payload.get("summary"), 160)
+                ),
+                "preview": "" if source == "projectsend" else _text(payload.get("preview"), 280),
                 "target_id": _notification_target(event_type, payload.get("target_id")),
                 "display_at": display_at,
                 "expires_at": expires_at,
@@ -545,6 +574,11 @@ class BridgeService:
         dispatches = 0
         if created:
             registrations = self.store.registrations_for_subject(subject)
+            if source == "projectsend":
+                registrations = [
+                    r for r in registrations
+                    if r["mode"] == "personal" and supports_document_push(r["app_version"])
+                ]
             for registration in registrations:
                 registration_delivery_epoch = event["deliver_epoch"]
                 if event_type == "open_calendar" and display_epoch is not None:
@@ -561,7 +595,7 @@ class BridgeService:
                 )
             if registrations:
                 dispatches = self.dispatch_due_events(event_id=event["event_id"])
-            else:
+            elif source != "projectsend":
                 self.store.finish_event_without_targets(event["event_id"])
         return {"event_id": event["event_id"], "created": created, "dispatched": dispatches}
 
@@ -578,13 +612,23 @@ class BridgeService:
                 if event is None or registration is None or registration["subject"] != event["subject"]:
                     self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
                     continue
+                if event["source"] == "projectsend" and (
+                    registration["mode"] != "personal"
+                    or not supports_document_push(registration["app_version"])
+                ):
+                    self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
+                    continue
                 if event["expires_epoch"] is not None and event["expires_epoch"] <= int(time.time()):
                     self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
                     continue
                 try:
-                    if self.authentik.device_id(registration["agent_token"]) != device_id:
+                    device_status = self.authentik.device_status(registration["agent_token"])
+                    if str(device_status.get("device_id") or "") != device_id:
                         self._remove_registration(registration)
                         self.store.finish_event_without_targets(queued_event_id)
+                        continue
+                    if event["source"] == "projectsend" and device_status.get("enrollment_profile") != "personal-employee":
+                        self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
                         continue
                     if registration.get("push_provider") != "ntfy":
                         self._remove_registration(registration)

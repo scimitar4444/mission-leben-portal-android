@@ -49,7 +49,7 @@ class NotificationDismissalTest {
         manager.cancelAll()
         scheduler = context.getSystemService(JobScheduler::class.java)
         scheduler.cancelAll()
-        listOf("mail", "calendar", "talk", "security", "connection").forEach {
+        listOf("mail", "calendar", "talk", "documents", "security", "connection").forEach {
             manager.createNotificationChannel(NotificationChannel(it, it, NotificationManager.IMPORTANCE_DEFAULT))
         }
         AppPreferences(context).apply {
@@ -89,6 +89,22 @@ class NotificationDismissalTest {
             .setSmallIcon(R.drawable.ic_notification).setContentTitle("Login request").build())
         manager.notify(502, NotificationCompat.Builder(context, "connection")
             .setSmallIcon(R.drawable.ic_notification).setContentTitle("Push connection").build())
+    }
+
+    @Test fun documentNoticeOnlyTargetsPersonalDevicesAndClearsWhenOpened() {
+        val eventId = "document-event-0123456789"
+        AppPreferences(context).deviceMode = DeviceMode.SHARED
+        receive(PushAction.OPEN_DOCUMENTS, eventId)
+        assertEquals(0, unread.counts().documents)
+        assertFalse("documents" in activeChannels())
+
+        AppPreferences(context).deviceMode = DeviceMode.PERSONAL
+        receive(PushAction.OPEN_DOCUMENTS, eventId)
+        assertEquals(1, unread.counts().documents)
+        assertTrue("documents" in activeChannels())
+        NotificationPresenter.dismissApplication(context, NotificationBadgeTarget.DOCUMENTS)
+        assertEquals(0, unread.counts().documents)
+        assertFalse("documents" in activeChannels())
     }
 
     @Test fun openingZimbraClearsMailAndCalendarButKeepsTalkAndSecurity() {

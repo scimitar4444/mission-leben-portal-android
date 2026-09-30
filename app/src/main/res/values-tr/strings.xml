@@ -227,6 +227,8 @@
     <string name="push_calendar_body">Yaklaşan bir randevu var.</string>
     <string name="push_talk_title">Talk</string>
     <string name="push_talk_body">Yeni Talk etkinliği.</string>
+    <string name="push_documents_title">ML Belgeler</string>
+    <string name="push_documents_body">Kişisel gelen kutunuzda yeni bir belge var.</string>
     <string name="push_security_title">Cihaz güvenliği</string>
     <string name="push_security_body">Uygulamadaki güvenlik durumunu kontrol edin.</string>
     <string name="channel_mail_name">Posta</string>
@@ -263,6 +265,7 @@
     <string name="release_note_talk_calendar">Zimbra’dan açılan Talk toplantıları artık Talk uygulamasını kullanıyor. Takvim aralığı yatay kaydırılabilir; Zimbra ayarları yalnızca erişim varsa görünür.</string>
     <string name="release_note_setup_assistant">Yeni: Kurulum yardımcısı bildirim, pil ve izinli uygulama ayarlarında yardımcı olur. Talk toplantıları öncelikle Talk uygulamasında açılır.</string>
     <string name="release_note_screenshots_disabled">Güvenlik düzeltmesi: Web uygulaması içeriğinin ekran görüntüleri ve ekran kayıtları yeniden engellendi.</string>
+    <string name="release_note_documents">Mission Leben Zentral artık yeni bir kişisel belge hazır olduğunda sizi bilgilendirebilir. Bildirimde belgenin içeriği gösterilmez.</string>
     <string name="privacy_minimal_description_talk_only">Yalnızca yeni Talk mesajı bildirimini göster.</string>
     <string name="privacy_standard_description_talk_only">Göndereni ve kısa bir Talk önizlemesini göster.</string>
     <string name="privacy_detailed_description_talk_only">Göndereni ve daha uzun bir Talk önizlemesini göster.</string>
