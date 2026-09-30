@@ -266,6 +266,7 @@
     <string name="release_note_setup_assistant">Yeni: Kurulum yardımcısı bildirim, pil ve izinli uygulama ayarlarında yardımcı olur. Talk toplantıları öncelikle Talk uygulamasında açılır.</string>
     <string name="release_note_screenshots_disabled">Güvenlik düzeltmesi: Web uygulaması içeriğinin ekran görüntüleri ve ekran kayıtları yeniden engellendi.</string>
     <string name="release_note_documents">Mission Leben Zentral artık yeni bir kişisel belge hazır olduğunda sizi bilgilendirebilir. Bildirimde belgenin içeriği gösterilmez.</string>
+    <string name="release_note_documents_channel_fix">Düzeltme: Android artık yeni kişisel belgeler için bildirimleri gösteriyor.</string>
     <string name="privacy_minimal_description_talk_only">Yalnızca yeni Talk mesajı bildirimini göster.</string>
     <string name="privacy_standard_description_talk_only">Göndereni ve kısa bir Talk önizlemesini göster.</string>
     <string name="privacy_detailed_description_talk_only">Göndereni ve daha uzun bir Talk önizlemesini göster.</string>

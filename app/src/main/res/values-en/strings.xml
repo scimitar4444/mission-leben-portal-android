@@ -25,6 +25,7 @@
     <string name="release_note_setup_assistant">New: The setup assistant helps with alerts, battery settings, and approved apps. Talk meetings prefer the Talk app.</string>
     <string name="release_note_screenshots_disabled">Security fix: Screenshots and screen recordings of web app content are blocked again.</string>
     <string name="release_note_documents">Mission Leben Zentral can now notify you when a new personal document is available. The notification does not show document contents.</string>
+    <string name="release_note_documents_channel_fix">Fix: Android now shows alerts for new personal documents.</string>
     <string name="release_notes_done">Got it</string>
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>

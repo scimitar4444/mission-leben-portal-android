@@ -267,6 +267,7 @@
     <string name="release_note_setup_assistant">Nou: asistentul ajută la setarea alertelor, bateriei și aplicațiilor permise. Întâlnirile Talk folosesc cu prioritate aplicația Talk.</string>
     <string name="release_note_screenshots_disabled">Corecție de securitate: capturile și înregistrările de ecran ale conținutului aplicațiilor web sunt din nou blocate.</string>
     <string name="release_note_documents">Mission Leben Zentral te poate anunța acum când este disponibil un document personal nou. Notificarea nu afișează conținutul documentului.</string>
+    <string name="release_note_documents_channel_fix">Corecție: Android afișează acum notificările despre documente personale noi.</string>
     <string name="privacy_minimal_description_talk_only">Afișează doar o notificare pentru un mesaj Talk nou.</string>
     <string name="privacy_standard_description_talk_only">Afișează expeditorul și o scurtă previzualizare Talk.</string>
     <string name="privacy_detailed_description_talk_only">Afișează expeditorul și o previzualizare Talk mai lungă.</string>

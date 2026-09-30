@@ -266,6 +266,7 @@
     <string name="release_note_setup_assistant">नया: सेटअप सहायक सूचनाएँ, बैटरी और अनुमति प्राप्त ऐप सेट करने में मदद करता है। Talk मीटिंग के लिए Talk ऐप को प्राथमिकता दी जाती है।</string>
     <string name="release_note_screenshots_disabled">सुरक्षा सुधार: वेब ऐप की सामग्री के स्क्रीनशॉट और स्क्रीन रिकॉर्डिंग फिर से बंद हैं।</string>
     <string name="release_note_documents">नया व्यक्तिगत दस्तावेज़ उपलब्ध होने पर Mission Leben Zentral अब आपको सूचना दे सकता है। सूचना में दस्तावेज़ की सामग्री नहीं दिखाई जाती।</string>
+    <string name="release_note_documents_channel_fix">सुधार: Android अब नए व्यक्तिगत दस्तावेज़ों की सूचनाएँ दिखाता है।</string>
     <string name="privacy_minimal_description_talk_only">केवल नए Talk संदेश की सूचना दिखाएँ।</string>
     <string name="privacy_standard_description_talk_only">भेजने वाला और Talk का छोटा पूर्वावलोकन दिखाएँ।</string>
     <string name="privacy_detailed_description_talk_only">भेजने वाला और Talk का लंबा पूर्वावलोकन दिखाएँ।</string>

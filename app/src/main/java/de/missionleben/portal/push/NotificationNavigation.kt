@@ -1,11 +1,15 @@
 package de.missionleben.portal.push
 
+import de.missionleben.portal.model.PortalApplication
 import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 object NotificationNavigation {
+    fun approvedDocumentsApplication(applications: List<PortalApplication>): PortalApplication? =
+        applications.firstOrNull { it.slug == "projectsend-ml-dokumente-test" }
+
     fun resolve(
         action: PushAction,
         targetId: String,

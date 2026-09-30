@@ -1550,9 +1550,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } ?: applications.firstOrNull {
                 it.slug.contains("nextcloud", ignoreCase = true) || it.name.contains("nextcloud", ignoreCase = true)
             }
-            PushAction.OPEN_DOCUMENTS -> applications.firstOrNull {
-                it.slug == "projectsend-ml-dokumente-test"
-            }
+            PushAction.OPEN_DOCUMENTS -> NotificationNavigation.approvedDocumentsApplication(applications)
             PushAction.REFRESH_SECURITY_STATE -> null
         }
         pendingPushAction = null

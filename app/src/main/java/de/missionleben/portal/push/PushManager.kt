@@ -44,7 +44,7 @@ object PushManager {
         if (clearCredentials) NtfyCredentialVault(context).clear()
     }
 
-    private fun createChannels(context: Context) {
+    internal fun createChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannels(
             listOf(
@@ -56,6 +56,9 @@ object PushManager {
                 },
                 NotificationChannel("talk", context.getString(R.string.channel_talk_name), NotificationManager.IMPORTANCE_DEFAULT).apply {
                     description = context.getString(R.string.channel_talk_description)
+                },
+                NotificationChannel("documents", context.getString(R.string.push_documents_title), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                    description = context.getString(R.string.push_documents_body)
                 },
                 NotificationChannel("security", context.getString(R.string.channel_security_name), NotificationManager.IMPORTANCE_HIGH).apply {
                     description = context.getString(R.string.channel_security_description)

@@ -1,5 +1,6 @@
 package de.missionleben.portal.push
 
+import de.missionleben.portal.model.PortalApplication
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -7,6 +8,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NotificationNavigationTest {
+    @Test
+    fun `document tap selects only the currently approved documents catalog entry`() {
+        val launch = "https://dokumente.mission-leben.de/auth/oidc/redirect"
+        val approved = PortalApplication("ML Dokumente", "projectsend-ml-dokumente-test", launch)
+        val lookalike = PortalApplication("ML Dokumente", "unapproved-documents", "https://evil.example")
+        assertEquals(approved, NotificationNavigation.approvedDocumentsApplication(listOf(lookalike, approved)))
+        assertNull(NotificationNavigation.approvedDocumentsApplication(listOf(lookalike)))
+    }
+
     @Test
     fun `document notification opens only the approved catalog launch url`() {
         val launch = "https://dokumente.mission-leben.de/auth/oidc/redirect"

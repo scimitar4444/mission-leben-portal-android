@@ -153,7 +153,8 @@ class ServiceTest(unittest.TestCase):
     def test_document_push_waits_for_compatible_personal_app_and_replays_once(self) -> None:
         self.assertFalse(supports_document_push("0.20.1"))
         self.assertFalse(supports_document_push("invalid"))
-        self.assertTrue(supports_document_push("0.21.0"))
+        self.assertFalse(supports_document_push("0.21.0"))
+        self.assertTrue(supports_document_push("0.21.1"))
         service = BridgeService(self.store, FakeProjectSendAuthentik(), self.ntfy, ())
         private_key = ec.generate_private_key(ec.SECP256R1())
         numbers = private_key.public_key().public_numbers()
@@ -180,6 +181,11 @@ class ServiceTest(unittest.TestCase):
 
         registration["app_version"] = "0.21.0"
         service.register_push(device_id, "valid-token", registration)
+        self.assertEqual(0, service.dispatch_due_events())
+        self.assertEqual([], self.ntfy.messages)
+
+        registration["app_version"] = "0.21.1"
+        service.register_push(device_id, "valid-token", registration)
         self.assertEqual(1, service.dispatch_due_events())
         self.assertEqual("open_documents", self.ntfy.messages[0][2]["event_type"])
         service.register_push(device_id, "valid-token", registration)
@@ -199,7 +205,7 @@ class ServiceTest(unittest.TestCase):
         service.register_push("11111111-1111-1111-1111-111111111111", "valid-token", {
             "provider": "ntfy", "authentik_device_token": "valid-agent-token",
             "mode": "shared", "notification_privacy": "minimal",
-            "app_version": "0.21.0", "key_id": jwk["kid"], "public_key_jwk": jwk,
+            "app_version": "0.21.1", "key_id": jwk["kid"], "public_key_jwk": jwk,
         })
         result = service.ingest_event("projectsend", {
             "source_event_id": "notification:43", "issuer": PROJECTSEND_ISSUER,
@@ -224,7 +230,7 @@ class ServiceTest(unittest.TestCase):
         service.register_push("11111111-1111-1111-1111-111111111111", "valid-token", {
             "provider": "ntfy", "authentik_device_token": "valid-agent-token",
             "mode": "personal", "notification_privacy": "minimal",
-            "app_version": "0.21.0", "key_id": jwk["kid"], "public_key_jwk": jwk,
+            "app_version": "0.21.1", "key_id": jwk["kid"], "public_key_jwk": jwk,
         })
         result = service.ingest_event("projectsend", {
             "source_event_id": "notification:44", "issuer": PROJECTSEND_ISSUER,

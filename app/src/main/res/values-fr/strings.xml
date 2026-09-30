@@ -266,6 +266,7 @@
     <string name="release_note_setup_assistant">Nouveau : l’assistant aide à régler les alertes, la batterie et les applications autorisées. Les réunions Talk privilégient l’application Talk.</string>
     <string name="release_note_screenshots_disabled">Correctif de sécurité : les captures et enregistrements d’écran du contenu des applications web sont de nouveau bloqués.</string>
     <string name="release_note_documents">Mission Leben Zentral peut désormais vous avertir lorsqu’un nouveau document personnel est disponible. L’avis n’affiche pas son contenu.</string>
+    <string name="release_note_documents_channel_fix">Correctif : Android affiche désormais les notifications concernant les nouveaux documents personnels.</string>
     <string name="privacy_minimal_description_talk_only">Afficher seulement une alerte de nouveau message Talk.</string>
     <string name="privacy_standard_description_talk_only">Afficher l’expéditeur et un court aperçu Talk.</string>
     <string name="privacy_detailed_description_talk_only">Afficher l’expéditeur et un aperçu Talk plus long.</string>

@@ -48,6 +48,7 @@
     <string name="release_note_setup_assistant">Neu: Der Einrichtungsassistent hilft bei Hinweisen, Akku und freigegebenen Anwendungen. Talk-Besprechungen öffnen bevorzugt die Talk-App.</string>
     <string name="release_note_screenshots_disabled">Sicherheitskorrektur: Screenshots und Bildschirmaufnahmen von Web-App-Inhalten sind wieder gesperrt.</string>
     <string name="release_note_documents">Wenn ein neues persönliches Dokument bereitliegt, kann Mission Leben Zentral dich jetzt benachrichtigen. Der Hinweis zeigt keinen Dokumentinhalt.</string>
+    <string name="release_note_documents_channel_fix">Korrektur: Hinweise auf neue persönliche Dokumente werden jetzt von Android angezeigt.</string>
     <string name="release_notes_done">Verstanden</string>
     <string name="open_action">Öffnen</string>
 
