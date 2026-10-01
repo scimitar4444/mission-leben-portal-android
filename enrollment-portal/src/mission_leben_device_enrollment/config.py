@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -62,6 +63,11 @@ class Settings:
     smtp_port: int = 25
     smtp_sender: str = ""
     android_cert_sha256_fingerprints: tuple[str, ...] = ()
+    shared_handset_entitlement_uuid: str | None = None
+    shared_handset_exception_dag_uuid: str | None = None
+    shared_handset_positive_policy_uuid: str | None = None
+    shared_handset_positive_policy_sha256: str | None = None
+    shared_handset_positive_binding_uuid: str | None = None
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -94,6 +100,13 @@ class Settings:
             smtp_host=os.environ.get("ML_ENROLL_SMTP_HOST", "").strip(),
             smtp_port=int(os.environ.get("ML_ENROLL_SMTP_PORT", "25")),
             smtp_sender=os.environ.get("ML_ENROLL_SMTP_SENDER", "").strip(),
+            shared_handset_entitlement_uuid=(
+                os.environ.get("ML_ENROLL_SHARED_HANDSET_ENTITLEMENT_UUID", "").strip() or None
+            ),
+            shared_handset_exception_dag_uuid=os.environ.get("ML_ENROLL_SHARED_HANDSET_EXCEPTION_DAG_UUID", "").strip() or None,
+            shared_handset_positive_policy_uuid=os.environ.get("ML_ENROLL_SHARED_HANDSET_POSITIVE_POLICY_UUID", "").strip() or None,
+            shared_handset_positive_policy_sha256=os.environ.get("ML_ENROLL_SHARED_HANDSET_POSITIVE_POLICY_SHA256", "").strip() or None,
+            shared_handset_positive_binding_uuid=os.environ.get("ML_ENROLL_SHARED_HANDSET_POSITIVE_BINDING_UUID", "").strip() or None,
             android_cert_sha256_fingerprints=tuple(
                 fingerprint.strip().upper()
                 for fingerprint in os.environ.get(
@@ -138,6 +151,24 @@ class Settings:
                 UUID(self.app_approval_stage_uuid)
             except ValueError as error:
                 raise RuntimeError("ML_ENROLL_APP_APPROVAL_STAGE_UUID must be a UUID") from error
+        if self.shared_handset_entitlement_uuid:
+            try:
+                UUID(self.shared_handset_entitlement_uuid)
+            except ValueError as error:
+                raise RuntimeError("ML_ENROLL_SHARED_HANDSET_ENTITLEMENT_UUID must be a UUID") from error
+        gate_pins = (self.shared_handset_exception_dag_uuid, self.shared_handset_positive_policy_uuid,
+                     self.shared_handset_positive_policy_sha256, self.shared_handset_positive_binding_uuid)
+        if any(gate_pins):
+            if not all(gate_pins) or not self.shared_handset_entitlement_uuid:
+                raise RuntimeError("The shared-handset exception requires the complete pinned gate configuration")
+            for value in (self.shared_handset_exception_dag_uuid, self.shared_handset_positive_policy_uuid,
+                          self.shared_handset_positive_binding_uuid):
+                try:
+                    UUID(value)
+                except ValueError as error:
+                    raise RuntimeError("Shared-handset gate pins must be UUIDs") from error
+            if not re.fullmatch(r"[0-9a-f]{64}", self.shared_handset_positive_policy_sha256):
+                raise RuntimeError("Shared-handset positive policy SHA-256 is invalid")
         if not 120 <= self.token_ttl_seconds <= 1800:
             raise RuntimeError("ML_ENROLL_TOKEN_TTL_SECONDS must be between 120 and 1800")
         for fingerprint in self.android_cert_sha256_fingerprints:

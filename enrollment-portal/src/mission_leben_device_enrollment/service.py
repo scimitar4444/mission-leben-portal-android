@@ -116,7 +116,7 @@ class EnrollmentService:
         handset_profile = attributes.get(HANDSET_PROFILE_ATTRIBUTE)
         mode = attributes.get("mission-leben.de/mode")
         if mode == "personal":
-            await self._assert_active_personal_binding(
+            bound_user = await self._assert_active_personal_binding(
                 access_group_uuid,
                 handset=handset_profile == HANDSET_PROFILE_VALUE,
             )
@@ -132,9 +132,19 @@ class EnrollmentService:
                     or device_attributes.get(DEVICE_OWNERSHIP_ATTRIBUTE) != COMPANY_OWNERSHIP_VALUE
                 ):
                     raise AuthentikError(403, "Das Diensthandy ist nicht als Firmengerät bestätigt.")
+                if self._uses_prepared_exception(access_group_uuid, bound_user):
+                    # Native Device details expose all fallback binding IDs,
+                    # unlike permission-filtered PolicyBinding list endpoints.
+                    if (device_attributes.get("mission-leben.de/user-uuid") != attributes.get("mission-leben.de/user-uuid")
+                        or not isinstance(device.get("policies"), list) or device["policies"]):
+                        raise AuthentikError(403, "Die Diensthandy-Ausnahme besitzt keine sichere Gerätebindung.")
                 active_devices = await self._active_devices(access_group_uuid)
                 if len(active_devices) != 1 or active_devices[0].device_uuid != device_uuid:
                     raise AuthentikError(403, "Die Diensthandy-Bindung ist nicht eindeutig.")
+                if self._uses_prepared_exception(access_group_uuid, bound_user):
+                    all_bound = await self._active_direct_devices_for_account(access_group_uuid)
+                    if len(all_bound) != 1 or all_bound[0].device_uuid != device_uuid:
+                        raise AuthentikError(403, "Für dieses Konto besteht keine eindeutige einzelne Handybindung.")
         elif mode != "shared":
             raise AuthentikError(403, "Die Gerätegruppe besitzt keinen gültigen Gerätetyp.")
         elif handset_profile is not None:
@@ -151,7 +161,7 @@ class EnrollmentService:
 
     async def _assert_active_personal_binding(
         self, access_group_uuid: str, *, handset: bool = False
-    ) -> None:
+    ) -> dict[str, Any]:
         bindings = [
             binding
             for binding in await self.authentik.bindings(access_group_uuid)
@@ -169,17 +179,63 @@ class EnrollmentService:
                 403,
                 "Die persönliche Gerätebindung ist nicht eindeutig.",
             )
-        user = await self.authentik.user_record(int(direct_users[0]["user"]))
+        user = await (
+            self.authentik.shared_handset_account(int(direct_users[0]["user"]))
+            if handset else self.authentik.user_record(int(direct_users[0]["user"]))
+        )
         if not user.get("is_active"):
             raise AuthentikError(403, "Der zugeordnete Mitarbeiter ist deaktiviert.")
         access_group = await self.authentik.access_group(access_group_uuid)
         if handset and str((access_group.get("attributes") or {}).get("mission-leben.de/user-uuid")) != str(user.get("uuid")):
             raise AuthentikError(403, "Die Gerätebindung passt nicht zum Zielkonto.")
-        if not (is_shared_handset_account(user) if handset else is_personal_employee(user)):
+        if not handset and not is_personal_employee(user):
             raise AuthentikError(
                 403,
                 "Das zugeordnete Konto passt nicht zum Gerätetyp.",
             )
+        if handset and self._uses_prepared_exception(access_group_uuid, user):
+            await self._assert_prepared_exception(access_group, user, direct_users)
+        return user
+
+    def _uses_prepared_exception(self, group_uuid: str, user: dict[str, Any]) -> bool:
+        return group_uuid == self.settings.shared_handset_exception_dag_uuid or not is_shared_handset_account(user)
+
+    async def _assert_prepared_exception(
+        self, group: dict[str, Any], user: dict[str, Any], direct_bindings: list[dict[str, Any]] | None = None
+    ) -> None:
+        """Metadata preflight only; native final Flow validation owns the full ALL graph.
+
+        Native DAG REST exposes neither engine mode nor all generic bindings.
+        Never substitute attributes or a filtered binding list for that grant.
+        """
+        group_uuid = str(group.get("pbm_uuid") or "")
+        if not self.settings.shared_handset_exception_dag_uuid or group_uuid != self.settings.shared_handset_exception_dag_uuid:
+            raise AuthentikError(409, "Diese Diensthandy-Ausnahme muss zuerst gezielt durch die IT vorbereitet werden.")
+        attrs = group.get("attributes") or {}
+        if (attrs.get("mission-leben.de/purpose") != "android-portal"
+            or attrs.get("mission-leben.de/mode") != "personal"
+            or attrs.get(HANDSET_PROFILE_ATTRIBUTE) != HANDSET_PROFILE_VALUE
+            or attrs.get(DEVICE_OWNERSHIP_ATTRIBUTE) != COMPANY_OWNERSHIP_VALUE
+            or str(attrs.get("mission-leben.de/user-uuid")) != str(user.get("uuid"))):
+            raise AuthentikError(403, "Die vorbereitete Ausnahmegruppe passt nicht zu diesem Konto.")
+        direct = direct_bindings if direct_bindings is not None else [b for b in await self.authentik.bindings(group_uuid) if b.get("enabled")]
+        if (len(direct) != 1 or direct[0].get("user") != int(user["pk"])
+            or direct[0].get("group") is not None or direct[0].get("policy") is not None
+            or direct[0].get("negate") is not False or direct[0].get("order") != 10
+            or direct[0].get("expiring") is not False or direct[0].get("expires") is not None
+            or direct[0].get("is_primary") is not True):
+            raise AuthentikError(403, "Die direkte Diensthandy-Ausnahmebindung ist ungültig.")
+        await self.authentik.shared_handset_gate_policy()
+        positive = await self.authentik.shared_handset_gate_binding()
+        if (str(positive.get("pk")) != self.settings.shared_handset_positive_binding_uuid
+            or str(positive.get("target")) != group_uuid
+            or str(positive.get("policy")) != self.settings.shared_handset_positive_policy_uuid
+            or positive.get("user") is not None or positive.get("group") is not None
+            or positive.get("enabled") is not True or positive.get("negate") is not False
+            or positive.get("order") != 20 or positive.get("failure_result") is not False
+            or positive.get("timeout") != 2 or positive.get("expiring") is not False
+            or positive.get("expires") is not None):
+            raise AuthentikError(403, "Die positive Diensthandy-Ausnahmebindung ist ungültig.")
 
     async def organizations_for(self, actor: Actor) -> list[dict[str, Any]]:
         groups = await self.authentik.organization_groups(
@@ -239,10 +295,16 @@ class EnrollmentService:
         ]
         if any((group.get("attributes") or {}).get(HANDSET_PROFILE_ATTRIBUTE) != HANDSET_PROFILE_VALUE for group in matches):
             raise AuthentikError(409, "Für dieses Konto besteht eine andersartige Gerätebindung.")
-        access_group = await self._personal_access_group(
-            PERSONAL_PREFIX + username, user_uuid, attributes
-        )
-        await self._ensure_binding(access_group["pbm_uuid"], user_pk=int(user["pk"]))
+        if not is_shared_handset_account(user) or any(group["pbm_uuid"] == self.settings.shared_handset_exception_dag_uuid for group in matches):
+            if len(matches) != 1:
+                raise AuthentikError(409, "Diese Diensthandy-Ausnahme muss zuerst gezielt vorbereitet werden.")
+            access_group = matches[0]
+            await self._assert_prepared_exception(access_group, user)
+        else:
+            access_group = await self._personal_access_group(
+                PERSONAL_PREFIX + username, user_uuid, attributes
+            )
+            await self._ensure_binding(access_group["pbm_uuid"], user_pk=int(user["pk"]))
         replaced_devices = await self._active_devices(access_group["pbm_uuid"])
         return await self._issue(
             actor=actor,
@@ -583,6 +645,8 @@ class EnrollmentService:
                     mode,
                     assigned_to,
                     handset_profile=handset_profile,
+                    account_uuid=(str(access_group_attributes.get("mission-leben.de/user-uuid"))
+                                  if handset_profile == HANDSET_PROFILE_VALUE else None),
                 )
             except Exception as error:
                 await self._disable_device_after_failed_enrollment(
@@ -609,6 +673,14 @@ class EnrollmentService:
                             502,
                             "Die Diensthandy-Bindung ist nicht eindeutig. Das neue Gerät wurde vorsorglich gesperrt.",
                         )
+                    try:
+                        # Recheck membership, configured gate and account-wide
+                        # uniqueness after replacement; never return a token
+                        # following an incomplete secure assignment.
+                        await self.device_status(str(response.get("token", "")))
+                    except Exception as error:
+                        await self._disable_new_device_after_failed_replacement(new_device_uuid)
+                        raise AuthentikError(502, "Der sichere Diensthandy-Abschluss konnte nicht geprüft werden. Das neue Gerät wurde gesperrt.") from error
                 replaced_devices = [
                     device
                     for device in previous_devices
@@ -743,6 +815,41 @@ class EnrollmentService:
             user_uuid: tuple(sorted(devices, key=lambda item: item.name.casefold()))
             for user_uuid, devices in devices_by_user.items()
         }
+
+    async def _active_direct_devices_for_account(
+        self, selected_group_uuid: str
+    ) -> tuple[RegisteredDevice, ...]:
+        """Count actual direct bindings across all personal profiles, not claimed UUID attributes."""
+        selected = await self.authentik.bindings(selected_group_uuid)
+        users = {int(binding["user"]) for binding in selected
+                 if binding.get("enabled") and not binding.get("negate")
+                 and binding.get("policy") is None and binding.get("group") is None
+                 and binding.get("user") is not None}
+        if len(users) != 1:
+            raise AuthentikError(403, "Die Diensthandy-Kontobindung ist nicht eindeutig.")
+        account_pk = next(iter(users))
+        found: list[RegisteredDevice] = []
+        checked: dict[str, bool] = {}
+        for device in await self.authentik.devices():
+            if self._is_inactive(device):
+                continue
+            group_uuid = str(device.get("access_group") or "")
+            if not group_uuid:
+                continue
+            if group_uuid not in checked:
+                group = await self.authentik.access_group(group_uuid)
+                attrs = group.get("attributes") or {}
+                bindings = await self.authentik.bindings(group_uuid)
+                checked[group_uuid] = (
+                    attrs.get("mission-leben.de/purpose") == "android-portal"
+                    and attrs.get("mission-leben.de/mode") == "personal"
+                    and any(binding.get("enabled") and not binding.get("negate")
+                            and binding.get("policy") is None and binding.get("group") is None
+                            and binding.get("user") == account_pk for binding in bindings)
+                )
+            if checked[group_uuid]:
+                found.append(self._registered_device(device))
+        return tuple(found)
 
     async def _active_devices(
         self, access_group_uuid: str

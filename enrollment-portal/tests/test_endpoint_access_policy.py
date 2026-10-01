@@ -4,6 +4,7 @@ import ast
 from pathlib import Path
 from types import SimpleNamespace
 from textwrap import indent
+from urllib.parse import parse_qs
 
 import pytest
 
@@ -33,6 +34,8 @@ def _policy(name: str):
         "from authentik.stages.authenticator_totp.models import TOTPDevice",
         "TOTPDevice = request.TOTPDevice",
     )
+    expression = expression.replace("from django.http import QueryDict", "QueryDict = request.QueryDict")
+    expression = expression.replace("from authentik.providers.oauth2.models import OAuth2Provider", "OAuth2Provider = request.OAuth2Provider")
     namespace: dict[str, object] = {}
     exec("def evaluate(request):\n" + indent(expression, "    "), namespace)
     return namespace["evaluate"]
@@ -60,6 +63,7 @@ def _request(
 ):
     user = SimpleNamespace(
         pk=42,
+        username="person-account" if account_kind == "person" else "house-account",
         uuid="11111111-2222-3333-4444-555555555555",
         is_active=active,
         is_anonymous=False,
@@ -92,8 +96,17 @@ def _request(
             data={"vendor": {"mission-leben.de/portal": {"mode": mode}}}
         ),
     )
-    flow_plan = SimpleNamespace(context={"device": device, "pending_user": user})
+    flow_plan = SimpleNamespace(flow_pk="e48178f8-424d-4e01-ad0b-f131789a67fe", context={"device": device, "pending_user": user})
+    class QueryDict(dict):
+        def __init__(self, query):
+            self.values_by_key = parse_qs(query)
+            super().__init__((key, values[-1]) for key, values in self.values_by_key.items())
+
+        def getlist(self, key):
+            return self.values_by_key.get(key, [])
+
     http_request = SimpleNamespace(
+        session={"authentik/flows/get": f"client_id=mission-leben-android&ml_reauth=90d&login_hint={user.username}"},
         META={
             "HTTP_USER_AGENT": (
                 f"Android MissionLebenPortal/1.0 MissionLebenMode/{mode}"
@@ -119,6 +132,8 @@ def _request(
         TOTPDevice=SimpleNamespace(objects=SimpleNamespace(
             filter=lambda **_: SimpleNamespace(exists=lambda: True)
         )),
+        QueryDict=QueryDict,
+        OAuth2Provider=SimpleNamespace(objects=SimpleNamespace(filter=lambda **_: SimpleNamespace(exists=lambda: True))),
     )
 
 
@@ -186,7 +201,7 @@ def test_shared_handset_never_uses_personal_totp_only_reauthentication():
         device_handset_profile="shared-account",
     )
     request.context["flow_plan"].context.update({
-        "application": SimpleNamespace(slug="mission-leben-portal"),
+        "application": SimpleNamespace(slug="mission-leben-portal", provider_id=28),
         "goauthentik.io/providers/oauth2/params": SimpleNamespace(prompt={"login"}),
         "pending_user_identifier": "house-account",
     })
@@ -194,7 +209,7 @@ def test_shared_handset_never_uses_personal_totp_only_reauthentication():
 
     personal = _request(mode="personal", account_kind="person")
     personal.context["flow_plan"].context.update({
-        "application": SimpleNamespace(slug="mission-leben-portal"),
+        "application": SimpleNamespace(slug="mission-leben-portal", provider_id=28),
         "goauthentik.io/providers/oauth2/params": SimpleNamespace(prompt={"login"}),
         "pending_user_identifier": "person-account",
     })

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import hashlib
+from dataclasses import replace
 from datetime import UTC, datetime
 
 import httpx
@@ -67,6 +69,92 @@ def test_shared_handset_preflight_rejects_noninteractive_or_ambiguous_accounts(o
         **overrides,
     }
     assert is_shared_handset_account(user) is expected
+
+
+ENTITLEMENT_UUID = "bbbbbbbb-2222-4444-8888-cccccccccccc"
+
+
+def exception_account(**overrides):
+    return {"pk": 7, "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", "username": "shared-example",
+            "type": "internal", "is_active": True, "groups": [ENTITLEMENT_UUID],
+            "attributes": {"iam_account_kind": "shared", "iam_directory_class": "mailbox",
+                           "iam_interactive_login_allowed": False, "iam_noninteractive_account": True}, **overrides}
+
+
+@pytest.mark.parametrize("overrides,allowed", [
+    ({}, True), ({"groups": []}, False), ({"groups": None}, False),
+    ({"groups": [], "groups_obj": [{"pk": ENTITLEMENT_UUID}]}, False),
+    ({"groups": ["other-group"]}, False), ({"is_active": False}, False),
+    ({"type": "service_account"}, False), ({"type": "external"}, False),
+    ({"attributes": {"iam_account_kind": "person", "iam_directory_class": "person"}}, False),
+    ({"attributes": {"iam_account_kind": "shared", "iam_directory_class": "system"}}, False),
+])
+def test_handset_exception_needs_direct_membership_and_exact_account_class(overrides, allowed):
+    assert is_shared_handset_account(exception_account(**overrides), ENTITLEMENT_UUID) is allowed
+    assert is_shared_handset_account(exception_account(**overrides)) is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("group_overrides,status,allowed", [
+    ({}, 200, True), ({"name": "wrong-name"}, 200, False),
+    ({"pk": "different-uuid"}, 200, False), ({"is_superuser": True}, 200, False),
+    ({"attributes": {"iam_group_type": "business_role"}}, 200, False), ({}, 404, False),
+])
+async def test_handset_exception_resolves_pinned_group_and_rechecks_direct_membership(settings, group_overrides, status, allowed):
+    selected = exception_account()
+    pinned = {"pk": ENTITLEMENT_UUID, "name": "ENT_SHARED_ACCOUNT_HANDSET", "is_superuser": False,
+              "attributes": {"iam_group_type": "functional_entitlement"}, **group_overrides}
+
+    def handler(request):
+        if "/core/groups/" in request.url.path:
+            assert request.url.path.endswith(f"/{ENTITLEMENT_UUID}/")
+            return httpx.Response(status, json=pinned)
+        return httpx.Response(200, json=selected)
+
+    client = AuthentikClient(replace(settings, shared_handset_entitlement_uuid=ENTITLEMENT_UUID), httpx.MockTransport(handler))
+    try:
+        if allowed:
+            assert (await client.shared_handset_account(7))["pk"] == 7
+            selected["groups"] = []  # Governance revocation; fresh lookup must reject.
+        with pytest.raises(AuthentikError) as error:
+            await client.shared_handset_account(7)
+        assert error.value.status == 400
+    finally:
+        await client.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("overrides,allowed", [({}, True), ({"pk": "other-policy"}, False),
+    ({"name": "wrong policy"}, False), ({"meta_model_name": "authentik_policies.policy"}, False),
+    ({"expression": "return True\n"}, False)])
+async def test_exception_policy_read_checks_actual_type_name_uuid_and_exact_source(settings, overrides, allowed):
+    expression = "return False\n"
+    settings = replace(settings, shared_handset_positive_policy_uuid=ENTITLEMENT_UUID,
+                       shared_handset_positive_policy_sha256=hashlib.sha256(expression.encode()).hexdigest())
+    policy = {"pk": ENTITLEMENT_UUID, "name": "Mission Leben Zentral Android - Shared-Diensthandy-Ausnahme positiv",
+              "meta_model_name": "authentik_policies_expression.expressionpolicy", "expression": expression, **overrides}
+
+    def handler(request):
+        assert request.url.path.endswith(f"/policies/expression/{ENTITLEMENT_UUID}/")
+        return httpx.Response(200, json=policy)
+
+    client = AuthentikClient(settings, httpx.MockTransport(handler))
+    try:
+        if allowed:
+            assert (await client.shared_handset_gate_policy())["pk"] == ENTITLEMENT_UUID
+        else:
+            with pytest.raises(AuthentikError):
+                await client.shared_handset_gate_policy()
+    finally:
+        await client.close()
+
+
+@pytest.mark.parametrize("field", ["shared_handset_exception_dag_uuid", "shared_handset_positive_policy_uuid",
+                                    "shared_handset_positive_policy_sha256", "shared_handset_positive_binding_uuid"])
+def test_partial_exception_gate_configuration_is_rejected(settings, field):
+    settings = replace(settings, **{field: "a" * 64 if field.endswith("sha256") else ENTITLEMENT_UUID})
+    with pytest.raises(RuntimeError, match="complete pinned gate"):
+        settings.validate()
 
 
 @pytest.mark.asyncio

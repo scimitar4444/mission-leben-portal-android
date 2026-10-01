@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hmac
+import hashlib
 import re
 from datetime import UTC, datetime
 from typing import Any
@@ -27,8 +28,14 @@ def is_personal_employee(user: dict[str, Any]) -> bool:
     )
 
 
-def is_shared_handset_account(user: dict[str, Any]) -> bool:
-    """Return only interactive shared mailboxes eligible for an IT-owned handset.
+SHARED_HANDSET_ENTITLEMENT_NAME = "ENT_SHARED_ACCOUNT_HANDSET"
+SHARED_HANDSET_POSITIVE_POLICY_NAME = "Mission Leben Zentral Android - Shared-Diensthandy-Ausnahme positiv"
+
+
+def is_shared_handset_account(
+    user: dict[str, Any], entitlement_uuid: str | None = None
+) -> bool:
+    """Allow regular shared mailboxes or a directly governed handset exception.
 
     This is an enrollment preflight, not an authorization decision. Device
     ownership, direct binding and endpoint trust are checked separately.
@@ -36,11 +43,15 @@ def is_shared_handset_account(user: dict[str, Any]) -> bool:
     attributes = user.get("attributes") or {}
     return bool(
         user.get("is_active")
-        and user.get("type") != "service_account"
+        and user.get("type") == "internal"
         and attributes.get("iam_account_kind") == "shared"
         and attributes.get("iam_directory_class") == "mailbox"
-        and attributes.get("iam_interactive_login_allowed") is True
-        and attributes.get("iam_noninteractive_account") is False
+        and (
+            (attributes.get("iam_interactive_login_allowed") is True
+             and attributes.get("iam_noninteractive_account") is False)
+            or (entitlement_uuid is not None and isinstance(user.get("groups"), list)
+                and entitlement_uuid in user["groups"])
+        )
     )
 
 
@@ -192,21 +203,60 @@ class AuthentikClient:
             params={
                 "search": search,
                 "is_active": "true",
-                "include_groups": "false",
+                "include_groups": "true",
                 "include_roles": "false",
                 "page_size": 50,
             },
         )
+        entitlement_uuid = await self.shared_handset_entitlement_uuid()
         return sorted(
-            (user for user in payload["results"] if is_shared_handset_account(user)),
+            (user for user in payload["results"] if is_shared_handset_account(user, entitlement_uuid)),
             key=lambda user: (user.get("name") or user["username"]).casefold(),
         )[:50]
 
     async def shared_handset_account(self, user_pk: int) -> dict[str, Any]:
         user = await self.user_record(user_pk)
-        if not is_shared_handset_account(user):
+        entitlement_uuid = None if is_shared_handset_account(user) else await self.shared_handset_entitlement_uuid()
+        if not is_shared_handset_account(user, entitlement_uuid):
             raise AuthentikError(400, "Dieses Gruppenkonto ist nicht für ein Diensthandy freigegeben.")
         return user
+
+    async def shared_handset_entitlement_uuid(self) -> str | None:
+        """Validate the governance-pinned object; never trust effective groups or a name alone."""
+        pinned = self.settings.shared_handset_entitlement_uuid
+        if not pinned:
+            return None
+        try:
+            group = await self._request("GET", f"/core/groups/{pinned}/", params={"include_users": "false"})
+        except AuthentikError as error:
+            if error.status == 404:
+                return None
+            raise
+        if (str(group.get("pk")) != pinned
+            or group.get("name") != SHARED_HANDSET_ENTITLEMENT_NAME
+            or (group.get("attributes") or {}).get("iam_group_type") != "functional_entitlement"
+            or group.get("is_superuser") is not False):
+            return None
+        return pinned
+
+    async def shared_handset_gate_policy(self) -> dict[str, Any]:
+        pinned = self.settings.shared_handset_positive_policy_uuid
+        expected_hash = self.settings.shared_handset_positive_policy_sha256
+        if not pinned or not expected_hash:
+            raise AuthentikError(503, "Die sichere Diensthandy-Ausnahme ist noch nicht vorbereitet.")
+        policy = await self._request("GET", f"/policies/expression/{pinned}/")
+        if (str(policy.get("pk")) != pinned
+            or policy.get("name") != SHARED_HANDSET_POSITIVE_POLICY_NAME
+            or policy.get("meta_model_name") != "authentik_policies_expression.expressionpolicy"
+            or hashlib.sha256(str(policy.get("expression", "")).encode()).hexdigest() != expected_hash):
+            raise AuthentikError(503, "Die Diensthandy-Prüfpolicy entspricht nicht der freigegebenen Vorgabe.")
+        return policy
+
+    async def shared_handset_gate_binding(self) -> dict[str, Any]:
+        pinned = self.settings.shared_handset_positive_binding_uuid
+        if not pinned:
+            raise AuthentikError(503, "Die Diensthandy-Prüfbindung ist noch nicht vorbereitet.")
+        return await self._request("GET", f"/policies/bindings/{pinned}/")
 
     async def user_record(self, user_pk: int) -> dict[str, Any]:
         return await self._request("GET", f"/core/users/{user_pk}/")
@@ -339,6 +389,7 @@ class AuthentikClient:
         assigned_to: str,
         *,
         handset_profile: str | None = None,
+        account_uuid: str | None = None,
     ) -> dict[str, Any]:
         UUID(device_uuid)
         if mode not in {"personal", "shared"}:
@@ -358,6 +409,10 @@ class AuthentikClient:
                 raise ValueError("invalid handset profile")
             attributes["mission-leben.de/handset-profile"] = handset_profile
             attributes["mission-leben.de/device-ownership"] = "company"
+            if not account_uuid:
+                raise ValueError("shared handset requires canonical account UUID")
+            UUID(account_uuid)
+            attributes["mission-leben.de/user-uuid"] = account_uuid
         return await self._request(
             "PATCH",
             f"/endpoints/devices/{device_uuid}/",

@@ -4,7 +4,10 @@ services:
     container_name: mission-leben-device-enrollment
     restart: unless-stopped
     init: true
-    env_file: .env
+    env_file:
+      - .env
+      - path: .shared-handset-exception.env
+        required: false
     ports:
       - "127.0.0.1:8081:8080"
     secrets:

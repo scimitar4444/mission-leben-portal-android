@@ -117,7 +117,7 @@ class FakeAuthentik:
 
     async def shared_handset_account(self, user_pk):
         assert user_pk == self.user["pk"]
-        if not is_shared_handset_account(self.user):
+        if not is_shared_handset_account(self.user, self.settings.shared_handset_entitlement_uuid):
             raise AuthentikError(403, "Dieses Gruppenkonto ist nicht freigegeben.")
         return self.user
 
@@ -187,7 +187,7 @@ class FakeAuthentik:
         return device
 
     async def update_device_assignment(
-        self, device_uuid, display_name, mode, assigned_to, *, handset_profile=None
+        self, device_uuid, display_name, mode, assigned_to, *, handset_profile=None, account_uuid=None
     ):
         device = await self.device(device_uuid)
         device["name"] = display_name
@@ -203,6 +203,7 @@ class FakeAuthentik:
         if handset_profile is not None:
             device["attributes"][HANDSET_PROFILE_ATTRIBUTE] = handset_profile
             device["attributes"]["mission-leben.de/device-ownership"] = "company"
+            device["attributes"]["mission-leben.de/user-uuid"] = account_uuid
         self.updated_device_assignments.append(
             (device_uuid, display_name, mode, assigned_to)
         )
@@ -259,6 +260,7 @@ class FakeAuthentik:
                     "expiring": False,
                     "expires": None,
                     "facts": None,
+                    "policies": [],
                     "attributes": {"serial": payload["device_serial"]},
                 }
             )
@@ -288,6 +290,89 @@ def organization(pk, name, level="Einrichtung"):
             "iam_org_level": level,
         },
     }
+
+
+def prepared_exception(settings):
+    settings = replace(settings,
+        shared_handset_entitlement_uuid="bbbbbbbb-2222-4444-8888-cccccccccccc",
+        shared_handset_exception_dag_uuid="dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee",
+        shared_handset_positive_policy_uuid="11111111-2222-4444-8888-cccccccccccc",
+        shared_handset_positive_policy_sha256="a" * 64,
+        shared_handset_positive_binding_uuid="22222222-2222-4444-8888-cccccccccccc")
+    authentik = FakeAuthentik(settings)
+    authentik.user["attributes"] = {"iam_account_kind": "shared", "iam_directory_class": "mailbox",
+                                    "iam_interactive_login_allowed": False, "iam_noninteractive_account": True}
+    authentik.user["groups"] = [settings.shared_handset_entitlement_uuid]
+    group = authentik.token_record["device_group_obj"]
+    group["attributes"].update({HANDSET_PROFILE_ATTRIBUTE: "shared-account", "mission-leben.de/device-ownership": "company"})
+    authentik.existing_group = group
+    authentik._bindings = [{"pk": "direct-binding", "user": 42, "group": None, "policy": None,
+                            "order": 10, "enabled": True, "negate": False, "expiring": False,
+                            "expires": None, "is_primary": True}]
+    authentik.positive_binding = {"pk": settings.shared_handset_positive_binding_uuid,
+        "target": settings.shared_handset_exception_dag_uuid, "policy": settings.shared_handset_positive_policy_uuid,
+        "user": None, "group": None, "order": 20, "enabled": True, "negate": False,
+        "timeout": 2, "failure_result": False, "expiring": False, "expires": None}
+
+    async def gate_policy():
+        return {"pk": settings.shared_handset_positive_policy_uuid}
+
+    async def gate_binding():
+        return authentik.positive_binding
+
+    authentik.shared_handset_gate_policy = gate_policy
+    authentik.shared_handset_gate_binding = gate_binding
+    return settings, authentik, EnrollmentService(settings, authentik)
+
+
+@pytest.mark.asyncio
+async def test_exception_it_enrollment_uses_preprovisioned_gate_without_generic_policy_writes(settings):
+    settings, authentik, service = prepared_exception(settings)
+    issued = await service.issue_shared_handset(actor(Role.IT), 42)
+    assert authentik.created_groups == []
+    assert authentik.created_bindings == []
+    assert authentik.login_approval_devices == []
+    authentik.token_record["device_group_obj"] = authentik.existing_group
+    result = await service.redeem(issued.token_uuid, "abcdefghijklmnopqrstuvwxyz0123456789_-", "personal",
+                                  "ml-android-1234567890abcdef", "Diensthandy", profile_supported=True)
+    assert result["enrollment_profile"] == "shared-account-handset"
+    assert (await service.device_status("agent-device-token"))["trusted"] is True
+    authentik.user["groups"] = []
+    with pytest.raises(AuthentikError):
+        await service.device_status("agent-device-token")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("key,value", [("target", "other-dag"), ("policy", "other-policy"), ("enabled", False),
+    ("negate", True), ("failure_result", True), ("timeout", 30), ("order", 0), ("expiring", True), ("user", 99)])
+async def test_exception_wrong_positive_binding_rejected_before_token(settings, key, value):
+    _, authentik, service = prepared_exception(settings)
+    authentik.positive_binding[key] = value
+    with pytest.raises(AuthentikError):
+        await service.issue_shared_handset(actor(Role.IT), 42)
+    assert authentik.created_groups == authentik.enrolled == authentik.created_bindings == []
+
+
+@pytest.mark.asyncio
+async def test_exception_unprepared_profile_never_automatically_creates_dag_or_bindings(settings):
+    _, authentik, service = prepared_exception(settings)
+    authentik.existing_group = None
+    with pytest.raises(AuthentikError) as error:
+        await service.issue_shared_handset(actor(Role.IT), 42)
+    assert error.value.status == 409
+    assert authentik.created_groups == authentik.created_bindings == []
+
+
+@pytest.mark.asyncio
+async def test_exception_device_fallback_rejected_even_when_oidc_is_not_currently_running(settings):
+    _, authentik, service = prepared_exception(settings)
+    authentik.device_records = [{"device_uuid": authentik.device_uuid, "name": "Diensthandy",
+        "access_group": authentik.token_record["device_group"], "expiring": False,
+        "attributes": {HANDSET_PROFILE_ATTRIBUTE: "shared-account", "mission-leben.de/device-ownership": "company",
+                       "mission-leben.de/user-uuid": authentik.user["uuid"]}, "policies": ["unknown-fallback"]}]
+    with pytest.raises(AuthentikError) as error:
+        await service.device_status("agent-device-token")
+    assert error.value.status == 403
 
 
 @pytest.mark.asyncio

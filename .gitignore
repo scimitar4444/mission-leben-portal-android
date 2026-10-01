@@ -23,4 +23,5 @@ bridge/secrets/*
 **/*.egg-info/
 **/.venv/
 enrollment-portal/.env
+enrollment-portal/.shared-handset-exception.env
 enrollment-portal/secrets/
