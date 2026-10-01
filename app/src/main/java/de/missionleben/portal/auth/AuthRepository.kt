@@ -21,6 +21,7 @@ import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.util.concurrent.atomic.AtomicLong
 
 private const val AUTH_LOG_TAG = "MissionLebenAuth"
 
@@ -28,37 +29,28 @@ class AuthRepository(context: Context) {
     private val context = context.applicationContext
     private val authorizationService = AuthorizationService(context)
     private var pendingAuthorizationRequest: AuthorizationRequest? = null
+    private val authorizationGeneration = AtomicLong()
 
     fun createAuthorizationUrl(
         mode: DeviceMode,
         loginHint: String? = null,
         forceReauthentication: Boolean = false,
+        persistSession: Boolean = true,
+        ninetyDayReauthentication: Boolean = false,
         onSuccess: (String) -> Unit,
         onError: (String) -> Unit,
     ) {
+        val generation = authorizationGeneration.incrementAndGet()
+        pendingAuthorizationRequest = null
         AuthorizationServiceConfiguration.fetchFromIssuer(Uri.parse(BuildConfig.OIDC_ISSUER)) { configuration, error ->
+            if (generation != authorizationGeneration.get()) return@fetchFromIssuer
             if (configuration == null) {
                 onError(this.context.getString(R.string.auth_oidc_config_failed))
                 return@fetchFromIssuer
             }
 
-            val scopes = buildList {
-                add("openid")
-                add("profile")
-                add("email")
-                add("goauthentik.io/api")
-                add("ml_features")
-                if (mode == DeviceMode.PERSONAL) add("offline_access")
-            }
-            val requestBuilder = AuthorizationRequest.Builder(
-                configuration,
-                BuildConfig.OIDC_CLIENT_ID,
-                ResponseTypeValues.CODE,
-                Uri.parse(BuildConfig.OIDC_REDIRECT_URI),
-            ).setScopes(scopes)
-            if (!loginHint.isNullOrBlank()) requestBuilder.setLoginHint(loginHint)
-            if (forceReauthentication) requestBuilder.setPromptValues("login")
-            val request = requestBuilder.build()
+            val request = buildAuthorizationRequest(configuration, mode, loginHint,
+                forceReauthentication, persistSession, ninetyDayReauthentication)
             pendingAuthorizationRequest = request
             onSuccess(request.toUri().toString())
         }
@@ -175,8 +167,8 @@ class AuthRepository(context: Context) {
         val claims = decodeJwtPayload(state.idToken)
         val email = claims.optString("email").trim()
         val preferredUsername = claims.optString("preferred_username").trim()
-        val authenticatedAt = claims.optLong("auth_time").takeIf { it > 0L }
-            ?: claims.optLong("iat")
+        // iat is token issuance, not a human login; refresh must not restart the 90-day deadline.
+        val authenticatedAt = claims.optLong("auth_time").coerceAtLeast(0L)
         return UserIdentity(
             subject = claims.optString("sub"),
             displayName = IdentityDisplayName.select(
@@ -187,10 +179,58 @@ class AuthRepository(context: Context) {
                 fallback = context.getString(R.string.employee_fallback),
             ),
             email = email,
-            loginHint = preferredUsername.ifBlank { email },
+            // A mailbox address is not necessarily an Authentik username.
+            loginHint = preferredUsername,
             authenticatedAtEpochSeconds = authenticatedAt,
             birthdayMonthDay = IdentityBirthday.normalizedMonthDay(claims.optString("birthdate")),
         )
+    }
+
+    fun authenticationEvidence(serializedState: String): AuthenticationEvidence {
+        val state = AuthState.jsonDeserialize(serializedState)
+        val claims = decodeJwtPayload(state.idToken)
+        val audiences = claims.optJSONArray("aud")?.let { values ->
+            (0 until values.length()).mapNotNull { values.optString(it).takeIf(String::isNotBlank) }.toSet()
+        } ?: setOf(claims.optString("aud")).filter(String::isNotBlank).toSet()
+        return AuthenticationEvidence(
+            issuer = claims.optString("iss"),
+            audiences = audiences,
+            authorizedParty = claims.optString("azp").takeIf(String::isNotBlank),
+            subject = claims.optString("sub"),
+            authenticatedAtEpochSeconds = claims.optLong("auth_time").coerceAtLeast(0L),
+            hasRefreshToken = !state.refreshToken.isNullOrBlank(),
+        )
+    }
+
+    fun cancelAuthorization() {
+        authorizationGeneration.incrementAndGet()
+        pendingAuthorizationRequest = null
+    }
+
+    companion object {
+        internal fun buildAuthorizationRequest(
+            configuration: AuthorizationServiceConfiguration,
+            mode: DeviceMode,
+            loginHint: String?,
+            forceReauthentication: Boolean,
+            persistSession: Boolean,
+            ninetyDayReauthentication: Boolean,
+        ): AuthorizationRequest {
+            val builder = AuthorizationRequest.Builder(configuration, BuildConfig.OIDC_CLIENT_ID,
+                ResponseTypeValues.CODE, Uri.parse(BuildConfig.OIDC_REDIRECT_URI))
+                .setScopes(authorizationScopes(mode, persistSession))
+            if (!loginHint.isNullOrBlank()) builder.setLoginHint(loginHint)
+            if (forceReauthentication) builder.setPromptValues("login")
+            if (ninetyDayReauthentication && mode == DeviceMode.PERSONAL && !loginHint.isNullOrBlank()) {
+                builder.setAdditionalParameters(mapOf("ml_reauth" to "90d"))
+            }
+            return builder.build()
+        }
+
+        internal fun authorizationScopes(mode: DeviceMode, persistSession: Boolean): List<String> = buildList {
+            addAll(listOf("openid", "profile", "email", "goauthentik.io/api", "ml_features"))
+            if (mode == DeviceMode.PERSONAL && persistSession) add("offline_access")
+        }
     }
 
     fun endSessionUrl(): String = BuildConfig.OIDC_ISSUER.trimEnd('/') + "/end-session/"

@@ -185,6 +185,11 @@
     <string name="auth_oidc_config_failed">Configurația OIDC nu a putut fi încărcată.</string>
     <string name="auth_expired">Cererea de autentificare a expirat. Încearcă din nou.</string>
     <string name="auth_cancelled">Autentificarea a fost anulată.</string>
+    <string name="auth_fresh_login_required">Autentifică-te din nou cu Authentik. O sesiune existentă în browser nu este suficientă pentru deblocarea aplicației.</string>
+    <string name="auth_context_clear_failed">Sesiunea anterioară din browser nu a putut fi eliminată în siguranță. Pornește din nou autentificarea.</string>
+    <string name="auth_session_only_title">Autentificare fără salvarea accesului rapid?</string>
+    <string name="auth_session_only_message">Acest telefon nu are o blocare sigură a ecranului disponibilă. Te poți autentifica din nou cu Authentik. Sesiunea nu va fi salvată. După oprirea ecranului sau o pauză mai lungă, trebuie să te autentifici din nou.</string>
+    <string name="auth_session_only_continue">Autentifică-te din nou</string>
     <string name="auth_invalid_response">Răspunsul Authentik nu este valid.</string>
     <string name="auth_state_mismatch">Răspunsul de autentificare nu a putut fi asociat în siguranță.</string>
     <string name="auth_code_exchange_failed">Codul de autentificare nu a putut fi schimbat.</string>
@@ -290,4 +295,7 @@
     <string name="release_note_download_auto_open_setting">În Setări → Documente poți opri deschiderea automată a descărcărilor. Fișierele sunt salvate în continuare.</string>
     <string name="downloads_auto_open_on">Deschidere automată: pornită</string>
     <string name="downloads_auto_open_off">Deschidere automată: oprită</string>
+    <string name="release_note_secure_unlock">Corecție de securitate: Conținutul aplicației se deschide numai după autorizarea reușită. Fără blocare sigură a ecranului, autentificarea durează doar sesiunea curentă.</string>
+    <string name="release_note_reauthentication">Reautentificarea pe telefoanele personale a fost îmbunătățită. Numele de utilizator confirmat rămâne completat pe dispozitivul înregistrat.</string>
+    <string name="release_note_app_symbols">Aplicațiile web au pictograme mai clare, fără schimbarea dimensiunii.</string>
 </resources>

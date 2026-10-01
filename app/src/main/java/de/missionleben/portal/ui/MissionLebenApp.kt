@@ -2,6 +2,7 @@ package de.missionleben.portal.ui
 
 import android.app.TimePickerDialog
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -1517,11 +1518,16 @@ private fun AppTile(
     modifier: Modifier,
     onOpenUrl: (String) -> Unit,
 ) {
+    val appearance = remember(application.slug, application.name) { AppTileAppearance.from(application) }
+    val dark = isSystemInDarkTheme()
+    val iconForeground = if (dark) appearance.darkForeground else appearance.lightForeground
+    val iconBackground = if (dark) appearance.darkBackground else appearance.lightBackground
     Card(
         onClick = { onOpenUrl(application.launchUrl) },
         modifier = modifier.heightIn(min = 72.dp).fillMaxHeight().testTag("app-" + application.slug),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
@@ -1532,11 +1538,16 @@ private fun AppTile(
             Box {
                 Box(
                     Modifier.size(32.dp).clip(RoundedCornerShape(9.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer),
+                        .background(iconBackground).testTag("app-symbol-" + application.slug),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(application.name.take(1).uppercase(),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Bold)
+                    val iconRes = appearance.iconRes
+                    if (iconRes != null) {
+                        Icon(painterResource(iconRes), null, Modifier.size(22.dp), tint = iconForeground)
+                    } else {
+                        Text(AppTileAppearance.monogram(application.name),
+                            color = iconForeground, fontWeight = FontWeight.Bold)
+                    }
                 }
                 if (unreadCount > 0) {
                     Badge(Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-6).dp)) {

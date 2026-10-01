@@ -185,6 +185,11 @@
     <string name="auth_oidc_config_failed">OIDC कॉन्फ़िगरेशन लोड नहीं हो सका।</string>
     <string name="auth_expired">साइन इन अनुरोध की समय सीमा समाप्त हो गई। फिर प्रयास करें।</string>
     <string name="auth_cancelled">साइन इन रद्द कर दिया गया।</string>
+    <string name="auth_fresh_login_required">कृपया Authentik से दोबारा साइन इन करें। ब्राउज़र में पहले से साइन इन होना ऐप अनलॉक करने के लिए पर्याप्त नहीं है।</string>
+    <string name="auth_context_clear_failed">ब्राउज़र की पिछली साइन-इन स्थिति सुरक्षित रूप से हटाई नहीं जा सकी। कृपया साइन इन फिर शुरू करें।</string>
+    <string name="auth_session_only_title">त्वरित पहुँच सहेजे बिना साइन इन करें?</string>
+    <string name="auth_session_only_message">इस फ़ोन पर उपयोग योग्य सुरक्षित स्क्रीन लॉक उपलब्ध नहीं है। आप Authentik से दोबारा साइन इन कर सकते हैं। साइन-इन सहेजा नहीं जाएगा। स्क्रीन बंद होने या लंबे विराम के बाद फिर साइन इन करना होगा।</string>
+    <string name="auth_session_only_continue">दोबारा साइन इन करें</string>
     <string name="auth_invalid_response">Authentik का उत्तर अमान्य है।</string>
     <string name="auth_state_mismatch">साइन इन उत्तर सुरक्षित रूप से मेल नहीं खा सका।</string>
     <string name="auth_code_exchange_failed">साइन इन कोड बदला नहीं जा सका।</string>
@@ -289,4 +294,7 @@
     <string name="release_note_download_auto_open_setting">सेटिंग्स → दस्तावेज़ में डाउनलोड अपने आप खोलना बंद कर सकते हैं। फ़ाइलें फिर भी सहेजी जाएँगी।</string>
     <string name="downloads_auto_open_on">अपने आप खोलना: चालू</string>
     <string name="downloads_auto_open_off">अपने आप खोलना: बंद</string>
+    <string name="release_note_secure_unlock">सुरक्षा सुधार: सफल अनुमति के बाद ही ऐप की सामग्री खुलती है। सुरक्षित स्क्रीन लॉक के बिना, साइन-इन केवल वर्तमान सत्र तक रहता है।</string>
+    <string name="release_note_reauthentication">निजी फ़ोन पर दोबारा साइन-इन करना बेहतर हुआ है। पंजीकृत डिवाइस पर आपका पुष्ट उपयोगकर्ता नाम पहले से भरा रहता है।</string>
+    <string name="release_note_app_symbols">वेब ऐप के आइकन अब अधिक स्पष्ट हैं। टाइल का आकार नहीं बदला है।</string>
 </resources>

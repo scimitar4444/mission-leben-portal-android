@@ -13,6 +13,8 @@ import androidx.lifecycle.viewModelScope
 import de.missionleben.portal.auth.AccessTokenFailure
 import de.missionleben.portal.auth.AuthRepository
 import de.missionleben.portal.auth.ReauthenticationPolicy
+import de.missionleben.portal.auth.PersonalAuthenticationPolicy
+import de.missionleben.portal.auth.PersonalLoginAttempt
 import de.missionleben.portal.calendar.CalendarSyncCoordinator
 import de.missionleben.portal.calendar.CalendarSyncOutcome
 import de.missionleben.portal.calendar.CalendarSyncPolicy
@@ -92,6 +94,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var dataEncryptionKey: ByteArray? = null
     private var sessionEpoch = 0L
     private var pendingVaultState: String? = null
+    private var pendingPersonalLogin: PersonalLoginAttempt? = null
+    private var pendingAuthorizationEpoch: Long? = null
     private var pendingPushAction: PendingPushAction? = null
     private var notificationNavigationJob: Job? = null
     private var downloadedUpdateFile: File? = null
@@ -194,6 +198,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun selectMode(mode: DeviceMode) {
         if (preferences.deviceMode != mode) {
+            sessionEpoch++
+            cancelPendingAuthorization()
             runCatching { calendarCoordinator.clearAndDisable() }
             serializedAuthState = null
             dataEncryptionKey = null
@@ -243,6 +249,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun resetProfile() {
+        sessionEpoch++
+        cancelPendingAuthorization()
         runCatching { calendarCoordinator.clearAndDisable() }
         val oldState = serializedAuthState
         if (oldState != null) disconnectPushAndRevoke(oldState)
@@ -277,11 +285,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** Local lock only: keep the encrypted vault, web SSO cookies and push registration. */
-    fun lockPersonalSession() {
-        if (preferences.deviceMode != DeviceMode.PERSONAL || !_uiState.value.signedIn) return
+    fun lockPersonalSession(requestUnlock: Boolean = true) {
+        if (preferences.deviceMode != DeviceMode.PERSONAL) return
         sessionEpoch++
+        cancelPendingAuthorization()
         serializedAuthState = null
-        pendingVaultState = null
         notificationNavigationJob?.cancel()
         dataEncryptionKey?.fill(0)
         dataEncryptionKey = null
@@ -303,7 +311,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 loginApprovalRequest = null,
                 loginApprovalSubmitting = false,
                 quickUnlockEnabled = vault.hasSession(),
-                vaultRequest = if (canUnlock) VaultRequest.UNLOCK else VaultRequest.NONE,
+                vaultRequest = if (requestUnlock && canUnlock) VaultRequest.UNLOCK else VaultRequest.NONE,
                 busy = false,
                 message = null,
             )
@@ -320,63 +328,133 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun createLoginUrl(onSuccess: (String) -> Unit) {
+    fun createLoginUrl(persistSession: Boolean = true, onSuccess: (String) -> Unit) {
         val mode = _uiState.value.mode ?: return
+        if (_uiState.value.enrollmentState != EnrollmentState.TRUSTED || preferences.deviceId.isNullOrBlank()) return
+        if (mode == DeviceMode.PERSONAL) lockPersonalSession(requestUnlock = false)
+        else {
+            sessionEpoch++
+            cancelPendingAuthorization()
+        }
+        val epoch = sessionEpoch
+        pendingAuthorizationEpoch = epoch
+        if (mode == DeviceMode.PERSONAL) {
+            pendingPersonalLogin = PersonalLoginAttempt(
+                epoch, requireNotNull(preferences.deviceId), System.currentTimeMillis() / 1_000L,
+                persistSession, preferences.boundPersonalSubject,
+            )
+        }
         val reauthentication = ReauthenticationPolicy.request(
             mode = mode,
             enrollmentState = _uiState.value.enrollmentState,
             reauthenticationRequired = preferences.reauthenticationRequired,
-            storedLoginHint = preferences.reauthenticationHint,
+            storedLoginHint = preferences.boundPersonalLoginHint,
+            freshPersonalContext = mode == DeviceMode.PERSONAL,
+            enrollmentProfile = _uiState.value.enrollmentProfile,
+            authenticatedAtEpochSeconds = preferences.boundPersonalAuthenticatedAtEpochSeconds,
+            absoluteDeadlineReauthenticationRequired = preferences.absoluteDeadlineReauthenticationRequired,
         )
         _uiState.update { it.copy(busy = true, message = null) }
         authRepository.createAuthorizationUrl(
             mode = mode,
             loginHint = reauthentication.loginHint,
             forceReauthentication = reauthentication.forceLogin,
+            persistSession = persistSession,
+            ninetyDayReauthentication = reauthentication.ninetyDayReauthentication,
             onSuccess = {
+                if (epoch != sessionEpoch || pendingAuthorizationEpoch != epoch) return@createAuthorizationUrl
                 _uiState.update { state -> state.copy(busy = false) }
                 onSuccess(it)
             },
-            onError = { message -> _uiState.update { it.copy(busy = false, message = message) } },
+            onError = { message ->
+                if (epoch == sessionEpoch) {
+                    cancelPendingAuthorization()
+                    _uiState.update { it.copy(busy = false, message = message) }
+                }
+            },
         )
     }
 
-    fun completeAuthorization(redirectUri: Uri?) {
+    fun completeAuthorization(redirectUri: Uri?, freshContextConfirmed: Boolean = false) {
         if (redirectUri == null) {
-            _uiState.update { it.copy(message = string(R.string.message_auth_cancelled)) }
+            cancelPendingAuthorization()
+            _uiState.update { it.copy(busy = false, message = string(R.string.message_auth_cancelled)) }
             return
         }
-        val epoch = sessionEpoch
+        val epoch = pendingAuthorizationEpoch ?: return
+        val attempt = pendingPersonalLogin
+        pendingAuthorizationEpoch = null
+        val personal = _uiState.value.mode == DeviceMode.PERSONAL
+        if (epoch != sessionEpoch || (personal && (attempt == null || !freshContextConfirmed))) {
+            cancelPendingAuthorization()
+            _uiState.update { it.copy(busy = false, message = string(R.string.auth_fresh_login_required)) }
+            return
+        }
         _uiState.update { it.copy(busy = true, message = null) }
         authRepository.completeAuthorization(
             redirectUri = redirectUri,
             onSuccess = { serialized ->
-                if (epoch != sessionEpoch) return@completeAuthorization
-                serializedAuthState = serialized
-                val user = authRepository.identityFrom(serialized)
-                val personal = _uiState.value.mode == DeviceMode.PERSONAL
-                if (personal) {
-                    preferences.reauthenticationHint = user.loginHint
-                    preferences.reauthenticationRequired = false
-                } else {
-                    preferences.clearReauthentication()
+                if (epoch != sessionEpoch) {
+                    viewModelScope.launch { authRepository.revoke(serialized) }
+                    return@completeAuthorization
                 }
-                pendingVaultState = if (personal) serialized else null
-                _uiState.update {
-                    it.copy(
-                        busy = false,
-                        signedIn = true,
-                        user = user,
-                        reauthenticationRequired = false,
-                        vaultRequest = if (personal) VaultRequest.SEAL else VaultRequest.NONE,
+                val fresh = !personal || (attempt != null && runCatching {
+                    PersonalAuthenticationPolicy.permitsFreshLogin(
+                        attempt, authRepository.authenticationEvidence(serialized), BuildConfig.OIDC_ISSUER,
+                        BuildConfig.OIDC_CLIENT_ID, sessionEpoch, preferences.deviceId,
+                        _uiState.value.enrollmentState == EnrollmentState.TRUSTED,
+                        freshContextConfirmed, personalLocallyLocked(), System.currentTimeMillis() / 1_000L,
                     )
+                }.getOrDefault(false))
+                if (!fresh || authRepository.identityFrom(serialized).subject.isBlank()) {
+                    viewModelScope.launch { authRepository.revoke(serialized) }
+                    cancelPendingAuthorization()
+                    _uiState.update { it.copy(busy = false, message = string(R.string.auth_fresh_login_required)) }
+                    return@completeAuthorization
                 }
-                loadApplications()
+                if (personal && attempt?.persistSession == true) {
+                    // No token/user/apps become active until the authenticated key operation succeeds.
+                    pendingVaultState = serialized
+                    _uiState.update { it.copy(busy = true, vaultRequest = VaultRequest.SEAL) }
+                } else {
+                    if (personal) vault.clear()
+                    activateAuthorizedSession(serialized)
+                }
             },
             onError = { message ->
-                if (epoch == sessionEpoch) _uiState.update { it.copy(busy = false, message = message) }
+                if (epoch == sessionEpoch) {
+                    cancelPendingAuthorization()
+                    _uiState.update { it.copy(busy = false, message = message) }
+                }
             },
         )
+    }
+
+    private fun personalLocallyLocked(): Boolean =
+        (getApplication<Application>() as? MissionLebenApplication)?.personalSessionLockTracker?.isLockRequired() == true
+
+    private fun cancelPendingAuthorization() {
+        pendingAuthorizationEpoch = null
+        pendingPersonalLogin = null
+        authRepository.cancelAuthorization()
+        pendingVaultState?.let { state -> viewModelScope.launch { authRepository.revoke(state) } }
+        pendingVaultState = null
+    }
+
+    private fun activateAuthorizedSession(serialized: String) {
+        serializedAuthState = serialized
+        pendingVaultState = null
+        pendingPersonalLogin = null
+        val user = authRepository.identityFrom(serialized)
+        if (_uiState.value.mode == DeviceMode.PERSONAL) preferences.rememberPersonalIdentity(
+            user.subject, user.loginHint, user.authenticatedAtEpochSeconds,
+        )
+        else preferences.clearReauthentication()
+        _uiState.update {
+            it.copy(busy = false, signedIn = true, user = user, reauthenticationRequired = false,
+                quickUnlockEnabled = vault.hasSession(), vaultRequest = VaultRequest.NONE)
+        }
+        loadApplications()
     }
 
     fun consumeVaultRequest() {
@@ -393,14 +471,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun completeVaultRequest(request: VaultRequest, cipher: Cipher, requestEpoch: Long) {
         if (requestEpoch != sessionEpoch) return
+        if (personalLocallyLocked() || _uiState.value.enrollmentState != EnrollmentState.TRUSTED) {
+            vaultFailed(string(R.string.auth_fresh_login_required), requestEpoch)
+            return
+        }
         runCatching {
             when (request) {
                 VaultRequest.SEAL -> {
                     val state = pendingVaultState ?: error("No session is waiting to be protected")
                     val unlocked = vault.sealNewSession(state, cipher)
                     dataEncryptionKey = unlocked.dataEncryptionKey
-                    pendingVaultState = null
-                    _uiState.update { it.copy(quickUnlockEnabled = true, message = string(R.string.message_quick_access_enabled)) }
+                    activateAuthorizedSession(unlocked.serializedAuthState)
+                    _uiState.update { it.copy(message = string(R.string.message_quick_access_enabled)) }
                 }
 
                 VaultRequest.UNLOCK -> {
@@ -408,32 +490,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     serializedAuthState = unlocked.serializedAuthState
                     dataEncryptionKey = unlocked.dataEncryptionKey
                     val user = authRepository.identityFrom(unlocked.serializedAuthState)
+                    val boundSubject = preferences.boundPersonalSubject
+                    require(user.subject.isNotBlank() && (boundSubject == null || boundSubject == user.subject)) {
+                        "Protected session identity does not match this device"
+                    }
                     if (ReauthenticationPolicy.hasReachedAbsoluteDeadline(user.authenticatedAtEpochSeconds)) {
                         _uiState.update { it.copy(user = user) }
-                        sessionExpired()
+                        sessionExpired(absoluteDeadlineReached = true)
                         return
                     }
-                    _uiState.update {
-                        it.copy(
-                            signedIn = true,
-                            user = user,
-                            quickUnlockEnabled = true,
-                            message = null,
-                        )
-                    }
-                    loadApplications()
+                    activateAuthorizedSession(unlocked.serializedAuthState)
+                    _uiState.update { it.copy(message = null) }
                 }
 
                 VaultRequest.NONE -> Unit
             }
         }.onFailure { error ->
             if (request == VaultRequest.UNLOCK) vault.clear()
-            _uiState.update {
-                it.copy(
-                    quickUnlockEnabled = false,
-                    message = string(R.string.message_protected_session_failed, error.message.orEmpty()),
-                )
-            }
+            vaultFailed(string(R.string.message_protected_session_failed, error.message.orEmpty()), requestEpoch)
         }
     }
 
@@ -472,6 +546,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun vaultFailed(message: String, requestEpoch: Long) {
         if (requestEpoch != sessionEpoch) return
+        lockPersonalSession(requestUnlock = false)
         _uiState.update {
             it.copy(
                 quickUnlockEnabled = vault.hasSession(),
@@ -820,9 +895,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun sessionExpired() {
+    fun sessionExpired(absoluteDeadlineReached: Boolean = false) {
+        sessionEpoch++
+        cancelPendingAuthorization()
         runCatching { calendarCoordinator.clearAndDisable() }
         val expiredState = _uiState.value
+        expiredState.user?.takeIf { expiredState.mode == DeviceMode.PERSONAL }?.let {
+            preferences.rememberPersonalIdentity(it.subject, it.loginHint, it.authenticatedAtEpochSeconds)
+        }
         val boundDeviceReauthenticationAvailable = ReauthenticationPolicy.canOfferBoundDeviceReauthentication(
             mode = expiredState.mode,
             enrollmentState = expiredState.enrollmentState,
@@ -831,6 +911,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (boundDeviceReauthenticationAvailable) {
             preferences.reauthenticationHint = expiredState.user?.loginHint
             preferences.reauthenticationRequired = true
+            preferences.absoluteDeadlineReauthenticationRequired = absoluteDeadlineReached
         } else {
             preferences.clearReauthentication()
         }
@@ -875,6 +956,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun logout(onBrowserLogout: (String) -> Unit) {
+        sessionEpoch++
+        cancelPendingAuthorization()
         runCatching { calendarCoordinator.clearAndDisable() }
         val oldState = serializedAuthState
         if (oldState != null) disconnectPushAndRevoke(oldState)
@@ -882,7 +965,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         pendingVaultState = null
         dataEncryptionKey = null
         vault.clear()
-        preferences.clearReauthentication()
+        preferences.clearReauthentication(keepBoundPersonalIdentity = true)
         unreadNotificationStore.clearAll()
         clearNotifications()
         PushManager.stop(getApplication())
@@ -933,6 +1016,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun clearSharedSessionAfterScreenOff() {
+        sessionEpoch++
+        cancelPendingAuthorization()
         val oldState = serializedAuthState
         if (oldState != null) disconnectPushAndRevoke(oldState)
         serializedAuthState = null
@@ -1281,6 +1366,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val oldStatus = preferences.enrollmentState
         preferences.enrollmentState = status
         if (status == EnrollmentState.BLOCKED) {
+            sessionEpoch++
+            cancelPendingAuthorization()
             val oldState = serializedAuthState
             if (oldState != null) disconnectPushAndRevoke(oldState)
             serializedAuthState = null
@@ -1649,7 +1736,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (!ReauthenticationPolicy.hasReachedAbsoluteDeadline(user.authenticatedAtEpochSeconds)) {
             return false
         }
-        sessionExpired()
+        sessionExpired(absoluteDeadlineReached = true)
         return true
     }
 
@@ -1695,6 +1782,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         getApplication<Application>().getString(resourceId, *formatArgs)
 
     override fun onCleared() {
+        sessionEpoch++
+        cancelPendingAuthorization()
         loginApprovalPollingJob?.cancel()
         dataEncryptionKey?.fill(0)
         authRepository.dispose()

@@ -185,6 +185,11 @@
     <string name="auth_oidc_config_failed">Не вдалося завантажити конфігурацію OIDC.</string>
     <string name="auth_expired">Термін запиту на вхід минув. Спробуйте ще раз.</string>
     <string name="auth_cancelled">Вхід скасовано.</string>
+    <string name="auth_fresh_login_required">Увійди знову через Authentik. Наявного входу в браузері недостатньо для розблокування застосунку.</string>
+    <string name="auth_context_clear_failed">Не вдалося безпечно видалити попередню сесію браузера. Розпочни вхід знову.</string>
+    <string name="auth_session_only_title">Увійти без збереження швидкого доступу?</string>
+    <string name="auth_session_only_message">На цьому телефоні немає доступного безпечного блокування екрана. Ти можеш знову увійти через Authentik. Сесію не буде збережено. Після вимкнення екрана або тривалої перерви потрібно увійти знову.</string>
+    <string name="auth_session_only_continue">Увійти знову</string>
     <string name="auth_invalid_response">Відповідь Authentik недійсна.</string>
     <string name="auth_state_mismatch">Не вдалося безпечно зіставити відповідь входу.</string>
     <string name="auth_code_exchange_failed">Не вдалося обміняти код входу.</string>
@@ -291,4 +296,7 @@
     <string name="release_note_download_auto_open_setting">У Налаштування → Документи можна вимкнути автоматичне відкриття завантажень. Файли й надалі зберігаються.</string>
     <string name="downloads_auto_open_on">Автоматичне відкриття: увімкнено</string>
     <string name="downloads_auto_open_off">Автоматичне відкриття: вимкнено</string>
+    <string name="release_note_secure_unlock">Виправлення безпеки: Вміст застосунку відкривається лише після успішного підтвердження. Без безпечного блокування екрана вхід діє лише протягом поточного сеансу.</string>
+    <string name="release_note_reauthentication">Повторний вхід на особистих телефонах покращено. Підтверджене ім’я користувача залишається заповненим на зареєстрованому пристрої.</string>
+    <string name="release_note_app_symbols">Плитки вебзастосунків мають зрозуміліші значки без зміни розміру.</string>
 </resources>

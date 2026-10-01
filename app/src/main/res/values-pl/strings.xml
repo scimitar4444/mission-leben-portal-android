@@ -185,6 +185,11 @@
     <string name="auth_oidc_config_failed">Nie udało się załadować konfiguracji OIDC.</string>
     <string name="auth_expired">Żądanie logowania wygasło. Spróbuj ponownie.</string>
     <string name="auth_cancelled">Logowanie anulowano.</string>
+    <string name="auth_fresh_login_required">Zaloguj się ponownie przez Authentik. Istniejąca sesja przeglądarki nie wystarcza do odblokowania aplikacji.</string>
+    <string name="auth_context_clear_failed">Nie udało się bezpiecznie usunąć poprzedniej sesji przeglądarki. Rozpocznij logowanie ponownie.</string>
+    <string name="auth_session_only_title">Zalogować się bez zapisywania szybkiego dostępu?</string>
+    <string name="auth_session_only_message">Na tym telefonie nie ma dostępnej bezpiecznej blokady ekranu. Możesz zalogować się ponownie przez Authentik. Sesja nie zostanie zapisana. Po wyłączeniu ekranu lub dłuższej przerwie trzeba zalogować się ponownie.</string>
+    <string name="auth_session_only_continue">Zaloguj się ponownie</string>
     <string name="auth_invalid_response">Odpowiedź Authentik jest nieprawidłowa.</string>
     <string name="auth_state_mismatch">Nie udało się bezpiecznie dopasować odpowiedzi logowania.</string>
     <string name="auth_code_exchange_failed">Nie udało się wymienić kodu logowania.</string>
@@ -291,4 +296,7 @@
     <string name="release_note_download_auto_open_setting">W Ustawienia → Dokumenty możesz wyłączyć automatyczne otwieranie pobranych plików. Pliki nadal są zapisywane.</string>
     <string name="downloads_auto_open_on">Automatyczne otwieranie: włączone</string>
     <string name="downloads_auto_open_off">Automatyczne otwieranie: wyłączone</string>
+    <string name="release_note_secure_unlock">Poprawka bezpieczeństwa: Treść aplikacji otwiera się dopiero po udanym zatwierdzeniu. Bez bezpiecznej blokady ekranu logowanie trwa tylko przez bieżącą sesję.</string>
+    <string name="release_note_reauthentication">Usprawniono ponowne logowanie na telefonach osobistych. Potwierdzona nazwa użytkownika pozostaje wpisana na zarejestrowanym urządzeniu.</string>
+    <string name="release_note_app_symbols">Kafelki aplikacji internetowych mają czytelniejsze ikony, bez zmiany rozmiaru.</string>
 </resources>

@@ -109,6 +109,7 @@ class MainActivity : FragmentActivity() {
     private val authorizationLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
+        applyPersonalSessionLockIfNeeded()
         if (PortalBrowserActivity.sharedSessionEnded(result.data)) {
             viewModel.endSharedSessionAfterScreenOff()
             return@registerForActivityResult
@@ -123,7 +124,7 @@ class MainActivity : FragmentActivity() {
             "Authorization browser result: resultOk=${result.resultCode == RESULT_OK}, " +
                 "hasResponse=${redirectUri != null}",
         )
-        viewModel.completeAuthorization(redirectUri)
+        viewModel.completeAuthorization(redirectUri, PortalBrowserActivity.freshContextConfirmed(result.data))
     }
 
     private val appBrowserLauncher = registerForActivityResult(
@@ -154,16 +155,13 @@ class MainActivity : FragmentActivity() {
         if (result.resultCode != RESULT_OK) return@registerForActivityResult
         val enrollment = PortalBrowserActivity.selfEnrollmentResponse(result.data) ?: return@registerForActivityResult
         viewModel.enrollDeviceFromQr(enrollment.toString()) {
-            viewModel.createLoginUrl { url ->
-                authorizationLauncher.launch(
-                    PortalBrowserActivity.authorizationIntent(this, url, DeviceMode.PERSONAL),
-                )
-            }
+            startLogin()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
         PushManager.initialize(this)
         viewModel.acceptEnrollmentLink(intent?.data)
         viewModel.acceptPushAction(
@@ -249,15 +247,7 @@ class MainActivity : FragmentActivity() {
                 }
                 MissionLebenApp(
                     state = state,
-                    onStartLogin = {
-                        state.mode?.let { mode ->
-                            viewModel.createLoginUrl { url ->
-                                authorizationLauncher.launch(
-                                    PortalBrowserActivity.authorizationIntent(this@MainActivity, url, mode),
-                                )
-                            }
-                        }
-                    },
+                    onStartLogin = { startLogin() },
                     onRetryQuickUnlock = viewModel::retryQuickUnlock,
                     onOpenUrl = viewModel::openApplication,
                     onOpenPublicUrl = ::openUrl,
@@ -546,13 +536,34 @@ class MainActivity : FragmentActivity() {
             .onFailure { viewModel.updateInstallFailed() }
     }
 
+    private fun startLogin(persistSession: Boolean? = null) {
+        val mode = viewModel.uiState.value.mode ?: return
+        if (mode == DeviceMode.PERSONAL && persistSession == null && !hasLocalAuthenticator()) {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.auth_session_only_title)
+                .setMessage(R.string.auth_session_only_message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.auth_session_only_continue) { _, _ -> startLogin(persistSession = false) }
+                .show()
+            return
+        }
+        viewModel.createLoginUrl(persistSession = persistSession != false) { url ->
+            authorizationLauncher.launch(PortalBrowserActivity.authorizationIntent(this, url, mode))
+        }
+    }
+
+    private fun hasLocalAuthenticator(): Boolean = BiometricManager.from(this).canAuthenticate(
+        BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+    ) == BiometricManager.BIOMETRIC_SUCCESS
+
     private fun handleVaultRequest(request: VaultRequest) {
         viewModel.consumeVaultRequest()
         val requestEpoch = viewModel.currentSessionEpoch()
         val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or
             BiometricManager.Authenticators.DEVICE_CREDENTIAL
-        if (BiometricManager.from(this).canAuthenticate(authenticators) != BiometricManager.BIOMETRIC_SUCCESS) {
+        if (!hasLocalAuthenticator()) {
             viewModel.vaultFailed(getString(R.string.biometric_setup_required), requestEpoch)
+            startLogin()
             return
         }
 

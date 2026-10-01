@@ -185,6 +185,11 @@
     <string name="auth_oidc_config_failed">No se pudo cargar la configuración OIDC.</string>
     <string name="auth_expired">La solicitud de inicio de sesión ha caducado. Inténtalo de nuevo.</string>
     <string name="auth_cancelled">Se canceló el inicio de sesión.</string>
+    <string name="auth_fresh_login_required">Vuelve a iniciar sesión con Authentik. Una sesión existente del navegador no basta para desbloquear la app.</string>
+    <string name="auth_context_clear_failed">No se pudo cerrar de forma segura la sesión anterior del navegador. Inicia la autenticación de nuevo.</string>
+    <string name="auth_session_only_title">¿Iniciar sesión sin guardar el acceso rápido?</string>
+    <string name="auth_session_only_message">Este teléfono no tiene un bloqueo de pantalla seguro disponible. Puedes iniciar sesión de nuevo con Authentik. La sesión no se guardará. Al apagar la pantalla o tras una pausa larga, tendrás que volver a iniciar sesión.</string>
+    <string name="auth_session_only_continue">Iniciar sesión de nuevo</string>
     <string name="auth_invalid_response">La respuesta de Authentik no es válida.</string>
     <string name="auth_state_mismatch">No se pudo asociar de forma segura la respuesta de inicio de sesión.</string>
     <string name="auth_code_exchange_failed">No se pudo canjear el código de inicio de sesión.</string>
@@ -289,4 +294,7 @@
     <string name="release_note_download_auto_open_setting">En Ajustes → Documentos puedes desactivar la apertura automática de las descargas. Los archivos se siguen guardando.</string>
     <string name="downloads_auto_open_on">Apertura automática: activada</string>
     <string name="downloads_auto_open_off">Apertura automática: desactivada</string>
+    <string name="release_note_secure_unlock">Corrección de seguridad: El contenido solo se abre tras una autorización correcta. Sin un bloqueo de pantalla seguro, el acceso dura solo la sesión actual.</string>
+    <string name="release_note_reauthentication">Se ha mejorado el inicio de sesión en teléfonos personales. El nombre de usuario confirmado queda rellenado en el dispositivo registrado.</string>
+    <string name="release_note_app_symbols">Los accesos a aplicaciones web tienen iconos más claros, sin cambiar de tamaño.</string>
 </resources>

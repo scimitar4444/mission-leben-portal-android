@@ -185,6 +185,11 @@
     <string name="auth_oidc_config_failed">Impossible de charger la configuration OIDC.</string>
     <string name="auth_expired">La demande de connexion a expiré. Réessayez.</string>
     <string name="auth_cancelled">La connexion a été annulée.</string>
+    <string name="auth_fresh_login_required">Reconnectez-vous avec Authentik. Une session existante du navigateur ne suffit pas pour déverrouiller l’application.</string>
+    <string name="auth_context_clear_failed">La session précédente du navigateur n’a pas pu être fermée de manière sûre. Relancez la connexion.</string>
+    <string name="auth_session_only_title">Se connecter sans enregistrer l’accès rapide ?</string>
+    <string name="auth_session_only_message">Ce téléphone ne dispose pas d’un verrouillage d’écran sécurisé utilisable. Vous pouvez vous reconnecter avec Authentik. La session ne sera pas enregistrée. Après extinction de l’écran ou une longue pause, vous devrez vous reconnecter.</string>
+    <string name="auth_session_only_continue">Se reconnecter</string>
     <string name="auth_invalid_response">La réponse d’Authentik est invalide.</string>
     <string name="auth_state_mismatch">La réponse de connexion n’a pas pu être associée de manière sûre.</string>
     <string name="auth_code_exchange_failed">Impossible d’échanger le code de connexion.</string>
@@ -289,4 +294,7 @@
     <string name="release_note_download_auto_open_setting">Dans Paramètres → Documents, tu peux désactiver l’ouverture automatique des téléchargements. Les fichiers sont toujours enregistrés.</string>
     <string name="downloads_auto_open_on">Ouverture automatique : activée</string>
     <string name="downloads_auto_open_off">Ouverture automatique : désactivée</string>
+    <string name="release_note_secure_unlock">Correction de sécurité : Le contenu ne se présente qu’après une autorisation réussie. Sans verrouillage sécurisé de l’écran, la connexion ne dure que pour la session actuelle.</string>
+    <string name="release_note_reauthentication">La reconnexion sur les téléphones personnels a été améliorée. Le nom d’utilisateur confirmé reste prérempli sur l’appareil enregistré.</string>
+    <string name="release_note_app_symbols">Les applications web ont des icônes plus faciles à reconnaître, sans changer de taille.</string>
 </resources>

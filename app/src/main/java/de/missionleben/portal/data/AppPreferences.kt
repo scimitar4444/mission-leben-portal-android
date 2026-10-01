@@ -69,6 +69,39 @@ class AppPreferences(context: Context) {
         get() = preferences.getBoolean(KEY_REAUTHENTICATION_REQUIRED, false)
         set(value) = preferences.edit().putBoolean(KEY_REAUTHENTICATION_REQUIRED, value).apply()
 
+    var absoluteDeadlineReauthenticationRequired: Boolean
+        get() = hasCurrentPersonalBinding() && preferences.getBoolean(KEY_REAUTHENTICATION_ABSOLUTE, false)
+        set(value) = preferences.edit().putBoolean(KEY_REAUTHENTICATION_ABSOLUTE, value).apply()
+
+    val boundPersonalSubject: String?
+        get() = if (hasCurrentPersonalBinding()) preferences.getString(KEY_BOUND_SUBJECT, null) else null
+
+    val boundPersonalLoginHint: String?
+        get() = if (hasCurrentPersonalBinding()) reauthenticationHint?.trim()?.takeIf(String::isNotBlank) else null
+
+    val boundPersonalAuthenticatedAtEpochSeconds: Long
+        get() = if (hasCurrentPersonalBinding()) preferences.getLong(KEY_BOUND_AUTHENTICATED_AT, 0L) else 0L
+
+    private fun hasCurrentPersonalBinding(): Boolean =
+        deviceMode == DeviceMode.PERSONAL && enrollmentState == EnrollmentState.TRUSTED &&
+            !deviceId.isNullOrBlank() && deviceId == preferences.getString(KEY_LOGIN_HINT_DEVICE, null) &&
+            !preferences.getString(KEY_BOUND_SUBJECT, null).isNullOrBlank()
+
+    fun rememberPersonalIdentity(subject: String, loginHint: String, authenticatedAtEpochSeconds: Long = 0L) {
+        if (deviceMode != DeviceMode.PERSONAL || enrollmentState != EnrollmentState.TRUSTED ||
+            deviceId.isNullOrBlank() || subject.isBlank()) return
+        preferences.edit().apply {
+            if (loginHint.isBlank()) remove(KEY_REAUTHENTICATION_HINT)
+            else putString(KEY_REAUTHENTICATION_HINT, loginHint.trim())
+        }
+            .putString(KEY_LOGIN_HINT_DEVICE, deviceId)
+            .putString(KEY_BOUND_SUBJECT, subject)
+            .putLong(KEY_BOUND_AUTHENTICATED_AT, authenticatedAtEpochSeconds.coerceAtLeast(0L))
+            .putBoolean(KEY_REAUTHENTICATION_REQUIRED, false)
+            .putBoolean(KEY_REAUTHENTICATION_ABSOLUTE, false)
+            .apply()
+    }
+
     fun markSharedSessionScreenTurnedOff() {
         preferences.edit().putBoolean(KEY_SHARED_SESSION_SCREEN_TURNED_OFF, true).apply()
     }
@@ -81,10 +114,19 @@ class AppPreferences(context: Context) {
         return screenTurnedOff
     }
 
-    fun clearReauthentication() {
+    fun clearReauthentication(keepBoundPersonalIdentity: Boolean = false) {
+        if (keepBoundPersonalIdentity && hasCurrentPersonalBinding()) {
+            reauthenticationRequired = false
+            absoluteDeadlineReauthenticationRequired = false
+            return
+        }
         preferences.edit()
             .remove(KEY_REAUTHENTICATION_HINT)
             .remove(KEY_REAUTHENTICATION_REQUIRED)
+            .remove(KEY_REAUTHENTICATION_ABSOLUTE)
+            .remove(KEY_LOGIN_HINT_DEVICE)
+            .remove(KEY_BOUND_SUBJECT)
+            .remove(KEY_BOUND_AUTHENTICATED_AT)
             .apply()
     }
 
@@ -115,6 +157,7 @@ class AppPreferences(context: Context) {
     }
 
     fun clearProfile() {
+        clearReauthentication()
         preferences.edit()
             .remove(KEY_DEVICE_MODE)
             .remove(KEY_DEVICE_ID)
@@ -136,6 +179,9 @@ class AppPreferences(context: Context) {
     }
 
     private companion object {
+        const val KEY_LOGIN_HINT_DEVICE = "login_hint_device"
+        const val KEY_BOUND_SUBJECT = "bound_login_subject"
+        const val KEY_BOUND_AUTHENTICATED_AT = "bound_login_authenticated_at"
         const val KEY_DEVICE_MODE = "device_mode"
         const val KEY_DEVICE_ID = "device_id"
         const val KEY_ENROLLMENT_PROFILE = "enrollment_profile"
@@ -143,6 +189,7 @@ class AppPreferences(context: Context) {
         const val KEY_DOWNLOADS_AUTO_OPEN = "downloads_auto_open"
         const val KEY_REAUTHENTICATION_HINT = "reauthentication_hint"
         const val KEY_REAUTHENTICATION_REQUIRED = "reauthentication_required"
+        const val KEY_REAUTHENTICATION_ABSOLUTE = "reauthentication_absolute_deadline"
         const val KEY_SHARED_SESSION_SCREEN_TURNED_OFF = "shared_session_screen_turned_off"
         const val KEY_ALLOW_PERSONAL_SCREENSHOTS = "allow_personal_screenshots"
         const val KEY_ANNOUNCEMENTS_READ_PREFIX = "announcements_read_"

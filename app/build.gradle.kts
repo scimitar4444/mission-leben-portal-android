@@ -60,15 +60,17 @@ val releaseSigningConfigured = releaseSigningValues.all { !it.isNullOrBlank() }
 android {
     namespace = "de.missionleben.portal"
     compileSdk = 36
+    testBuildType = providers.gradleProperty("ML_TEST_BUILD_TYPE").orElse("debug").get()
 
     defaultConfig {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 86
-        versionName = "0.21.3"
+        versionCode = 87
+        versionName = "0.21.4"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = providers.gradleProperty("ML_TEST_INSTRUMENTATION_RUNNER")
+            .orElse("androidx.test.runner.AndroidJUnitRunner").get()
         // Authorization stays inside PortalBrowserActivity; reserve AppAuth's receiver so it
         // cannot compete with the app's enrollment deep links.
         manifestPlaceholders["appAuthRedirectScheme"] = "de.missionleben.portal.appauth"

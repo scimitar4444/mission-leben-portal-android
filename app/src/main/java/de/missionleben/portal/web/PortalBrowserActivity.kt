@@ -79,6 +79,7 @@ class PortalBrowserActivity : FragmentActivity() {
     private var logoutFinished = false
     private var endpointBridgeInstalled = false
     private var authorizationResultDelivered = false
+    private var personalLoginContextCleared = false
     private var selfEnrollmentResultDelivered = false
     private var sessionExpiredResultDelivered = false
     private var sharedSessionResultDelivered = false
@@ -168,7 +169,22 @@ class PortalBrowserActivity : FragmentActivity() {
 
         if (savedInstanceState == null) pendingContactEmail = intent.getStringExtra(EXTRA_CONTACT_EMAIL)
 
-        if (savedInstanceState != null) {
+        personalLoginContextCleared = savedInstanceState?.getBoolean(EXTRA_FRESH_CONTEXT_CONFIRMED, false) == true
+        if (requiresFreshPersonalContext() && !personalLoginContextCleared) {
+            webView.visibility = View.INVISIBLE
+            clearLoginContext(this) { cleared ->
+                if (isFinishing || isDestroyed) return@clearLoginContext
+                if (!cleared || personalAuthorizationLocked()) {
+                    Toast.makeText(this, R.string.auth_context_clear_failed, Toast.LENGTH_LONG).show()
+                    setResult(RESULT_CANCELED)
+                    finish()
+                } else {
+                    personalLoginContextCleared = true
+                    webView.visibility = View.VISIBLE
+                    loadInitialUrl(startUrl)
+                }
+            }
+        } else if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState)
         } else if (intent.getBooleanExtra(EXTRA_CLEAR_BEFORE_LOAD, false)) {
             clearLocalWebData(this) { loadInitialUrl(startUrl) }
@@ -195,6 +211,15 @@ class PortalBrowserActivity : FragmentActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (personalAuthorizationLocked()) {
+            if (::webView.isInitialized) {
+                webView.visibility = View.INVISIBLE
+                webView.stopLoading()
+            }
+            setResult(RESULT_CANCELED)
+            finish()
+            return
+        }
         if (closePersonalContentAfterLock()) return
         val screenTurnedOff = AppPreferences(this).consumeSharedSessionScreenTurnedOff()
         if (
@@ -217,6 +242,12 @@ class PortalBrowserActivity : FragmentActivity() {
         // Also catch a completion delivered while this activity was stopped or recreated.
         window.decorView.post { openCompletedPersonalDownload() }
     }
+
+    private fun requiresFreshPersonalContext(): Boolean =
+        deviceMode == DeviceMode.PERSONAL && intent.getBooleanExtra(EXTRA_FRESH_PERSONAL_CONTEXT, false)
+
+    private fun personalAuthorizationLocked(): Boolean = requiresFreshPersonalContext() &&
+        (application as MissionLebenApplication).personalSessionLockTracker.isLockRequired()
 
     private fun closePersonalContentAfterLock(): Boolean {
         if (deviceMode != DeviceMode.PERSONAL || !intent.getBooleanExtra(EXTRA_APP_CONTENT, false)) return false
@@ -596,6 +627,11 @@ class PortalBrowserActivity : FragmentActivity() {
             }
         }
         if (policy.isAuthorizationRedirect(url)) {
+            if (requiresFreshPersonalContext() && (!personalLoginContextCleared || personalAuthorizationLocked())) {
+                setResult(RESULT_CANCELED)
+                finish()
+                return true
+            }
             if (!authorizationResultDelivered) {
                 authorizationResultDelivered = true
                 val response = Uri.parse(url)
@@ -607,6 +643,7 @@ class PortalBrowserActivity : FragmentActivity() {
                     RESULT_OK,
                     Intent()
                         .setData(response)
+                        .putExtra(EXTRA_FRESH_CONTEXT_CONFIRMED, personalLoginContextCleared)
                         .putExtra(EXTRA_AUTHORIZATION_RESPONSE, url),
                 )
                 finish()
@@ -740,6 +777,7 @@ class PortalBrowserActivity : FragmentActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean(EXTRA_FRESH_CONTEXT_CONFIRMED, personalLoginContextCleared)
         if (::webView.isInitialized) webView.saveState(outState)
         super.onSaveInstanceState(outState)
     }
@@ -770,6 +808,8 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_DEVICE_MODE = "device_mode"
         private const val EXTRA_APP_CONTENT = "app_content"
         private const val EXTRA_CLEAR_BEFORE_LOAD = "clear_before_load"
+        private const val EXTRA_FRESH_PERSONAL_CONTEXT = "fresh_personal_context"
+        private const val EXTRA_FRESH_CONTEXT_CONFIRMED = "fresh_context_confirmed"
         private const val EXTRA_LOGOUT = "logout"
         private const val EXTRA_SELF_ENROLLMENT = "self_enrollment"
         private const val EXTRA_INITIAL_HISTORY_URL = "initial_history_url"
@@ -839,6 +879,10 @@ class PortalBrowserActivity : FragmentActivity() {
                 .putExtra(EXTRA_REDIRECT_URI, BuildConfig.OIDC_REDIRECT_URI)
                 .putExtra(EXTRA_DEVICE_MODE, mode.name)
                 .putExtra(EXTRA_CLEAR_BEFORE_LOAD, mode == DeviceMode.SHARED)
+                .putExtra(EXTRA_FRESH_PERSONAL_CONTEXT, mode == DeviceMode.PERSONAL)
+
+        fun freshContextConfirmed(intent: Intent?): Boolean =
+            intent?.getBooleanExtra(EXTRA_FRESH_CONTEXT_CONFIRMED, false) == true
 
         fun authorizationResponse(intent: Intent?): Uri? {
             val response = intent?.data?.toString()
@@ -885,6 +929,37 @@ class PortalBrowserActivity : FragmentActivity() {
                 .putExtra(EXTRA_DEVICE_MODE, mode.name)
                 .putExtra(EXTRA_TITLE, context.getString(R.string.browser_sign_out_title))
                 .putExtra(EXTRA_LOGOUT, true)
+
+        /** Authentication-only reset: no downloads, files, device registration or push data removed. */
+        fun clearLoginContext(context: Context, onComplete: (Boolean) -> Unit) {
+            val handler = Handler(Looper.getMainLooper())
+            val cookies = CookieManager.getInstance()
+            val gate = CookieClearanceGate { success ->
+                if (!success) {
+                    onComplete(false)
+                } else {
+                    val storageCleared = runCatching {
+                        cookies.flush()
+                        WebStorage.getInstance().deleteAllData()
+                        WebViewDatabase.getInstance(context).apply {
+                            clearHttpAuthUsernamePassword()
+                            clearFormData()
+                        }
+                        WebView(context).apply {
+                            clearCache(true)
+                            clearHistory()
+                            clearFormData()
+                            destroy()
+                        }
+                    }.isSuccess
+                    onComplete(storageCleared)
+                }
+            }
+            runCatching {
+                cookies.removeAllCookies { gate.acknowledged(cookies.hasCookies()) }
+            }.onFailure { gate.failed() }
+            handler.postDelayed({ gate.failed() }, 10_000L)
+        }
 
         fun clearLocalWebData(context: Context, onComplete: (() -> Unit)? = null) {
             val completed = AtomicBoolean(false)

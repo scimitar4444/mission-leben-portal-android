@@ -10,6 +10,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -19,6 +21,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import de.missionleben.portal.model.AnnouncementItem
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.EnrollmentState
@@ -27,6 +30,7 @@ import de.missionleben.portal.model.PortalApplication
 import de.missionleben.portal.model.PortalCapability
 import de.missionleben.portal.model.UiState
 import de.missionleben.portal.model.UserIdentity
+import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.NotificationBadgeCounts
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -47,6 +51,8 @@ class HomeOverviewTest {
     private val marked = mutableListOf<Long>()
     private var settingsOpened = 0
     private var contactsOpened = 0
+    private var loginStarts = 0
+    private var quickUnlockRetries = 0
     private val openedUrls = mutableListOf<String>()
 
     private fun show(fontScale: Float = 1f) {
@@ -58,7 +64,7 @@ class HomeOverviewTest {
                             state = state.value,
                             onSettings = { settingsOpened++ },
                             onContacts = { contactsOpened++ },
-                            onStartLogin = {}, onRetryQuickUnlock = {},
+                            onStartLogin = { loginStarts++ }, onRetryQuickUnlock = { quickUnlockRetries++ },
                             onOpenUrl = { openedUrls += it }, onOpenPublicUrl = { openedUrls += it },
                             onReloadApplications = {},
                             onMarkAnnouncementRead = {
@@ -90,6 +96,11 @@ class HomeOverviewTest {
     @Test fun sixAppsAndNoticeFitWithoutScrolling() {
         show()
         (0..5).forEach { compose.onNodeWithTag("app-app$it").assertIsDisplayed() }
+        (0..5).forEach { compose.onNodeWithTag("app-app$it").assertHeightIsEqualTo(72.dp) }
+        (0..5).forEach {
+            compose.onNodeWithTag("app-symbol-app$it", useUnmergedTree = true)
+                .assertWidthIsEqualTo(32.dp).assertHeightIsEqualTo(32.dp)
+        }
         compose.onNodeWithText("IHM wird gewartet").assertIsDisplayed()
         compose.onNodeWithText("Neu").assertIsDisplayed()
         compose.onNodeWithText(MESSAGE).assertDoesNotExist()
@@ -97,6 +108,36 @@ class HomeOverviewTest {
         screenshot("six-apps-notice-light")
         compose.onNodeWithTag("app-app1").performClick()
         assertEquals(listOf("https://example.invalid/app1"), openedUrls)
+    }
+
+    @Test fun documentSymbolAndLargeBadgePreserveTileSizeAndNavigation() {
+        state.value = state.value.copy(
+            applications = listOf(PortalApplication("ML Dokumente", "projectsend-ml-dokumente-test",
+                "https://example.invalid/documents")),
+            unreadNotificationBadges = NotificationBadgeCounts(documents = 101),
+        )
+        show()
+        compose.onNodeWithText("99+").assertIsDisplayed()
+        compose.onNodeWithTag("app-projectsend-ml-dokumente-test")
+            .assertHeightIsEqualTo(72.dp).performClick()
+        assertEquals(listOf("https://example.invalid/documents"), openedUrls)
+        screenshot("document-symbol-and-badge")
+    }
+
+    @Test fun sixDifferentSymbolsWithNotice() {
+        state.value = state.value.copy(applications = listOf(
+            PortalApplication("Talk", "talk", "https://example.invalid/talk"),
+            PortalApplication("Zimbra Mail", "zimbra-mail", "https://example.invalid/mail"),
+            PortalApplication("ML Dokumente", "projectsend-ml-dokumente-test", "https://example.invalid/documents"),
+            PortalApplication("Warden", "warden", "https://example.invalid/warden"),
+            PortalApplication("Nextcloud", "nextcloud", "https://example.invalid/cloud"),
+            PortalApplication("Video Zentral", "peertube", "https://example.invalid/video"),
+        ))
+        show()
+        state.value.applications.forEach {
+            compose.onNodeWithTag("app-" + it.slug).assertIsDisplayed().assertHeightIsEqualTo(72.dp)
+        }
+        screenshot("six-symbols-light")
     }
 
     @Test @Config(qualifiers = "de-rDE-w320dp-h680dp-night-xhdpi")
@@ -183,6 +224,49 @@ class HomeOverviewTest {
         show()
         compose.onNodeWithTag("app-app0").assertDoesNotExist()
         compose.onNodeWithText("Kontakte").assertDoesNotExist()
+    }
+
+    @Test fun pendingSealCannotExposeEvenPreviouslyLoadedProtectedTiles() {
+        state.value = state.value.copy(signedIn = false, user = null, busy = true, vaultRequest = VaultRequest.SEAL)
+        show()
+        (0..5).forEach { compose.onNodeWithTag("app-app$it").assertDoesNotExist() }
+        compose.onNodeWithText("Kontakte").assertDoesNotExist()
+    }
+
+    @Test fun cancelledSealKeepsPersonalOverviewLocked() {
+        state.value = state.value.copy(signedIn = false, user = null, busy = false,
+            vaultRequest = VaultRequest.NONE, message = "Schnellzugang wurde abgebrochen.")
+        show()
+        (0..5).forEach { compose.onNodeWithTag("app-app$it").assertDoesNotExist() }
+        compose.onNodeWithText("Kontakte").assertDoesNotExist()
+        assertEquals(0, loginStarts)
+    }
+
+    @Test fun personalWithoutQuickUnlockOffersManualAuthentikLogin() {
+        state.value = state.value.copy(
+            signedIn = false, user = null, quickUnlockEnabled = false,
+            message = "Bitte Biometrie oder eine sichere Displaysperre einrichten.",
+        )
+        show()
+        // Current behavior: a setup failure does not start the browser automatically.
+        assertEquals(0, loginStarts)
+        compose.onNodeWithText("Mit Authentik anmelden").assertIsDisplayed().performClick()
+        assertEquals(1, loginStarts)
+        assertEquals(0, quickUnlockRetries)
+        compose.onNodeWithTag("app-app0").assertDoesNotExist()
+    }
+
+    @Test fun savedVaultAfterSetupFailureStillOffersRetryAndSeparateAuthentikButton() {
+        state.value = state.value.copy(
+            signedIn = false, user = null, quickUnlockEnabled = true,
+            message = "Bitte Biometrie oder eine sichere Displaysperre einrichten.",
+        )
+        show()
+        // A removed screen lock can leave the old vault present: current UI still
+        // offers retry, but the separate Authentik action remains accessible.
+        compose.onNodeWithText("Mit Authentik anmelden").assertIsDisplayed().performClick()
+        assertEquals(1, loginStarts)
+        assertEquals(0, quickUnlockRetries)
     }
 
     companion object {

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="auth_fresh_login_required">Please sign in with Authentik again. An existing browser session cannot unlock the app.</string>
+    <string name="auth_context_clear_failed">The previous browser session could not be safely isolated. Please start sign-in again.</string>
+    <string name="auth_session_only_title">Sign in without saving quick access?</string>
+    <string name="auth_session_only_message">No usable secure screen lock is available on this phone. You can sign in with Authentik again. Your sign-in will not be saved. After screen-off or a longer break, you must sign in again.</string>
+    <string name="auth_session_only_continue">Sign in again</string>
     <string name="push_reliability_title">Push delivery</string>
     <string name="push_reliability_description">Check these settings so alerts can arrive while the screen is off.</string>
     <string name="push_reliability_not_registered">Push is not set up on this device yet.</string>
@@ -303,4 +308,7 @@
     <string name="release_note_download_auto_open_setting">In Settings → Documents, you can turn off automatic opening of downloads. Files are still saved.</string>
     <string name="downloads_auto_open_on">Automatic opening: on</string>
     <string name="downloads_auto_open_off">Automatic opening: off</string>
+    <string name="release_note_secure_unlock">Security fix: App content opens only after successful approval. Without a secure screen lock, sign-in lasts only for the current session.</string>
+    <string name="release_note_reauthentication">Sign-in renewal on personal phones has been improved. Your confirmed username stays prefilled on the registered device.</string>
+    <string name="release_note_app_symbols">Web app tiles have clearer icons, with their size unchanged.</string>
 </resources>

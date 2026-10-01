@@ -185,6 +185,11 @@
     <string name="auth_oidc_config_failed">OIDC yapılandırması yüklenemedi.</string>
     <string name="auth_expired">Oturum açma isteğinin süresi doldu. Yeniden deneyin.</string>
     <string name="auth_cancelled">Oturum açma iptal edildi.</string>
+    <string name="auth_fresh_login_required">Lütfen Authentik ile yeniden giriş yap. Mevcut bir tarayıcı oturumu uygulamanın kilidini açmak için yeterli değildir.</string>
+    <string name="auth_context_clear_failed">Önceki tarayıcı oturumu güvenli biçimde temizlenemedi. Lütfen girişi yeniden başlat.</string>
+    <string name="auth_session_only_title">Hızlı erişimi kaydetmeden giriş yapılsın mı?</string>
+    <string name="auth_session_only_message">Bu telefonda kullanılabilir güvenli bir ekran kilidi yok. Authentik ile yeniden giriş yapabilirsin. Oturum kaydedilmez. Ekran kapandığında veya uzun bir aradan sonra yeniden giriş yapman gerekir.</string>
+    <string name="auth_session_only_continue">Yeniden giriş yap</string>
     <string name="auth_invalid_response">Authentik yanıtı geçersiz.</string>
     <string name="auth_state_mismatch">Oturum açma yanıtı güvenli şekilde eşleştirilemedi.</string>
     <string name="auth_code_exchange_failed">Oturum açma kodu değiştirilemedi.</string>
@@ -289,4 +294,7 @@
     <string name="release_note_download_auto_open_setting">Ayarlar → Belgeler bölümünde indirilenlerin otomatik açılmasını kapatabilirsin. Dosyalar kaydedilmeye devam eder.</string>
     <string name="downloads_auto_open_on">Otomatik açma: açık</string>
     <string name="downloads_auto_open_off">Otomatik açma: kapalı</string>
+    <string name="release_note_secure_unlock">Güvenlik düzeltmesi: Uygulama içeriği yalnızca başarılı onaydan sonra açılır. Güvenli ekran kilidi yoksa oturum yalnızca mevcut kullanım için geçerlidir.</string>
+    <string name="release_note_reauthentication">Kişisel telefonlarda yeniden giriş iyileştirildi. Onaylanmış kullanıcı adınız kayıtlı cihazda önceden doldurulur.</string>
+    <string name="release_note_app_symbols">Web uygulaması kutucuklarının boyutu değişmeden simgeleri daha anlaşılır oldu.</string>
 </resources>
