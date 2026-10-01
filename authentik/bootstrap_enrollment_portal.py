@@ -31,6 +31,7 @@ from authentik.flows.models import (
 from authentik.outposts.apps import MANAGED_OUTPOST
 from authentik.outposts.models import Outpost
 from authentik.policies.models import PolicyBinding, PolicyEngineMode
+from authentik.policies.expression.models import ExpressionPolicy
 from authentik.providers.proxy.models import ProxyMode, ProxyProvider
 from authentik.stages.authenticator_duo.models import AuthenticatorDuoStage
 from authentik.stages.authenticator_validate.models import (
@@ -61,6 +62,27 @@ ROLE_GROUPS = (
     "BR_EINRICHTUNGSLEITUNG",
     "BR_PFLEGEDIENSTLEITUNG",
 )
+# Kept byte-identical to device_portal_navigation.OPERATOR_BODY by contract test.
+# Navigation never grants proxy or device authorization.
+OPERATOR_BODY = '''
+if not request.user.is_active:
+    return False
+groups = list(request.user.all_groups())
+names = {group.name for group in groups}
+operator = "BR_IT_MANAGEMENT" in names
+if not operator and names.intersection({"BR_EINRICHTUNGSLEITUNG", "BR_PFLEGEDIENSTLEITUNG", "BR_STELLVERTRETENDE_EINRICHTUNGSLEITUNG"}):
+    import re
+    for group in groups:
+        attrs = group.attributes or {}
+        if (re.fullmatch(r"ORG_ML_H[0-9]{3}(?:_[0-9]{2})?", group.name)
+            and attrs.get("iam_group_type") == "organization_unit"
+            and attrs.get("iam_managed") is True
+            and attrs.get("iam_plan_status") in {"UMGESETZT_UEBERGANG", "AKTIV"}
+            and (attrs.get("iam_org_level") in {"Einrichtung", "Einrichtung/Verbund"}
+                 or (group.name == "ORG_ML_H001" and attrs.get("iam_org_level") == "Geschäftseinheit/Standort"))):
+            operator = True
+            break
+'''
 PERMISSIONS = (
     "authentik_core.view_user",
     "authentik_core.view_group",
@@ -240,13 +262,13 @@ application, _ = Application.objects.update_or_create(
     defaults={
         "name": APPLICATION_NAME,
         "provider": provider,
-        # The employee-facing tile is a public guide, not an initializer or
-        # self-enrollment authentication entry. The app still uses /self.
+        # The proxy is hidden. Two role-exclusive, providerless navigation
+        # tiles below choose the guide or management without gating /self.
         "meta_launch_url": external_host + "/download",
         "meta_description": "App installieren und persönliches Gerät einrichten",
         "open_in_new_tab": True,
         "meta_publisher": "Mission Leben",
-        "meta_hide": False,
+        "meta_hide": True,
         "policy_engine_mode": PolicyEngineMode.MODE_ANY,
     },
 )
@@ -264,6 +286,35 @@ if unexpected_bindings.exists():
         "Gerät einrichten has unexpected policy/user/group bindings; review them manually"
     )
 PolicyBinding.objects.filter(target=application, group__in=operator_groups).delete()
+
+for slug, name, path, policy_name, expression in (
+    ("mission-leben-device-manage", "Gerät einrichten", "/",
+     "Mission Leben Geräte-Navigation - Einrichter", OPERATOR_BODY + "return operator\n"),
+    ("mission-leben-device-guide", "App installieren", "/download",
+     "Mission Leben Geräte-Navigation - Mitarbeitende", OPERATOR_BODY + "return not operator\n"),
+):
+    tile, _ = Application.objects.get_or_create(slug=slug, defaults={"name": name})
+    if tile.provider_id is not None:
+        raise RuntimeError("Navigation tile must not own a provider")
+    policy, _ = ExpressionPolicy.objects.get_or_create(name=policy_name, defaults={"expression": expression})
+    if PolicyBinding.objects.filter(target=tile).exclude(policy=policy, group=None, user=None).exists():
+        raise RuntimeError("Unexpected navigation binding")
+    policy.expression = expression
+    policy.save(update_fields=["expression"])
+    tile.name = name
+    tile.meta_launch_url = external_host + path
+    tile.meta_description = "Geräte verwalten und einrichten" if slug.endswith("manage") else "Android-App installieren und persönlich anmelden"
+    tile.meta_publisher = "Mission Leben"
+    tile.meta_hide = False
+    tile.open_in_new_tab = True
+    tile.policy_engine_mode = PolicyEngineMode.MODE_ALL
+    tile.save()
+    tile_binding, _ = PolicyBinding.objects.get_or_create(target=tile, policy=policy, defaults={"order": 0})
+    tile_binding.enabled = True
+    tile_binding.negate = False
+    tile_binding.failure_result = False
+    tile_binding.order = 0
+    tile_binding.save()
 
 embedded_outpost = Outpost.objects.get(managed=MANAGED_OUTPOST)
 outpost_config = embedded_outpost.config

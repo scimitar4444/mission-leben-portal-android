@@ -63,7 +63,7 @@ class SourceTests(unittest.TestCase):
                 values["roles"] = ast.literal_eval(node.value)
         self.assertEqual(values["roles"], ("BR_IT_MANAGEMENT", "BR_EINRICHTUNGSLEITUNG", "BR_PFLEGEDIENSTLEITUNG"))
 
-    def test_employee_tile_opens_public_installation_guide(self):
+    def test_proxy_is_hidden_without_removing_employee_access(self):
         application_call = next(
             node for node in ast.walk(self.tree(NAMES[0]))
             if isinstance(node, ast.Call)
@@ -73,7 +73,10 @@ class SourceTests(unittest.TestCase):
         values = {ast.literal_eval(key): value for key, value in zip(defaults.keys, defaults.values)}
         self.assertEqual(ast.unparse(values["meta_launch_url"]), "external_host + '/download'")
         self.assertTrue(ast.literal_eval(values["open_in_new_tab"]))
-        self.assertFalse(ast.literal_eval(values["meta_hide"]))
+        self.assertTrue(ast.literal_eval(values["meta_hide"]))
+        source = (ROOT / "authentik" / NAMES[0]).read_text()
+        self.assertIn('"mission-leben-device-guide", "App installieren", "/download"', source)
+        self.assertIn('"mission-leben-device-manage", "Gerät einrichten", "/"', source)
 
     def test_group_model_never_creates_or_mutates_groups(self):
         for name in NAMES:

@@ -78,9 +78,19 @@ podman exec -i authentik-server ak shell \
   > enrollment-portal/secrets/authentik-enrollment-api-token
 ```
 
+Die sichtbaren Authentik-Kacheln sind nach der bestehenden Einrichterrolle getrennt:
+IT sowie EL, stellvertretende EL und PDL mit erlaubter Einrichtung sehen
+**Gerät einrichten** (Portal-Verwaltung). Andere aktive Benutzer sehen
+**App installieren** (öffentliche Anleitung). Beide öffnen ein neues Tab.
+Der bestehende Proxy `mission-leben-device-init` bleibt für `/self` unverändert
+zugänglich, ist aber als Kachel verborgen. Diese Navigation erteilt keine Rechte.
+Für eine bestehende Installation übernimmt `authentik/device_portal_navigation.py`
+nur diese Navigation, mit versionsgebundener Sicherung, Zustandsvergleich und
+gezieltem Rückweg; der vollständige Bootstrap darf dafür nicht ausgeführt werden.
+
 Das Skript ist idempotent und erstellt:
 
-- die Anwendung `Gerät einrichten`,
+- den verborgenen Portal-Proxy sowie die getrennten Verwaltungs-/Anleitungskacheln,
 - einen Forward-Auth-Proxy-Provider,
 - einen eigenen Authentication Flow für Benutzername, Kennwort und vorhandenes TOTP, Passkey oder registrierte App-Bestätigung,
 - einen anwendungsbezogenen Authorization Flow mit verpflichtendem, bereits vorhandenem starken Faktor,
