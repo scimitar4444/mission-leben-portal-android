@@ -376,6 +376,37 @@ async def test_exception_device_fallback_rejected_even_when_oidc_is_not_currentl
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("other_user,denied", [(42, True), (99, False)])
+async def test_exception_account_wide_phone_count_uses_actual_bindings_not_uuid_labels(settings, other_user, denied):
+    _, authentik, service = prepared_exception(settings)
+    selected_uuid = authentik.existing_group["pbm_uuid"]
+    other_uuid = "ffffffff-bbbb-cccc-dddd-eeeeeeeeeeee"
+    selected = authentik.existing_group
+    other = {"pbm_uuid": other_uuid, "attributes": {"mission-leben.de/purpose": "android-portal",
+        "mission-leben.de/mode": "personal", "mission-leben.de/user-uuid": "deliberately-wrong-label"}}
+    authentik.device_records = [{"device_uuid": authentik.device_uuid, "name": "Diensthandy", "access_group": selected_uuid,
+        "expiring": False, "attributes": {HANDSET_PROFILE_ATTRIBUTE: "shared-account", "mission-leben.de/device-ownership": "company",
+        "mission-leben.de/user-uuid": authentik.user["uuid"]}, "policies": []},
+        {"device_uuid": "other-device", "name": "Other", "access_group": other_uuid, "expiring": False, "attributes": {}}]
+
+    async def groups(group_uuid):
+        return selected if group_uuid == selected_uuid else other
+
+    async def bindings(group_uuid):
+        return authentik._bindings if group_uuid == selected_uuid else [{"user": other_user, "group": None,
+            "policy": None, "enabled": True, "negate": False}]
+
+    authentik.access_group = groups
+    authentik.bindings = bindings
+    if denied:
+        with pytest.raises(AuthentikError) as error:
+            await service.device_status("agent-device-token")
+        assert error.value.status == 403
+    else:
+        assert (await service.device_status("agent-device-token"))["trusted"] is True
+
+
+@pytest.mark.asyncio
 async def test_shared_handset_preflight_is_it_only_and_does_not_issue_a_token(settings):
     authentik = FakeAuthentik(settings)
     calls = []
