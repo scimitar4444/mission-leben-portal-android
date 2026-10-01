@@ -211,6 +211,12 @@ class EnrollmentService:
         group_uuid = str(group.get("pbm_uuid") or "")
         if not self.settings.shared_handset_exception_dag_uuid or group_uuid != self.settings.shared_handset_exception_dag_uuid:
             raise AuthentikError(409, "Diese Diensthandy-Ausnahme muss zuerst gezielt durch die IT vorbereitet werden.")
+        # This pinned profile must never fall back to the regular shared-account
+        # branch after a flag change, which would bypass a revoked entitlement.
+        user_attrs = user.get("attributes") or {}
+        if (user_attrs.get("iam_interactive_login_allowed") is not False
+            or user_attrs.get("iam_noninteractive_account") is not True):
+            raise AuthentikError(403, "Die Kontomerkmale passen nicht mehr zur Diensthandy-Ausnahme.")
         attrs = group.get("attributes") or {}
         if (attrs.get("mission-leben.de/purpose") != "android-portal"
             or attrs.get("mission-leben.de/mode") != "personal"

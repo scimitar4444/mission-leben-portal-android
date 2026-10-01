@@ -407,6 +407,20 @@ async def test_exception_account_wide_phone_count_uses_actual_bindings_not_uuid_
 
 
 @pytest.mark.asyncio
+async def test_prepared_exception_cannot_bypass_entitlement_revocation_by_regular_flag_drift(settings):
+    _, authentik, service = prepared_exception(settings)
+    authentik.user["groups"] = []
+    authentik.user["attributes"].update(iam_interactive_login_allowed=True, iam_noninteractive_account=False)
+    authentik.device_records = [{"device_uuid": authentik.device_uuid, "name": "Diensthandy",
+        "access_group": authentik.existing_group["pbm_uuid"], "expiring": False,
+        "attributes": {HANDSET_PROFILE_ATTRIBUTE: "shared-account", "mission-leben.de/device-ownership": "company",
+                       "mission-leben.de/user-uuid": authentik.user["uuid"]}, "policies": []}]
+    with pytest.raises(AuthentikError) as error:
+        await service.device_status("agent-device-token")
+    assert error.value.status == 403
+
+
+@pytest.mark.asyncio
 async def test_shared_handset_preflight_is_it_only_and_does_not_issue_a_token(settings):
     authentik = FakeAuthentik(settings)
     calls = []
