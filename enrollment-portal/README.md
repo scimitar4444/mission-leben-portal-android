@@ -28,6 +28,17 @@ Protect bleibt eingeschaltet. Bei einem normalen Update wird die bestehende
 App aktualisiert, nicht vorab gelöscht. Grundlage der Scan-Erklärung ist
 die [offizielle Google-Play-Protect-Hilfe](https://support.google.com/googleplay/answer/2812853?hl=de).
 
+Dieselben drei Ansichten zeigen schon vor dem Download den gemeinsamen
+Hinweis zur sicheren Bildschirmsperre: Für den gespeicherten Schnellzugang
+auf persönlichen und gebundenen Diensthandys muss eine PIN, ein Passwort
+oder ein Muster eingerichtet und als Geräteauthentifizierung nutzbar sein.
+Biometrie ist optional. Ohne nutzbaren lokalen Faktor bleibt nur eine nicht
+gespeicherte Anmeldung mit erneuter Passworteingabe bei jeder neuen
+App-Sitzung (zum Beispiel nach Bildschirm-Aus oder längerer Pause), nicht
+bei jedem kurzen App-Wechsel. Gemeinsame Tablets speichern weiterhin keinen
+persönlichen Schnellzugang. Dieser Dokumentationshinweis verändert weder
+den Samsung-Installationsschalter noch Authentik-Flows oder Berechtigungen.
+
 Für Mitarbeiter mit vorhandenem TOTP, Passkey oder bereits registrierter App-Bestätigung öffnet die App direkt `/self`. Nach Benutzername, Passwort und dem gewählten Faktor bestätigt die Person nur noch „Gerät jetzt registrieren“. Der Container bindet das Gerät an genau dieses angemeldete Konto und leitet automatisch zur App zurück. Beim allerersten persönlichen Gerät steht noch keine App-Bestätigung zur Verfügung; dafür bleibt TOTP oder Passkey erforderlich.
 
 Für eine Einrichtung im Auftrag:

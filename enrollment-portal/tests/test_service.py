@@ -1386,6 +1386,22 @@ def test_public_install_pages_explain_update_scans_without_bypassing_warnings(se
             assert response.text.count('aria-label="Sicherheitsprüfung und spätere Updates"') == 1
 
 
+def test_public_install_pages_explain_screen_lock_before_download(settings):
+    app = create_app(settings, FakeAuthentik(settings))
+    with TestClient(app) as client:
+        for path in ("/download", "/setup", "/install"):
+            response = client.get(path)
+            assert response.status_code == 200
+            assert response.text.count('aria-label="Bildschirmsperre und Schnellzugang"') == 1
+            assert "Bildschirmsperre mit PIN, Passwort oder Muster" in response.text
+            assert "ein Gerätecode reicht ebenfalls" in response.text
+            assert "Ohne nutzbare sichere Bildschirmsperre gibt es keinen gespeicherten Schnellzugang" in response.text
+            assert "bei jeder neuen App-Sitzung Ihr Passwort erneut eingeben" in response.text
+            assert "Ein kurzer App-Wechsel bei eingeschaltetem Bildschirm ist keine neue Sitzung" in response.text
+            assert "Ein persönlicher Schnellzugang wird dort nicht gespeichert" in response.text
+            assert response.text.index('aria-label="Bildschirmsperre und Schnellzugang"') < response.text.index("App herunterladen" if path == "/install" else "App installieren")
+
+
 def test_it_can_send_personal_enrollment_and_nonexpiring_totp_download(settings, monkeypatch):
     settings = replace(settings, smtp_host="mail.mission-leben.de", smtp_sender="it-service@mission-leben.de")
     authentik = FakeAuthentik(settings)
