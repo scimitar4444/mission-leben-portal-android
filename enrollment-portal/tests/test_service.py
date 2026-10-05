@@ -1394,7 +1394,12 @@ def test_public_install_pages_explain_screen_lock_before_download(settings):
             assert response.status_code == 200
             assert response.text.count('aria-label="Bildschirmsperre und Schnellzugang"') == 1
             assert "Bildschirmsperre mit PIN, Passwort oder Muster" in response.text
-            assert "ein Gerätecode reicht ebenfalls" in response.text
+            assert "Ein Gerätecode reicht ebenfalls" in response.text
+            assert "Fingerabdruck oder Gesichtserkennung akzeptiert die App nur, wenn Android sie als ausreichend sicher einstuft" in response.text
+            assert "Handy-PIN, Passwort oder Muster" in response.text
+            assert "nicht Ihr Mission-Leben-Passwort" in response.text
+            assert "Die PIN-Abfrage ist kein Fehler" in response.text
+            assert "Fingerabdruck oder Gesicht können Sie zusätzlich verwenden" not in response.text
             assert "Ohne nutzbare sichere Bildschirmsperre gibt es keinen gespeicherten Schnellzugang" in response.text
             assert "bei jeder neuen App-Sitzung Ihr Passwort erneut eingeben" in response.text
             assert "Ein kurzer App-Wechsel bei eingeschaltetem Bildschirm ist keine neue Sitzung" in response.text

@@ -9,7 +9,7 @@
 3. Melde dich mit deinen persönlichen Mission-Leben-Zugangsdaten an.
 4. Wenn ein zweiter Sicherheitsnachweis verlangt wird und dein persönliches Handy bereits eingerichtet ist: Wähle Duo. Öffne Mission Leben Zentral auf deinem Handy, entsperre die App und tippe auf „Bestätigen“. Wird Duo nicht angeboten, nutze dein bisheriges Verfahren.
 
-**Für den Schnellzugang auf deinem Handy:** Richte eine sichere Bildschirmsperre mit PIN, Passwort oder Muster ein. Fingerabdruck oder Gesicht kannst du zusätzlich verwenden; ein Gerätecode reicht ebenfalls. Ohne nutzbare sichere Bildschirmsperre musst du dich in der App bei jeder neuen Sitzung wieder mit deinem Passwort anmelden, zum Beispiel nach Bildschirm-Aus oder einer längeren Pause. Die Browser-Anmeldung wird dadurch nicht verändert.
+**Für den Schnellzugang auf deinem Handy:** Richte eine sichere Bildschirmsperre mit PIN, Passwort oder Muster ein. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler. Ohne nutzbare sichere Bildschirmsperre musst du dich in der App bei jeder neuen Sitzung wieder mit deinem Passwort anmelden, zum Beispiel nach Bildschirm-Aus oder einer längeren Pause. Die Browser-Anmeldung wird dadurch nicht verändert.
 
 **Wichtig:** Bestätige keine Anmeldeanfrage, die du nicht selbst ausgelöst hast.
 

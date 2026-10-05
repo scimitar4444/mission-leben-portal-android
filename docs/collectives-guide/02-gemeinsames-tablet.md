@@ -4,7 +4,7 @@ Diese Anleitung gilt für ein Tablet, das mehrere Beschäftigte einer Einrichtun
 
 Auf einem **gemeinsamen Tablet** wird kein persönlicher Schnellzugang gespeichert. Nach Bildschirm-Aus meldest du dich immer neu mit deinen vorgesehenen Zugangsdaten an. Ein Gerätecode ersetzt diese App-Anmeldung nicht.
 
-Der Hinweis zum Schnellzugang gilt für **persönliche und gebundene Diensthandys**: Dort muss eine sichere Bildschirmsperre mit PIN, Passwort oder Muster eingerichtet sein. Ohne nutzbare sichere Bildschirmsperre ist bei jeder neuen App-Sitzung das Passwort erneut nötig. Bitte ändere die vom Einrichter vorgegebenen Sicherheitseinstellungen des gemeinsamen Tablets nicht selbst.
+Der Hinweis zum Schnellzugang gilt für **persönliche und gebundene Diensthandys**: Dort muss eine sichere Bildschirmsperre mit PIN, Passwort oder Muster eingerichtet sein. Ohne nutzbare sichere Bildschirmsperre ist bei jeder neuen App-Sitzung das Passwort erneut nötig. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler. Bitte ändere die vom Einrichter vorgegebenen Sicherheitseinstellungen des gemeinsamen Tablets nicht selbst.
 
 ## Tablet öffnen
 

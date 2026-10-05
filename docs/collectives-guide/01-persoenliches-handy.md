@@ -2,7 +2,7 @@ Diese Anleitung ist für dein eigenes Android-Handy (Android 13 oder neuer).
 
 ## Vor dem Start: Bildschirmsperre einrichten
 
-Richte auf deinem Handy eine sichere **Bildschirmsperre mit PIN, Passwort oder Muster** ein. Du findest sie in den Handy-Einstellungen unter **Sicherheit**, **Sicherheit und Datenschutz** oder **Sperrbildschirm**; der Name hängt vom Hersteller ab. Fingerabdruck oder Gesicht kannst du zusätzlich verwenden; ein Gerätecode reicht ebenfalls.
+Richte auf deinem Handy eine sichere **Bildschirmsperre mit PIN, Passwort oder Muster** ein. Du findest sie in den Handy-Einstellungen unter **Sicherheit**, **Sicherheit und Datenschutz** oder **Sperrbildschirm**; der Name hängt vom Hersteller ab. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler.
 
 **Ohne nutzbare sichere Bildschirmsperre gibt es keinen gespeicherten Schnellzugang.** Du musst dann bei jeder neuen App-Sitzung dein Passwort erneut eingeben, zum Beispiel nach dem Ausschalten des Bildschirms oder einer längeren Pause. Ein kurzer App-Wechsel bei eingeschaltetem Bildschirm ist keine neue Sitzung.
 
@@ -25,7 +25,7 @@ Richte auf deinem Handy eine sichere **Bildschirmsperre mit PIN, Passwort oder M
 
 ## 3. App nutzen
 
-Wenn die Geräteidentität bestätigt ist, melde dich in der App an und richte den Schnellzugang mit Fingerabdruck, Gesicht oder Gerätecode ein. Danach öffnest du Zimbra, Talk und andere freigegebene Anwendungen über ihre Kacheln. Die App zeigt auch freigegebene Kontakte und Benachrichtigungen.
+Wenn die Geräteidentität bestätigt ist, melde dich in der App an und richte den Schnellzugang mit geeignetem Fingerabdruck, geeigneter Gesichtserkennung oder Gerätecode ein. Danach öffnest du Zimbra, Talk und andere freigegebene Anwendungen über ihre Kacheln. Die App zeigt auch freigegebene Kontakte und Benachrichtigungen.
 
 Bei einer späteren Anmeldung am Webportal: Wähle auf der Seite mit den Sicherheitsverfahren „Duo“, wenn es angeboten wird. Andernfalls nutze dein bisheriges Verfahren. Bei Duo: Öffne Mission Leben Zentral auf deinem bereits registrierten Handy, entsperre die App und tippe bei deiner Anfrage auf „Bestätigen“. Hast du die Anmeldung nicht selbst gestartet, tippe auf „Ablehnen“.
 

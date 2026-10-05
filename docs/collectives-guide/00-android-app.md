@@ -10,7 +10,7 @@ Für ein eigenes Handy mit bereits vorhandenem TOTP gibt es außerdem die [einfa
 
 **Voraussetzung:** Android 13 oder neuer. Beim betreuten Einrichten gilt der Link 30 Minuten ab Erstellung.
 
-**Für persönliche und gebundene Diensthandys:** Richte vor der Anmeldung eine sichere Bildschirmsperre mit PIN, Passwort oder Muster ein. Fingerabdruck oder Gesicht sind zusätzlich möglich; ein Gerätecode reicht ebenfalls. Ohne nutzbare sichere Bildschirmsperre wird der Schnellzugang nicht gespeichert. Du musst dann bei jeder neuen App-Sitzung dein Passwort erneut eingeben, zum Beispiel nach Bildschirm-Aus oder einer längeren Pause. Ein kurzer App-Wechsel bei eingeschaltetem Bildschirm ist keine neue Sitzung.
+**Für persönliche und gebundene Diensthandys:** Richte vor der Anmeldung eine sichere Bildschirmsperre mit PIN, Passwort oder Muster ein. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler. Ohne nutzbare sichere Bildschirmsperre wird der Schnellzugang nicht gespeichert. Du musst dann bei jeder neuen App-Sitzung dein Passwort erneut eingeben, zum Beispiel nach Bildschirm-Aus oder einer längeren Pause. Ein kurzer App-Wechsel bei eingeschaltetem Bildschirm ist keine neue Sitzung.
 
 Gemeinsame Tablets speichern keinen persönlichen Schnellzugang; nach Bildschirm-Aus meldest du dich dort neu an.
 

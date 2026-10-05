@@ -12,7 +12,7 @@ Für die Nutzung am Computer oder direkt im Browser.
 
 Für persönliche Android-Handys und gemeinsam genutzte Tablets – mit Installation, Registrierung und Bedienung.
 
-**Vor der App-Nutzung:** Auf persönlichen und gebundenen Diensthandys muss für den Schnellzugang eine sichere Bildschirmsperre mit PIN, Passwort oder Muster eingerichtet sein. Ohne nutzbare sichere Bildschirmsperre musst du bei jeder neuen App-Sitzung dein Passwort erneut eingeben. Das betrifft die Android-App, nicht die normale Anmeldung im Browser.
+**Vor der App-Nutzung:** Auf persönlichen und gebundenen Diensthandys muss für den Schnellzugang eine sichere Bildschirmsperre mit PIN, Passwort oder Muster eingerichtet sein. Ohne nutzbare sichere Bildschirmsperre musst du bei jeder neuen App-Sitzung dein Passwort erneut eingeben. Das betrifft die Android-App, nicht die normale Anmeldung im Browser. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler.
 
 [Zu den Anleitungen der Android-App →](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099)
 

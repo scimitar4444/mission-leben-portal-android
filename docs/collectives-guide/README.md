@@ -3,7 +3,11 @@
 Diese Texte entsprechen den vorhandenen Seiten unter **User Guides → Mission
 Leben Zentral**. Die Seiten wurden am 05.10.2026 ausschließlich um den Hinweis
 zur sicheren Bildschirmsperre und zum Schnellzugang ergänzt. Bestehende Inhalte,
-Bilder, Links und Seiten-IDs bleiben erhalten.
+Bilder, Links und Seiten-IDs bleiben erhalten. Die ergänzende Erklärung zur
+Gesichtserkennung unterscheidet geeignete Biometrie von der Handy-PIN: Android
+muss die Biometrie als ausreichend sicher einstufen. Andernfalls wird der
+Gerätecode verwendet, nicht das Mission-Leben-Passwort; die PIN-Abfrage ist kein
+Fehler. Die App-Sicherheitslogik bleibt unverändert.
 
 | Quelldatei | Vorhandene Kollektiv-Seite |
 |---|---|

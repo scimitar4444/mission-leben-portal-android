@@ -32,7 +32,10 @@ Dieselben drei Ansichten zeigen schon vor dem Download den gemeinsamen
 Hinweis zur sicheren Bildschirmsperre: Für den gespeicherten Schnellzugang
 auf persönlichen und gebundenen Diensthandys muss eine PIN, ein Passwort
 oder ein Muster eingerichtet und als Geräteauthentifizierung nutzbar sein.
-Biometrie ist optional. Ohne nutzbaren lokalen Faktor bleibt nur eine nicht
+Biometrie ist optional und wird nur akzeptiert, wenn Android sie als ausreichend
+sicher einstuft (`BIOMETRIC_STRONG`). Eine einfachere Gesichtserkennung kann
+stattdessen zur Abfrage des Gerätecodes führen (Handy-PIN, Passwort oder Muster,
+nicht das Mission-Leben-Passwort); das ist kein Fehler. Ohne nutzbaren lokalen Faktor bleibt nur eine nicht
 gespeicherte Anmeldung mit erneuter Passworteingabe bei jeder neuen
 App-Sitzung (zum Beispiel nach Bildschirm-Aus oder längerer Pause), nicht
 bei jedem kurzen App-Wechsel. Gemeinsame Tablets speichern weiterhin keinen

@@ -11,7 +11,7 @@ Bei einem bereits verbundenen persönlichen oder Gruppenkonto-Handy wird das bis
 
 Die folgende Seite bleibt **auf dem PC geöffnet**. Erledige zuerst die dort gezeigten Android- und Samsung-Schritte. „Automatische Sperre“ bei Samsung ist **nicht** die Bildschirmsperre.
 
-**Persönliches Handy oder gebundenes Diensthandy:** Richte vor der Anmeldung eine sichere **Bildschirmsperre mit PIN, Passwort oder Muster** ein und prüfe sie gemeinsam mit der nutzenden Person. Fingerabdruck oder Gesicht sind zusätzlich möglich; ein Gerätecode reicht ebenfalls. Die Bildschirmsperre bleibt auch bei Samsung eingerichtet.
+**Persönliches Handy oder gebundenes Diensthandy:** Richte vor der Anmeldung eine sichere **Bildschirmsperre mit PIN, Passwort oder Muster** ein und prüfe sie gemeinsam mit der nutzenden Person. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler. Die Bildschirmsperre bleibt auch bei Samsung eingerichtet.
 
 **Ohne nutzbare sichere Bildschirmsperre gibt es keinen gespeicherten Schnellzugang.** Bei jeder neuen App-Sitzung ist dann das Passwort erneut nötig, zum Beispiel nach Bildschirm-Aus oder längerer Pause. Ein kurzer App-Wechsel bei eingeschaltetem Bildschirm ist keine neue Sitzung.
 
