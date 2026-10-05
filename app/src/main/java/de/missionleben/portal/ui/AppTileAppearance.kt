@@ -30,6 +30,10 @@ internal enum class AppTileAppearance(
         Color(0xFF85D6C7), Color(0xFF203D39)),
     PRINT(R.drawable.ic_app_print, Color(0xFF576477), Color(0xFFECF0F5),
         Color(0xFFBDCADD), Color(0xFF303947)),
+    DEVICE_INSTALL(R.drawable.ic_app_device_install, Color(0xFF245AA7), Color(0xFFE9F0FC),
+        Color(0xFFA6C8FF), Color(0xFF263752)),
+    DEVICE_SETUP(R.drawable.ic_app_device_setup, Color(0xFF08756D), Color(0xFFE3F3EF),
+        Color(0xFF85D6C7), Color(0xFF203D39)),
     MONOGRAM(null, Color(0xFF725299), Color(0xFFF0EAF8),
         Color(0xFFD0B4EE), Color(0xFF3C2D4D));
 
@@ -40,6 +44,8 @@ internal enum class AppTileAppearance(
             val slug = application.slug.lowercase(Locale.ROOT)
             val name = application.name.trim().lowercase(Locale.ROOT)
             return when {
+                slug == "mission-leben-device-guide" -> DEVICE_INSTALL
+                slug in setOf("mission-leben-device-manage", "mission-leben-device-init") -> DEVICE_SETUP
                 "talk" in slug || name == "talk" -> CHAT
                 "zimbra" in slug || "exchange-owa" in slug ||
                     name in setOf("zimbra mail", "zimbra", "owa", "exchange owa akademie") -> MAIL
