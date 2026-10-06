@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Order is shared by all languages; referenced strings resolve in the app locale. -->
+    <string-array name="motivation_messages" translatable="false">
+        <item>@string/motivation_welcome</item>
+        <item>@string/motivation_together</item>
+        <item>@string/motivation_thanks</item>
+        <item>@string/motivation_today</item>
+        <item>@string/motivation_good_to_see</item>
+        <item>@string/motivation_contribution</item>
+        <item>@string/motivation_care</item>
+        <item>@string/motivation_everyday</item>
+        <item>@string/motivation_small_gestures</item>
+        <item>@string/motivation_team</item>
+        <item>@string/motivation_easier_together</item>
+        <item>@string/motivation_kind_word</item>
+        <item>@string/motivation_small_steps</item>
+        <item>@string/motivation_good_day</item>
+        <item>@string/motivation_not_alone</item>
+        <item>@string/motivation_find_way</item>
+        <item>@string/motivation_valuable</item>
+        <item>@string/motivation_one_team</item>
+        <item>@string/motivation_small_beginnings</item>
+        <item>@string/motivation_take_care</item>
+    </string-array>
+</resources>

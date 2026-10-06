@@ -64,6 +64,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
@@ -1214,12 +1215,7 @@ private fun BrandHeader() {
 @Composable
 private fun Greeting(state: UiState) {
     val displayName = state.user?.displayName.orEmpty()
-    val motivationTexts = listOf(
-        stringResource(R.string.motivation_welcome),
-        stringResource(R.string.motivation_together),
-        stringResource(R.string.motivation_thanks),
-        stringResource(R.string.motivation_today),
-    )
+    val motivationTexts = stringArrayResource(R.array.motivation_messages)
     val motivationIndex = Math.floorMod(
         "${state.user?.subject.orEmpty()}:${LocalDate.now().toEpochDay()}".hashCode(),
         motivationTexts.size,
