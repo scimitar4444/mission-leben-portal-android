@@ -318,4 +318,5 @@
     <string name="talk_start_overview">Lista conversațiilor</string>
     <string name="talk_start_last_chat">Ultima conversație</string>
     <string name="talk_start_description">Alege unde se deschide dala Talk. O notificare de mesaj deschide întotdeauna conversația corespunzătoare.</string>
+    <string name="release_note_talk_start_setting">În Setări → Talk, alege lista de conversații sau ultima conversație. Notificările deschid în continuare direct conversația potrivită.</string>
 </resources>

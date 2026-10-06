@@ -317,4 +317,5 @@
     <string name="talk_start_overview">चैट सूची</string>
     <string name="talk_start_last_chat">पिछली चैट</string>
     <string name="talk_start_description">चुनें कि Talk टाइल कहाँ खुले। संदेश की सूचना हमेशा संबंधित चैट खोलती है।</string>
+    <string name="release_note_talk_start_setting">सेटिंग्स → Talk में चैट सूची या पिछली चैट चुनें। सूचनाएँ अब भी संबंधित चैट सीधे खोलती हैं।</string>
 </resources>

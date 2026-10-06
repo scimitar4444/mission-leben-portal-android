@@ -319,4 +319,5 @@
     <string name="talk_start_overview">Список чатів</string>
     <string name="talk_start_last_chat">Останній чат</string>
     <string name="talk_start_description">Вибери, де відкривається плитка Talk. Сповіщення про повідомлення завжди відкриває відповідний чат.</string>
+    <string name="release_note_talk_start_setting">У Налаштування → Talk виберіть список чатів або останній чат. Сповіщення й надалі відкривають відповідний чат безпосередньо.</string>
 </resources>

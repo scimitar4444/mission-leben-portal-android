@@ -12,6 +12,13 @@ class ReleaseNotesPolicyTest {
         assertTrue(ReleaseNotesCatalog.forVersion(BuildConfig.VERSION_CODE).isNotEmpty())
     }
 
+    @Test fun talkStartReleaseHasOnlyTheRequestedPublicNote() {
+        assertEquals(
+            listOf(R.string.release_note_talk_start_setting),
+            ReleaseNotesCatalog.forVersion(88),
+        )
+    }
+
     @Test fun upgradeNotesIncludeOnlyUnseenVersions() {
         assertEquals(
             listOf(R.string.release_note_compact_settings),

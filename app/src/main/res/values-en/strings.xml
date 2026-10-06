@@ -331,4 +331,5 @@
     <string name="talk_start_overview">Chat overview</string>
     <string name="talk_start_last_chat">Last chat</string>
     <string name="talk_start_description">Choose where the Talk tile starts. A message notification always opens the matching chat.</string>
+    <string name="release_note_talk_start_setting">In Settings → Talk, choose the chat overview or your last chat. Notifications still open the relevant chat directly.</string>
 </resources>
