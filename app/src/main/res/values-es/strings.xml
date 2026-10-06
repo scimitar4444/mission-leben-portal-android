@@ -297,4 +297,8 @@
     <string name="release_note_secure_unlock">Corrección de seguridad: El contenido solo se abre tras una autorización correcta. Sin un bloqueo de pantalla seguro, el acceso dura solo la sesión actual.</string>
     <string name="release_note_reauthentication">Se ha mejorado el inicio de sesión en teléfonos personales. El nombre de usuario confirmado queda rellenado en el dispositivo registrado.</string>
     <string name="release_note_app_symbols">Los accesos a aplicaciones web tienen iconos más claros, sin cambiar de tamaño.</string>
+    <string name="talk_start_title">Al abrir Talk</string>
+    <string name="talk_start_overview">Lista de chats</string>
+    <string name="talk_start_last_chat">Último chat</string>
+    <string name="talk_start_description">Elige dónde se abre la tarjeta de Talk. Una notificación de mensaje siempre abre el chat correspondiente.</string>
 </resources>

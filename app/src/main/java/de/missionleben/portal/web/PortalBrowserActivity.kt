@@ -90,6 +90,7 @@ class PortalBrowserActivity : FragmentActivity() {
     private var contactComposeAttempts = 0
     private var contactComposeRunning = false
     private val deviceService by lazy { DeviceServiceRepository(applicationContext) }
+    private val talkChatScript by lazy { TalkChatPolicy.script(AppPreferences(this).talkStartAtLastChat) }
     private val sessionPolicy by lazy {
         WebSessionPolicy(
             BuildConfig.AUTHENTIK_BASE_URL,
@@ -398,7 +399,7 @@ class PortalBrowserActivity : FragmentActivity() {
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
         WebViewCompat.addDocumentStartJavaScript(
             webView,
-            TalkChatPolicy.CHAT_ONLY_SCRIPT,
+            talkChatScript,
             setOf(TalkChatPolicy.NEXTCLOUD_ORIGIN),
         )
     }
@@ -543,7 +544,7 @@ class PortalBrowserActivity : FragmentActivity() {
             if (TalkChatPolicy.isTalkPage(url)) {
                 // Fallback for providers without document-start script support and defense in depth
                 // after Nextcloud/Talk SPA route changes.
-                view.evaluateJavascript(TalkChatPolicy.CHAT_ONLY_SCRIPT, null)
+                view.evaluateJavascript(talkChatScript, null)
                 if (!talkChatNoticeShown) {
                     talkChatNoticeShown = true
                     Toast.makeText(

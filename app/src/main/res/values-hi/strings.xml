@@ -297,4 +297,8 @@
     <string name="release_note_secure_unlock">सुरक्षा सुधार: सफल अनुमति के बाद ही ऐप की सामग्री खुलती है। सुरक्षित स्क्रीन लॉक के बिना, साइन-इन केवल वर्तमान सत्र तक रहता है।</string>
     <string name="release_note_reauthentication">निजी फ़ोन पर दोबारा साइन-इन करना बेहतर हुआ है। पंजीकृत डिवाइस पर आपका पुष्ट उपयोगकर्ता नाम पहले से भरा रहता है।</string>
     <string name="release_note_app_symbols">वेब ऐप के आइकन अब अधिक स्पष्ट हैं। टाइल का आकार नहीं बदला है।</string>
+    <string name="talk_start_title">Talk खोलते समय</string>
+    <string name="talk_start_overview">चैट सूची</string>
+    <string name="talk_start_last_chat">पिछली चैट</string>
+    <string name="talk_start_description">चुनें कि Talk टाइल कहाँ खुले। संदेश की सूचना हमेशा संबंधित चैट खोलती है।</string>
 </resources>

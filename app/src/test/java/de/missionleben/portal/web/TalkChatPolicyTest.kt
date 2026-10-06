@@ -46,10 +46,13 @@ class TalkChatPolicyTest {
         assertTrue(script.contains(".conversation[data-nav-id^=\"conversation_\"]"))
         assertTrue(script.contains("data-ml-talk-hidden-room"))
         assertTrue(script.contains("blockHiddenConversation"))
-        assertTrue(script.contains("rememberOrRestoreLastRoom"))
-        assertTrue(script.contains("roomPathPattern.test(lastRoomPath)"))
-        assertTrue(script.contains("window.location.replace(window.location.origin + lastRoomPath)"))
+        assertTrue(script.contains("keepCurrentConversationAllowed"))
         assertTrue(script.contains("window.localStorage.removeItem(lastRoomStorageKey)"))
+        assertTrue(script.contains("window.localStorage.setItem(lastRoomStorageKey"))
+        assertTrue(script.contains("const restoreLastRoomOnOpen = false;"))
+        assertTrue(script.contains("if (!restoreLastRoomOnOpen || !isTalkRoot() || restoreAttempted) return false"))
+        assertFalse(script.contains("rememberOrRestoreLastRoom"))
+        assertTrue(script.contains("window.location.replace(window.location.origin + lastRoomPath)"))
         assertTrue(script.contains("'#header'"))
         assertTrue(script.contains("html[data-ml-talk-chat-only] #content"))
         assertTrue(script.contains("top:0 !important"))
@@ -62,5 +65,13 @@ class TalkChatPolicyTest {
         assertTrue(script.contains("stopImmediatePropagation"))
         assertFalse(script.contains("Besprechung beginnen"))
         assertFalse(script.contains("Start call"))
+    }
+
+    @Test
+    fun `setting selects overview or last chat without changing direct room handling`() {
+        assertTrue(TalkChatPolicy.script(false).contains("const restoreLastRoomOnOpen = false;"))
+        assertTrue(TalkChatPolicy.script(true).contains("const restoreLastRoomOnOpen = true;"))
+        assertFalse(TalkChatPolicy.script(true).contains("const restoreLastRoomOnOpen = false;"))
+        assertTrue(TalkChatPolicy.script(true).contains("roomPathPattern.test(path)"))
     }
 }

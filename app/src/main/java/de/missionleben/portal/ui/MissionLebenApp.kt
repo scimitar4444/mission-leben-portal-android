@@ -118,6 +118,7 @@ fun MissionLebenApp(
     onCalendarSyncEnabledChange: (Boolean) -> Unit,
     onCalendarSyncDaysChange: (Int) -> Unit,
     onDownloadsAutoOpenChange: (Boolean) -> Unit,
+    onTalkStartAtLastChatChange: (Boolean) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
@@ -175,6 +176,7 @@ fun MissionLebenApp(
                 onCalendarSyncEnabledChange = onCalendarSyncEnabledChange,
                 onCalendarSyncDaysChange = onCalendarSyncDaysChange,
                 onDownloadsAutoOpenChange = onDownloadsAutoOpenChange,
+                onTalkStartAtLastChatChange = onTalkStartAtLastChatChange,
                 onCommunicationNotificationsChange = onCommunicationNotificationsChange,
                 onQuietHoursChange = onQuietHoursChange,
                 onQuietStartChange = onQuietStartChange,
@@ -378,6 +380,7 @@ private fun Home(
     onCalendarSyncEnabledChange: (Boolean) -> Unit,
     onCalendarSyncDaysChange: (Int) -> Unit,
     onDownloadsAutoOpenChange: (Boolean) -> Unit,
+    onTalkStartAtLastChatChange: (Boolean) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
@@ -435,6 +438,7 @@ private fun Home(
             onCalendarSyncEnabledChange = onCalendarSyncEnabledChange,
             onCalendarSyncDaysChange = onCalendarSyncDaysChange,
             onDownloadsAutoOpenChange = onDownloadsAutoOpenChange,
+            onTalkStartAtLastChatChange = onTalkStartAtLastChatChange,
             onCommunicationNotificationsChange = onCommunicationNotificationsChange,
             onQuietHoursChange = onQuietHoursChange,
             onQuietStartChange = onQuietStartChange,
@@ -732,6 +736,7 @@ private fun SettingsScreen(
     onCalendarSyncEnabledChange: (Boolean) -> Unit,
     onCalendarSyncDaysChange: (Int) -> Unit,
     onDownloadsAutoOpenChange: (Boolean) -> Unit,
+    onTalkStartAtLastChatChange: (Boolean) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
     onQuietHoursChange: (Boolean) -> Unit,
     onQuietStartChange: (Int) -> Unit,
@@ -753,6 +758,7 @@ private fun SettingsScreen(
     var notificationDetailsOpen by rememberSaveable { mutableStateOf(false) }
     var calendarDetailsOpen by rememberSaveable { mutableStateOf(false) }
     var downloadDetailsOpen by rememberSaveable { mutableStateOf(false) }
+    var talkDetailsOpen by rememberSaveable { mutableStateOf(false) }
     var languageDetailsOpen by rememberSaveable { mutableStateOf(false) }
     val deviceStatus = stringResource(when (state.enrollmentState) {
         EnrollmentState.NOT_ENROLLED -> R.string.status_not_registered
@@ -857,6 +863,24 @@ private fun SettingsScreen(
                 }
             }
         }
+        if (state.signedIn && talkAvailable) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SettingsDisclosure(
+                        title = stringResource(R.string.talk_settings_title),
+                        summary = stringResource(
+                            if (state.talkStartAtLastChat) R.string.talk_start_last_chat
+                            else R.string.talk_start_overview,
+                        ),
+                        expanded = talkDetailsOpen,
+                        onToggle = { talkDetailsOpen = !talkDetailsOpen },
+                    )
+                    if (talkDetailsOpen) {
+                        TalkStartSettingsPanel(state.talkStartAtLastChat, onTalkStartAtLastChatChange)
+                    }
+                }
+            }
+        }
         if (state.mode == DeviceMode.PERSONAL && state.signedIn && zimbraAvailable &&
             (state.calendarAvailable || state.calendarSyncEnabled)) {
             item {
@@ -946,6 +970,42 @@ private fun SettingsScreen(
                     null
                 },
             )
+        }
+    }
+}
+
+@Composable
+private fun TalkStartSettingsPanel(startAtLastChat: Boolean, onChange: (Boolean) -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.talk_start_title), fontWeight = FontWeight.SemiBold)
+            Text(
+                stringResource(R.string.talk_start_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(
+                Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                listOf(false to R.string.talk_start_overview, true to R.string.talk_start_last_chat)
+                    .forEach { (lastChat, label) ->
+                        val tag = if (lastChat) "talk_start_last_chat" else "talk_start_overview"
+                        if (lastChat == startAtLastChat) {
+                            Button(onClick = { onChange(lastChat) }, modifier = Modifier.testTag(tag)) {
+                                Text(stringResource(label))
+                            }
+                        } else {
+                            OutlinedButton(onClick = { onChange(lastChat) }, modifier = Modifier.testTag(tag)) {
+                                Text(stringResource(label))
+                            }
+                        }
+                    }
+            }
         }
     }
 }

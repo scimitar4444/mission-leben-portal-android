@@ -297,4 +297,8 @@
     <string name="release_note_secure_unlock">Correction de sécurité : Le contenu ne se présente qu’après une autorisation réussie. Sans verrouillage sécurisé de l’écran, la connexion ne dure que pour la session actuelle.</string>
     <string name="release_note_reauthentication">La reconnexion sur les téléphones personnels a été améliorée. Le nom d’utilisateur confirmé reste prérempli sur l’appareil enregistré.</string>
     <string name="release_note_app_symbols">Les applications web ont des icônes plus faciles à reconnaître, sans changer de taille.</string>
+    <string name="talk_start_title">À l’ouverture de Talk</string>
+    <string name="talk_start_overview">Liste des discussions</string>
+    <string name="talk_start_last_chat">Dernière discussion</string>
+    <string name="talk_start_description">Choisis où ouvre la tuile Talk. Une notification de message ouvre toujours la discussion correspondante.</string>
 </resources>

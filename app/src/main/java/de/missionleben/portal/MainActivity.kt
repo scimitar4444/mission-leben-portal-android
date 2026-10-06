@@ -269,6 +269,7 @@ class MainActivity : FragmentActivity() {
                     onCalendarSyncEnabledChange = ::setCalendarSyncEnabled,
                     onCalendarSyncDaysChange = viewModel::setCalendarSyncDays,
                     onDownloadsAutoOpenChange = viewModel::setDownloadsAutoOpenEnabled,
+                    onTalkStartAtLastChatChange = viewModel::setTalkStartAtLastChat,
                     onCommunicationNotificationsChange = viewModel::setCommunicationNotificationsEnabled,
                     onQuietHoursChange = viewModel::setQuietHoursEnabled,
                     onQuietStartChange = viewModel::setQuietStartMinutes,

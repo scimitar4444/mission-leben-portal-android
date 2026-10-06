@@ -32,6 +32,7 @@ import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrPayload
 import de.missionleben.portal.device.EnrollmentQrParser
 import de.missionleben.portal.model.DeviceMode
+import de.missionleben.portal.model.AppFeaturePolicy
 import de.missionleben.portal.model.EnrollmentProfile
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.model.LinkTarget
@@ -108,6 +109,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             enrollmentState = preferences.enrollmentState,
             enrollmentProfile = preferences.enrollmentProfile,
             downloadsAutoOpenEnabled = preferences.downloadsAutoOpenEnabled,
+            talkStartAtLastChat = preferences.talkStartAtLastChat,
             deviceId = preferences.deviceId,
             deviceKeyId = identity.keyId(),
             deviceServiceConfigured = deviceService.endpointDevicesConfigured,
@@ -266,6 +268,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         preferences.deviceMode = null
         preferences.enrollmentProfile = null
         preferences.downloadsAutoOpenEnabled = true
+        preferences.talkStartAtLastChat = false
         _uiState.value = UiState(
             enrollmentState = preferences.enrollmentState,
             deviceId = preferences.deviceId,
@@ -1434,6 +1437,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // Toggling never replays files completed before the setting was changed.
         PersonalDownloads.forgetCompleted(getApplication())
         _uiState.update { it.copy(downloadsAutoOpenEnabled = enabled) }
+    }
+
+    fun setTalkStartAtLastChat(enabled: Boolean) {
+        if (!_uiState.value.signedIn || !AppFeaturePolicy.from(_uiState.value.applications).talk) return
+        preferences.talkStartAtLastChat = enabled
+        _uiState.update { it.copy(talkStartAtLastChat = enabled) }
     }
 
     fun setCalendarReminderMinutes(value: Int) {

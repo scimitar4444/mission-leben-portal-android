@@ -311,4 +311,8 @@
     <string name="release_note_secure_unlock">Security fix: App content opens only after successful approval. Without a secure screen lock, sign-in lasts only for the current session.</string>
     <string name="release_note_reauthentication">Sign-in renewal on personal phones has been improved. Your confirmed username stays prefilled on the registered device.</string>
     <string name="release_note_app_symbols">Web app tiles have clearer icons, with their size unchanged.</string>
+    <string name="talk_start_title">When opening Talk</string>
+    <string name="talk_start_overview">Chat overview</string>
+    <string name="talk_start_last_chat">Last chat</string>
+    <string name="talk_start_description">Choose where the Talk tile starts. A message notification always opens the matching chat.</string>
 </resources>

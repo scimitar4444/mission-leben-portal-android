@@ -299,4 +299,8 @@
     <string name="release_note_secure_unlock">Виправлення безпеки: Вміст застосунку відкривається лише після успішного підтвердження. Без безпечного блокування екрана вхід діє лише протягом поточного сеансу.</string>
     <string name="release_note_reauthentication">Повторний вхід на особистих телефонах покращено. Підтверджене ім’я користувача залишається заповненим на зареєстрованому пристрої.</string>
     <string name="release_note_app_symbols">Плитки вебзастосунків мають зрозуміліші значки без зміни розміру.</string>
+    <string name="talk_start_title">Під час відкриття Talk</string>
+    <string name="talk_start_overview">Список чатів</string>
+    <string name="talk_start_last_chat">Останній чат</string>
+    <string name="talk_start_description">Вибери, де відкривається плитка Talk. Сповіщення про повідомлення завжди відкриває відповідний чат.</string>
 </resources>

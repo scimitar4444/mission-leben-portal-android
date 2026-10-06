@@ -297,4 +297,8 @@
     <string name="release_note_secure_unlock">Güvenlik düzeltmesi: Uygulama içeriği yalnızca başarılı onaydan sonra açılır. Güvenli ekran kilidi yoksa oturum yalnızca mevcut kullanım için geçerlidir.</string>
     <string name="release_note_reauthentication">Kişisel telefonlarda yeniden giriş iyileştirildi. Onaylanmış kullanıcı adınız kayıtlı cihazda önceden doldurulur.</string>
     <string name="release_note_app_symbols">Web uygulaması kutucuklarının boyutu değişmeden simgeleri daha anlaşılır oldu.</string>
+    <string name="talk_start_title">Talk açıldığında</string>
+    <string name="talk_start_overview">Sohbet listesi</string>
+    <string name="talk_start_last_chat">Son sohbet</string>
+    <string name="talk_start_description">Talk kutucuğunun nerede açılacağını seç. Mesaj bildirimi her zaman ilgili sohbeti açar.</string>
 </resources>

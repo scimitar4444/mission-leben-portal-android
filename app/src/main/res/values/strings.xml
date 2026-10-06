@@ -335,4 +335,9 @@
     <string name="release_note_secure_unlock">Sicherheitskorrektur: App-Inhalte werden erst nach erfolgreicher Freigabe geöffnet. Ohne sichere Displaysperre bleibt die Anmeldung nur für die aktuelle Sitzung.</string>
     <string name="release_note_reauthentication">Die Wiederanmeldung auf persönlichen Handys wurde verbessert. Dein bestätigter Benutzername bleibt am registrierten Gerät vorbelegt.</string>
     <string name="release_note_app_symbols">Die Web-App-Kacheln haben besser erkennbare Symbole – bei unveränderter Größe.</string>
+    <string name="talk_settings_title" translatable="false">Talk</string>
+    <string name="talk_start_title" tools:ignore="MissingTranslation">Beim Öffnen von Talk</string>
+    <string name="talk_start_overview" tools:ignore="MissingTranslation">Chatübersicht</string>
+    <string name="talk_start_last_chat" tools:ignore="MissingTranslation">Letzter Chat</string>
+    <string name="talk_start_description" tools:ignore="MissingTranslation">Wähle, wo die Talk-Kachel startet. Eine Nachrichtenbenachrichtigung öffnet immer den passenden Chat.</string>
 </resources>

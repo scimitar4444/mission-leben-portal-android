@@ -110,6 +110,7 @@ data class UiState(
     val enrollmentState: EnrollmentState = EnrollmentState.NOT_ENROLLED,
     val enrollmentProfile: EnrollmentProfile? = null,
     val downloadsAutoOpenEnabled: Boolean = true,
+    val talkStartAtLastChat: Boolean = false,
     val deviceId: String? = null,
     val deviceKeyId: String = "",
     val deviceServiceConfigured: Boolean = false,

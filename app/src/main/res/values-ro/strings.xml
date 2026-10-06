@@ -298,4 +298,8 @@
     <string name="release_note_secure_unlock">Corecție de securitate: Conținutul aplicației se deschide numai după autorizarea reușită. Fără blocare sigură a ecranului, autentificarea durează doar sesiunea curentă.</string>
     <string name="release_note_reauthentication">Reautentificarea pe telefoanele personale a fost îmbunătățită. Numele de utilizator confirmat rămâne completat pe dispozitivul înregistrat.</string>
     <string name="release_note_app_symbols">Aplicațiile web au pictograme mai clare, fără schimbarea dimensiunii.</string>
+    <string name="talk_start_title">La deschiderea Talk</string>
+    <string name="talk_start_overview">Lista conversațiilor</string>
+    <string name="talk_start_last_chat">Ultima conversație</string>
+    <string name="talk_start_description">Alege unde se deschide dala Talk. O notificare de mesaj deschide întotdeauna conversația corespunzătoare.</string>
 </resources>

@@ -56,6 +56,10 @@ class AppPreferences(context: Context) {
         get() = preferences.getBoolean(KEY_DOWNLOADS_AUTO_OPEN, true)
         set(value) = preferences.edit().putBoolean(KEY_DOWNLOADS_AUTO_OPEN, value).apply()
 
+    var talkStartAtLastChat: Boolean
+        get() = preferences.getBoolean(KEY_TALK_START_AT_LAST_CHAT, false)
+        set(value) = preferences.edit().putBoolean(KEY_TALK_START_AT_LAST_CHAT, value).apply()
+
     var reauthenticationHint: String?
         get() = preferences.getString(KEY_REAUTHENTICATION_HINT, null)
         set(value) {
@@ -168,6 +172,7 @@ class AppPreferences(context: Context) {
             .remove(KEY_SHARED_SESSION_SCREEN_TURNED_OFF)
             .remove(KEY_ALLOW_PERSONAL_SCREENSHOTS)
             .remove(KEY_DOWNLOADS_AUTO_OPEN)
+            .remove(KEY_TALK_START_AT_LAST_CHAT)
             .apply()
         clearAnnouncementReadState()
     }
@@ -187,6 +192,7 @@ class AppPreferences(context: Context) {
         const val KEY_ENROLLMENT_PROFILE = "enrollment_profile"
         const val KEY_ENROLLMENT_STATE = "enrollment_state"
         const val KEY_DOWNLOADS_AUTO_OPEN = "downloads_auto_open"
+        const val KEY_TALK_START_AT_LAST_CHAT = "talk_start_at_last_chat"
         const val KEY_REAUTHENTICATION_HINT = "reauthentication_hint"
         const val KEY_REAUTHENTICATION_REQUIRED = "reauthentication_required"
         const val KEY_REAUTHENTICATION_ABSOLUTE = "reauthentication_absolute_deadline"

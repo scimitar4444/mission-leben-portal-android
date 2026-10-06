@@ -299,4 +299,8 @@
     <string name="release_note_secure_unlock">Poprawka bezpieczeństwa: Treść aplikacji otwiera się dopiero po udanym zatwierdzeniu. Bez bezpiecznej blokady ekranu logowanie trwa tylko przez bieżącą sesję.</string>
     <string name="release_note_reauthentication">Usprawniono ponowne logowanie na telefonach osobistych. Potwierdzona nazwa użytkownika pozostaje wpisana na zarejestrowanym urządzeniu.</string>
     <string name="release_note_app_symbols">Kafelki aplikacji internetowych mają czytelniejsze ikony, bez zmiany rozmiaru.</string>
+    <string name="talk_start_title">Po otwarciu Talk</string>
+    <string name="talk_start_overview">Lista czatów</string>
+    <string name="talk_start_last_chat">Ostatni czat</string>
+    <string name="talk_start_description">Wybierz widok po otwarciu kafelka Talk. Powiadomienie o wiadomości zawsze otwiera właściwy czat.</string>
 </resources>

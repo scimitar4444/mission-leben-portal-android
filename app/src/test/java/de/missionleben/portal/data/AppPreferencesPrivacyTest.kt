@@ -147,6 +147,23 @@ class AppPreferencesPrivacyTest {
         assertTrue(AppPreferences(context).downloadsAutoOpenEnabled)
     }
 
+    @Test fun talkStartsAtTheOverviewByDefaultAndChoiceSurvivesReload() {
+        val context = RuntimeEnvironment.getApplication()
+        val preferences = AppPreferences(context)
+        assertFalse(preferences.talkStartAtLastChat)
+        preferences.talkStartAtLastChat = true
+        assertTrue(AppPreferences(context).talkStartAtLastChat)
+        preferences.talkStartAtLastChat = false
+        assertFalse(AppPreferences(context).talkStartAtLastChat)
+    }
+
+    @Test fun clearingTheDeviceProfileResetsTalkStartToOverview() {
+        val preferences = AppPreferences(RuntimeEnvironment.getApplication())
+        preferences.talkStartAtLastChat = true
+        preferences.clearProfile()
+        assertFalse(preferences.talkStartAtLastChat)
+    }
+
     @Test fun savedPersonalLoginNameSurvivesPreferenceReload() {
         val context = RuntimeEnvironment.getApplication()
         AppPreferences(context).reauthenticationHint = "person.example"

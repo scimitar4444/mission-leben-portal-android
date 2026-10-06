@@ -39,6 +39,7 @@ object TalkChatPolicy {
             .join(',');
           const styleId = 'ml-talk-chat-only-style';
           const lastRoomStorageKey = 'ml-talk-last-room-path';
+          const restoreLastRoomOnOpen = false;
           const roomPathPattern = /^\/(?:index\.php\/)?call\/[A-Za-z0-9_-]{4,128}$/;
           const roomTokenPattern = /\/call\/([A-Za-z0-9_-]{4,128})(?:\/|${'$'})/;
           let navigationOpenedForRoot = false;
@@ -106,7 +107,7 @@ object TalkChatPolicy {
             });
           };
 
-          const rememberOrRestoreLastRoom = () => {
+          const keepCurrentConversationAllowed = () => {
             const path = normalizedPath();
             try {
               if (roomPathPattern.test(path)) {
@@ -123,24 +124,21 @@ object TalkChatPolicy {
 
               const unavailableRoom = path.endsWith('/apps/spreed/not-found')
                 || path.endsWith('/apps/spreed/forbidden');
-              if (unavailableRoom && window.localStorage.getItem(lastRoomStorageKey)) {
+              if (unavailableRoom) {
                 window.localStorage.removeItem(lastRoomStorageKey);
                 restoreAttempted = true;
                 window.location.replace(window.location.origin + talkRootPath());
                 return true;
               }
-
-              if (!isTalkRoot() || restoreAttempted) return false;
+              // Only the optional tile start may restore a room. Direct notification links
+              // have already selected their explicit room above and are never overridden.
+              if (!restoreLastRoomOnOpen || !isTalkRoot() || restoreAttempted) return false;
               if (allowedRoomTokens === null && !roomFilterFailed) return false;
               restoreAttempted = true;
               const lastRoomPath = window.localStorage.getItem(lastRoomStorageKey);
               if (!lastRoomPath) return false;
-              if (!roomPathPattern.test(lastRoomPath)) {
-                window.localStorage.removeItem(lastRoomStorageKey);
-                return false;
-              }
-              const lastRoomToken = roomTokenFromPath(lastRoomPath);
-              if (allowedRoomTokens !== null && !allowedRoomTokens.has(lastRoomToken)) {
+              if (!roomPathPattern.test(lastRoomPath) ||
+                  (allowedRoomTokens !== null && !allowedRoomTokens.has(roomTokenFromPath(lastRoomPath)))) {
                 window.localStorage.removeItem(lastRoomStorageKey);
                 return false;
               }
@@ -227,7 +225,7 @@ object TalkChatPolicy {
             dismissUnsupportedBrowserWarning();
             loadAllowedRooms();
             filterConversationList();
-            if (rememberOrRestoreLastRoom()) return;
+            if (keepCurrentConversationAllowed()) return;
             openConversationNavigation();
           };
 
@@ -281,6 +279,11 @@ object TalkChatPolicy {
           }
         })();
     """
+
+    fun script(startAtLastChat: Boolean): String = CHAT_ONLY_SCRIPT.replace(
+        "const restoreLastRoomOnOpen = false;",
+        "const restoreLastRoomOnOpen = $startAtLastChat;",
+    )
 
     fun isTalkPage(url: String): Boolean {
         val parsed = runCatching { URI(url) }.getOrNull() ?: return false
