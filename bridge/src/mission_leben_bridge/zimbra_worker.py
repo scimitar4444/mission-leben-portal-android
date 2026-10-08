@@ -13,6 +13,7 @@ from typing import Any, Callable
 
 from .source_client import BridgeSourceClient
 from .calendar_target import calendar_target
+from .calendar_contract import MAX_CALENDAR_EVENTS
 from .zimbra_waitset import (
     ZimbraAppointment,
     ZimbraMessage,
@@ -199,10 +200,10 @@ class ZimbraWorker:
         self._publish_appointments(account_id, appointments)
         if self.account_map[account_id].get("personal_calendar") is not True:
             return
-        # At the SOAP result limit we cannot prove that this is a complete
-        # snapshot. Never replace the phone calendar with a truncated list.
-        if len(appointments) >= 100:
-            LOGGER.warning("Zimbra calendar snapshot reached the result limit for account %s", account_id)
+        # Fetch one extra record and honour SOAP's completeness flag. Exactly
+        # 200 complete instances are valid; never replace with a partial list.
+        if len(appointments) > MAX_CALENDAR_EVENTS or not getattr(appointments, "complete", True):
+            LOGGER.warning("Zimbra calendar snapshot is incomplete or exceeds %d events for account %s", MAX_CALENDAR_EVENTS, account_id)
             return
         events = []
         for appointment in appointments:

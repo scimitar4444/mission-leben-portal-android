@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .authentik import AuthenticationError, AuthentikClient, UserInfo
 from .calendar_target import valid_calendar_target
+from .calendar_contract import MAX_CALENDAR_EVENTS, LEGACY_MAX_CALENDAR_EVENTS, EXTENDED_CALENDAR_MIN_APP_VERSION
 from .communication_directory import CommunicationDirectory
 from .employee_directory import EmployeeDirectory, DirectoryDenied, DirectoryUnavailable
 from .nextcloud_announcements import AnnouncementFetchError, NextcloudAnnouncementClient
@@ -140,8 +141,8 @@ class BridgeService:
         if not allowed:
             raise ApiError(403, "calendar snapshots require a personal Zimbra assignment")
         raw_events = payload.get("events")
-        if not isinstance(raw_events, list) or len(raw_events) > 100:
-            raise ApiError(400, "calendar snapshot must contain at most 100 events")
+        if not isinstance(raw_events, list) or len(raw_events) > MAX_CALENDAR_EVENTS:
+            raise ApiError(400, f"calendar snapshot must contain at most {MAX_CALENDAR_EVENTS} events")
         events: list[dict[str, Any]] = []
         seen: set[str] = set()
         for item in raw_events:
@@ -178,6 +179,12 @@ class BridgeService:
         events, fetched_at = snapshot
         if int(time.time()) - fetched_at > 2 * 3600:
             raise ApiError(503, "Zimbra calendar snapshot is stale")
+        match = APP_VERSION.fullmatch(str(registration.get("app_version", "")))
+        extended = match is not None and tuple(int(part) for part in match.groups()) >= EXTENDED_CALENDAR_MIN_APP_VERSION
+        if len(events) > LEGACY_MAX_CALENDAR_EVENTS and not extended:
+            # Older apps reject >100 events. Keep their existing local calendar
+            # intact instead of ever returning a truncated replacement list.
+            raise ApiError(503, "Update the Android app to sync more than 100 calendar events")
         return {"events": events, "fetched_at": fetched_at}
 
     def calendar_access(self, *, device_id: str, key_id: str, timestamp: str,

@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
+from .calendar_contract import MAX_CALENDAR_EVENTS
+
 
 SOAP = "http://www.w3.org/2003/05/soap-envelope"
 ZIMBRA = "urn:zimbra"
@@ -74,6 +76,12 @@ class ZimbraAppointment:
     invite_id: str = ""
     recurrence_id: str = ""
     all_day: bool = False
+
+
+class ZimbraAppointments(list[ZimbraAppointment]):
+    def __init__(self, appointments: list[ZimbraAppointment], *, complete: bool):
+        super().__init__(appointments)
+        self.complete = complete
 
 
 class ZimbraSoapClient:
@@ -181,7 +189,7 @@ class ZimbraSoapClient:
             )
         return messages
 
-    def upcoming_appointments(self, account_id: str, limit: int = 100) -> list[ZimbraAppointment]:
+    def upcoming_appointments(self, account_id: str, limit: int = MAX_CALENDAR_EVENTS + 1) -> ZimbraAppointments:
         request = ET.Element(
             f"{{{MAIL}}}SearchRequest",
             {"types": "appointment", "limit": str(limit), "sortBy": "dateAsc", "calExpandInstStart": str(int((time.time() - 86_400) * 1000)), "calExpandInstEnd": str(int((time.time() + 15 * 86_400) * 1000))},
@@ -189,9 +197,11 @@ class ZimbraSoapClient:
         ET.SubElement(request, f"{{{MAIL}}}query").text = "in:calendar"
         response = self._post(self.mail_soap_url, request, account_id=account_id)
         appointments: list[ZimbraAppointment] = []
+        raw_count = 0
         for node in response.iter():
             if _local_name(node.tag) != "appt" or "id" not in node.attrib:
                 continue
+            raw_count += 1
             subject = node.attrib.get("name") or _child_text(node, "su")
             location = node.attrib.get("loc") or _child_text(node, "loc")
             appointment_duration = int(node.attrib.get("dur", "0"))
@@ -208,7 +218,9 @@ class ZimbraSoapClient:
                         all_day=(instance.attrib.get("allDay") or node.attrib.get("allDay", "0")).lower() in {"1", "true"},
                     )
                 )
-        return appointments
+        more = response.attrib.get("more", "").lower()
+        complete = more in {"0", "false"} or (not more and raw_count < limit)
+        return ZimbraAppointments(appointments, complete=complete)
 
     def _post(
         self,

@@ -13,7 +13,7 @@ from mission_leben_bridge.communication_directory import CommunicationDirectory
 from mission_leben_bridge.security import SecretBox
 from mission_leben_bridge.service import ApiError, BridgeService
 from mission_leben_bridge.store import Store
-from mission_leben_bridge.zimbra_waitset import ZimbraAppointment
+from mission_leben_bridge.zimbra_waitset import ZimbraAppointment, ZimbraAppointments
 from mission_leben_bridge.zimbra_worker import ZimbraWorker
 from test_service import FakeAuthentik, FakeNtfy
 
@@ -48,8 +48,8 @@ class CalendarSnapshotTest(unittest.TestCase):
             "subject": SUBJECT, "zimbra": True, "personal_calendar": allowed,
         }]}), encoding="utf-8")
 
-    def request(self, method: str, mode: str = "personal") -> dict:
-        with patch.object(self.service, "_verify_device_request", return_value={"subject": SUBJECT, "mode": mode}):
+    def request(self, method: str, mode: str = "personal", version: str = "0.21.6") -> dict:
+        with patch.object(self.service, "_verify_device_request", return_value={"subject": SUBJECT, "mode": mode, "app_version": version}):
             return getattr(self.service, method)(
                 device_id="device", key_id="key", timestamp="0", nonce="nonce",
                 signature="signature", path="/v1/calendar/" + method.removeprefix("calendar_"),
@@ -104,6 +104,29 @@ class CalendarSnapshotTest(unittest.TestCase):
         self.store.offboard_subject(SUBJECT)
         self.assertIsNone(self.store.get_calendar_snapshot(SUBJECT))
 
+    def test_two_hundred_events_are_accepted_but_overflow_keeps_previous_snapshot(self) -> None:
+        events = [{**self.event, "id": f"event-{index:026d}"} for index in range(200)]
+        self.service.put_calendar_snapshot("zimbra", {"user_subject": SUBJECT, "events": events})
+        self.assertEqual(200, len(self.request("calendar_snapshot")["events"]))
+        with self.assertRaises(ApiError) as overflow:
+            self.service.put_calendar_snapshot("zimbra", {
+                "user_subject": SUBJECT, "events": events + [{**self.event, "id": "z" * 32}],
+            })
+        self.assertEqual(400, overflow.exception.status)
+        self.assertEqual(events, self.request("calendar_snapshot")["events"])
+
+    def test_legacy_app_never_receives_a_truncated_large_calendar(self) -> None:
+        events = [{**self.event, "id": f"event-{index:026d}"} for index in range(105)]
+        self.service.put_calendar_snapshot("zimbra", {"user_subject": SUBJECT, "events": events})
+        for version in ("0.21.5", "0.20.0", "", "invalid"):
+            with self.subTest(version=version), self.assertRaises(ApiError) as older:
+                self.request("calendar_snapshot", version=version)
+            self.assertEqual(503, older.exception.status)
+        for version in ("0.21.6", "0.22.0", "1.0.0"):
+            self.assertEqual(105, len(self.request("calendar_snapshot", version=version)["events"]))
+        self.service.put_calendar_snapshot("zimbra", {"user_subject": SUBJECT, "events": events[:100]})
+        self.assertEqual(100, len(self.request("calendar_snapshot", version="0.21.5")["events"]))
+
     def test_calendar_subject_and_location_are_encrypted_at_rest(self) -> None:
         self.store.put_calendar_snapshot(SUBJECT, [self.event], int(time.time()))
         with closing(sqlite3.connect(self.store.path)) as connection:
@@ -155,6 +178,21 @@ class WorkerCalendarSnapshotTest(unittest.TestCase):
     def test_result_limit_never_replaces_the_snapshot(self) -> None:
         event = ZimbraAppointment("123", 1_800_000_000_000, 3_600_000, "Meeting", "Raum")
         bridge = FakeCalendarBridge()
-        worker = ZimbraWorker(FakeCalendarSoap([event] * 100), bridge, {"account": {"subject": SUBJECT, "personal_calendar": True}})
+        worker = ZimbraWorker(FakeCalendarSoap([event] * 201), bridge, {"account": {"subject": SUBJECT, "personal_calendar": True}})
+        worker._scan_calendar("account")
+        self.assertEqual([], bridge.snapshots)
+
+    def test_complete_two_hundred_instances_are_published(self) -> None:
+        events = [ZimbraAppointment(str(index), 1_800_000_000_000, 3_600_000, "Meeting", "") for index in range(200)]
+        bridge = FakeCalendarBridge()
+        worker = ZimbraWorker(FakeCalendarSoap(ZimbraAppointments(events, complete=True)), bridge,
+                              {"account": {"subject": SUBJECT, "personal_calendar": True}})
+        worker._scan_calendar("account")
+        self.assertEqual(200, len(bridge.snapshots[0]["events"]))
+
+    def test_incomplete_short_result_never_replaces_calendar_with_empty_list(self) -> None:
+        bridge = FakeCalendarBridge()
+        worker = ZimbraWorker(FakeCalendarSoap(ZimbraAppointments([], complete=False)), bridge,
+                              {"account": {"subject": SUBJECT, "personal_calendar": True}})
         worker._scan_calendar("account")
         self.assertEqual([], bridge.snapshots)

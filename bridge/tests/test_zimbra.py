@@ -142,6 +142,18 @@ class ZimbraSoapClientTest(unittest.TestCase):
         with self.assertRaisesRegex(ZimbraSoapError, "missing zimbraId"):
             self.client.account_id("user@example.invalid")
 
+    def test_calendar_fetches_one_extra_record_and_preserves_more_flag(self) -> None:
+        self.client.responses = [ET.fromstring(f'<SearchResponse xmlns="{MAIL}" more="1"/>')]
+        result = self.client.upcoming_appointments("account-a")
+        self.assertEqual("201", self.client.calls[0][1].attrib["limit"])
+        self.assertFalse(result.complete)
+
+    def test_calendar_complete_flag_accepts_exact_boundary_and_detects_unknown_truncation(self) -> None:
+        appointments = ''.join(f'<appt id="{index}"><inst s="1800000000000"/></appt>' for index in range(200))
+        for flag, expected in ((" more=\"0\"", True), (" more=\"1\"", False), ("", False)):
+            self.client.responses = [ET.fromstring(f'<SearchResponse xmlns="{MAIL}"{flag}>{appointments}</SearchResponse>')]
+            self.assertEqual(expected, self.client.upcoming_appointments("account-a", limit=200).complete)
+
     def test_mapping_sync_reuses_existing_ids_and_resolves_only_new_accounts(self) -> None:
         self.client.responses = [
             ET.fromstring(f'<AuthResponse xmlns="{ADMIN}"><authToken>admin-token</authToken></AuthResponse>'),

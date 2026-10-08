@@ -16,9 +16,11 @@ data class CalendarSnapshot(
     val fetchedAtSeconds: Long,
 ) {
     companion object {
+        const val MAX_EVENTS = 200
+
         fun fromJson(root: JSONObject): CalendarSnapshot {
             val values = root.getJSONArray("events")
-            require(values.length() <= 100) { "Zu viele Termine im Kalenderabgleich." }
+            require(values.length() <= MAX_EVENTS) { "Zu viele Termine im Kalenderabgleich." }
             val events = List(values.length()) { index ->
                 val item = values.getJSONObject(index)
                 val start = item.getLong("start_millis")
