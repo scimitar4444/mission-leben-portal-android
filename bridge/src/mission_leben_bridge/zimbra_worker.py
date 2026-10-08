@@ -46,6 +46,8 @@ class ZimbraWorker:
 
     def run(self) -> None:
         backoff = 2
+        next_calendar_scan = 0.0
+        scanned_map: dict[str, dict[str, Any]] = {}
         while not self.stop_event.is_set():
             waitset_id = ""
             try:
@@ -63,21 +65,37 @@ class ZimbraWorker:
                     self.stop_event.wait(30)
                     continue
                 self.soap.authenticate()
-                waitset_id, sequence = self.soap.create_waitset(list(self.account_map))
+                waitset_id, sequence, active_accounts = self._create_waitset()
                 self._touch_heartbeat()
-                LOGGER.info("Zimbra WaitSet created for %d mapped accounts", len(self.account_map))
-                self._initial_calendar_scan()
-                next_calendar_scan = time.monotonic() + 3600
+                LOGGER.info(
+                    "Zimbra WaitSet created for %d mapped accounts; %d inaccessible accounts isolated",
+                    len(active_accounts), len(self.account_map) - len(active_accounts),
+                )
+                now = time.monotonic()
+                if now >= next_calendar_scan:
+                    scan_accounts = active_accounts
+                    next_calendar_scan = now + 3600
+                else:
+                    scan_accounts = {account for account in active_accounts if scanned_map.get(account) != self.account_map[account]}
+                if scan_accounts:
+                    self._initial_calendar_scan(scan_accounts)
+                # Rechecking an isolated account must not turn the hourly
+                # calendar safety scan into a full scan every five minutes.
+                scanned_map = {account: dict(self.account_map[account]) for account in active_accounts}
+                retry_isolated_at = time.monotonic() + 300 if len(active_accounts) < len(self.account_map) else None
                 backoff = 2
                 while not self.stop_event.is_set():
                     sequence, changed_accounts = self.soap.wait(waitset_id, sequence, timeout_seconds=60)
                     self._touch_heartbeat()
                     for account_id in changed_accounts:
-                        if account_id in self.account_map:
+                        if account_id in active_accounts:
                             self._scan_account(account_id)
                     if time.monotonic() >= next_calendar_scan:
-                        self._initial_calendar_scan()
+                        self._initial_calendar_scan(active_accounts)
                         next_calendar_scan = time.monotonic() + 3600
+                    if retry_isolated_at is not None and time.monotonic() >= retry_isolated_at:
+                        LOGGER.info("Rechecking isolated Zimbra accounts")
+                        break
                     if (
                         self.account_map_loader is not None
                         and self.account_map_loader() != self.account_map
@@ -98,12 +116,50 @@ class ZimbraWorker:
     def stop(self) -> None:
         self.stop_event.set()
 
+    def _create_waitset(self) -> tuple[str, str, set[str]]:
+        accounts = list(self.account_map)
+        try:
+            waitset_id, sequence = self.soap.create_waitset(accounts)
+            return waitset_id, sequence, set(accounts)
+        except ZimbraSoapError as error:
+            if error.code not in {"service.PERM_DENIED", "account.NO_SUCH_ACCOUNT"}:
+                raise
+        # Only account-specific SOAP faults may trigger isolation. Network,
+        # authentication and server failures must retain the normal backoff.
+        # Probe halves, not every mailbox, so one denied account among 2,000
+        # needs logarithmically many requests. Every successful probe is freed.
+        def accessible(batch: list[str]) -> list[str]:
+            if not batch or self.stop_event.is_set():
+                return []
+            try:
+                probe_id, _ = self.soap.create_waitset(batch)
+            except ZimbraSoapError as error:
+                if error.code not in {"service.PERM_DENIED", "account.NO_SUCH_ACCOUNT"}:
+                    raise
+                if len(batch) == 1:
+                    LOGGER.warning("Isolating inaccessible Zimbra account %s (%s)", batch[0], error.code)
+                    return []
+                middle = len(batch) // 2
+                return accessible(batch[:middle]) + accessible(batch[middle:])
+            self.soap.destroy_waitset(probe_id)
+            return batch
+
+        if len(accounts) == 1:
+            allowed: list[str] = []
+        else:
+            middle = len(accounts) // 2
+            allowed = accessible(accounts[:middle]) + accessible(accounts[middle:])
+        if not allowed:
+            raise ZimbraSoapError("No mapped Zimbra mailbox is accessible", code="service.PERM_DENIED")
+        waitset_id, sequence = self.soap.create_waitset(allowed)
+        return waitset_id, sequence, set(allowed)
+
     def _touch_heartbeat(self) -> None:
         if self.heartbeat_path is not None:
             self.heartbeat_path.write_text(str(int(time.time())), encoding="ascii")
 
-    def _initial_calendar_scan(self) -> None:
-        for account_id in self.account_map:
+    def _initial_calendar_scan(self, account_ids: set[str] | None = None) -> None:
+        for account_id in sorted(account_ids if account_ids is not None else self.account_map):
             if self.stop_event.is_set():
                 return
             try:

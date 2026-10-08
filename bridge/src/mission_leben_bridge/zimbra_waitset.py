@@ -18,7 +18,21 @@ MAIL = "urn:zimbraMail"
 
 
 class ZimbraSoapError(Exception):
-    pass
+    def __init__(self, message: str, *, code: str = ""):
+        super().__init__(message)
+        self.code = code
+
+
+def _soap_fault(root: ET.Element) -> ZimbraSoapError | None:
+    fault = next((node for node in root.iter() if _local_name(node.tag) == "Fault"), None)
+    if fault is None:
+        return None
+    code = next(
+        ((node.text or "").strip() for node in fault.iter() if node.tag == f"{{{ZIMBRA}}}Code"),
+        "",
+    )
+    detail = " ".join(text.strip() for text in fault.itertext() if text.strip())[:500]
+    return ZimbraSoapError("Zimbra SOAP fault: " + detail, code=code)
 
 
 def _local_name(tag: str) -> str:
@@ -228,12 +242,18 @@ class ZimbraSoapClient:
                 root = ET.fromstring(response.read())
         except urllib.error.HTTPError as error:
             details = error.read(8192).decode(errors="replace")
+            try:
+                fault_error = _soap_fault(ET.fromstring(details))
+            except ET.ParseError:
+                fault_error = None
+            if fault_error is not None:
+                raise fault_error from error
             raise ZimbraSoapError(f"Zimbra returned HTTP {error.code}: {html.escape(details[:500])}") from error
         except (urllib.error.URLError, ET.ParseError) as error:
             raise ZimbraSoapError("Zimbra SOAP request failed") from error
-        fault = next((node for node in root.iter() if _local_name(node.tag) == "Fault"), None)
-        if fault is not None:
-            raise ZimbraSoapError("Zimbra SOAP fault: " + " ".join(text.strip() for text in fault.itertext() if text.strip())[:500])
+        fault_error = _soap_fault(root)
+        if fault_error is not None:
+            raise fault_error
         soap_body = next((node for node in root if _local_name(node.tag) == "Body"), None)
         if soap_body is None or len(soap_body) == 0:
             raise ZimbraSoapError("Zimbra SOAP response contains no body")
