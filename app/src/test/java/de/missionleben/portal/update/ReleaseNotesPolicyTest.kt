@@ -12,6 +12,13 @@ class ReleaseNotesPolicyTest {
         assertTrue(ReleaseNotesCatalog.forVersion(BuildConfig.VERSION_CODE).isNotEmpty())
     }
 
+    @Test fun calendarReleaseHasReopenableCapacityNote() {
+        assertEquals(
+            listOf(R.string.release_note_calendar_capacity),
+            ReleaseNotesCatalog.forVersion(89),
+        )
+    }
+
     @Test fun talkStartReleaseHasOnlyTheRequestedPublicNote() {
         assertEquals(
             listOf(R.string.release_note_talk_start_setting),

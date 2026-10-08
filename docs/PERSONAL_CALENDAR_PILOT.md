@@ -38,17 +38,15 @@ jedem Kalendertyp und Handyhersteller.
   Termine ebenfalls sehen. Bei manuell entzogener Kalenderberechtigung kann die
   App die lokalen Einträge nicht mehr selbst löschen, bis die Berechtigung
   wieder erteilt wird.
-- Produktiv gilt derzeit noch die Grenze von 100 Terminen. Für das nächste
-  App-Update (mindestens 0.21.6) sind lokal bis einschließlich 200 Termine
-  vorbereitet, noch nicht ausgerollt. SOAP-Abfrage, Worker, Bridge und Android
-  werden gemeinsam angepasst: Die Abfrage fordert 201 Datensätze an und prüft
+- Ab App-Version 0.21.6 unterstützen SOAP-Abfrage, Worker, Bridge und Android
+  gemeinsam bis einschließlich 200 Termine. Die Abfrage fordert 201 Datensätze an und prüft
   zusätzlich Zimbras `more`-Kennzeichen. Bei mehr als 200 Termininstanzen oder
   unvollständiger Antwort bleibt der letzte Stand erhalten; es wird niemals
   eine abgeschnittene Liste als vollständiger Kalender übernommen.
   Alte Apps erhalten für Kalender über 100 Terminen vorübergehend HTTP 503
   statt einer gekürzten Liste; ihre lokalen Termine bleiben dabei erhalten.
-  Kalender bis 100 Termine bleiben mit alten Apps nutzbar. Erst mit dem neuen
-  App-Release auch den vorbereiteten Serverstand ausrollen und live prüfen.
+  Kalender bis 100 Termine bleiben mit alten Apps nutzbar. Server und App müssen
+  für diese Erweiterung gemeinsam ausgerollt und live geprüft werden.
 - Für die weitere Geräteabnahme: Termine hinzufügen/ändern/löschen,
   Offline-Verhalten, Abmelden/Blockieren sowie Samsung-Kalender und Widgets
   prüfen. Ganztägige und wiederkehrende Termine sind besonders zu beachten.

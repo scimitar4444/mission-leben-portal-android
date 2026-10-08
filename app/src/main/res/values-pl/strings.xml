@@ -320,4 +320,5 @@
     <string name="talk_start_last_chat">Ostatni czat</string>
     <string name="talk_start_description">Wybierz widok po otwarciu kafelka Talk. Powiadomienie o wiadomości zawsze otwiera właściwy czat.</string>
     <string name="release_note_talk_start_setting">W Ustawienia → Talk wybierz listę czatów lub ostatni czat. Powiadomienia nadal otwierają bezpośrednio odpowiedni czat.</string>
+    <string name="release_note_calendar_capacity">Synchronizacja kalendarza jest bardziej niezawodna i obsługuje teraz do 200 wydarzeń. W razie przejściowych błędów istniejące wydarzenia pozostają zachowane.</string>
 </resources>

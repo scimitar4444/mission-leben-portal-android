@@ -318,4 +318,5 @@
     <string name="talk_start_last_chat">Son sohbet</string>
     <string name="talk_start_description">Talk kutucuğunun nerede açılacağını seç. Mesaj bildirimi her zaman ilgili sohbeti açar.</string>
     <string name="release_note_talk_start_setting">Ayarlar → Talk bölümünde sohbet listesini veya son sohbeti seçebilirsin. Bildirimler ilgili sohbeti doğrudan açmaya devam eder.</string>
+    <string name="release_note_calendar_capacity">Takvim eşitlemesi daha güvenilir ve artık 200 etkinliğe kadar destekliyor. Geçici hatalarda mevcut etkinlikler korunur.</string>
 </resources>

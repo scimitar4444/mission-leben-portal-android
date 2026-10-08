@@ -318,4 +318,5 @@
     <string name="talk_start_last_chat">Último chat</string>
     <string name="talk_start_description">Elige dónde se abre la tarjeta de Talk. Una notificación de mensaje siempre abre el chat correspondiente.</string>
     <string name="release_note_talk_start_setting">En Ajustes → Talk, elige la lista de chats o el último chat. Las notificaciones siguen abriendo directamente el chat correspondiente.</string>
+    <string name="release_note_calendar_capacity">La sincronización del calendario es más fiable y ahora admite hasta 200 citas. Las citas existentes se conservan si hay errores temporales.</string>
 </resources>

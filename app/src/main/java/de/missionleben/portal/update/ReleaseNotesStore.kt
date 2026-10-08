@@ -30,6 +30,7 @@ object ReleaseNotesCatalog {
         86 to listOf(R.string.release_note_existing_device_download_fix, R.string.release_note_download_auto_open_setting),
         87 to listOf(R.string.release_note_secure_unlock, R.string.release_note_reauthentication, R.string.release_note_app_symbols),
         88 to listOf(R.string.release_note_talk_start_setting),
+        89 to listOf(R.string.release_note_calendar_capacity),
     )
 
     fun forVersion(versionCode: Int): List<Int> = notesByVersion[versionCode].orEmpty()

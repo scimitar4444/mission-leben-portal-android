@@ -318,4 +318,5 @@
     <string name="talk_start_last_chat">Dernière discussion</string>
     <string name="talk_start_description">Choisis où ouvre la tuile Talk. Une notification de message ouvre toujours la discussion correspondante.</string>
     <string name="release_note_talk_start_setting">Dans Paramètres → Talk, choisis la liste des discussions ou la dernière discussion. Les notifications ouvrent toujours directement la discussion correspondante.</string>
+    <string name="release_note_calendar_capacity">La synchronisation du calendrier est plus fiable et prend désormais en charge jusqu’à 200 événements. Les événements existants sont conservés en cas d’erreur temporaire.</string>
 </resources>

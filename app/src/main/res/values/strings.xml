@@ -357,4 +357,5 @@
     <string name="talk_start_last_chat" tools:ignore="MissingTranslation">Letzter Chat</string>
     <string name="talk_start_description" tools:ignore="MissingTranslation">Wähle, wo die Talk-Kachel startet. Eine Nachrichtenbenachrichtigung öffnet immer den passenden Chat.</string>
     <string name="release_note_talk_start_setting">Unter Einstellungen → Talk kannst du wählen: Chatübersicht oder letzter Chat. Benachrichtigungen öffnen weiterhin direkt den passenden Chat.</string>
+    <string name="release_note_calendar_capacity">Der Kalenderabgleich ist zuverlässiger und unterstützt jetzt bis zu 200 Termine. Bei vorübergehenden Fehlern bleiben vorhandene Termine erhalten.</string>
 </resources>
