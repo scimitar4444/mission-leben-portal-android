@@ -100,6 +100,13 @@ class PortalBrowserActivity : FragmentActivity() {
     private val authentikOrigin by lazy {
         Uri.parse(BuildConfig.AUTHENTIK_BASE_URL).let { "${it.scheme}://${it.authority}" }
     }
+    private val passwordVisibilityScript by lazy {
+        PasswordVisibilityPolicy.script(
+            BuildConfig.AUTHENTIK_BASE_URL,
+            getString(R.string.password_show),
+            getString(R.string.password_hide),
+        )
+    }
     private val deviceMode by lazy {
         intent.getStringExtra(EXTRA_DEVICE_MODE)?.let { value ->
             runCatching { DeviceMode.valueOf(value) }.getOrNull()
@@ -261,6 +268,13 @@ class PortalBrowserActivity : FragmentActivity() {
         return true
     }
 
+    override fun onPause() {
+        if (::webView.isInitialized && isAuthentikOrigin(webView.url.orEmpty())) {
+            webView.evaluateJavascript(PasswordVisibilityPolicy.HIDE_SCRIPT, null)
+        }
+        super.onPause()
+    }
+
     override fun onStop() {
         unregisterReceiver(securityStateReceiver)
         unregisterReceiver(downloadCompleteReceiver)
@@ -391,8 +405,15 @@ class PortalBrowserActivity : FragmentActivity() {
         webView.webChromeClient = BrowserChromeClient()
         webView.setDownloadListener(SecureDownloadListener())
         installEndpointChallengeBridge()
+        installPasswordVisibility()
         installTalkChatGuard()
         installAnnouncementCenterGuard()
+    }
+
+    private fun installPasswordVisibility() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        val script = passwordVisibilityScript ?: return
+        WebViewCompat.addDocumentStartJavaScript(webView, script, setOf(authentikOrigin))
     }
 
     private fun installTalkChatGuard() {
@@ -540,7 +561,11 @@ class PortalBrowserActivity : FragmentActivity() {
             loadPendingInitialTarget(view, url)
             openPendingContactEmail()
             browserTitle = view.title?.takeIf { it.isNotBlank() } ?: browserTitle
-            if (isAuthentikOrigin(url)) view.evaluateJavascript(ENDPOINT_BRIDGE_SCRIPT, null)
+            if (isAuthentikOrigin(url)) {
+                view.evaluateJavascript(ENDPOINT_BRIDGE_SCRIPT, null)
+                // Idempotent fallback for providers without document-start script support.
+                passwordVisibilityScript?.let { view.evaluateJavascript(it, null) }
+            }
             if (TalkChatPolicy.isTalkPage(url)) {
                 // Fallback for providers without document-start script support and defense in depth
                 // after Nextcloud/Talk SPA route changes.

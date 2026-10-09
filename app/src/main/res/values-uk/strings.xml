@@ -321,4 +321,6 @@
     <string name="talk_start_description">Вибери, де відкривається плитка Talk. Сповіщення про повідомлення завжди відкриває відповідний чат.</string>
     <string name="release_note_talk_start_setting">У Налаштування → Talk виберіть список чатів або останній чат. Сповіщення й надалі відкривають відповідний чат безпосередньо.</string>
     <string name="release_note_calendar_capacity">Синхронізація календаря стала надійнішою та підтримує до 200 подій. У разі тимчасових помилок наявні події зберігаються.</string>
+    <string name="password_show">Показати пароль</string>
+    <string name="password_hide">Приховати пароль</string>
 </resources>
