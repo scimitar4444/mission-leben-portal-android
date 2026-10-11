@@ -325,4 +325,6 @@
     <string name="release_note_calendar_capacity">La synchronisation du calendrier est plus fiable et prend désormais en charge jusqu’à 200 événements. Les événements existants sont conservés en cas d’erreur temporaire.</string>
     <string name="password_show">Afficher le mot de passe</string>
     <string name="password_hide">Masquer le mot de passe</string>
+    <string name="release_note_web_session_fix">Une connexion web manquante ne supprime plus une session personnelle de l’application encore valide. Le message d’expiration des 90 jours apparaît uniquement lorsque le délai est réellement écoulé.</string>
+    <string name="release_note_password_eye">Lors de la connexion, utilise l’œil pour afficher ou masquer brièvement ton mot de passe. Il est à nouveau masqué lorsque tu quittes la page.</string>
 </resources>

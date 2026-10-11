@@ -364,4 +364,6 @@
     <string name="release_note_calendar_capacity">Der Kalenderabgleich ist zuverlässiger und unterstützt jetzt bis zu 200 Termine. Bei vorübergehenden Fehlern bleiben vorhandene Termine erhalten.</string>
     <string name="password_show">Passwort anzeigen</string>
     <string name="password_hide">Passwort verbergen</string>
+    <string name="release_note_web_session_fix">Eine fehlende Web-Anmeldung löscht keine weiterhin gültige persönliche App-Sitzung mehr. Der Hinweis „90 Tage abgelaufen“ erscheint nur bei tatsächlichem Fristablauf.</string>
+    <string name="release_note_password_eye">Beim Anmelden kannst du dein Kennwort mit dem Auge kurz anzeigen und wieder verbergen. Beim Verlassen wird es wieder verdeckt.</string>
 </resources>

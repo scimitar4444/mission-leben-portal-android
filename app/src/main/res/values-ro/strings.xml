@@ -326,4 +326,6 @@
     <string name="release_note_calendar_capacity">Sincronizarea calendarului este mai fiabilă și acceptă acum până la 200 de evenimente. Evenimentele existente sunt păstrate în cazul erorilor temporare.</string>
     <string name="password_show">Afișează parola</string>
     <string name="password_hide">Ascunde parola</string>
+    <string name="release_note_web_session_fix">Lipsa autentificării web nu mai șterge o sesiune personală a aplicației care este încă validă. Mesajul despre expirarea celor 90 de zile apare numai după expirarea efectivă a termenului.</string>
+    <string name="release_note_password_eye">La autentificare, poți afișa sau ascunde temporar parola folosind ochiul. Parola este ascunsă din nou când părăsești pagina.</string>
 </resources>

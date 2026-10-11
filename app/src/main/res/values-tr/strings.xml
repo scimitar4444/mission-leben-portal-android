@@ -325,4 +325,6 @@
     <string name="release_note_calendar_capacity">Takvim eşitlemesi daha güvenilir ve artık 200 etkinliğe kadar destekliyor. Geçici hatalarda mevcut etkinlikler korunur.</string>
     <string name="password_show">Parolayı göster</string>
     <string name="password_hide">Parolayı gizle</string>
+    <string name="release_note_web_session_fix">Web oturumu bulunamadığında geçerli kişisel uygulama oturumu artık silinmez. 90 günlük sürenin dolduğu mesajı yalnızca süre gerçekten dolduğunda gösterilir.</string>
+    <string name="release_note_password_eye">Oturum açarken göz simgesiyle parolanı kısa süreliğine gösterebilir veya gizleyebilirsin. Sayfadan ayrılınca tekrar gizlenir.</string>
 </resources>

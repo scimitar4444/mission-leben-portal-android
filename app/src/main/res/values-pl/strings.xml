@@ -327,4 +327,6 @@
     <string name="release_note_calendar_capacity">Synchronizacja kalendarza jest bardziej niezawodna i obsługuje teraz do 200 wydarzeń. W razie przejściowych błędów istniejące wydarzenia pozostają zachowane.</string>
     <string name="password_show">Pokaż hasło</string>
     <string name="password_hide">Ukryj hasło</string>
+    <string name="release_note_web_session_fix">Brak logowania do aplikacji webowej nie usuwa już ważnej osobistej sesji aplikacji. Komunikat o upływie 90 dni pojawia się tylko po rzeczywistym upływie terminu.</string>
+    <string name="release_note_password_eye">Podczas logowania możesz na chwilę pokazać lub ukryć hasło za pomocą oka. Po opuszczeniu strony hasło zostaje ponownie ukryte.</string>
 </resources>

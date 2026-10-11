@@ -339,4 +339,6 @@
     <string name="release_note_calendar_capacity">Calendar sync is more reliable and now supports up to 200 events. Existing events are kept during temporary errors.</string>
     <string name="password_show">Show password</string>
     <string name="password_hide">Hide password</string>
+    <string name="release_note_web_session_fix">A missing web sign-in no longer deletes a still-valid personal app session. The 90-day expiry message is only shown when the deadline has actually passed.</string>
+    <string name="release_note_password_eye">When signing in, use the eye to briefly show or hide your password. It is hidden again when you leave.</string>
 </resources>

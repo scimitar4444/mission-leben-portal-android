@@ -325,4 +325,6 @@
     <string name="release_note_calendar_capacity">La sincronización del calendario es más fiable y ahora admite hasta 200 citas. Las citas existentes se conservan si hay errores temporales.</string>
     <string name="password_show">Mostrar contraseña</string>
     <string name="password_hide">Ocultar contraseña</string>
+    <string name="release_note_web_session_fix">La pérdida del acceso web ya no elimina una sesión personal de la app que sigue siendo válida. El aviso de caducidad de 90 días solo aparece cuando el plazo ha vencido.</string>
+    <string name="release_note_password_eye">Al iniciar sesión, puedes mostrar u ocultar brevemente la contraseña con el ojo. Se oculta de nuevo al salir.</string>
 </resources>
