@@ -1,5 +1,7 @@
 Diese Anleitung ist für dein eigenes Android-Handy (Android 13 oder neuer).
 
+Du kannst deinen persönlichen Mitarbeiterzugang auf **bis zu zwei Handys gleichzeitig** nutzen, zum Beispiel auf deinem privaten und deinem dienstlichen Handy. Jedes Handy wird einzeln registriert.
+
 ## Vor dem Start: Bildschirmsperre einrichten
 
 Richte auf deinem Handy eine sichere **Bildschirmsperre mit PIN, Passwort oder Muster** ein. Du findest sie in den Handy-Einstellungen unter **Sicherheit**, **Sicherheit und Datenschutz** oder **Sperrbildschirm**; der Name hängt vom Hersteller ab. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler.
@@ -23,9 +25,19 @@ Richte auf deinem Handy eine sichere **Bildschirmsperre mit PIN, Passwort oder M
 
 **Eigener TOTP-Code:** Auf der einfachen Installationsseite gibt es keinen zweiten QR-Code. Öffne die App über ihr Symbol und melde dich mit Benutzername, Passwort und deinem vorhandenen TOTP an. Die App führt dich durch die Registrierung. Dieser reine Installationslink läuft nicht ab.
 
+### Zweites Handy oder Handywechsel
+
+- **Ein Handy ist bereits verbunden:** Wähle **Zweites Handy hinzufügen**, wenn du beide behalten möchtest. Das erste Handy bleibt nutzbar.
+- **Du wechselst ein Handy:** Wähle **Ersetzen: …** und prüfe den angezeigten Gerätenamen.
+- **Zwei Handys sind bereits verbunden:** Ein drittes kommt nicht hinzu. Wähle gezielt das Handy, das ersetzt werden soll.
+
+Beim Einrichtungslink wählt deine Leitung oder die IT dies im Geräteportal. Bei der eigenen Registrierung wählst du es selbst. Ein ersetztes Handy wird erst deaktiviert, wenn die neue Registrierung erfolgreich ist. Das andere Handy bleibt verbunden.
+
 ## 3. App nutzen
 
 Wenn die Geräteidentität bestätigt ist, melde dich in der App an und richte den Schnellzugang mit geeignetem Fingerabdruck, geeigneter Gesichtserkennung oder Gerätecode ein. Danach öffnest du Zimbra, Talk und andere freigegebene Anwendungen über ihre Kacheln. Die App zeigt auch freigegebene Kontakte und Benachrichtigungen.
+
+**Passwort prüfen:** Tippe bei der Anmeldung in der App auf das **Auge neben dem Passwortfeld**, um deine Eingabe kurz zu sehen. Noch einmal tippen verdeckt sie wieder. Achte darauf, dass niemand mitliest.
 
 Bei einer späteren Anmeldung am Webportal: Wähle auf der Seite mit den Sicherheitsverfahren „Duo“, wenn es angeboten wird. Andernfalls nutze dein bisheriges Verfahren. Bei Duo: Öffne Mission Leben Zentral auf deinem bereits registrierten Handy, entsperre die App und tippe bei deiner Anfrage auf „Bestätigen“. Hast du die Anmeldung nicht selbst gestartet, tippe auf „Ablehnen“.
 
@@ -35,9 +47,13 @@ So sieht der erste QR-Code für den App-Download aus:
 
 ![App-Download: vorbereiten, QR-Code scannen, App installiert wählen](.attachments.95685102/ml-portal-install-schritte.png)
 
+[Installationsbild größer öffnen](https://nextcloud.mission-leben.de/f/95686507)
+
 ## 4. Hinweise einstellen
 
 Beim ersten Anmelden führt dich der Einrichtungsassistent durch die wichtigsten Einstellungen. Später findest du ihn unter **Einstellungen** wieder.
+
+Nutzt du zwei Handys, richte Schnellzugang, Benachrichtigungen und Akku-Einstellungen **auf jedem Handy separat** ein.
 
 - Erlaube Android-Benachrichtigungen, wenn du Hinweise zu neuen E-Mails, Talk-Nachrichten und Terminen erhalten möchtest. In den Einstellungen wählst du, wie viel Text zu sehen ist, wann Termine erinnert werden und ob eine Ruhezeit gelten soll.
 - Prüfe unter **Einstellungen → Push-Zustellung** die Akku-Einstellungen. Manche Handys beenden Apps im Hintergrund besonders streng; dann können Hinweise verspätet oder gar nicht ankommen.

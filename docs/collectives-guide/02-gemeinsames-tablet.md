@@ -12,6 +12,8 @@ Der Hinweis zum Schnellzugang gilt für **persönliche und gebundene Diensthandy
 2. Öffne **Mission Leben Zentral**.
 3. Wähle deinen Namen oder melde dich mit deinem persönlichen Zugang an.
 
+**Passwort prüfen:** Mit dem **Auge neben dem Passwortfeld** kannst du deine Eingabe kurz anzeigen. Noch einmal tippen verdeckt sie wieder. Achte gerade auf dem gemeinsamen Tablet darauf, dass niemand mitliest.
+
 ## Während der Benutzung
 
 - Öffne Zimbra, Talk oder eine andere freigegebene Anwendung über ihre Kachel.
@@ -35,6 +37,8 @@ Gerät gesperrt, Name fehlt oder Anmeldung nicht möglich? Bitte wende dich an d
 Wähle auf dem gemeinsamen Tablet dein persönliches Profil.
 
 ![08-app-shared (2).png](.attachments.95685139/08-app-shared%20%282%29.png)
+
+[Bild der Profilauswahl größer öffnen](https://nextcloud.mission-leben.de/f/95685161)
 
 Hinweis: Wenn ein freigegebenes Gruppenkonto deiner Einrichtung auf dem Tablet angezeigt wird, darfst du es nur für die gemeinsame Aufgabe nutzen. Bei deinem persönlichen Profil bleiben deine eigenen Inhalte privat. Schalte den Bildschirm nach jeder Nutzung aus – auch nach einem Gruppenkonto.
 

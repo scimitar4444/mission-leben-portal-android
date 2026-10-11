@@ -5,7 +5,15 @@ Für die Geräte-Einrichtung melden sich IT, Einrichtungsleitung oder PDL auf [g
 1. Wähle **Mitarbeiter-Handy** oder **Gemeinsames Tablet**. Nur die IT sieht zusätzlich **Gruppenkonto auf Diensthandy**.
 2. Wähle die Person, das Gruppenkonto oder beim Tablet **genau eine** erlaubte Einrichtung. Prüfe die Auswahl vor dem Erstellen.
 
-Bei einem bereits verbundenen persönlichen oder Gruppenkonto-Handy wird das bisherige Gerät erst nach erfolgreicher Registrierung des neuen Handys deaktiviert; die Historie bleibt erhalten.
+**Persönlicher Mitarbeiterzugang: bis zu zwei Handys**
+
+- Ist schon ein Handy verbunden, wähle **Zweites Handy hinzufügen**, wenn beide weiter genutzt werden sollen.
+- Bei einem Handywechsel wähle **Ersetzen: …** und prüfe den Gerätenamen.
+- Sind bereits zwei Handys verbunden, muss eines davon gezielt ersetzt werden. Ein drittes Handy ist nicht möglich.
+
+Nur das ausgewählte Handy wird nach erfolgreicher Registrierung des neuen Geräts deaktiviert. Das andere Handy bleibt verbunden; die Historie bleibt erhalten.
+
+**Gruppenkonto auf Diensthandy:** Hier bleibt es bei **einem Handy pro Konto**. Ein neues Handy ersetzt das bisherige erst nach erfolgreicher Registrierung. Für gemeinsame Tablets ändert sich der Ablauf nicht.
 
 ## 2. Gerät vorbereiten und App installieren
 
@@ -26,11 +34,15 @@ Beispiel: Vorbereiten, ersten QR-Code scannen und erst nach der Installation „
 
 ![Schritte 1 und 2: Vorbereitung und App-Download](.attachments.95685145/ml-portal-install-schritte-inline.png)
 
+[Installationsbild größer öffnen](https://nextcloud.mission-leben.de/f/95686515)
+
 **Wichtig:** Der Einrichtungslink gilt 30 Minuten **ab Erstellung**; „App installiert“ verlängert ihn nicht. Gib Link oder QR-Code nur an die vorgesehene Person weiter. Ist die Frist abgelaufen, erstelle einen neuen Link.
 
 ## 3. Einrichtung prüfen
 
 Öffne Mission Leben Zentral. Prüfe, ob die Geräteidentität bestätigt ist, und öffne mindestens eine freigegebene Anwendung. Bei einem gemeinsamen Tablet wähle zum Test ein Konto der gebundenen Einrichtung und schalte danach den Bildschirm aus.
+
+Bei der Anmeldung kann die nutzende Person mit dem **Auge neben dem Passwortfeld** die Eingabe kurz sichtbar machen und mit einem zweiten Tippen wieder verdecken. Niemand sollte dabei mitlesen.
 
 ## Link per E-Mail verschicken
 
@@ -42,12 +54,13 @@ Duo gilt nur für persönliche Mitarbeiterkonten mit registriertem Handy. Bei sp
 
 ## Bei Verlust oder Ausscheiden
 
-Das Gerät in Authentik deaktivieren und die IT informieren. Nur in der App abmelden reicht nicht
+Das betroffene Gerät in Authentik deaktivieren und die IT informieren. Nur in der App abmelden reicht nicht. Nutzt die Person zwei Handys, prüfe beide: Bei Verlust sperrst du das verlorene Gerät; beim Ausscheiden müssen beide Zugänge beendet werden.
 
 ## Nach der Registrierung gemeinsam prüfen
 
 - Beim ersten Anmelden erklärt der Einrichtungsassistent die passenden Einstellungen. Er zeigt nur Schritte, für die das jeweilige Konto freigegeben ist.
 - Auf persönlichen Handys: Android-Benachrichtigungen erlauben und unter **Einstellungen → Push-Zustellung** die Akku-Einstellungen prüfen. Sonst können Mail-, Talk- und Terminhinweise ausbleiben.
+- Bei zwei persönlichen Handys: Registrierung, Schnellzugang, Benachrichtigungen und Akku-Einstellungen auf jedem Handy einzeln prüfen.
 - Nur bei einem persönlichen Konto mit Zimbra-Freigabe: Der freiwillige Handy-Kalender kann Zimbra-Termine für 1 Tag bis 2 Wochen anzeigen. Termine werden ausschließlich in Zimbra angelegt und geändert; vom Handy geht nichts zurück.
 - Auf gemeinsamen Tablets und Gruppenkonto-Diensthandys gibt es keinen persönlichen Handy-Kalenderabgleich. Eine Anmeldung per App-Bestätigung („Duo“) ist für Gruppenkonten ebenfalls nicht vorgesehen.
 

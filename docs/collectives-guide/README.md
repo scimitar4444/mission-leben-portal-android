@@ -1,10 +1,13 @@
 # Aktive Kollektiv-Anleitungen
 
 Diese Texte entsprechen den vorhandenen Seiten unter **User Guides → Mission
-Leben Zentral**. Die Seiten wurden am 05.10.2026 ausschließlich um den Hinweis
-zur sicheren Bildschirmsperre und zum Schnellzugang ergänzt. Bestehende Inhalte,
-Bilder, Links und Seiten-IDs bleiben erhalten. Die ergänzende Erklärung zur
-Gesichtserkennung unterscheidet geeignete Biometrie von der Handy-PIN: Android
+Leben Zentral**. Am 11.10.2026 wurden die Android-Anleitungen um bis zu zwei
+persönliche Handys, die gezielte Geräte-Ersetzung und das Passwort-Auge ergänzt.
+Das Auge wird als fertige Bedienfunktion beschrieben; die Veröffentlichung des
+nächsten App-Releases ist ein separater Schritt. Die Zwei-Handy-Regel ist bereits
+produktiv. Gruppenkonto-Diensthandys bleiben auf ein Handy begrenzt. Bestehende
+Bilder, Links und Seiten-IDs bleiben erhalten. Die Erklärung vom 05.10.2026 zur
+sicheren Bildschirmsperre und Gesichtserkennung bleibt erhalten: Android
 muss die Biometrie als ausreichend sicher einstufen. Andernfalls wird der
 Gerätecode verwendet, nicht das Mission-Leben-Passwort; die PIN-Abfrage ist kein
 Fehler. Die App-Sicherheitslogik bleibt unverändert.
@@ -20,6 +23,9 @@ Fehler. Die App-Sicherheitslogik bleibt unverändert.
 
 Die `.attachments.<Seiten-ID>`-Bildpfade sind die vorhandenen Inline-Anhänge
 in Kollektiv. Sie werden nicht umbenannt, verschoben oder neu angelegt.
+Die drei Android-Seiten mit Bildern enthalten zusätzlich einen direkten Link
+zum vorhandenen Anhang. So bleibt das Bild erreichbar, falls der Text-Viewer
+die Inline-Darstellung nicht lädt. Die Bilddateien selbst bleiben unverändert.
 
 Die drei öffentlichen Installationsansichten `/download`, `/setup` und
 `/install` verwenden denselben Hinweis aus
