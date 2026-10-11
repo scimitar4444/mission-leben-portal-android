@@ -408,6 +408,20 @@ class PortalBrowserActivity : FragmentActivity() {
         installPasswordVisibility()
         installTalkChatGuard()
         installAnnouncementCenterGuard()
+        installDocumentsMobileLayout()
+        installHelpdeskContainerLayout()
+    }
+
+    private fun installHelpdeskContainerLayout() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        WebViewCompat.addDocumentStartJavaScript(webView, HelpdeskContainerLayout.SCRIPT,
+            HelpdeskContainerLayout.ORIGINS)
+    }
+
+    private fun installDocumentsMobileLayout() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        WebViewCompat.addDocumentStartJavaScript(webView, DocumentsMobileLayout.SCRIPT,
+            setOf(DocumentsMobileLayout.ORIGIN))
     }
 
     private fun installPasswordVisibility() {
@@ -582,6 +596,12 @@ class PortalBrowserActivity : FragmentActivity() {
             if (AnnouncementCenterPolicy.isAnnouncementPage(url)) {
                 // Fallback for older WebView providers without document-start script support.
                 view.evaluateJavascript(AnnouncementCenterPolicy.EMBEDDED_SCRIPT, null)
+            }
+            if (DocumentsMobileLayout.isDocumentOrigin(url)) {
+                view.evaluateJavascript(DocumentsMobileLayout.SCRIPT, null)
+            }
+            if (HelpdeskContainerLayout.isHelpdeskPage(url)) {
+                view.evaluateJavascript(HelpdeskContainerLayout.SCRIPT, null)
             }
             if (intent.getBooleanExtra(EXTRA_LOGOUT, false) && !logoutFinished) {
                 logoutFinished = true

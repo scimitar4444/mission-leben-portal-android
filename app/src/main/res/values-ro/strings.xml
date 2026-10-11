@@ -329,4 +329,21 @@
     <string name="release_note_web_session_fix">Lipsa autentificării web nu mai șterge o sesiune personală a aplicației care este încă validă. Mesajul despre expirarea celor 90 de zile apare numai după expirarea efectivă a termenului.</string>
     <string name="release_note_password_eye">La autentificare, poți afișa sau ascunde temporar parola folosind ochiul. Parola este ascunsă din nou când părăsești pagina.</string>
     <string name="release_note_two_personal_handsets">Acum poți folosi contul personal de angajat pe cel mult două telefoane simultan. Fiecare telefon se înregistrează separat. Conturile de grup rămân limitate la un telefon.</string>
+    <string name="today_title">Astăzi</string>
+    <string name="today_all_day">Toată ziua</string>
+    <string name="today_more">Alte programări (%1$d)</string>
+    <string name="today_collapse">Arată mai puțin</string>
+    <string name="today_calendar">Deschide în calendar</string>
+    <string name="today_cached">Date salvate</string>
+    <string name="contacts_favorites">Favorite</string>
+    <string name="contacts_other_contacts">Alte contacte</string>
+    <string name="contacts_favorite_add">Salvează %1$s ca favorit</string>
+    <string name="contacts_favorite_remove">Elimină %1$s din favorite</string>
+    <string name="contacts_favorites_limit">Poți salva până la %1$d favorite.</string>
+    <string name="contacts_favorites_session">Salvate doar pentru această autentificare.</string>
+    <string name="release_note_today">Când Zimbra este disponibilă, Azi afișează programările viitoare pe ecranul principal. Atinge una pentru a deschide ziua corespunzătoare din calendar.</string>
+    <string name="release_note_contact_favorites">Marchează contactele importante cu o stea pentru a le salva ca favorite. Filtrul unității selectate rămâne activ.</string>
+    <string name="release_note_compact_documents">ML Documente ocupă mai puțin spațiu pe telefon. Pictogramele arată tipul fișierului; meniul nu mai afișează setări separate ale contului.</string>
+    <string name="release_note_mobile_helpdesk">Ajutor IT este disponibil și pe telefon. Prezentarea afișează tichetele existente într-un format mai compact.</string>
+    <string name="release_note_talk_setup_choice">Asistentul de configurare permite acum alegerea deschiderii Talk în lista conversațiilor sau în ultima conversație.</string>
 </resources>

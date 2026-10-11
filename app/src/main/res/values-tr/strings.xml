@@ -328,4 +328,21 @@
     <string name="release_note_web_session_fix">Web oturumu bulunamadığında geçerli kişisel uygulama oturumu artık silinmez. 90 günlük sürenin dolduğu mesajı yalnızca süre gerçekten dolduğunda gösterilir.</string>
     <string name="release_note_password_eye">Oturum açarken göz simgesiyle parolanı kısa süreliğine gösterebilir veya gizleyebilirsin. Sayfadan ayrılınca tekrar gizlenir.</string>
     <string name="release_note_two_personal_handsets">Kişisel çalışan hesabını artık aynı anda en fazla iki telefonda kullanabilirsin. Her telefon ayrı ayrı kaydedilir. Grup hesapları bir telefonla sınırlı kalır.</string>
+    <string name="today_title">Bugün</string>
+    <string name="today_all_day">Tüm gün</string>
+    <string name="today_more">Diğer randevular (%1$d)</string>
+    <string name="today_collapse">Daha az göster</string>
+    <string name="today_calendar">Takvimde aç</string>
+    <string name="today_cached">Kaydedilmiş bilgiler</string>
+    <string name="contacts_favorites">Favoriler</string>
+    <string name="contacts_other_contacts">Diğer kişiler</string>
+    <string name="contacts_favorite_add">%1$s kişisini favorilere ekle</string>
+    <string name="contacts_favorite_remove">%1$s kişisini favorilerden kaldır</string>
+    <string name="contacts_favorites_limit">En fazla %1$d favori kaydedebilirsin.</string>
+    <string name="contacts_favorites_session">Yalnızca bu oturum için kaydedilir.</string>
+    <string name="release_note_today">Zimbra kullanılabiliyorsa Bugün bölümü yaklaşan randevularını ana ekranda gösterir. Bir randevuya dokunarak ilgili takvim gününü açabilirsin.</string>
+    <string name="release_note_contact_favorites">Önemli kişileri yıldızla işaretleyerek favorilere kaydedebilirsin. Seçtiğin tesisin filtresi geçerli olmaya devam eder.</string>
+    <string name="release_note_compact_documents">ML Belgeler telefonda daha az yer kaplar. Simgeler dosya türünü gösterir; menüde ayrı hesap ayarları artık görünmez.</string>
+    <string name="release_note_mobile_helpdesk">BT Yardımı artık mobilde de kullanılabilir. Genel bakış mevcut taleplerini daha kompakt gösterir.</string>
+    <string name="release_note_talk_setup_choice">Kurulum yardımcısında Talk uygulamasının sohbet listesiyle mi yoksa son sohbetle mi açılacağını seçebilirsin.</string>
 </resources>

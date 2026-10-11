@@ -75,6 +75,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.missionleben.portal.BuildConfig
 import de.missionleben.portal.data.ContactPage
+import de.missionleben.portal.data.EmployeeContact
+import de.missionleben.portal.data.FavoriteContactPage
 import de.missionleben.portal.R
 import de.missionleben.portal.auth.IdentityBirthday
 import de.missionleben.portal.auth.ReauthenticationPolicy
@@ -105,9 +107,12 @@ fun MissionLebenApp(
     onDismissWebReauthentication: () -> Unit,
     onRetryQuickUnlock: () -> Unit,
     onOpenUrl: (String) -> Unit,
+    onOpenCalendarDay: (String) -> Unit,
     onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onSearchContacts: suspend (String, Boolean, Int, String, String) -> ContactPage,
+    onLoadContactFavorites: suspend (Boolean, String, String) -> FavoriteContactPage,
+    onToggleContactFavorite: (EmployeeContact) -> Boolean,
     onComposeContactEmail: (String) -> Unit,
     onMarkAnnouncementRead: (Long) -> Unit,
     onSelfEnrollment: () -> Unit,
@@ -163,9 +168,12 @@ fun MissionLebenApp(
                 onStartLogin = onStartLogin,
                 onRetryQuickUnlock = onRetryQuickUnlock,
                 onOpenUrl = onOpenUrl,
+                onOpenCalendarDay = onOpenCalendarDay,
                 onOpenPublicUrl = onOpenPublicUrl,
                 onReloadApplications = onReloadApplications,
                 onSearchContacts = onSearchContacts,
+                onLoadContactFavorites = onLoadContactFavorites,
+                onToggleContactFavorite = onToggleContactFavorite,
                 onComposeContactEmail = onComposeContactEmail,
                 onMarkAnnouncementRead = onMarkAnnouncementRead,
                 onSelfEnrollment = onSelfEnrollment,
@@ -385,9 +393,12 @@ private fun Home(
     onStartLogin: () -> Unit,
     onRetryQuickUnlock: () -> Unit,
     onOpenUrl: (String) -> Unit,
+    onOpenCalendarDay: (String) -> Unit,
     onOpenPublicUrl: (String) -> Unit,
     onReloadApplications: () -> Unit,
     onSearchContacts: suspend (String, Boolean, Int, String, String) -> ContactPage,
+    onLoadContactFavorites: suspend (Boolean, String, String) -> FavoriteContactPage,
+    onToggleContactFavorite: (EmployeeContact) -> Boolean,
     onComposeContactEmail: (String) -> Unit,
     onMarkAnnouncementRead: (Long) -> Unit,
     onSelfEnrollment: () -> Unit,
@@ -435,10 +446,13 @@ private fun Home(
     if (contactsOpen && state.signedIn) {
         ContactsScreen(
             onSearchContacts,
+            loadFavorites = onLoadContactFavorites,
+            toggleFavorite = onToggleContactFavorite,
             onBack = { contactsOpen = false },
             onEmail = onComposeContactEmail,
             busy = state.busy,
             message = state.message,
+            favoritesPersistent = state.mode == DeviceMode.PERSONAL,
         )
         return
     }
@@ -486,6 +500,7 @@ private fun Home(
         onStartLogin = onStartLogin,
         onRetryQuickUnlock = onRetryQuickUnlock,
         onOpenUrl = onOpenUrl,
+        onOpenCalendarDay = onOpenCalendarDay,
         onOpenPublicUrl = onOpenPublicUrl,
         onReloadApplications = onReloadApplications,
         onMarkAnnouncementRead = onMarkAnnouncementRead,
@@ -525,6 +540,7 @@ internal fun HomeOverview(
     onEnableQuickUnlock: () -> Unit,
     onTalkHandoff: () -> Unit,
     onDismissMessage: () -> Unit,
+    onOpenCalendarDay: (String) -> Unit = onOpenUrl,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().testTag("home-overview"),
@@ -545,8 +561,14 @@ internal fun HomeOverview(
         }
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
         if (state.signedIn) {
-            item { Greeting(state) }
-            if (state.announcementsLoading || state.announcements.isNotEmpty()) {
+            item { Greeting(state, onContacts) }
+            if (state.mode == DeviceMode.PERSONAL && state.enrollmentState == EnrollmentState.TRUSTED &&
+                state.calendarAvailable && AppFeaturePolicy.from(state.applications).zimbra) {
+                item { TodayAgendaPanel(state, onOpenCalendarDay) }
+            }
+            // Do not reserve a red, empty warning card while the first fetch is pending.
+            // Existing notices stay visible during refresh and failures as before.
+            if (state.announcements.isNotEmpty()) {
                 item {
                     AnnouncementsPanel(
                         state.announcements,
@@ -572,25 +594,6 @@ internal fun HomeOverview(
         }
 
         if (state.signedIn) {
-            item {
-                Card(
-                    onClick = onContacts,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                ) {
-                    Row(
-                        Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(painterResource(R.drawable.ic_contacts), null, Modifier.size(20.dp))
-                        Text(stringResource(R.string.contacts_title), Modifier.weight(1f),
-                            style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                        Icon(painterResource(R.drawable.ic_chevron_right), null, Modifier.size(18.dp))
-                    }
-                }
-            }
             item {
                 SectionTitle(
                     title = stringResource(R.string.web_apps_title),
@@ -659,7 +662,7 @@ private fun AnnouncementsPanel(
         if (expanded) R.string.announcements_collapse else R.string.announcements_expand,
     )
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("announcements-panel"),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
@@ -1236,7 +1239,7 @@ private fun BrandHeader() {
 }
 
 @Composable
-private fun Greeting(state: UiState) {
+private fun Greeting(state: UiState, onContacts: () -> Unit) {
     val displayName = state.user?.displayName.orEmpty()
     val motivationTexts = stringArrayResource(R.array.motivation_messages)
     val motivationIndex = Math.floorMod(
@@ -1244,13 +1247,30 @@ private fun Greeting(state: UiState) {
         motivationTexts.size,
     )
     Column(Modifier.fillMaxWidth().padding(horizontal = 2.dp, vertical = 2.dp)) {
-        Text(
-            stringResource(R.string.hello_name, displayName),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.weight(1f).testTag("greeting-copy")) {
+                Text(
+                    stringResource(R.string.hello_name, displayName),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                if (!IdentityBirthday.isToday(state.user?.birthdayMonthDay)) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(motivationTexts[motivationIndex],
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            Column(Modifier.width(64.dp).heightIn(min = 48.dp).clip(RoundedCornerShape(10.dp))
+                .clickable(role = Role.Button, onClick = onContacts).padding(vertical = 4.dp)
+                .testTag("contacts-header"), horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)) {
+                Icon(painterResource(R.drawable.ic_contacts), null, Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.contacts_title), style = MaterialTheme.typography.labelSmall)
+            }
+        }
         if (IdentityBirthday.isToday(state.user?.birthdayMonthDay)) {
             Spacer(Modifier.height(7.dp))
             Surface(
@@ -1271,13 +1291,6 @@ private fun Greeting(state: UiState) {
                     )
                 }
             }
-        } else {
-            Spacer(Modifier.height(2.dp))
-            Text(
-                motivationTexts[motivationIndex],
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall,
-            )
         }
     }
 }

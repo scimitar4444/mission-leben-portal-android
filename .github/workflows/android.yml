@@ -34,6 +34,10 @@ jobs:
         run: node scripts/test_talk_chat_policy.mjs
       - name: Test Authentik password visibility and masking
         run: node scripts/test_password_visibility.mjs
+      - name: Test mobile document and Helpdesk DOM contracts
+        run: |
+          node app/src/test/resources/documents-mobile-layout-dom.cjs
+          node app/src/test/resources/helpdesk-container-layout-dom.cjs
       - name: Test and build debug APK
         run: ./gradlew testDebugUnitTest lintDebug assembleDebug --stacktrace
       - uses: actions/upload-artifact@v7

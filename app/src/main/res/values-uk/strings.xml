@@ -330,4 +330,21 @@
     <string name="release_note_web_session_fix">Відсутня вебавторизація більше не видаляє дійсний особистий сеанс програми. Повідомлення про завершення 90 днів з’являється лише після фактичного спливу строку.</string>
     <string name="release_note_password_eye">Під час входу можна коротко показати або приховати пароль за допомогою значка ока. Коли залишаєш сторінку, пароль знову приховується.</string>
     <string name="release_note_two_personal_handsets">Тепер можна користуватися особистим обліковим записом працівника одночасно на двох телефонах. Кожен телефон реєструється окремо. Для групових облікових записів залишається обмеження в один телефон.</string>
+    <string name="today_title">Сьогодні</string>
+    <string name="today_all_day">Увесь день</string>
+    <string name="today_more">Інші зустрічі (%1$d)</string>
+    <string name="today_collapse">Показати менше</string>
+    <string name="today_calendar">Відкрити в календарі</string>
+    <string name="today_cached">Збережені дані</string>
+    <string name="contacts_favorites">Обране</string>
+    <string name="contacts_other_contacts">Інші контакти</string>
+    <string name="contacts_favorite_add">Додати %1$s до обраного</string>
+    <string name="contacts_favorite_remove">Видалити %1$s з обраного</string>
+    <string name="contacts_favorites_limit">Можна зберегти до %1$d обраних контактів.</string>
+    <string name="contacts_favorites_session">Збережено лише для цього входу.</string>
+    <string name="release_note_today">Якщо Zimbra доступна, розділ Сьогодні показує майбутні події на головному екрані. Натискання відкриває відповідний день календаря.</string>
+    <string name="release_note_contact_favorites">Позначай важливі контакти зірочкою, щоб зберігати їх як обрані. Фільтр вибраного закладу залишається активним.</string>
+    <string name="release_note_compact_documents">ML Документи займають менше місця на телефоні. Значки показують тип файлу; меню більше не містить окремих налаштувань облікового запису.</string>
+    <string name="release_note_mobile_helpdesk">ІТ-допомога тепер доступна й на телефоні. Огляд показує наявні заявки в компактнішому вигляді.</string>
+    <string name="release_note_talk_setup_choice">У помічнику налаштування тепер можна вибрати, чи Talk відкриватиме список чатів або останній чат.</string>
 </resources>

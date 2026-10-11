@@ -328,4 +328,21 @@
     <string name="release_note_web_session_fix">Une connexion web manquante ne supprime plus une session personnelle de l’application encore valide. Le message d’expiration des 90 jours apparaît uniquement lorsque le délai est réellement écoulé.</string>
     <string name="release_note_password_eye">Lors de la connexion, utilise l’œil pour afficher ou masquer brièvement ton mot de passe. Il est à nouveau masqué lorsque tu quittes la page.</string>
     <string name="release_note_two_personal_handsets">Tu peux désormais utiliser ton compte personnel de salarié sur deux téléphones au maximum en même temps. Chaque téléphone est enregistré séparément. Les comptes de groupe restent limités à un téléphone.</string>
+    <string name="today_title">Aujourd’hui</string>
+    <string name="today_all_day">Toute la journée</string>
+    <string name="today_more">Autres rendez-vous (%1$d)</string>
+    <string name="today_collapse">Afficher moins</string>
+    <string name="today_calendar">Ouvrir dans le calendrier</string>
+    <string name="today_cached">Données enregistrées</string>
+    <string name="contacts_favorites">Favoris</string>
+    <string name="contacts_other_contacts">Autres contacts</string>
+    <string name="contacts_favorite_add">Ajouter %1$s aux favoris</string>
+    <string name="contacts_favorite_remove">Retirer %1$s des favoris</string>
+    <string name="contacts_favorites_limit">Tu peux enregistrer jusqu’à %1$d favoris.</string>
+    <string name="contacts_favorites_session">Enregistré uniquement pour cette connexion.</string>
+    <string name="release_note_today">Si Zimbra est disponible, Aujourd’hui affiche tes prochains rendez-vous sur l’écran d’accueil. Un appui ouvre le jour correspondant du calendrier.</string>
+    <string name="release_note_contact_favorites">Marque les contacts importants avec une étoile pour les garder en favoris. Le filtre de ton établissement reste actif.</string>
+    <string name="release_note_compact_documents">ML Documents est plus compact sur ton téléphone. Les icônes indiquent le type de fichier ; le menu ne propose plus de réglages de compte séparés.</string>
+    <string name="release_note_mobile_helpdesk">L’aide informatique est aussi accessible sur mobile. La vue d’ensemble affiche tes tickets existants de façon plus compacte.</string>
+    <string name="release_note_talk_setup_choice">L’assistant de configuration permet de choisir si Talk ouvre la liste des discussions ou la dernière discussion.</string>
 </resources>

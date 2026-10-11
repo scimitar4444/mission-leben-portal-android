@@ -8,6 +8,7 @@ import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.device.CalendarAccessException
 import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.model.DeviceMode
+import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.security.DeviceIdentity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,15 +19,27 @@ class CalendarSyncCoordinator(private val context: Context) {
     private val settings = CalendarSyncSettings(context)
     private val calendar = LocalCalendarStore(context)
 
-    suspend fun sync(force: Boolean = false): CalendarSyncOutcome = withContext(Dispatchers.IO) {
+    suspend fun sync(
+        force: Boolean = false,
+        suppliedSnapshot: CalendarSnapshot? = null,
+        onSnapshot: (CalendarSnapshot) -> Unit = {},
+    ): CalendarSyncOutcome = withContext(Dispatchers.IO) {
         if (!settings.enabled || AppPreferences(context).deviceMode != DeviceMode.PERSONAL) return@withContext CalendarSyncOutcome.DISABLED
         if (!calendar.hasPermission()) return@withContext CalendarSyncOutcome.PERMISSION_MISSING
         if (!force && System.currentTimeMillis() - settings.lastSuccessMillis < 15 * 60_000L) {
             return@withContext CalendarSyncOutcome.UPDATED
         }
         val deviceId = AppPreferences(context).deviceId ?: return@withContext CalendarSyncOutcome.TEMPORARILY_UNAVAILABLE
+        val ownerSubject = settings.ownerSubject
         try {
-            val snapshot = DeviceServiceRepository(context).calendarSnapshot(deviceId, DeviceIdentity())
+            val snapshot = suppliedSnapshot ?: DeviceServiceRepository(context).calendarSnapshot(deviceId, DeviceIdentity())
+            // A response that finished after logout/offboarding must not recreate local data.
+            val current = AppPreferences(context)
+            if (!settings.enabled || settings.ownerSubject != ownerSubject || current.deviceId != deviceId ||
+                current.deviceMode != DeviceMode.PERSONAL || current.enrollmentState != EnrollmentState.TRUSTED) {
+                return@withContext CalendarSyncOutcome.DISABLED
+            }
+            onSnapshot(snapshot)
             calendar.apply(snapshot, settings.days)
             settings.lastSuccessMillis = System.currentTimeMillis()
             CalendarSyncOutcome.UPDATED

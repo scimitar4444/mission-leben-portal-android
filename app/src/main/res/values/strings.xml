@@ -367,4 +367,21 @@
     <string name="release_note_web_session_fix">Eine fehlende Web-Anmeldung löscht keine weiterhin gültige persönliche App-Sitzung mehr. Der Hinweis „90 Tage abgelaufen“ erscheint nur bei tatsächlichem Fristablauf.</string>
     <string name="release_note_password_eye">Beim Anmelden kannst du dein Kennwort mit dem Auge kurz anzeigen und wieder verbergen. Beim Verlassen wird es wieder verdeckt.</string>
     <string name="release_note_two_personal_handsets">Du kannst deinen persönlichen Mitarbeiterzugang jetzt auf bis zu zwei Handys gleichzeitig nutzen. Jedes Handy wird einzeln registriert. Für Gruppenkonten bleibt es bei einem Handy.</string>
+    <string name="today_title">Heute</string>
+    <string name="today_all_day">Ganztägig</string>
+    <string name="today_more">Weitere Termine (%1$d)</string>
+    <string name="today_collapse">Weniger anzeigen</string>
+    <string name="today_calendar">Im Kalender öffnen</string>
+    <string name="today_cached">Gespeicherter Stand</string>
+    <string name="contacts_favorites">Favoriten</string>
+    <string name="contacts_other_contacts">Weitere Kontakte</string>
+    <string name="contacts_favorite_add">%1$s als Favorit speichern</string>
+    <string name="contacts_favorite_remove">%1$s aus Favoriten entfernen</string>
+    <string name="contacts_favorites_limit">Du kannst bis zu %1$d Favoriten speichern.</string>
+    <string name="contacts_favorites_session">Nur für diese Anmeldung gespeichert.</string>
+    <string name="release_note_today">Wenn Zimbra freigegeben ist, zeigt „Heute“ deine anstehenden Termine direkt auf der Startseite. Ein Tipp öffnet den passenden Kalendertag.</string>
+    <string name="release_note_contact_favorites">Im Kontaktbuch kannst du wichtige Kontakte mit einem Stern als Favoriten merken. Die Auswahl deiner Einrichtung bleibt dabei erhalten.</string>
+    <string name="release_note_compact_documents">ML Dokumente ist auf dem Handy kompakter. Dateitypen sind an Symbolen erkennbar; das Menü zeigt keine eigenen Konto-Einstellungen mehr.</string>
+    <string name="release_note_mobile_helpdesk">IT Hilfe ist jetzt auch mobil erreichbar. Die Übersicht zeigt deine vorhandenen Tickets in einer kompakteren Ansicht.</string>
+    <string name="release_note_talk_setup_choice">Im Einrichtungsassistenten kannst du jetzt wählen, ob Talk mit der Chatübersicht oder dem letzten Chat startet.</string>
 </resources>

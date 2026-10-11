@@ -330,4 +330,21 @@
     <string name="release_note_web_session_fix">Brak logowania do aplikacji webowej nie usuwa już ważnej osobistej sesji aplikacji. Komunikat o upływie 90 dni pojawia się tylko po rzeczywistym upływie terminu.</string>
     <string name="release_note_password_eye">Podczas logowania możesz na chwilę pokazać lub ukryć hasło za pomocą oka. Po opuszczeniu strony hasło zostaje ponownie ukryte.</string>
     <string name="release_note_two_personal_handsets">Teraz możesz korzystać z osobistego konta pracownika na maksymalnie dwóch telefonach jednocześnie. Każdy telefon jest rejestrowany osobno. Konta grupowe pozostają ograniczone do jednego telefonu.</string>
+    <string name="today_title">Dzisiaj</string>
+    <string name="today_all_day">Cały dzień</string>
+    <string name="today_more">Więcej spotkań (%1$d)</string>
+    <string name="today_collapse">Pokaż mniej</string>
+    <string name="today_calendar">Otwórz w kalendarzu</string>
+    <string name="today_cached">Zapisane dane</string>
+    <string name="contacts_favorites">Ulubione</string>
+    <string name="contacts_other_contacts">Pozostałe kontakty</string>
+    <string name="contacts_favorite_add">Dodaj %1$s do ulubionych</string>
+    <string name="contacts_favorite_remove">Usuń %1$s z ulubionych</string>
+    <string name="contacts_favorites_limit">Możesz zapisać do %1$d ulubionych.</string>
+    <string name="contacts_favorites_session">Zapisane tylko dla tego logowania.</string>
+    <string name="release_note_today">Gdy Zimbra jest dostępna, sekcja Dzisiaj pokazuje nadchodzące wydarzenia na ekranie głównym. Dotknięcie otwiera odpowiedni dzień kalendarza.</string>
+    <string name="release_note_contact_favorites">Oznacz ważne kontakty gwiazdką, aby zapisać je jako ulubione. Filtr wybranej placówki nadal obowiązuje.</string>
+    <string name="release_note_compact_documents">ML Dokumenty zajmują mniej miejsca na telefonie. Ikony wskazują typ pliku; menu nie pokazuje już osobnych ustawień konta.</string>
+    <string name="release_note_mobile_helpdesk">Pomoc IT jest teraz dostępna także na telefonie. Przegląd pokazuje istniejące zgłoszenia w bardziej zwartej formie.</string>
+    <string name="release_note_talk_setup_choice">W asystencie konfiguracji można teraz wybrać, czy Talk otwiera listę rozmów, czy ostatnią rozmowę.</string>
 </resources>

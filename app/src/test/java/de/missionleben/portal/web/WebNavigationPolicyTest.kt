@@ -18,6 +18,14 @@ class WebNavigationPolicyTest {
     }
 
     @Test
+    fun `helpdesk keeps https on port 8443 without requiring a second app or a cleartext exception`() {
+        assertTrue(policy.isTrustedWebUrl("https://it-service.mission-leben.de:8443/otobo/customer.pl"))
+        assertTrue(policy.isTrustedWebUrl("https://it-service.mission-leben.de/otobo/customer.pl"))
+        assertFalse(policy.isTrustedWebUrl("http://it-service.mission-leben.de:8443/otobo/customer.pl"))
+        assertFalse(policy.isTrustedWebUrl("https://it-service.mission-leben.de.attacker.example:8443/otobo/customer.pl"))
+    }
+
+    @Test
     fun `rejects suffix lookalikes cleartext and local files`() {
         assertFalse(policy.isTrustedWebUrl("https://mission-leben.de.attacker.example/"))
         assertFalse(policy.isTrustedWebUrl("https://akademie-mission-leben.de.attacker.example/"))

@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -32,7 +33,9 @@ import de.missionleben.portal.model.UiState
 import de.missionleben.portal.model.UserIdentity
 import de.missionleben.portal.model.VaultRequest
 import de.missionleben.portal.push.NotificationBadgeCounts
+import de.missionleben.portal.calendar.CalendarEvent
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -157,6 +160,30 @@ class HomeOverviewTest {
         screenshot("three-apps")
     }
 
+    @Test @Config(qualifiers = "de-rDE-w320dp-h680dp-xhdpi")
+    fun compactContactsSitsBesideGreetingWithAFullTouchTargetEvenForLongNames() {
+        state.value = state.value.copy(user = state.value.user?.copy(displayName = "Alexandra-Maria Mustermann"))
+        show()
+        val greeting = compose.onNodeWithTag("greeting-copy", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        val contacts = compose.onNodeWithTag("contacts-header").assertIsDisplayed()
+            .assertWidthIsEqualTo(64.dp).assertHeightIsAtLeast(48.dp).fetchSemanticsNode().boundsInRoot
+        assertTrue(contacts.left >= greeting.right)
+        assertTrue(contacts.top < greeting.bottom && contacts.bottom > greeting.top)
+        compose.onNodeWithTag("contacts-header").performClick()
+        assertEquals(1, contactsOpened)
+        screenshot("compact-contact-header-long-name-320")
+    }
+
+    @Test fun pendingFirstNoticeDoesNotShowAnEmptyWarningCardButLoadedNoticeStillAppears() {
+        val notices = state.value.announcements
+        state.value = state.value.copy(announcements = emptyList(), announcementsLoading = true)
+        show()
+        compose.onNodeWithTag("announcements-panel").assertDoesNotExist()
+        compose.runOnIdle { state.value = state.value.copy(announcements = notices) }
+        compose.onNodeWithTag("announcements-panel").assertIsDisplayed()
+        compose.onNodeWithText("IHM wird gewartet").assertIsDisplayed()
+    }
+
     @Test fun collapsingDoesNotMarkReadAndReadNoticeCanBeReopened() {
         show()
         compose.onNodeWithTag("announcement-toggle").performClick()
@@ -267,6 +294,78 @@ class HomeOverviewTest {
         compose.onNodeWithText("Mit Authentik anmelden").assertIsDisplayed().performClick()
         assertEquals(1, loginStarts)
         assertEquals(0, quickUnlockRetries)
+    }
+
+    private fun withToday(): UiState {
+        val now = System.currentTimeMillis()
+        return state.value.copy(calendarAvailable = true, calendarSyncEnabled = false,
+            todayFetchedAtMillis = now,
+            todayEvents = listOf(
+                CalendarEvent("example-one", "Besprechung im Team", "", now, now + 3_600_000L, false),
+                CalendarEvent("example-two", "Übergabe", "", now + 60_000L, now + 3_600_000L, false)),
+            applications = listOf(
+                PortalApplication("Talk", "talk", "https://example.invalid/talk"),
+                PortalApplication("E-Mail", "zimbra-mail", "https://example.invalid/mail"),
+                PortalApplication("IT-Service", "otobo-mitarbeiter", "https://it-service.mission-leben.de:8443/otobo/customer.pl"),
+                PortalApplication("IHM", "ihm", "https://example.invalid/ihm"),
+                PortalApplication("Sigma", "sigma", "https://example.invalid/sigma"),
+                PortalApplication("Warden", "warden", "https://example.invalid/warden")))
+    }
+
+    @Test @Config(qualifiers = "de-rDE-w320dp-h680dp-xhdpi")
+    fun todayAndMaintenanceKeepSixAppTilesCompact() {
+        state.value = withToday()
+        show()
+        compose.onNodeWithTag("today-agenda").assertIsDisplayed()
+        state.value.applications.forEach {
+            compose.onNodeWithTag("app-" + it.slug).assertIsDisplayed().assertHeightIsEqualTo(72.dp)
+        }
+        compose.onNodeWithText("Übergabe").assertDoesNotExist()
+        screenshot("today-six-apps-helpdesk-320")
+        compose.onNodeWithTag("app-otobo-mitarbeiter").performClick()
+        assertEquals(listOf("https://it-service.mission-leben.de:8443/otobo/customer.pl"), openedUrls)
+    }
+
+    @Test fun todayExpandsCollapsesAndOpensTheCorrectCalendarDayWithoutEnablingExport() {
+        state.value = withToday()
+        val event = state.value.todayEvents[1]
+        show()
+        compose.onNodeWithTag("today-toggle").performClick()
+        compose.onNodeWithText("Übergabe").assertIsDisplayed().performClick()
+        assertEquals(listOf(de.missionleben.portal.BuildConfig.ZIMBRA_WEB_BASE_URL.trimEnd('/') +
+            "/modern/calendar/day/" + event.startMillis), openedUrls)
+        compose.onNodeWithTag("today-toggle").performClick()
+        compose.onNodeWithText("Übergabe").assertDoesNotExist()
+        assertEquals(false, state.value.calendarSyncEnabled)
+    }
+
+    @Test fun todayDisappearsForRevokedZimbraSharedDevicesAndSignedOutUsers() {
+        state.value = withToday()
+        val allowed = state.value
+        show()
+        compose.onNodeWithTag("today-agenda").assertIsDisplayed()
+        listOf(
+            allowed.copy(applications = allowed.applications.filterNot { it.slug == "zimbra-mail" }),
+            allowed.copy(calendarAvailable = false),
+            allowed.copy(mode = DeviceMode.SHARED),
+            allowed.copy(signedIn = false),
+            allowed.copy(enrollmentState = EnrollmentState.PENDING),
+            allowed.copy(todayFetchedAtMillis = System.currentTimeMillis() - 3 * 3_600_000L),
+        ).forEach { denied ->
+            compose.runOnIdle { state.value = denied }
+            compose.onNodeWithTag("today-agenda").assertDoesNotExist()
+        }
+    }
+
+    @Test @Config(qualifiers = "de-rDE-w320dp-h680dp-night-xhdpi")
+    fun largeFontTodayStillAllowsScrollingToAllSixApps() {
+        state.value = withToday()
+        show(fontScale = 1.5f)
+        compose.onNodeWithTag("today-agenda").assertIsDisplayed()
+        state.value.applications.forEach {
+            compose.onNodeWithTag("app-" + it.slug).performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(72.dp)
+        }
+        screenshot("today-large-font-dark-320")
     }
 
     companion object {

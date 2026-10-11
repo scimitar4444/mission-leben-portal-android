@@ -7,6 +7,7 @@ import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.push.NotificationBadgeCounts
 import de.missionleben.portal.update.AppUpdate
 import de.missionleben.portal.update.UpdateStatus
+import de.missionleben.portal.calendar.CalendarEvent
 
 enum class DeviceMode(@StringRes val labelRes: Int) {
     PERSONAL(R.string.mode_personal),
@@ -124,6 +125,9 @@ data class UiState(
     val calendarSyncEnabled: Boolean = false,
     val calendarSyncDays: Int = 14,
     val calendarLastSyncMillis: Long = 0L,
+    val todayEvents: List<CalendarEvent> = emptyList(),
+    val todayFetchedAtMillis: Long = 0L,
+    val todayStale: Boolean = false,
     val communicationNotificationsEnabled: Boolean = true,
     val quietHoursEnabled: Boolean = false,
     val quietStartMinutes: Int = 22 * 60,

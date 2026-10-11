@@ -252,9 +252,12 @@ class MainActivity : FragmentActivity() {
                     onDismissWebReauthentication = viewModel::dismissWebReauthentication,
                     onRetryQuickUnlock = viewModel::retryQuickUnlock,
                     onOpenUrl = viewModel::openApplication,
+                    onOpenCalendarDay = viewModel::openCalendarDay,
                     onOpenPublicUrl = ::openUrl,
                     onReloadApplications = viewModel::loadApplications,
                     onSearchContacts = viewModel::searchContacts,
+                    onLoadContactFavorites = viewModel::loadContactFavorites,
+                    onToggleContactFavorite = viewModel::toggleContactFavorite,
                     onComposeContactEmail = viewModel::composeContactEmail,
                     onMarkAnnouncementRead = viewModel::markAnnouncementRead,
                     onSelfEnrollment = {
@@ -382,6 +385,7 @@ class MainActivity : FragmentActivity() {
         viewModel.refreshDeviceStatus()
         viewModel.refreshAnnouncements()
         viewModel.refreshUnreadNotificationBadges()
+        viewModel.refreshToday()
         viewModel.startLoginApprovalPolling()
         ContextCompat.registerReceiver(
             this,

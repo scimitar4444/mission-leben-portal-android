@@ -328,4 +328,21 @@
     <string name="release_note_web_session_fix">La pérdida del acceso web ya no elimina una sesión personal de la app que sigue siendo válida. El aviso de caducidad de 90 días solo aparece cuando el plazo ha vencido.</string>
     <string name="release_note_password_eye">Al iniciar sesión, puedes mostrar u ocultar brevemente la contraseña con el ojo. Se oculta de nuevo al salir.</string>
     <string name="release_note_two_personal_handsets">Ahora puedes usar tu cuenta personal de empleado en hasta dos móviles a la vez. Cada móvil se registra por separado. Las cuentas de grupo siguen limitadas a un móvil.</string>
+    <string name="today_title">Hoy</string>
+    <string name="today_all_day">Todo el día</string>
+    <string name="today_more">Más citas (%1$d)</string>
+    <string name="today_collapse">Mostrar menos</string>
+    <string name="today_calendar">Abrir en el calendario</string>
+    <string name="today_cached">Datos guardados</string>
+    <string name="contacts_favorites">Favoritos</string>
+    <string name="contacts_other_contacts">Otros contactos</string>
+    <string name="contacts_favorite_add">Guardar %1$s como favorito</string>
+    <string name="contacts_favorite_remove">Eliminar %1$s de favoritos</string>
+    <string name="contacts_favorites_limit">Puedes guardar hasta %1$d favoritos.</string>
+    <string name="contacts_favorites_session">Guardado solo para esta sesión.</string>
+    <string name="release_note_today">Si Zimbra está disponible, Hoy muestra tus próximas citas en la pantalla de inicio. Toca una para abrir el día correspondiente del calendario.</string>
+    <string name="release_note_contact_favorites">Marca los contactos importantes con una estrella para guardarlos como favoritos. Se mantiene el filtro del centro seleccionado.</string>
+    <string name="release_note_compact_documents">ML Documentos ocupa menos espacio en el móvil. Los iconos indican el tipo de archivo; el menú ya no muestra ajustes de cuenta separados.</string>
+    <string name="release_note_mobile_helpdesk">Ayuda de TI también está disponible en el móvil. La vista general muestra tus tickets existentes de forma más compacta.</string>
+    <string name="release_note_talk_setup_choice">El asistente de configuración permite elegir si Talk abre la lista de chats o el último chat.</string>
 </resources>

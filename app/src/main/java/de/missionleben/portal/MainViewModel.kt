@@ -20,6 +20,8 @@ import de.missionleben.portal.calendar.CalendarSyncOutcome
 import de.missionleben.portal.calendar.CalendarSyncPolicy
 import de.missionleben.portal.calendar.CalendarSyncScheduler
 import de.missionleben.portal.calendar.CalendarSyncSettings
+import de.missionleben.portal.calendar.CalendarSnapshot
+import de.missionleben.portal.calendar.TodayAgenda
 import de.missionleben.portal.calendar.LocalCalendarStore
 import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.data.NewsRepository
@@ -28,6 +30,11 @@ import de.missionleben.portal.data.PortalRepository
 import de.missionleben.portal.data.ContactsRepository
 import de.missionleben.portal.data.ContactPage
 import de.missionleben.portal.data.ContactActions
+import de.missionleben.portal.data.ContactFavorite
+import de.missionleben.portal.data.ContactFavorites
+import de.missionleben.portal.data.ContactFavoritesStore
+import de.missionleben.portal.data.EmployeeContact
+import de.missionleben.portal.data.FavoriteContactPage
 import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrPayload
 import de.missionleben.portal.device.EnrollmentQrParser
@@ -91,6 +98,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val unreadNotificationStore = UnreadNotificationStore(application)
     private val calendarSettings = CalendarSyncSettings(application)
     private val calendarCoordinator = CalendarSyncCoordinator(application)
+    private val contactFavoritesStore = ContactFavoritesStore(application)
+    private var sharedContactFavorites: List<ContactFavorite> = emptyList()
+    private var todayRefreshJob: Job? = null
+    private var todayLastAttemptMillis = 0L
 
     private var serializedAuthState: String? = null
     private var dataEncryptionKey: ByteArray? = null
@@ -135,6 +146,87 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     )
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    suspend fun loadContactFavorites(mine: Boolean, facility: String, initial: String): FavoriteContactPage {
+        val current = _uiState.value
+        val subject = current.user?.subject ?: throw PortalAuthenticationException()
+        val epoch = sessionEpoch
+        if (!current.signedIn || current.enrollmentState != EnrollmentState.TRUSTED) throw PortalAuthenticationException()
+        val references = if (current.mode == DeviceMode.PERSONAL) {
+            contactFavoritesStore.read(subject, current.deviceId.orEmpty())
+        } else sharedContactFavorites
+        val result = ContactFavorites.resolve(references) { query, offset ->
+            if (epoch != sessionEpoch) throw PortalAuthenticationException()
+            // Let the directory enforce the selected house; never pin an all-house record into it.
+            searchContacts(query, mine, offset, facility, initial)
+        }
+        if (epoch != sessionEpoch || !_uiState.value.signedIn) throw PortalAuthenticationException()
+        return result
+    }
+
+    fun toggleContactFavorite(contact: EmployeeContact): Boolean {
+        val current = _uiState.value
+        val subject = current.user?.subject ?: return false
+        if (!current.signedIn || current.enrollmentState != EnrollmentState.TRUSTED || contact.id.isBlank()) return false
+        val references = if (current.mode == DeviceMode.PERSONAL) {
+            contactFavoritesStore.read(subject, current.deviceId.orEmpty())
+        } else sharedContactFavorites
+        val updated = if (references.any { it.id == contact.id }) references.filterNot { it.id == contact.id }
+        else {
+            if (references.size >= ContactFavoritesStore.MAX_FAVORITES) {
+                _uiState.update { it.copy(message = string(R.string.contacts_favorites_limit, ContactFavoritesStore.MAX_FAVORITES)) }
+                return false
+            }
+            references + ContactFavorite.from(contact)
+        }
+        return runCatching {
+            if (current.mode == DeviceMode.PERSONAL) contactFavoritesStore.write(subject, current.deviceId.orEmpty(), updated)
+            else sharedContactFavorites = updated
+        }.isSuccess
+    }
+
+    /** Called only at foreground entry or an existing refresh; no timer/network job is added. */
+    fun refreshToday(force: Boolean = false) {
+        val current = _uiState.value
+        if (!current.signedIn || current.mode != DeviceMode.PERSONAL || !current.calendarAvailable ||
+            current.enrollmentState != EnrollmentState.TRUSTED || !AppFeaturePolicy.from(current.applications).zimbra) return
+        if (todayRefreshJob?.isActive == true) return
+        val now = System.currentTimeMillis()
+        if (!force && now - todayLastAttemptMillis < TodayAgenda.REFRESH_INTERVAL_MILLIS) return
+        val deviceId = current.deviceId ?: return
+        val epoch = sessionEpoch
+        todayLastAttemptMillis = now
+        todayRefreshJob = viewModelScope.launch {
+            try {
+                val snapshot = deviceService.calendarSnapshot(deviceId, identity)
+                if (epoch != sessionEpoch || !_uiState.value.signedIn || !_uiState.value.calendarAvailable) return@launch
+                _uiState.update { it.copy(todayEvents = snapshot.events,
+                    todayFetchedAtMillis = snapshot.fetchedAtSeconds * 1_000L, todayStale = false) }
+                if (calendarSettings.enabled) syncCalendar(force = false, suppliedSnapshot = snapshot)
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                if (epoch != sessionEpoch || !_uiState.value.signedIn) return@launch
+                if ((error as? de.missionleben.portal.device.CalendarAccessException)?.status in setOf(401, 403)) {
+                    clearToday()
+                    runCatching { calendarCoordinator.clearAndDisable() }
+                    _uiState.update { it.copy(calendarAvailable = false, calendarSyncEnabled = false) }
+                } else _uiState.update { it.copy(todayStale = true) }
+            }
+        }
+    }
+
+    private fun clearToday() {
+        todayRefreshJob?.cancel()
+        todayRefreshJob = null
+        todayLastAttemptMillis = 0L
+        _uiState.update { it.copy(todayEvents = emptyList(), todayFetchedAtMillis = 0L, todayStale = false) }
+    }
+
+    private fun clearOverviewSessionData() {
+        clearToday()
+        sharedContactFavorites = emptyList()
+    }
+
     suspend fun searchContacts(query: String, mine: Boolean, offset: Int, facility: String, initial: String): ContactPage {
         if (expireAtAbsoluteDeadline() || !_uiState.value.signedIn) throw PortalAuthenticationException()
         val subject = _uiState.value.user?.subject ?: throw PortalAuthenticationException()
@@ -174,6 +266,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val storedDeviceId = preferences.deviceId
         if (storedDeviceId != null && !deviceService.hasDeviceCredential(storedDeviceId)) {
             runCatching { calendarCoordinator.clearAndDisable() }
+            contactFavoritesStore.clearAll()
             preferences.deviceId = null
             preferences.enrollmentProfile = null
             preferences.enrollmentState = EnrollmentState.NOT_ENROLLED
@@ -203,6 +296,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun selectMode(mode: DeviceMode) {
         if (preferences.deviceMode != mode) {
             sessionEpoch++
+            clearOverviewSessionData()
             cancelPendingAuthorization()
             runCatching { calendarCoordinator.clearAndDisable() }
             serializedAuthState = null
@@ -254,6 +348,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun resetProfile() {
         sessionEpoch++
+        clearOverviewSessionData()
+        contactFavoritesStore.clearAll()
         cancelPendingAuthorization()
         runCatching { calendarCoordinator.clearAndDisable() }
         val oldState = serializedAuthState
@@ -293,6 +389,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun lockPersonalSession(requestUnlock: Boolean = true) {
         if (preferences.deviceMode != DeviceMode.PERSONAL) return
         sessionEpoch++
+        clearOverviewSessionData()
         cancelPendingAuthorization()
         serializedAuthState = null
         notificationNavigationJob?.cancel()
@@ -340,6 +437,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (mode == DeviceMode.PERSONAL) lockPersonalSession(requestUnlock = false)
         else {
             sessionEpoch++
+            clearOverviewSessionData()
             cancelPendingAuthorization()
         }
         val epoch = sessionEpoch
@@ -608,6 +706,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val subject = current.user?.subject ?: return
         if (current.mode != DeviceMode.PERSONAL ||
             !CalendarSyncPolicy.zimbraVisible(applications.map { it.slug })) {
+            clearToday()
             if (calendarSettings.enabled) runCatching { calendarCoordinator.clearAndDisable() }
             _uiState.update { it.copy(calendarAvailable = false, calendarSyncEnabled = false) }
             return
@@ -625,6 +724,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val accessRevoked = (availability.exceptionOrNull() as? de.missionleben.portal.device.CalendarAccessException)
                     ?.status in setOf(401, 403)
                 if (accessRevoked && calendarSettings.enabled) runCatching { calendarCoordinator.clearAndDisable() }
+                clearToday()
                 _uiState.update {
                     it.copy(calendarAvailable = false, calendarSyncEnabled = calendarSettings.enabled,
                         calendarLastSyncMillis = calendarSettings.lastSuccessMillis)
@@ -632,11 +732,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 return@launch
             }
             if (!available && calendarSettings.enabled) runCatching { calendarCoordinator.clearAndDisable() }
+            if (!available) clearToday()
             _uiState.update {
                 it.copy(calendarAvailable = available, calendarSyncEnabled = calendarSettings.enabled,
                     calendarLastSyncMillis = calendarSettings.lastSuccessMillis)
             }
-            if (available && calendarSettings.enabled) syncCalendar(force = false)
+            if (available) refreshToday()
         }
     }
 
@@ -704,6 +805,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         // Uses the same live device/session check and in-app browser as the Zimbra tile.
+        openApplication(url, null, NotificationBadgeTarget.ZIMBRA)
+    }
+
+    fun openCalendarDay(url: String) {
+        val current = _uiState.value
+        if (!current.signedIn || current.mode != DeviceMode.PERSONAL || !current.calendarAvailable ||
+            current.enrollmentState != EnrollmentState.TRUSTED ||
+            !AppFeaturePolicy.from(current.applications).zimbra ||
+            !TodayAgenda.isCalendarDayUrl(BuildConfig.ZIMBRA_WEB_BASE_URL, url)) return
         openApplication(url, null, NotificationBadgeTarget.ZIMBRA)
     }
 
@@ -960,6 +1070,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun sessionExpired(absoluteDeadlineReached: Boolean = false) {
         sessionEpoch++
+        clearOverviewSessionData()
         cancelPendingAuthorization()
         runCatching { calendarCoordinator.clearAndDisable() }
         val expiredState = _uiState.value
@@ -1023,6 +1134,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun logout(onBrowserLogout: (String) -> Unit) {
         sessionEpoch++
+        clearOverviewSessionData()
         cancelPendingAuthorization()
         runCatching { calendarCoordinator.clearAndDisable() }
         val oldState = serializedAuthState
@@ -1083,6 +1195,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun clearSharedSessionAfterScreenOff() {
         sessionEpoch++
+        clearOverviewSessionData()
         cancelPendingAuthorization()
         val oldState = serializedAuthState
         if (oldState != null) disconnectPushAndRevoke(oldState)
@@ -1433,6 +1546,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         preferences.enrollmentState = status
         if (status == EnrollmentState.BLOCKED) {
             sessionEpoch++
+            clearOverviewSessionData()
             cancelPendingAuthorization()
             val oldState = serializedAuthState
             if (oldState != null) disconnectPushAndRevoke(oldState)
@@ -1542,9 +1656,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (calendarSettings.enabled) syncCalendar(force = true)
     }
 
-    private fun syncCalendar(force: Boolean) {
+    private fun syncCalendar(force: Boolean, suppliedSnapshot: CalendarSnapshot? = null) {
+        val epoch = sessionEpoch
         viewModelScope.launch {
-            val result = calendarCoordinator.sync(force)
+            val result = calendarCoordinator.sync(force, suppliedSnapshot) { snapshot ->
+                if (epoch == sessionEpoch && _uiState.value.signedIn && _uiState.value.calendarAvailable) {
+                    _uiState.update { it.copy(todayEvents = snapshot.events,
+                        todayFetchedAtMillis = snapshot.fetchedAtSeconds * 1_000L, todayStale = false) }
+                }
+            }
+            if (epoch != sessionEpoch || !_uiState.value.signedIn) return@launch
+            if (result == CalendarSyncOutcome.ACCESS_REVOKED) clearToday()
             _uiState.update {
                 it.copy(
                     calendarSyncEnabled = calendarSettings.enabled,
@@ -1856,6 +1978,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         sessionEpoch++
+        clearOverviewSessionData()
         cancelPendingAuthorization()
         loginApprovalPollingJob?.cancel()
         dataEncryptionKey?.fill(0)

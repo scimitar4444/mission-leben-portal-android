@@ -342,4 +342,21 @@
     <string name="release_note_web_session_fix">A missing web sign-in no longer deletes a still-valid personal app session. The 90-day expiry message is only shown when the deadline has actually passed.</string>
     <string name="release_note_password_eye">When signing in, use the eye to briefly show or hide your password. It is hidden again when you leave.</string>
     <string name="release_note_two_personal_handsets">You can now use your personal employee account on up to two phones at the same time. Each phone is registered separately. Group accounts remain limited to one phone.</string>
+    <string name="today_title">Today</string>
+    <string name="today_all_day">All day</string>
+    <string name="today_more">More appointments (%1$d)</string>
+    <string name="today_collapse">Show less</string>
+    <string name="today_calendar">Open in calendar</string>
+    <string name="today_cached">Saved snapshot</string>
+    <string name="contacts_favorites">Favorites</string>
+    <string name="contacts_other_contacts">Other contacts</string>
+    <string name="contacts_favorite_add">Save %1$s as a favorite</string>
+    <string name="contacts_favorite_remove">Remove %1$s from favorites</string>
+    <string name="contacts_favorites_limit">You can save up to %1$d favorites.</string>
+    <string name="contacts_favorites_session">Saved only for this sign-in.</string>
+    <string name="release_note_today">When Zimbra is available, Today shows your upcoming appointments on the home screen. Tap one to open the corresponding calendar day.</string>
+    <string name="release_note_contact_favorites">Mark important contacts with a star to save them as favorites. Your selected facility filter still applies.</string>
+    <string name="release_note_compact_documents">ML Documents is more compact on your phone. Icons identify file types; the menu no longer shows separate account settings.</string>
+    <string name="release_note_mobile_helpdesk">IT Help is now available on mobile too. The overview shows your existing tickets in a more compact layout.</string>
+    <string name="release_note_talk_setup_choice">The setup assistant now lets you choose whether Talk opens the chat overview or your last chat.</string>
 </resources>

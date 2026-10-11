@@ -328,4 +328,21 @@
     <string name="release_note_web_session_fix">वेब साइन इन उपलब्ध न होने पर अब मान्य निजी ऐप सत्र नहीं मिटता। 90-दिन की अवधि समाप्त होने का संदेश केवल वास्तविक अवधि समाप्त होने पर दिखाई देता है।</string>
     <string name="release_note_password_eye">साइन इन करते समय आँख के चिह्न से पासवर्ड थोड़ी देर दिखा या छिपा सकते हैं। पृष्ठ छोड़ने पर वह फिर छिप जाता है।</string>
     <string name="release_note_two_personal_handsets">अब अपने निजी कर्मचारी खाते को एक साथ अधिकतम दो फ़ोन पर उपयोग कर सकते हैं। हर फ़ोन अलग से पंजीकृत होता है। समूह खातों के लिए सीमा एक फ़ोन ही रहती है।</string>
+    <string name="today_title">आज</string>
+    <string name="today_all_day">पूरे दिन</string>
+    <string name="today_more">अन्य कार्यक्रम (%1$d)</string>
+    <string name="today_collapse">कम दिखाएँ</string>
+    <string name="today_calendar">कैलेंडर में खोलें</string>
+    <string name="today_cached">सहेजी गई जानकारी</string>
+    <string name="contacts_favorites">पसंदीदा</string>
+    <string name="contacts_other_contacts">अन्य संपर्क</string>
+    <string name="contacts_favorite_add">%1$s को पसंदीदा बनाएँ</string>
+    <string name="contacts_favorite_remove">%1$s को पसंदीदा से हटाएँ</string>
+    <string name="contacts_favorites_limit">आप %1$d पसंदीदा संपर्क सहेज सकते हैं।</string>
+    <string name="contacts_favorites_session">केवल इस सत्र के लिए सहेजा गया।</string>
+    <string name="release_note_today">Zimbra उपलब्ध होने पर आज के आगामी कार्यक्रम होम स्क्रीन पर दिखते हैं। किसी कार्यक्रम पर टैप करने से कैलेंडर का संबंधित दिन खुलता है।</string>
+    <string name="release_note_contact_favorites">ज़रूरी संपर्कों को पसंदीदा बनाने के लिए तारे पर टैप करें। चुने हुए संस्थान का फ़िल्टर लागू रहता है।</string>
+    <string name="release_note_compact_documents">फ़ोन पर ML दस्तावेज़ अब कम जगह लेते हैं। आइकन फ़ाइल का प्रकार बताते हैं; मेनू में अलग खाता सेटिंग नहीं दिखाई देती।</string>
+    <string name="release_note_mobile_helpdesk">आईटी सहायता अब मोबाइल पर भी उपलब्ध है। आपके मौजूदा टिकट अधिक संक्षिप्त रूप में दिखाई देते हैं।</string>
+    <string name="release_note_talk_setup_choice">सेटअप सहायक में अब चुन सकते हैं कि Talk चैट सूची से खुले या पिछली चैट से।</string>
 </resources>

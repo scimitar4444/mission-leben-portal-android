@@ -8,6 +8,18 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ReleaseNotesPolicyTest {
+    @Test fun employeeOverviewReleaseIncludesAllPublicChanges() {
+        val expected = listOf(
+            R.string.release_note_today,
+            R.string.release_note_contact_favorites,
+            R.string.release_note_compact_documents,
+            R.string.release_note_mobile_helpdesk,
+            R.string.release_note_talk_setup_choice,
+        )
+        assertEquals(expected, ReleaseNotesCatalog.forVersion(91))
+        assertEquals(expected, ReleaseNotesCatalog.since(90, 91))
+    }
+
     @Test fun currentVersionAlwaysHasReopenableNotes() {
         assertTrue(ReleaseNotesCatalog.forVersion(BuildConfig.VERSION_CODE).isNotEmpty())
     }

@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -33,6 +35,8 @@ import de.missionleben.portal.data.ContactFacility
 import de.missionleben.portal.data.ContactActions
 import de.missionleben.portal.data.ContactsAccessException
 import de.missionleben.portal.data.EmployeeContact
+import de.missionleben.portal.data.ContactFavorites
+import de.missionleben.portal.data.FavoriteContactPage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 
@@ -41,10 +45,13 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalLayoutApi::class)
 fun ContactsScreen(
     search: suspend (String, Boolean, Int, String, String) -> ContactPage,
+    loadFavorites: suspend (Boolean, String, String) -> FavoriteContactPage,
+    toggleFavorite: (EmployeeContact) -> Boolean,
     onBack: () -> Unit,
     onEmail: (String) -> Unit,
     busy: Boolean,
     message: String?,
+    favoritesPersistent: Boolean = true,
 ) {
     var query by remember { mutableStateOf("") }
     var mine by remember { mutableStateOf(false) }
@@ -56,6 +63,11 @@ fun ContactsScreen(
     val listState = rememberLazyListState()
     var page by remember { mutableStateOf<ContactPage?>(null) }
     var contacts by remember { mutableStateOf(emptyList<EmployeeContact>()) }
+    var favoriteIds by remember { mutableStateOf(emptySet<String>()) }
+    var favoriteContacts by remember { mutableStateOf(emptyList<EmployeeContact>()) }
+    var favoriteFilter by remember { mutableStateOf<Triple<Boolean, String, String>?>(null) }
+    var favoriteLoading by remember { mutableStateOf(false) }
+    var favoriteRefresh by remember { mutableIntStateOf(0) }
     var offset by remember { mutableIntStateOf(0) }
     var refresh by remember { mutableIntStateOf(0) }
     var loading by remember { mutableStateOf(true) }
@@ -69,6 +81,9 @@ fun ContactsScreen(
             if (event == Lifecycle.Event.ON_STOP) {
                 active = false
                 contacts = emptyList()
+                favoriteContacts = emptyList()
+                favoriteFilter = null
+                favoriteIds = emptySet()
                 page = null
                 facilities = emptyList()
                 initials = emptyList()
@@ -77,12 +92,30 @@ fun ContactsScreen(
             } else if (event == Lifecycle.Event.ON_START) {
                 active = true
                 refresh++
+                favoriteRefresh++
             }
         }
         owner.lifecycle.addObserver(observer)
         onDispose { owner.lifecycle.removeObserver(observer) }
     }
     LaunchedEffect(query, mine, facility, initial) { listState.scrollToItem(0) }
+    LaunchedEffect(active, favoriteRefresh, mine, facility, initial) {
+        if (!active) return@LaunchedEffect
+        favoriteLoading = true
+        favoriteContacts = emptyList()
+        favoriteFilter = null
+        try {
+            val result = loadFavorites(mine, facility, initial)
+            favoriteIds = result.ids
+            favoriteContacts = result.contacts
+            favoriteFilter = Triple(mine, facility, initial)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            favoriteIds = emptySet()
+            favoriteContacts = emptyList()
+        } finally { favoriteLoading = false }
+    }
     LaunchedEffect(query, mine, facility, initial, offset, refresh, active) {
         if (!active) return@LaunchedEffect
         loading = true
@@ -102,6 +135,7 @@ fun ContactsScreen(
             page = null
             facilities = emptyList()
             initials = emptyList()
+            favoriteContacts = emptyList()
             error = if (failure is ContactsAccessException) R.string.contacts_denied else R.string.contacts_error
         } finally {
             loading = false
@@ -110,7 +144,7 @@ fun ContactsScreen(
 
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         PortalHeader(stringResource(R.string.contacts_title), onBack,
-            onRefresh = { offset = 0; contacts = emptyList(); page = null; refresh++ })
+            onRefresh = { offset = 0; contacts = emptyList(); page = null; refresh++; favoriteRefresh++ })
         OutlinedTextField(
             value = query,
             onValueChange = { query = it.take(100); initial = ""; offset = 0; contacts = emptyList(); page = null },
@@ -136,13 +170,29 @@ fun ContactsScreen(
         facilities.firstOrNull { it.id == facility }?.let {
             Text(it.name, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        if (loading || busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 8.dp))
+        if (loading || favoriteLoading || busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 8.dp))
         message?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 8.dp)) }
         error?.let {
             Text(stringResource(it), modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.error)
             TextButton(onClick = { offset = 0; refresh++ }) { Text(stringResource(R.string.contacts_retry)) }
         }
-        if (!loading && error == null && contacts.isEmpty()) {
+        val showFavorites = query.isBlank() && initial.isEmpty()
+        val scopedFavorites = if (favoriteFilter == Triple(mine, facility, initial)) favoriteContacts else emptyList()
+        val pinned = if (showFavorites && error == null) ContactFavorites.sorted(
+            (scopedFavorites + contacts).filter { it.id in favoriteIds }, favoriteIds) else emptyList()
+        val remaining = ContactFavorites.sorted(contacts.filterNot { contact -> pinned.any { it.id == contact.id } }, favoriteIds)
+        fun star(contact: EmployeeContact) {
+            if (toggleFavorite(contact)) {
+                if (contact.id in favoriteIds) {
+                    favoriteIds = favoriteIds - contact.id
+                    favoriteContacts = favoriteContacts.filterNot { it.id == contact.id }
+                } else {
+                    favoriteIds = favoriteIds + contact.id
+                    favoriteContacts = (favoriteContacts + contact).distinctBy { it.id }
+                }
+            }
+        }
+        if (!loading && !favoriteLoading && error == null && contacts.isEmpty() && pinned.isEmpty()) {
             Text(stringResource(R.string.contacts_empty), modifier = Modifier.padding(vertical = 16.dp))
         }
         if (page != null) Text(stringResource(R.string.contacts_count, page!!.total),
@@ -151,7 +201,22 @@ fun ContactsScreen(
         Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             LazyColumn(Modifier.weight(1f).fillMaxHeight(), state = listState,
                 verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 20.dp)) {
-                items(contacts, key = { it.id }) { ContactCard(it, onEmail, enabled = !busy) }
+                if (pinned.isNotEmpty()) item {
+                    Text(stringResource(R.string.contacts_favorites), style = MaterialTheme.typography.titleSmall)
+                    if (!favoritesPersistent) Text(stringResource(R.string.contacts_favorites_session),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                items(pinned, key = { it.id }) {
+                    ContactCard(it, onEmail, enabled = !busy, favoriteEnabled = !busy && !favoriteLoading,
+                        favorite = true, onFavorite = { star(it) })
+                }
+                if (pinned.isNotEmpty() && remaining.isNotEmpty()) item {
+                    Text(stringResource(R.string.contacts_other_contacts), style = MaterialTheme.typography.titleSmall)
+                }
+                items(remaining, key = { it.id }) {
+                    ContactCard(it, onEmail, enabled = !busy, favoriteEnabled = !busy && !favoriteLoading,
+                        favorite = it.id in favoriteIds, onFavorite = { star(it) })
+                }
                 page?.nextOffset?.let { next ->
                     item {
                         OutlinedButton(onClick = { offset = next }, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
@@ -233,7 +298,10 @@ private fun FacilityPicker(
 }
 
 @Composable
-private fun ContactCard(contact: EmployeeContact, onEmail: (String) -> Unit, enabled: Boolean) {
+private fun ContactCard(
+    contact: EmployeeContact, onEmail: (String) -> Unit, enabled: Boolean, favoriteEnabled: Boolean,
+    favorite: Boolean, onFavorite: () -> Unit,
+) {
     val context = LocalContext.current
     var noHandler by remember(contact.id) { mutableStateOf(false) }
     fun open(intent: Intent) {
@@ -241,7 +309,15 @@ private fun ContactCard(contact: EmployeeContact, onEmail: (String) -> Unit, ena
     }
     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
         Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(contact.name, style = MaterialTheme.typography.titleMedium)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(contact.name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                IconButton(onClick = onFavorite, enabled = favoriteEnabled,
+                    modifier = Modifier.testTag("favorite-${contact.id}")) {
+                    Icon(painterResource(if (favorite) R.drawable.ic_contact_star else R.drawable.ic_contact_star_outline),
+                        stringResource(if (favorite) R.string.contacts_favorite_remove else R.string.contacts_favorite_add, contact.name),
+                        tint = if (favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             val details = listOf(contact.jobTitle, contact.department, contact.facilities.joinToString(" · "))
                 .filter(String::isNotBlank).distinct().joinToString(" · ")
             if (details.isNotBlank()) Text(details, style = MaterialTheme.typography.bodySmall,
