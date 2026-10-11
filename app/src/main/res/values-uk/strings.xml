@@ -80,7 +80,10 @@
     <string name="hello_name">Вітаємо, %1$s</string>
     <string name="secure_sign_in">Безпечний вхід</string>
     <string name="reauthenticate_title">Поновити авторизацію</string>
-    <string name="reauthenticate_description">Термін 90-денної авторизації завершився. Authentik запитає наявний код TOTP, а якщо його немає — пароль.</string>
+    <string name="reauthenticate_description">Увійди знову. Реєстрація пристрою зберігається.</string>
+    <string name="reauthenticate_absolute_description">Термін 90-денної авторизації завершився. Authentik запитає наявний код TOTP, а якщо його немає — пароль.</string>
+    <string name="web_reauthenticate_title">Поновити вебавторизацію</string>
+    <string name="web_reauthenticate_description">Авторизація в цій вебпрограмі більше недоступна. Реєстрація пристрою та дійсний сеанс програми зберігаються. Увійди знову, щоб відкрити вебпрограму.</string>
     <string name="reauthenticate_action">Поновити авторизацію</string>
     <string name="device_blocked_description">Цей пристрій заблоковано. Вхід і збережений сеанс вимкнено.</string>
     <string name="device_pending_description">Спочатку зареєструйте пристрій і отримайте схвалення в керуванні пристроями.</string>
@@ -175,7 +178,8 @@
     <string name="quiet_hours_security_exception">Системні сповіщення, блокування пристрою та запити на вхід надходять завжди.</string>
     <string name="message_auth_cancelled">Вхід скасовано.</string>
     <string name="message_session_expired">З міркувань безпеки термін дії сеансу завершився. Увійдіть знову.</string>
-    <string name="message_session_reauth_required">Термін 90-денної авторизації завершився. Поновіть її наявним кодом TOTP або паролем.</string>
+    <string name="message_session_reauth_required">Потрібно поновити авторизацію. Увійди знову в Authentik.</string>
+    <string name="message_absolute_session_reauth_required">Термін 90-денної авторизації завершився. Поновіть її наявним кодом TOTP або паролем.</string>
     <string name="message_quick_access_enabled">Швидкий доступ увімкнено.</string>
     <string name="message_protected_session_failed">Не вдалося відкрити захищений сеанс: %1$s</string>
     <string name="message_apps_load_failed">Не вдалося завантажити програми.</string>

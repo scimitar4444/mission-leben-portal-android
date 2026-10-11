@@ -102,6 +102,7 @@ import java.util.Locale
 fun MissionLebenApp(
     state: UiState,
     onStartLogin: () -> Unit,
+    onDismissWebReauthentication: () -> Unit,
     onRetryQuickUnlock: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onOpenPublicUrl: (String) -> Unit,
@@ -196,6 +197,24 @@ fun MissionLebenApp(
                 onLanguageChange = onLanguageChange,
             )
         }
+    }
+    if (state.signedIn && state.webReauthenticationRequired) {
+        AlertDialog(
+            onDismissRequest = onDismissWebReauthentication,
+            title = { Text(stringResource(R.string.web_reauthenticate_title)) },
+            text = { Text(stringResource(R.string.web_reauthenticate_description)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDismissWebReauthentication()
+                    onStartLogin()
+                }) { Text(stringResource(R.string.reauthenticate_action)) }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismissWebReauthentication) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
     }
     state.loginApprovalRequest?.let { request ->
         var remainingSeconds by remember(request.requestId, request.expiresAtEpochSeconds) {
@@ -1290,6 +1309,8 @@ private fun SignInSummary(
                 when {
                     state.enrollmentState == EnrollmentState.BLOCKED -> stringResource(R.string.device_blocked_description)
                     state.deviceServiceConfigured && state.enrollmentState != EnrollmentState.TRUSTED -> stringResource(R.string.device_pending_description)
+                    state.reauthenticationRequired && state.absoluteDeadlineReauthenticationRequired ->
+                        stringResource(R.string.reauthenticate_absolute_description)
                     state.reauthenticationRequired -> stringResource(R.string.reauthenticate_description)
                     state.mode == DeviceMode.PERSONAL -> stringResource(R.string.first_login_description)
                     else -> stringResource(R.string.shared_login_description)

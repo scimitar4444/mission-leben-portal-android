@@ -144,7 +144,7 @@ class MainActivity : FragmentActivity() {
                 PortalBrowserActivity.deviceBlocked(result.data) -> {
                     viewModel.acceptBackgroundDeviceStatus(de.missionleben.portal.model.EnrollmentState.BLOCKED.name)
                 }
-                PortalBrowserActivity.sessionExpired(result.data) -> viewModel.sessionExpired()
+                PortalBrowserActivity.sessionExpired(result.data) -> viewModel.webSessionExpired()
             }
         }
     }
@@ -248,6 +248,7 @@ class MainActivity : FragmentActivity() {
                 MissionLebenApp(
                     state = state,
                     onStartLogin = { startLogin() },
+                    onDismissWebReauthentication = viewModel::dismissWebReauthentication,
                     onRetryQuickUnlock = viewModel::retryQuickUnlock,
                     onOpenUrl = viewModel::openApplication,
                     onOpenPublicUrl = ::openUrl,

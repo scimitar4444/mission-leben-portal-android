@@ -80,7 +80,10 @@
     <string name="hello_name">Bună, %1$s</string>
     <string name="secure_sign_in">Autentificare sigură</string>
     <string name="reauthenticate_title">Reînnoiește autentificarea</string>
-    <string name="reauthenticate_description">Autentificarea de 90 de zile a expirat. Authentik solicită codul TOTP existent sau, dacă nu ai unul, parola.</string>
+    <string name="reauthenticate_description">Autentifică-te din nou. Înregistrarea dispozitivului se păstrează.</string>
+    <string name="reauthenticate_absolute_description">Autentificarea de 90 de zile a expirat. Authentik solicită codul TOTP existent sau, dacă nu ai unul, parola.</string>
+    <string name="web_reauthenticate_title">Reînnoiește autentificarea web</string>
+    <string name="web_reauthenticate_description">Autentificarea pentru această aplicație web nu mai este disponibilă. Înregistrarea dispozitivului și sesiunea validă a aplicației se păstrează. Autentifică-te din nou pentru a deschide aplicația web.</string>
     <string name="reauthenticate_action">Reînnoiește autentificarea</string>
     <string name="device_blocked_description">Acest dispozitiv este blocat. Autentificarea și sesiunea salvată sunt dezactivate.</string>
     <string name="device_pending_description">Înregistrează mai întâi dispozitivul și obține aprobarea lui în administrarea dispozitivelor.</string>
@@ -175,7 +178,8 @@
     <string name="quiet_hours_security_exception">Alertele de sistem, blocările dispozitivului și cererile de autentificare sosesc întotdeauna.</string>
     <string name="message_auth_cancelled">Autentificarea a fost anulată.</string>
     <string name="message_session_expired">Din motive de securitate, sesiunea a expirat. Autentifică-te din nou.</string>
-    <string name="message_session_reauth_required">Autentificarea de 90 de zile a expirat. Reînnoiește-o cu codul TOTP existent sau cu parola.</string>
+    <string name="message_session_reauth_required">Autentificarea trebuie reînnoită. Autentifică-te din nou în Authentik.</string>
+    <string name="message_absolute_session_reauth_required">Autentificarea de 90 de zile a expirat. Reînnoiește-o cu codul TOTP existent sau cu parola.</string>
     <string name="message_quick_access_enabled">Accesul rapid este activat.</string>
     <string name="message_protected_session_failed">Sesiunea protejată nu a putut fi deschisă: %1$s</string>
     <string name="message_apps_load_failed">Aplicațiile nu au putut fi încărcate.</string>

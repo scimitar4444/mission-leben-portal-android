@@ -80,7 +80,10 @@
     <string name="hello_name">नमस्ते, %1$s</string>
     <string name="secure_sign_in">सुरक्षित साइन इन</string>
     <string name="reauthenticate_title">साइन इन नवीनीकृत करें</string>
-    <string name="reauthenticate_description">आपका 90-दिन का साइन इन समाप्त हो गया है। Authentik आपका मौजूदा TOTP कोड पूछेगा, अन्यथा आपका पासवर्ड।</string>
+    <string name="reauthenticate_description">कृपया फिर से साइन इन करें। आपका डिवाइस पंजीकरण बना रहेगा।</string>
+    <string name="reauthenticate_absolute_description">आपका 90-दिन का साइन इन समाप्त हो गया है। Authentik आपका मौजूदा TOTP कोड पूछेगा, अन्यथा आपका पासवर्ड।</string>
+    <string name="web_reauthenticate_title">वेब साइन इन नवीनीकृत करें</string>
+    <string name="web_reauthenticate_description">इस वेब ऐप का साइन इन अब उपलब्ध नहीं है। आपका डिवाइस पंजीकरण और मान्य ऐप सत्र बने रहेंगे। वेब ऐप खोलने के लिए फिर से साइन इन करें।</string>
     <string name="reauthenticate_action">साइन इन नवीनीकृत करें</string>
     <string name="device_blocked_description">यह डिवाइस ब्लॉक है। साइन इन और सेव किया गया सत्र बंद हैं।</string>
     <string name="device_pending_description">पहले डिवाइस रजिस्टर करें और डिवाइस प्रबंधन में इसे स्वीकृत करवाएँ।</string>
@@ -175,7 +178,8 @@
     <string name="quiet_hours_security_exception">सिस्टम सूचनाएँ, डिवाइस लॉक और लॉगिन अनुरोध हमेशा आएँगे।</string>
     <string name="message_auth_cancelled">साइन इन रद्द कर दिया गया।</string>
     <string name="message_session_expired">सुरक्षा कारणों से आपका सत्र समाप्त हो गया है। कृपया फिर से साइन इन करें।</string>
-    <string name="message_session_reauth_required">आपका 90-दिन का साइन इन समाप्त हो गया है। इसे अपने मौजूदा TOTP कोड या पासवर्ड से नवीनीकृत करें।</string>
+    <string name="message_session_reauth_required">आपको दोबारा साइन इन करना होगा। कृपया Authentik में फिर से साइन इन करें।</string>
+    <string name="message_absolute_session_reauth_required">आपका 90-दिन का साइन इन समाप्त हो गया है। इसे अपने मौजूदा TOTP कोड या पासवर्ड से नवीनीकृत करें।</string>
     <string name="message_quick_access_enabled">त्वरित पहुँच चालू है।</string>
     <string name="message_protected_session_failed">सुरक्षित सत्र नहीं खुल सका: %1$s</string>
     <string name="message_apps_load_failed">ऐप लोड नहीं हो सके।</string>

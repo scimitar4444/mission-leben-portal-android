@@ -59,6 +59,7 @@ import de.missionleben.portal.update.UpdateChannel
 import de.missionleben.portal.update.UpdateStatus
 import de.missionleben.portal.web.PersonalDownloadPolicy
 import de.missionleben.portal.web.PersonalDownloads
+import de.missionleben.portal.web.WebSessionRecoveryPolicy
 import java.io.File
 import java.time.ZoneId
 import kotlinx.coroutines.Job
@@ -126,6 +127,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             quietEndMinutes = pushStore.quietEndMinutes,
             quickUnlockEnabled = vault.hasSession(),
             reauthenticationRequired = preferences.reauthenticationRequired,
+            absoluteDeadlineReauthenticationRequired = preferences.absoluteDeadlineReauthenticationRequired,
             unreadNotificationBadges = unreadNotificationStore.counts(),
             news = newsRepository.cached(),
             updatesManagedByFdroid = updatesManagedByFdroid,
@@ -315,6 +317,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 loginApprovalSubmitting = false,
                 quickUnlockEnabled = vault.hasSession(),
                 vaultRequest = if (requestUnlock && canUnlock) VaultRequest.UNLOCK else VaultRequest.NONE,
+                webReauthenticationRequired = false,
                 busy = false,
                 message = null,
             )
@@ -455,6 +458,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         else preferences.clearReauthentication()
         _uiState.update {
             it.copy(busy = false, signedIn = true, user = user, reauthenticationRequired = false,
+                absoluteDeadlineReauthenticationRequired = false, webReauthenticationRequired = false,
                 quickUnlockEnabled = vault.hasSession(), vaultRequest = VaultRequest.NONE)
         }
         loadApplications()
@@ -499,7 +503,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     if (ReauthenticationPolicy.hasReachedAbsoluteDeadline(user.authenticatedAtEpochSeconds)) {
                         _uiState.update { it.copy(user = user) }
-                        sessionExpired(absoluteDeadlineReached = true)
+                        sessionExpired(absoluteDeadlineReached =
+                            ReauthenticationPolicy.hasKnownExpiredDeadline(user.authenticatedAtEpochSeconds))
                         return
                     }
                     activateAuthorizedSession(unlocked.serializedAuthState)
@@ -898,6 +903,61 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** Close the web app first; preserve a valid personal vault only after live checks. */
+    fun webSessionExpired() {
+        if (!_uiState.value.signedIn || expireAtAbsoluteDeadline()) return
+        val state = serializedAuthState ?: return
+        if (_uiState.value.mode != DeviceMode.PERSONAL) {
+            sessionExpired()
+            return
+        }
+        val epoch = sessionEpoch
+        _uiState.update { it.copy(busy = true, webReauthenticationRequired = false, message = null) }
+        viewModelScope.launch {
+            if (!verifyDeviceBeforeProtectedAction()) return@launch
+            if (epoch != sessionEpoch || !_uiState.value.signedIn) return@launch
+            authRepository.withFreshAccessToken(
+                serializedState = state,
+                onSuccess = { token, updatedState ->
+                    if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
+                    updateSerializedState(updatedState)
+                    viewModelScope.launch {
+                        runCatching { portalRepository.applications(token) }
+                            .onSuccess { applications ->
+                                if (epoch != sessionEpoch || !_uiState.value.signedIn) return@onSuccess
+                                val current = _uiState.value
+                                if (!WebSessionRecoveryPolicy.canPreservePersonalSession(
+                                        current.mode, current.enrollmentState, current.signedIn,
+                                        current.user?.authenticatedAtEpochSeconds ?: 0L,
+                                        nativeSessionVerified = true,
+                                    )) {
+                                    sessionExpired(absoluteDeadlineReached = ReauthenticationPolicy.hasKnownExpiredDeadline(
+                                        current.user?.authenticatedAtEpochSeconds ?: 0L))
+                                    return@onSuccess
+                                }
+                                _uiState.update {
+                                    it.copy(busy = false, applications = applications, webReauthenticationRequired = true)
+                                }
+                            }
+                            .onFailure { error ->
+                                if (epoch != sessionEpoch || !_uiState.value.signedIn) return@onFailure
+                                if (error is PortalAuthenticationException) sessionExpired()
+                                else _uiState.update { it.copy(busy = false, message = string(R.string.message_apps_load_failed)) }
+                            }
+                    }
+                },
+                onError = { failure ->
+                    if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
+                    handleAccessTokenFailure(failure) { it.copy(busy = false) }
+                },
+            )
+        }
+    }
+
+    fun dismissWebReauthentication() {
+        _uiState.update { it.copy(webReauthenticationRequired = false) }
+    }
+
     fun sessionExpired(absoluteDeadlineReached: Boolean = false) {
         sessionEpoch++
         cancelPendingAuthorization()
@@ -932,6 +992,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 signedIn = false,
                 user = null,
                 reauthenticationRequired = boundDeviceReauthenticationAvailable,
+                absoluteDeadlineReauthenticationRequired = boundDeviceReauthenticationAvailable && absoluteDeadlineReached,
+                webReauthenticationRequired = false,
                 quickUnlockEnabled = false,
                 vaultRequest = VaultRequest.NONE,
                 applications = emptyList(),
@@ -950,7 +1012,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 loginApprovalRequest = null,
                 loginApprovalSubmitting = false,
                 message = if (boundDeviceReauthenticationAvailable) {
-                    string(R.string.message_session_reauth_required)
+                    string(if (absoluteDeadlineReached) R.string.message_absolute_session_reauth_required
+                        else R.string.message_session_reauth_required)
                 } else {
                     string(R.string.message_session_expired)
                 },
@@ -1745,7 +1808,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (!ReauthenticationPolicy.hasReachedAbsoluteDeadline(user.authenticatedAtEpochSeconds)) {
             return false
         }
-        sessionExpired(absoluteDeadlineReached = true)
+        sessionExpired(absoluteDeadlineReached =
+            ReauthenticationPolicy.hasKnownExpiredDeadline(user.authenticatedAtEpochSeconds))
         return true
     }
 

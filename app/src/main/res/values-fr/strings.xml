@@ -80,7 +80,10 @@
     <string name="hello_name">Bonjour, %1$s</string>
     <string name="secure_sign_in">Connexion sécurisée</string>
     <string name="reauthenticate_title">Renouveler la connexion</string>
-    <string name="reauthenticate_description">Votre connexion de 90 jours a expiré. Authentik demande votre code TOTP existant ou, si vous n’en avez pas, votre mot de passe.</string>
+    <string name="reauthenticate_description">Connecte-toi à nouveau. Ton appareil reste enregistré.</string>
+    <string name="reauthenticate_absolute_description">Votre connexion de 90 jours a expiré. Authentik demande votre code TOTP existant ou, si vous n’en avez pas, votre mot de passe.</string>
+    <string name="web_reauthenticate_title">Renouveler la connexion web</string>
+    <string name="web_reauthenticate_description">La connexion à cette application web n’est plus disponible. Ton appareil reste enregistré et ta session valide dans l’application est conservée. Connecte-toi à nouveau pour ouvrir l’application web.</string>
     <string name="reauthenticate_action">Renouveler la connexion</string>
     <string name="device_blocked_description">Cet appareil est bloqué. La connexion et la session enregistrée sont désactivées.</string>
     <string name="device_pending_description">Enregistrez d’abord cet appareil et faites-le approuver dans la gestion des appareils.</string>
@@ -175,7 +178,8 @@
     <string name="quiet_hours_security_exception">Les alertes système, blocages d’appareil et demandes de connexion arrivent toujours.</string>
     <string name="message_auth_cancelled">La connexion a été annulée.</string>
     <string name="message_session_expired">Pour des raisons de sécurité, votre session a expiré. Veuillez vous reconnecter.</string>
-    <string name="message_session_reauth_required">Votre connexion de 90 jours a expiré. Renouvelez-la avec votre code TOTP existant ou votre mot de passe.</string>
+    <string name="message_session_reauth_required">Ta connexion doit être renouvelée. Connecte-toi à nouveau à Authentik.</string>
+    <string name="message_absolute_session_reauth_required">Votre connexion de 90 jours a expiré. Renouvelez-la avec votre code TOTP existant ou votre mot de passe.</string>
     <string name="message_quick_access_enabled">L’accès rapide est activé.</string>
     <string name="message_protected_session_failed">Impossible d’ouvrir la session protégée : %1$s</string>
     <string name="message_apps_load_failed">Impossible de charger les applications.</string>

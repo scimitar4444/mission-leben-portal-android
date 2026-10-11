@@ -91,7 +91,10 @@
     <string name="hello_name">Hello, %1$s</string>
     <string name="secure_sign_in">Sign in securely</string>
     <string name="reauthenticate_title">Renew sign-in</string>
-    <string name="reauthenticate_description">Your 90-day sign-in has expired. Authentik asks for your existing TOTP code, or your password if you do not have one.</string>
+    <string name="reauthenticate_description">Please sign in again. Your device registration is retained.</string>
+    <string name="reauthenticate_absolute_description">Your 90-day sign-in has expired. Authentik asks for your existing TOTP code, or your password if you do not have one.</string>
+    <string name="web_reauthenticate_title">Renew web sign-in</string>
+    <string name="web_reauthenticate_description">The sign-in for this web app is no longer available. Your device registration and valid app session are retained. Sign in again to open the web app.</string>
     <string name="reauthenticate_action">Renew sign-in</string>
     <string name="device_blocked_description">This device is blocked. Sign-in and the stored session are disabled.</string>
     <string name="device_pending_description">Register this device first and have it approved in device management.</string>
@@ -196,7 +199,8 @@
     <string name="quiet_hours_security_exception">System alerts, device locks and login requests always arrive.</string>
     <string name="message_auth_cancelled">Sign-in was cancelled.</string>
     <string name="message_session_expired">For security reasons, your session has expired. Please sign in again.</string>
-    <string name="message_session_reauth_required">Your 90-day sign-in has expired. Renew it with your existing TOTP code or your password.</string>
+    <string name="message_session_reauth_required">Your sign-in needs to be renewed. Please sign in to Authentik again.</string>
+    <string name="message_absolute_session_reauth_required">Your 90-day sign-in has expired. Renew it with your existing TOTP code or your password.</string>
     <string name="message_quick_access_enabled">Quick access is enabled.</string>
     <string name="message_protected_session_failed">The protected session could not be opened: %1$s</string>
     <string name="message_apps_load_failed">Apps could not be loaded.</string>

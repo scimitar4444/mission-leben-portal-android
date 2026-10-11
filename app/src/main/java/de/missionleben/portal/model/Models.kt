@@ -97,6 +97,8 @@ data class UiState(
     val signedIn: Boolean = false,
     val user: UserIdentity? = null,
     val reauthenticationRequired: Boolean = false,
+    val absoluteDeadlineReauthenticationRequired: Boolean = false,
+    val webReauthenticationRequired: Boolean = false,
     val quickUnlockEnabled: Boolean = false,
     val vaultRequest: VaultRequest = VaultRequest.NONE,
     val applications: List<PortalApplication> = emptyList(),

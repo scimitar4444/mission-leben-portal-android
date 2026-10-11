@@ -57,6 +57,13 @@ object ReauthenticationPolicy {
     ): Boolean = authenticatedAtEpochSeconds <= 0L ||
         nowEpochSeconds >= authenticatedAtEpochSeconds + SESSION_LIFETIME_SECONDS
 
+    /** Missing login evidence requires authentication, but does not prove 90 days elapsed. */
+    fun hasKnownExpiredDeadline(
+        authenticatedAtEpochSeconds: Long,
+        nowEpochSeconds: Long = System.currentTimeMillis() / 1_000L,
+    ): Boolean = authenticatedAtEpochSeconds in 1L..nowEpochSeconds &&
+        hasReachedAbsoluteDeadline(authenticatedAtEpochSeconds, nowEpochSeconds)
+
     fun remainingDays(
         authenticatedAtEpochSeconds: Long,
         nowEpochSeconds: Long = System.currentTimeMillis() / 1_000L,

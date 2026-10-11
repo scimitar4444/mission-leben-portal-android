@@ -80,7 +80,10 @@
     <string name="hello_name">Merhaba, %1$s</string>
     <string name="secure_sign_in">Güvenli oturum aç</string>
     <string name="reauthenticate_title">Oturumu yenile</string>
-    <string name="reauthenticate_description">90 günlük oturumunun süresi doldu. Authentik mevcut TOTP kodunu, yoksa parolanı ister.</string>
+    <string name="reauthenticate_description">Lütfen tekrar oturum aç. Cihaz kaydın korunur.</string>
+    <string name="reauthenticate_absolute_description">90 günlük oturumunun süresi doldu. Authentik mevcut TOTP kodunu, yoksa parolanı ister.</string>
+    <string name="web_reauthenticate_title">Web oturumunu yenile</string>
+    <string name="web_reauthenticate_description">Bu web uygulamasının oturumu artık kullanılamıyor. Cihaz kaydın ve geçerli uygulama oturumun korunur. Web uygulamasını açmak için tekrar oturum aç.</string>
     <string name="reauthenticate_action">Oturumu yenile</string>
     <string name="device_blocked_description">Bu cihaz engellendi. Oturum açma ve kayıtlı oturum devre dışı.</string>
     <string name="device_pending_description">Önce bu cihazı kaydedin ve cihaz yönetiminden onaylatın.</string>
@@ -175,7 +178,8 @@
     <string name="quiet_hours_security_exception">Sistem uyarıları, cihaz kilitleri ve oturum açma istekleri her zaman gelir.</string>
     <string name="message_auth_cancelled">Oturum açma iptal edildi.</string>
     <string name="message_session_expired">Güvenlik nedeniyle oturumunuzun süresi doldu. Lütfen yeniden giriş yapın.</string>
-    <string name="message_session_reauth_required">90 günlük oturumunun süresi doldu. Mevcut TOTP kodunla veya parolanla yenile.</string>
+    <string name="message_session_reauth_required">Oturumunu yenilemen gerekiyor. Lütfen Authentik’te tekrar oturum aç.</string>
+    <string name="message_absolute_session_reauth_required">90 günlük oturumunun süresi doldu. Mevcut TOTP kodunla veya parolanla yenile.</string>
     <string name="message_quick_access_enabled">Hızlı erişim etkinleştirildi.</string>
     <string name="message_protected_session_failed">Korunan oturum açılamadı: %1$s</string>
     <string name="message_apps_load_failed">Uygulamalar yüklenemedi.</string>

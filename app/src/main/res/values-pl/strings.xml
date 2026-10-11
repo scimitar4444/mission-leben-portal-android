@@ -80,7 +80,10 @@
     <string name="hello_name">Witaj, %1$s</string>
     <string name="secure_sign_in">Bezpieczne logowanie</string>
     <string name="reauthenticate_title">Odnów logowanie</string>
-    <string name="reauthenticate_description">90-dniowe logowanie wygasło. Authentik poprosi o istniejący kod TOTP, a jeśli go nie masz — o hasło.</string>
+    <string name="reauthenticate_description">Zaloguj się ponownie. Rejestracja urządzenia zostaje zachowana.</string>
+    <string name="reauthenticate_absolute_description">90-dniowe logowanie wygasło. Authentik poprosi o istniejący kod TOTP, a jeśli go nie masz — o hasło.</string>
+    <string name="web_reauthenticate_title">Odnów logowanie do aplikacji webowej</string>
+    <string name="web_reauthenticate_description">Logowanie do tej aplikacji webowej nie jest już dostępne. Rejestracja urządzenia i ważna sesja aplikacji zostają zachowane. Zaloguj się ponownie, aby otworzyć aplikację webową.</string>
     <string name="reauthenticate_action">Odnów logowanie</string>
     <string name="device_blocked_description">To urządzenie jest zablokowane. Logowanie i zapisana sesja są wyłączone.</string>
     <string name="device_pending_description">Najpierw zarejestruj urządzenie i uzyskaj jego zatwierdzenie w zarządzaniu urządzeniami.</string>
@@ -175,7 +178,8 @@
     <string name="quiet_hours_security_exception">Komunikaty systemowe, blokady urządzeń i prośby o logowanie zawsze są dostarczane.</string>
     <string name="message_auth_cancelled">Logowanie anulowano.</string>
     <string name="message_session_expired">Ze względów bezpieczeństwa sesja wygasła. Zaloguj się ponownie.</string>
-    <string name="message_session_reauth_required">90-dniowe logowanie wygasło. Odnów je istniejącym kodem TOTP lub hasłem.</string>
+    <string name="message_session_reauth_required">Twoje logowanie wymaga odnowienia. Zaloguj się ponownie do Authentik.</string>
+    <string name="message_absolute_session_reauth_required">90-dniowe logowanie wygasło. Odnów je istniejącym kodem TOTP lub hasłem.</string>
     <string name="message_quick_access_enabled">Szybki dostęp jest włączony.</string>
     <string name="message_protected_session_failed">Nie udało się otworzyć chronionej sesji: %1$s</string>
     <string name="message_apps_load_failed">Nie udało się załadować aplikacji.</string>
