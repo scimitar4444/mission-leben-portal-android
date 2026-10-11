@@ -995,13 +995,17 @@ private fun SettingsScreen(
 }
 
 @Composable
-private fun TalkStartSettingsPanel(startAtLastChat: Boolean, onChange: (Boolean) -> Unit) {
+internal fun TalkStartSettingsPanel(
+    startAtLastChat: Boolean,
+    onChange: (Boolean) -> Unit,
+    compact: Boolean = false,
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(if (compact) 12.dp else 18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.talk_start_title), fontWeight = FontWeight.SemiBold)
             Text(
                 stringResource(R.string.talk_start_description),

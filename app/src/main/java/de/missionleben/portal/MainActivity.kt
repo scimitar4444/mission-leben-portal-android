@@ -190,6 +190,7 @@ class MainActivity : FragmentActivity() {
                     AppFeaturePolicy.from(state.applications).communication,
                     AppFeaturePolicy.from(state.applications).zimbra,
                     state.calendarAvailable,
+                    AppFeaturePolicy.from(state.applications).talk,
                 )
                 LaunchedEffect(
                     state.signedIn, state.enrollmentState, state.applicationsLoading,
@@ -320,6 +321,7 @@ class MainActivity : FragmentActivity() {
                         onOpenManufacturerSettings = pushReliability::openManufacturerSettings,
                         onCalendarSyncEnabledChange = ::setCalendarSyncEnabled,
                         onCalendarSyncDaysChange = viewModel::setCalendarSyncDays,
+                        onTalkStartAtLastChatChange = viewModel::setTalkStartAtLastChat,
                         onNotificationPrivacyChange = viewModel::setNotificationPrivacy,
                         onCalendarReminderChange = viewModel::setCalendarReminderMinutes,
                         onCommunicationNotificationsChange = viewModel::setCommunicationNotificationsEnabled,

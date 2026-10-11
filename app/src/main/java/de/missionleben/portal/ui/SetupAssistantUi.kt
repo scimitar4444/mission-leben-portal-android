@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -45,6 +46,7 @@ internal fun SetupAssistantDialog(
     onOpenManufacturerSettings: () -> Unit,
     onCalendarSyncEnabledChange: (Boolean) -> Unit,
     onCalendarSyncDaysChange: (Int) -> Unit,
+    onTalkStartAtLastChatChange: (Boolean) -> Unit,
     onNotificationPrivacyChange: (NotificationPrivacy) -> Unit,
     onCalendarReminderChange: (Int) -> Unit,
     onCommunicationNotificationsChange: (Boolean) -> Unit,
@@ -128,6 +130,13 @@ internal fun SetupAssistantDialog(
                         Text(stringResource(R.string.setup_calendar_explain))
                         CalendarSyncPanel(state, onCalendarSyncEnabledChange, onCalendarSyncDaysChange, compact = true)
                     }
+                    SetupStep.TALK -> {
+                        TalkStartSettingsPanel(
+                            state.talkStartAtLastChat,
+                            onTalkStartAtLastChatChange,
+                            compact = true,
+                        )
+                    }
                 }
             }
         },
@@ -144,7 +153,10 @@ internal fun SetupAssistantDialog(
 
 @Composable
 private fun SetupStepStrip(steps: List<SetupStep>, position: Int, onSelectStep: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+    Row(
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+    ) {
         steps.forEachIndexed { index, step ->
             val active = index + 1 == position
             val label = stringResource(step.shortLabel())
@@ -171,4 +183,5 @@ private fun SetupStep.shortLabel() = when (this) {
     SetupStep.BATTERY -> R.string.setup_battery_short
     SetupStep.MESSAGES -> R.string.setup_messages_short
     SetupStep.CALENDAR -> R.string.setup_calendar_short
+    SetupStep.TALK -> R.string.talk_settings_title
 }

@@ -4,7 +4,7 @@ import android.content.Context
 import de.missionleben.portal.model.DeviceMode
 import java.security.MessageDigest
 
-enum class SetupStep { NOTIFICATIONS, BATTERY, MESSAGES, CALENDAR }
+enum class SetupStep { NOTIFICATIONS, BATTERY, MESSAGES, CALENDAR, TALK }
 
 object SetupAssistantPolicy {
     fun available(
@@ -14,6 +14,7 @@ object SetupAssistantPolicy {
         communicationAvailable: Boolean,
         zimbraVisible: Boolean,
         calendarAvailable: Boolean,
+        talkVisible: Boolean,
     ): List<SetupStep> {
         if (!signedIn) return emptyList()
         return buildList {
@@ -23,6 +24,7 @@ object SetupAssistantPolicy {
                 if (mode == DeviceMode.PERSONAL && communicationAvailable) add(SetupStep.MESSAGES)
             }
             if (mode == DeviceMode.PERSONAL && zimbraVisible && calendarAvailable) add(SetupStep.CALENDAR)
+            if (talkVisible) add(SetupStep.TALK)
         }
     }
 
