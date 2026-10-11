@@ -79,7 +79,7 @@ class FakeAuthentik:
                     "mission-leben.de/username": "m.beispiel",
                 },
             },
-            "name": "test",
+            "name": "Mission Leben personal durch test bis 2099-01-01 00:00Z",
             "expiring": True,
             "expires": (datetime.now(UTC) + timedelta(minutes=5)).isoformat(),
         }
@@ -153,6 +153,8 @@ class FakeAuthentik:
 
     async def create_user_binding(self, target_uuid, user_pk):
         self.created_bindings.append(("user", target_uuid, user_pk))
+        self._bindings.append({"enabled": True, "negate": False, "policy": None,
+                               "group": None, "user": user_pk})
 
     async def create_group_binding(self, target_uuid, group_uuid):
         self.created_bindings.append(("group", target_uuid, group_uuid))
@@ -214,6 +216,9 @@ class FakeAuthentik:
 
     async def create_enrollment_token(self, name, access_group_uuid, expires):
         self.token_record["expires"] = expires.isoformat()
+        self.token_record["name"] = name
+        if self.existing_group is not None:
+            self.token_record["device_group_obj"] = self.existing_group
         return {
             "token_uuid": self.token_record["token_uuid"],
             "name": name,

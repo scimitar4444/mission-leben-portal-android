@@ -10,9 +10,11 @@
 <section class="install-card" id="setup-page" data-link="{{ setup_link }}" data-self-service="{{ 'true' if self_service else 'false' }}">
   {% if replaced_devices %}
   <div class="replacement-warning">
-    <strong>Das bisherige Handy bleibt bis zur erfolgreichen Registrierung aktiv:</strong>
+    <strong>Nur dieses Handy wird nach erfolgreicher Registrierung ersetzt:</strong>
     <ul>{% for device in replaced_devices %}<li>{{ device.name }} <small>· zuletzt {{ device.last_seen | device_seen }}</small></li>{% endfor %}</ul>
   </div>
+  {% elif personal_action == 'add' %}
+  <p class="notice">Ein persönliches Handy wird hinzugefügt. Bereits registrierte Handys bleiben aktiv. Pro Mitarbeiterkonto sind höchstens zwei Handys möglich.</p>
   {% endif %}
   <div class="install-step">
     <span class="install-number" aria-hidden="true">1</span>
@@ -44,6 +46,7 @@
       <h2>{% if self_service %}App öffnen und anmelden{% else %}Gerät registrieren{% endif %}</h2>
       {% if self_service %}
       <p>Öffne <strong>Mission Leben Zentral</strong> über das App-Symbol. Melde dich mit deinem persönlichen Benutzernamen, Passwort und deinem vorhandenen TOTP an. Folge in der App der Aufforderung, dein persönliches Handy zu registrieren.</p>
+      <p>Bis zu zwei persönliche Handys können verbunden werden. Bei der Registrierung kannst du ein zweites Handy hinzufügen oder gezielt eines ersetzen.</p>
       <p>Du brauchst keinen zweiten QR-Code. Diese Installationsanleitung läuft nicht ab.</p>
       {% else %}
       <p>Jetzt den zweiten QR-Code mit der normalen Handykamera scannen. Er öffnet die installierte App und startet die vorbereitete Registrierung.</p>

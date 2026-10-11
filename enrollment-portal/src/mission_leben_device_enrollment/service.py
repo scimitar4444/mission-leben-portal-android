@@ -28,6 +28,8 @@ HANDSET_PROFILE_VALUE = "shared-account"
 DEVICE_OWNERSHIP_ATTRIBUTE = "mission-leben.de/device-ownership"
 COMPANY_OWNERSHIP_VALUE = "company"
 DEVICE_SERIAL = re.compile(r"ml-android-[0-9a-f]{16,128}", re.IGNORECASE)
+PERSONAL_DEVICE_LIMIT = 2
+PERSONAL_INTENT_PREFIX = "ML-Personal-v2:"
 
 
 @dataclass(frozen=True)
@@ -45,6 +47,7 @@ class IssuedEnrollment:
     target_label: str
     expires: datetime
     replaced_devices: tuple[RegisteredDevice, ...] = ()
+    personal_action: str = ""
 
     def deep_link(self) -> str:
         return "de.missionleben.portal://enroll?" + urlencode(
@@ -145,6 +148,8 @@ class EnrollmentService:
                     all_bound = await self._active_direct_devices_for_account(access_group_uuid)
                     if len(all_bound) != 1 or all_bound[0].device_uuid != device_uuid:
                         raise AuthentikError(403, "Für dieses Konto besteht keine eindeutige einzelne Handybindung.")
+            elif len(await self._active_devices(access_group_uuid)) > PERSONAL_DEVICE_LIMIT:
+                raise AuthentikError(403, "Für dieses Mitarbeiterkonto sind mehr als zwei Handys aktiv. Bitte wenden Sie sich an die IT.")
         elif mode != "shared":
             raise AuthentikError(403, "Die Gerätegruppe besitzt keinen gültigen Gerätetyp.")
         elif handset_profile is not None:
@@ -331,14 +336,14 @@ class EnrollmentService:
         user = await self.authentik.employee_by_username(username)
         return (await self._active_personal_devices_by_user()).get(str(user["uuid"]), ())
 
-    async def issue_personal(self, actor: Actor, user_pk: int) -> IssuedEnrollment:
+    async def issue_personal(self, actor: Actor, user_pk: int, device_action: str = "") -> IssuedEnrollment:
         user = await self.authentik.employee(user_pk)
         self._assert_employee_scope(actor, user)
-        return await self._issue_personal_for_user(actor, user, self_service=False)
+        return await self._issue_personal_for_user(actor, user, self_service=False, device_action=device_action)
 
-    async def issue_self_personal(self, actor: Actor) -> IssuedEnrollment:
+    async def issue_self_personal(self, actor: Actor, device_action: str = "") -> IssuedEnrollment:
         user = await self.authentik.employee_by_username(actor.username)
-        return await self._issue_personal_for_user(actor, user, self_service=True)
+        return await self._issue_personal_for_user(actor, user, self_service=True, device_action=device_action)
 
     async def _issue_personal_for_user(
         self,
@@ -346,6 +351,7 @@ class EnrollmentService:
         user: dict[str, Any],
         *,
         self_service: bool,
+        device_action: str = "",
     ) -> IssuedEnrollment:
         user_uuid = str(user["uuid"])
         user_pk = int(user["pk"])
@@ -364,7 +370,10 @@ class EnrollmentService:
             attributes,
         )
         await self._ensure_binding(access_group["pbm_uuid"], user_pk=user_pk)
-        replaced_devices = await self._active_devices(access_group["pbm_uuid"])
+        existing_devices = await self._active_devices(access_group["pbm_uuid"])
+        # Missing choices are accepted only for a first device, never silently
+        # interpreted as permission to replace a phone from a cached old page.
+        action, replaced_devices = self._personal_choice(device_action, existing_devices)
         subject = str(user.get("uid", "")).strip()
         if not subject:
             raise AuthentikError(502, "Authentik hat keine stabile Benutzerkennung geliefert.")
@@ -379,9 +388,34 @@ class EnrollmentService:
                 "user_uuid": user_uuid,
                 "username": user["username"],
                 "self_service": self_service,
+                "device_action": action,
             },
             replaced_devices=replaced_devices,
+            personal_action=action,
         )
+
+    @staticmethod
+    def _personal_choice(
+        choice: str, devices: tuple[RegisteredDevice, ...]
+    ) -> tuple[str, tuple[RegisteredDevice, ...]]:
+        if not choice and not devices:
+            choice = "add"
+        if choice == "add":
+            if len(devices) >= PERSONAL_DEVICE_LIMIT:
+                raise AuthentikError(409, "Es sind bereits zwei Handys registriert. Bitte wählen Sie gezielt ein Handy zum Ersetzen aus.")
+            return choice, ()
+        if choice.startswith("replace:"):
+            try:
+                selected = str(UUID(choice.removeprefix("replace:")))
+            except ValueError as error:
+                raise AuthentikError(400, "Ungültiges Handy zum Ersetzen.") from error
+            matches = tuple(device for device in devices if device.device_uuid == selected)
+            if len(matches) != 1:
+                raise AuthentikError(409, "Das ausgewählte Handy ist nicht mehr aktiv oder gehört nicht zu diesem Konto. Bitte laden Sie die Auswahl neu.")
+            if len(devices) > PERSONAL_DEVICE_LIMIT:
+                raise AuthentikError(409, "Die vorhandenen Gerätebindungen müssen zuerst von der IT geprüft werden.")
+            return "replace:" + selected, matches
+        raise AuthentikError(400, "Bitte wählen Sie zusätzliches Handy oder das zu ersetzende Handy aus.")
 
     async def _personal_access_group(
         self,
@@ -508,6 +542,7 @@ class EnrollmentService:
         target_label: str,
         target: dict[str, Any],
         replaced_devices: tuple[RegisteredDevice, ...] = (),
+        personal_action: str = "",
     ) -> IssuedEnrollment:
         expires = datetime.now(UTC) + timedelta(seconds=self.settings.token_ttl_seconds)
         if mode == "personal":
@@ -521,7 +556,10 @@ class EnrollmentService:
                 pending_attributes,
             )
         token_record = await self.authentik.create_enrollment_token(
-            name=f"Mission Leben {mode} durch {actor.username} bis {expires:%Y-%m-%d %H:%MZ}",
+            # The Authentik token record is server-owned. Never trust a replace
+            # target supplied by the phone, QR fragment or redemption payload.
+            name=(PERSONAL_INTENT_PREFIX + personal_action if personal_action else
+                  f"Mission Leben {mode} durch {actor.username} bis {expires:%Y-%m-%d %H:%MZ}"),
             access_group_uuid=access_group["pbm_uuid"],
             expires=expires,
         )
@@ -553,6 +591,7 @@ class EnrollmentService:
             target_label,
             expires,
             replaced_devices,
+            personal_action,
         )
 
     async def redeem(
@@ -629,6 +668,22 @@ class EnrollmentService:
             previous_devices = (
                 await self._active_devices(access_group_uuid) if mode == "personal" else ()
             )
+            selected_devices = previous_devices
+            if mode == "personal" and handset_profile is None:
+                token_name = str(token_record.get("name") or "")
+                if token_name.startswith(PERSONAL_INTENT_PREFIX):
+                    await self._assert_active_personal_binding(access_group_uuid)
+                    _, selected_devices = self._personal_choice(
+                        token_name.removeprefix(PERSONAL_INTENT_PREFIX), previous_devices
+                    )
+                elif token_name.startswith("Mission Leben personal durch "):
+                    # Existing 30-minute links retain their original replace
+                    # intent only while there is at most one phone. They must
+                    # never disable both phones after this migration.
+                    if len(previous_devices) > 1:
+                        raise AuthentikError(409, "Dieser ältere Einrichtungslink kann nicht mit zwei Handys verwendet werden. Bitte einen neuen Link erstellen.")
+                else:
+                    raise AuthentikError(409, "Der Einrichtungslink enthält keine eindeutige Geräteauswahl. Bitte einen neuen Link erstellen.")
 
             response = await self.authentik.enroll_agent(
                 presented_token,
@@ -669,8 +724,14 @@ class EnrollmentService:
             if mode == "personal":
                 await self._replace_personal_devices(
                     new_device_uuid,
-                    previous_devices,
+                    selected_devices,
                 )
+                if handset_profile is None:
+                    active_devices = await self._active_devices(access_group_uuid)
+                    if (len(active_devices) > PERSONAL_DEVICE_LIMIT or
+                        not any(device.device_uuid == new_device_uuid for device in active_devices)):
+                        await self._disable_new_device_after_failed_replacement(new_device_uuid)
+                        raise AuthentikError(502, "Die Grenze von zwei Handys konnte nicht sicher eingehalten werden. Das neue Gerät wurde vorsorglich gesperrt.")
                 if handset_profile == HANDSET_PROFILE_VALUE:
                     active_devices = await self._active_devices(access_group_uuid)
                     if len(active_devices) != 1 or active_devices[0].device_uuid != new_device_uuid:
@@ -689,7 +750,7 @@ class EnrollmentService:
                         raise AuthentikError(502, "Der sichere Diensthandy-Abschluss konnte nicht geprüft werden. Das neue Gerät wurde gesperrt.") from error
                 replaced_devices = [
                     device
-                    for device in previous_devices
+                    for device in selected_devices
                     if device.device_uuid != new_device_uuid
                 ]
 

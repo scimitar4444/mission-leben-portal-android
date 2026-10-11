@@ -13,9 +13,12 @@
   <p class="expiry">Der Code gilt bis {{ expires_local }} und wird nach der ersten erfolgreichen Einrichtung entwertet.</p>
   {% if enrollment.replaced_devices %}
   <div class="replacement-warning">
-    <strong>Das bisherige Handy bleibt bis zur erfolgreichen Einrichtung aktiv.</strong>
-    <p>Erst danach wird es aus Sicherheitsgründen deaktiviert und zur Nachverfolgbarkeit aufbewahrt.</p>
+    <strong>Nur das ausgewählte Handy wird ersetzt:</strong>
+    <ul>{% for device in enrollment.replaced_devices %}<li>{{ device.name }}</li>{% endfor %}</ul>
+    <p>Es bleibt bis zur erfolgreichen Einrichtung aktiv. Danach wird es deaktiviert und zur Nachverfolgbarkeit aufbewahrt. Das andere Handy bleibt aktiv.</p>
   </div>
+  {% elif enrollment.personal_action == 'add' %}
+  <p class="notice">Dieses Handy wird zusätzlich verbunden. Bereits registrierte Handys bleiben aktiv.</p>
   {% endif %}
   <details class="ready-help">
     <summary>Die App öffnet sich nicht?</summary>

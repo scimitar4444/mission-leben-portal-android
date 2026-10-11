@@ -29,8 +29,19 @@
       {% for device in employee.personal_devices %}
       <small class="existing-device">Vorhandenes Handy: {{ device.name }} · zuletzt {{ device.last_seen | device_seen }}</small>
       {% endfor %}
+      {% if employee.personal_devices %}
+      <label class="device-action-label" for="device-action-{{ employee.pk }}">Handy hinzufügen oder ersetzen</label>
+      <select id="device-action-{{ employee.pk }}" name="device_action" required>
+        {% if employee.personal_devices | length < personal_device_limit %}
+        <option value="add">Zweites Handy hinzufügen</option>
+        {% else %}<option value="" selected disabled>Handy zum Ersetzen auswählen</option>{% endif %}
+        {% for device in employee.personal_devices %}
+        <option value="replace:{{ device.device_uuid }}">Ersetzen: {{ device.name }}</option>
+        {% endfor %}
+      </select>
+      {% else %}<input type="hidden" name="device_action" value="add">{% endif %}
     </span>
-    <button type="submit" name="delivery" value="screen">{% if employee.personal_devices %}Handy ersetzen{% else %}Diese Person{% endif %}</button>
+    <button type="submit" name="delivery" value="screen">{% if employee.personal_devices %}Einrichtung starten{% else %}Diese Person{% endif %}</button>
     {% if can_send_mail %}
     {% if employee.get('email') %}
     <button type="submit" name="delivery" value="email" class="secondary">Einrichtung per E-Mail</button>

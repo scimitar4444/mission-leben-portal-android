@@ -19,7 +19,7 @@ from .auth import Actor, CsrfProtector, actor_from_request, authenticated_actor_
 from .authentik import AuthentikClient, AuthentikError
 from .config import Settings
 from .mailer import send_setup_mail, validate_address
-from .service import EnrollmentService, IssuedEnrollment
+from .service import EnrollmentService, IssuedEnrollment, PERSONAL_DEVICE_LIMIT
 
 
 LOGGER = logging.getLogger("mission_leben_device_enrollment.http")
@@ -124,6 +124,7 @@ def create_app(
             setup_link=enrollment.setup_link(settings.public_origin),
             target_label=enrollment.target_label,
             replaced_devices=enrollment.replaced_devices,
+            personal_action=enrollment.personal_action,
             download_qr_svg=download_qr_svg(),
             apk_download_url=settings.apk_download_url,
             self_service=False,
@@ -222,6 +223,7 @@ def create_app(
             setup_link="",
             target_label="",
             replaced_devices=(),
+            personal_action="",
             download_qr_svg=download_qr_svg(),
             apk_download_url=settings.apk_download_url,
             self_service=False,
@@ -235,6 +237,7 @@ def create_app(
             setup_link="",
             target_label="",
             replaced_devices=(),
+            personal_action="",
             download_qr_svg=download_qr_svg(),
             apk_download_url=settings.apk_download_url,
             self_service=True,
@@ -293,6 +296,7 @@ def create_app(
         return html(
             "self.html",
             existing_devices=await service.personal_devices_for_username(current.username),
+            personal_device_limit=PERSONAL_DEVICE_LIMIT,
             token_ttl_minutes=settings.token_ttl_seconds // 60,
             **page_context(current, "issue-self-personal"),
         )
@@ -301,10 +305,11 @@ def create_app(
     async def issue_self_enrollment(
         request: Request,
         csrf_token: str = Form(...),
+        device_action: str = Form(""),
     ):
         current = authenticated_actor(request)
         csrf.verify_request(request, current, "issue-self-personal", csrf_token)
-        enrollment = await service.issue_self_personal(current)
+        enrollment = await service.issue_self_personal(current, device_action)
         # A browser may silently reject an automatic custom-scheme redirect
         # after a form POST. Render a confirmation page instead so opening the
         # app is an explicit user gesture and works in Chrome and our WebView.
@@ -328,6 +333,7 @@ def create_app(
             query=q.strip(),
             employees=results,
             can_send_mail=current.can_initialize_shared_handset and bool(settings.smtp_host),
+            personal_device_limit=PERSONAL_DEVICE_LIMIT,
             **page_context(current, "issue-personal"),
         )
 
@@ -349,6 +355,7 @@ def create_app(
         employee_pk: int = Form(...),
         csrf_token: str = Form(...),
         delivery: str = Form("screen"),
+        device_action: str = Form(""),
     ):
         current = actor(request)
         csrf.verify_request(request, current, "issue-personal", csrf_token)
@@ -360,7 +367,7 @@ def create_app(
             require_it_mail(current)
             user = await client.employee(employee_pk)
             recipient = mail_recipient(str(user.get("email") or ""))
-        enrollment = await service.issue_personal(current, employee_pk)
+        enrollment = await service.issue_personal(current, employee_pk, device_action)
         mail_status = await mail_enrollment(enrollment, recipient, first_name(user)) if user else ""
         return setup_page(enrollment, current, mail_status)
 

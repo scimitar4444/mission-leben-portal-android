@@ -93,6 +93,8 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .person-row span { display: flex; flex-direction: column; }
 .person-row small { color: var(--muted); }
 .person-row .existing-device { margin-top: 6px; color: var(--berry); font-weight: 700; }
+.person-row .device-action-label { margin-top: 12px; font-size: .9rem; }
+.person-row select { margin-top: 4px; min-height: 44px; }
 .card-form { max-width: 700px; }
 .self-card { margin: 0 auto; text-align: center; }
 .card-form label:not(:first-of-type) { margin-top: 22px; }
