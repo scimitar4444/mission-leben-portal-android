@@ -327,4 +327,5 @@
     <string name="password_hide">Ocultar contraseña</string>
     <string name="release_note_web_session_fix">La pérdida del acceso web ya no elimina una sesión personal de la app que sigue siendo válida. El aviso de caducidad de 90 días solo aparece cuando el plazo ha vencido.</string>
     <string name="release_note_password_eye">Al iniciar sesión, puedes mostrar u ocultar brevemente la contraseña con el ojo. Se oculta de nuevo al salir.</string>
+    <string name="release_note_two_personal_handsets">Ahora puedes usar tu cuenta personal de empleado en hasta dos móviles a la vez. Cada móvil se registra por separado. Las cuentas de grupo siguen limitadas a un móvil.</string>
 </resources>

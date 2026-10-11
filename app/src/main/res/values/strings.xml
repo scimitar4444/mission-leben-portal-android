@@ -366,4 +366,5 @@
     <string name="password_hide">Passwort verbergen</string>
     <string name="release_note_web_session_fix">Eine fehlende Web-Anmeldung löscht keine weiterhin gültige persönliche App-Sitzung mehr. Der Hinweis „90 Tage abgelaufen“ erscheint nur bei tatsächlichem Fristablauf.</string>
     <string name="release_note_password_eye">Beim Anmelden kannst du dein Kennwort mit dem Auge kurz anzeigen und wieder verbergen. Beim Verlassen wird es wieder verdeckt.</string>
+    <string name="release_note_two_personal_handsets">Du kannst deinen persönlichen Mitarbeiterzugang jetzt auf bis zu zwei Handys gleichzeitig nutzen. Jedes Handy wird einzeln registriert. Für Gruppenkonten bleibt es bei einem Handy.</string>
 </resources>

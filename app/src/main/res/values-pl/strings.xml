@@ -329,4 +329,5 @@
     <string name="password_hide">Ukryj hasło</string>
     <string name="release_note_web_session_fix">Brak logowania do aplikacji webowej nie usuwa już ważnej osobistej sesji aplikacji. Komunikat o upływie 90 dni pojawia się tylko po rzeczywistym upływie terminu.</string>
     <string name="release_note_password_eye">Podczas logowania możesz na chwilę pokazać lub ukryć hasło za pomocą oka. Po opuszczeniu strony hasło zostaje ponownie ukryte.</string>
+    <string name="release_note_two_personal_handsets">Teraz możesz korzystać z osobistego konta pracownika na maksymalnie dwóch telefonach jednocześnie. Każdy telefon jest rejestrowany osobno. Konta grupowe pozostają ograniczone do jednego telefonu.</string>
 </resources>

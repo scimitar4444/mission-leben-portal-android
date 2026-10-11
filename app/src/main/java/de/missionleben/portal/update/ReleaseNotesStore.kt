@@ -31,7 +31,11 @@ object ReleaseNotesCatalog {
         87 to listOf(R.string.release_note_secure_unlock, R.string.release_note_reauthentication, R.string.release_note_app_symbols),
         88 to listOf(R.string.release_note_talk_start_setting),
         89 to listOf(R.string.release_note_calendar_capacity),
-        90 to listOf(R.string.release_note_web_session_fix, R.string.release_note_password_eye),
+        90 to listOf(
+            R.string.release_note_web_session_fix,
+            R.string.release_note_password_eye,
+            R.string.release_note_two_personal_handsets,
+        ),
     )
 
     fun forVersion(versionCode: Int): List<Int> = notesByVersion[versionCode].orEmpty()

@@ -341,4 +341,5 @@
     <string name="password_hide">Hide password</string>
     <string name="release_note_web_session_fix">A missing web sign-in no longer deletes a still-valid personal app session. The 90-day expiry message is only shown when the deadline has actually passed.</string>
     <string name="release_note_password_eye">When signing in, use the eye to briefly show or hide your password. It is hidden again when you leave.</string>
+    <string name="release_note_two_personal_handsets">You can now use your personal employee account on up to two phones at the same time. Each phone is registered separately. Group accounts remain limited to one phone.</string>
 </resources>

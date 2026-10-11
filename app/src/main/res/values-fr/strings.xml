@@ -327,4 +327,5 @@
     <string name="password_hide">Masquer le mot de passe</string>
     <string name="release_note_web_session_fix">Une connexion web manquante ne supprime plus une session personnelle de l’application encore valide. Le message d’expiration des 90 jours apparaît uniquement lorsque le délai est réellement écoulé.</string>
     <string name="release_note_password_eye">Lors de la connexion, utilise l’œil pour afficher ou masquer brièvement ton mot de passe. Il est à nouveau masqué lorsque tu quittes la page.</string>
+    <string name="release_note_two_personal_handsets">Tu peux désormais utiliser ton compte personnel de salarié sur deux téléphones au maximum en même temps. Chaque téléphone est enregistré séparément. Les comptes de groupe restent limités à un téléphone.</string>
 </resources>

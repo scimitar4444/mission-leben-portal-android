@@ -327,4 +327,5 @@
     <string name="password_hide">Parolayı gizle</string>
     <string name="release_note_web_session_fix">Web oturumu bulunamadığında geçerli kişisel uygulama oturumu artık silinmez. 90 günlük sürenin dolduğu mesajı yalnızca süre gerçekten dolduğunda gösterilir.</string>
     <string name="release_note_password_eye">Oturum açarken göz simgesiyle parolanı kısa süreliğine gösterebilir veya gizleyebilirsin. Sayfadan ayrılınca tekrar gizlenir.</string>
+    <string name="release_note_two_personal_handsets">Kişisel çalışan hesabını artık aynı anda en fazla iki telefonda kullanabilirsin. Her telefon ayrı ayrı kaydedilir. Grup hesapları bir telefonla sınırlı kalır.</string>
 </resources>

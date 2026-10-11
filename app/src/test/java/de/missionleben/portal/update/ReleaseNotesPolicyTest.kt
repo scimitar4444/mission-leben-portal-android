@@ -12,6 +12,17 @@ class ReleaseNotesPolicyTest {
         assertTrue(ReleaseNotesCatalog.forVersion(BuildConfig.VERSION_CODE).isNotEmpty())
     }
 
+    @Test fun sessionFixReleaseIncludesPasswordEyeAndTwoPersonalPhones() {
+        assertEquals(
+            listOf(
+                R.string.release_note_web_session_fix,
+                R.string.release_note_password_eye,
+                R.string.release_note_two_personal_handsets,
+            ),
+            ReleaseNotesCatalog.forVersion(90),
+        )
+    }
+
     @Test fun calendarReleaseHasReopenableCapacityNote() {
         assertEquals(
             listOf(R.string.release_note_calendar_capacity),
