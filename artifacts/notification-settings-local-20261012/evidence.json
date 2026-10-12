@@ -1,6 +1,6 @@
 {
   "date": "2026-10-12",
-  "status": "LOCALLY_BUILT_AND_TESTED_NOT_INSTALLED_OR_PUBLISHED",
+  "status": "LOCALLY_TESTED_AND_INSTALLED_PILOT_SETTINGS_ACCEPTANCE_PENDING",
   "scope": "Remove duplicate IT Hilfe notification-settings link and clarify the two existing Android settings actions",
   "changes": {
     "duplicateRemoved": "No helpdesk-only TextButton in NotificationPrivacyPanel, including its setup-assistant reuse",
@@ -26,7 +26,12 @@
     "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
     "productionSignerMatches": true,
     "otaPublished": false,
-    "installedThisTurn": false
+    "installedThisTurn": true,
+    "installation": "adb install -r Success on existing TCL T807D Android 16; no uninstall or data reset",
+    "installedBaseApkSha256": "f59be32ac56ce93d0504aa276c02d771041324595e28e349f65f425fc6422f1b",
+    "installedHashMatchesArtifact": true,
+    "launch": "MainActivity started and visible; application process remains running",
+    "registrationAfterUnlock": "USER_ACCEPTANCE_PENDING"
   },
   "invariants": {
     "channelIdsAndPreferencesChanged": false,
