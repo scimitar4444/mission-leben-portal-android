@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="help_and_guide">Ayuda y guía</string>
+    <string name="help_open_failed">No se pudo abrir la guía.</string>
     <string name="push_reliability_title">Entrega de avisos</string>
     <string name="push_reliability_description">Comprueba estos ajustes para recibir avisos con la pantalla apagada.</string>
     <string name="push_reliability_not_registered">Los avisos aún no están configurados en este dispositivo.</string>

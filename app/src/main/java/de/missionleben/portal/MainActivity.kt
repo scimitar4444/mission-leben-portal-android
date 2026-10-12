@@ -258,6 +258,7 @@ class MainActivity : FragmentActivity() {
                     onOpenUrl = viewModel::openApplication,
                     onOpenCalendarDay = viewModel::openCalendarDay,
                     onOpenPublicUrl = ::openUrl,
+                    onOpenHelp = ::openHelp,
                     onReloadApplications = viewModel::loadApplications,
                     onToggleApplicationFavorite = viewModel::toggleApplicationFavorite,
                     onRefreshInbox = viewModel::refreshInbox,
@@ -453,6 +454,24 @@ class MainActivity : FragmentActivity() {
 
     private fun openUrl(url: String) {
         openUrl(url, notificationBadgeTarget = null)
+    }
+
+    private fun openHelp() {
+        if (viewModel.uiState.value.signedIn) {
+            // Keep account/device validation and protected container navigation for Kollektiv.
+            viewModel.openApplication(getString(R.string.help_guide_url))
+        } else {
+            // This page is public; do not try to unlock a signed-out app container for it.
+            val url = "${BuildConfig.ENROLLMENT_SERVICE_BASE_URL.trimEnd('/')}/download"
+            runCatching {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE))
+            }.onFailure {
+                AlertDialog.Builder(this)
+                    .setMessage(R.string.help_open_failed)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
+            }
+        }
     }
 
     private fun routeTalkMeeting(url: String) {

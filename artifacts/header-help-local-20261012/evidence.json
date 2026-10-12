@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-12",
+  "status": "LOCAL_BUILT_TESTED_AND_PILOT_INSTALLED_UI_ACCEPTANCE_PENDING",
+  "base_commit": "39b36a7dc58577ae15f3bf48dc6ddd8f4b3d331f",
+  "version": "0.22.2-local",
+  "version_code": 93,
+  "apk_sha256": "bf8f7efb30fa7a73f01b6f21903c808e28bd0ed4d2e626a09e0680e57144a0e1",
+  "signer_sha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+  "tests": {"tests": 314, "failures": 0, "errors": 0},
+  "release_build": "PASS",
+  "lint_release": "PASS_NO_ERRORS",
+  "pilot_install": "ADB_REPLACE_SUCCESS; PACKAGE_VERSION_READ_BACK; NO_DATA_CLEAR_OR_REENROLLMENT",
+  "features": {
+    "header": "Signed-in contacts address book moved beside bell and settings; all three retain standard IconButton touch areas and use onBackground theme color. Brand text stays single-line within available width.",
+    "greeting": "Old contact button removed; greeting and motivation use full width. Application tiles and birthdays unchanged.",
+    "help": "Help & guide button with outlined question-mark icon in Settings, localized in all nine existing languages; no fourth header icon.",
+    "signed_in_help": "Existing Android-App Collectives page 95685099; uses existing openApplication device check, token refresh and protected container navigation.",
+    "signed_out_help": "Fixed public enrollment-portal /download page opened in the normal browser without unlocking the signed-out app container; launch failure is handled."
+  },
+  "guide_source": "docs/collectives-guide/README.md and 00-android-app.md; new favorites/inbox/contextual-report documentation was not changed by this UI task.",
+  "ota_published": false,
+  "server_group_flow_or_mfa_changes": false,
+  "remaining_acceptance": [
+    "Header positions and contacts entry on the unlocked pilot phone.",
+    "Help button and actual authenticated Collectives page on the pilot phone.",
+    "Signed-out normal-browser guide path implemented; no live logout test to avoid disrupting the user's session."
+  ],
+  "wake_setting": "0 before and after installation; permanent wake setting unchanged",
+  "rollback": "Previous local APK and registration retained; revert only this scoped UI/navigation change and rebuild with production signer plus an appropriate higher versionCode for a release rollback."
+}

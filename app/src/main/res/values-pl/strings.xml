@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="help_and_guide">Pomoc i instrukcja</string>
+    <string name="help_open_failed">Nie udało się otworzyć instrukcji.</string>
     <string name="push_reliability_title">Powiadomienia push</string>
     <string name="push_reliability_description">Sprawdź te ustawienia, aby otrzymywać powiadomienia przy wyłączonym ekranie.</string>
     <string name="push_reliability_not_registered">Powiadomienia push nie są jeszcze skonfigurowane na tym urządzeniu.</string>

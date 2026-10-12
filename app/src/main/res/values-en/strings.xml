@@ -35,6 +35,8 @@
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Settings</string>
+    <string name="help_and_guide">Help &amp; guide</string>
+    <string name="help_open_failed">The guide could not be opened.</string>
     <string name="setup_assistant_title">Setup assistant</string>
     <string name="setup_assistant_intro">Choose a step. You can reopen these settings later.</string>
     <string name="setup_notifications_short">Alerts</string>

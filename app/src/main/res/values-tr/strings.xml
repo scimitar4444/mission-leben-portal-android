@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="help_and_guide">Yardım ve kılavuz</string>
+    <string name="help_open_failed">Kılavuz açılamadı.</string>
     <string name="push_reliability_title">Anlık bildirimler</string>
     <string name="push_reliability_description">Ekran kapalıyken de bildirim almak için bu ayarları kontrol edin.</string>
     <string name="push_reliability_not_registered">Bu cihazda anlık bildirimler henüz kurulmadı.</string>

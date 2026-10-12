@@ -111,6 +111,7 @@ fun MissionLebenApp(
     onOpenUrl: (String) -> Unit,
     onOpenCalendarDay: (String) -> Unit,
     onOpenPublicUrl: (String) -> Unit,
+    onOpenHelp: () -> Unit,
     onReloadApplications: () -> Unit,
     onSearchContacts: suspend (String, Boolean, Int, String, String) -> ContactPage,
     onLoadContactFavorites: suspend (Boolean, String, String) -> FavoriteContactPage,
@@ -176,6 +177,7 @@ fun MissionLebenApp(
                 onOpenUrl = onOpenUrl,
                 onOpenCalendarDay = onOpenCalendarDay,
                 onOpenPublicUrl = onOpenPublicUrl,
+                onOpenHelp = onOpenHelp,
                 onReloadApplications = onReloadApplications,
                 onToggleApplicationFavorite = onToggleApplicationFavorite,
                 onRefreshInbox = onRefreshInbox,
@@ -405,6 +407,7 @@ private fun Home(
     onOpenUrl: (String) -> Unit,
     onOpenCalendarDay: (String) -> Unit,
     onOpenPublicUrl: (String) -> Unit,
+    onOpenHelp: () -> Unit,
     onReloadApplications: () -> Unit,
     onSearchContacts: suspend (String, Boolean, Int, String, String) -> ContactPage,
     onLoadContactFavorites: suspend (Boolean, String, String) -> FavoriteContactPage,
@@ -510,6 +513,7 @@ private fun Home(
             onCheckForUpdates = onCheckForUpdates,
             onShowReleaseNotes = onShowReleaseNotes,
             onOpenSetupAssistant = onOpenSetupAssistant,
+            onOpenHelp = onOpenHelp,
             currentLanguageTag = currentLanguageTag,
             onLanguageChange = onLanguageChange,
         )
@@ -584,22 +588,39 @@ internal fun HomeOverview(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.weight(1f)) { BrandHeader() }
+                if (state.signedIn) {
+                    IconButton(onClick = onContacts, modifier = Modifier.testTag("contacts-header")) {
+                        Icon(
+                            painterResource(R.drawable.ic_contacts),
+                            stringResource(R.string.contacts_title),
+                            tint = MaterialTheme.colorScheme.onBackground,
+                        )
+                    }
+                }
                 if (state.signedIn) Box {
                     IconButton(onClick = onInbox, modifier = Modifier.testTag("notice-inbox-button")) {
-                        Icon(painterResource(R.drawable.ic_notice_bell), stringResource(R.string.notice_inbox_title))
+                        Icon(
+                            painterResource(R.drawable.ic_notice_bell),
+                            stringResource(R.string.notice_inbox_title),
+                            tint = MaterialTheme.colorScheme.onBackground,
+                        )
                     }
                     if (newNotices > 0) Badge(Modifier.align(Alignment.TopEnd)) {
                         Text(if (newNotices > 99) "99+" else newNotices.toString())
                     }
                 }
                 IconButton(onClick = onSettings) {
-                    Icon(painterResource(R.drawable.ic_settings), stringResource(R.string.settings_title))
+                    Icon(
+                        painterResource(R.drawable.ic_settings),
+                        stringResource(R.string.settings_title),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                    )
                 }
             }
         }
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
         if (state.signedIn) {
-            item { Greeting(state, onContacts) }
+            item { Greeting(state) }
             if (state.mode == DeviceMode.PERSONAL && state.enrollmentState == EnrollmentState.TRUSTED &&
                 state.calendarAvailable && AppFeaturePolicy.from(state.applications).zimbra) {
                 item { TodayAgendaPanel(state, onOpenCalendarDay) }
@@ -816,6 +837,7 @@ private fun SettingsScreen(
     onCheckForUpdates: () -> Unit,
     onShowReleaseNotes: () -> Unit,
     onOpenSetupAssistant: () -> Unit,
+    onOpenHelp: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
 ) {
@@ -1000,6 +1022,16 @@ private fun SettingsScreen(
                     onToggle = { languageDetailsOpen = !languageDetailsOpen },
                 )
                 if (languageDetailsOpen) LanguagePanel(currentLanguageTag, onLanguageChange)
+            }
+        }
+        item {
+            OutlinedButton(
+                onClick = onOpenHelp,
+                modifier = Modifier.fillMaxWidth().testTag("help-guide-button"),
+            ) {
+                Icon(painterResource(R.drawable.ic_help_outline), contentDescription = null, modifier = Modifier.size(24.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.help_and_guide))
             }
         }
         if (state.signedIn && (state.pushConfigured ||
@@ -1267,21 +1299,29 @@ private fun BrandHeader() {
             modifier = Modifier.size(40.dp),
         )
         Spacer(Modifier.width(10.dp))
-        Column {
-            Text(stringResource(R.string.brand_name), fontWeight = FontWeight.Black, letterSpacing = 1.2.sp)
+        Column(Modifier.weight(1f, fill = false)) {
+            Text(
+                stringResource(R.string.brand_name),
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.2.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
             Text(
                 stringResource(R.string.brand_portal),
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 11.sp,
                 letterSpacing = 2.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
 }
 
 @Composable
-private fun Greeting(state: UiState, onContacts: () -> Unit) {
+private fun Greeting(state: UiState) {
     val displayName = state.user?.displayName.orEmpty()
     val motivationTexts = stringArrayResource(R.array.motivation_messages)
     val motivationIndex = Math.floorMod(
@@ -1289,28 +1329,17 @@ private fun Greeting(state: UiState, onContacts: () -> Unit) {
         motivationTexts.size,
     )
     Column(Modifier.fillMaxWidth().padding(horizontal = 2.dp, vertical = 2.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Column(Modifier.weight(1f).testTag("greeting-copy")) {
-                Text(
-                    stringResource(R.string.hello_name, displayName),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                if (!IdentityBirthday.isToday(state.user?.birthdayMonthDay)) {
-                    Spacer(Modifier.height(2.dp))
-                    Text(motivationTexts[motivationIndex],
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall)
-                }
-            }
-            Column(Modifier.width(64.dp).heightIn(min = 48.dp).clip(RoundedCornerShape(10.dp))
-                .clickable(role = Role.Button, onClick = onContacts).padding(vertical = 4.dp)
-                .testTag("contacts-header"), horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)) {
-                Icon(painterResource(R.drawable.ic_contacts), null, Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.contacts_title), style = MaterialTheme.typography.labelSmall)
+        Column(Modifier.fillMaxWidth().testTag("greeting-copy")) {
+            Text(
+                stringResource(R.string.hello_name, displayName),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            if (!IdentityBirthday.isToday(state.user?.birthdayMonthDay)) {
+                Spacer(Modifier.height(2.dp))
+                Text(motivationTexts[motivationIndex],
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall)
             }
         }
         if (IdentityBirthday.isToday(state.user?.birthdayMonthDay)) {

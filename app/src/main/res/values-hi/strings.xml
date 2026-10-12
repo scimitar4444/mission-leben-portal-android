@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="help_and_guide">सहायता और निर्देश</string>
+    <string name="help_open_failed">निर्देश नहीं खोले जा सके।</string>
     <string name="push_reliability_title">पुश सूचनाएँ</string>
     <string name="push_reliability_description">स्क्रीन बंद होने पर भी सूचना पाने के लिए ये सेटिंग जाँचें।</string>
     <string name="push_reliability_not_registered">इस डिवाइस पर पुश अभी सेट नहीं है।</string>

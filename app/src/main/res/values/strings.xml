@@ -6,6 +6,9 @@
     <string name="brand_portal">ZENTRAL</string>
     <string name="browser_back">‹  Portal</string>
     <string name="settings_title">Einstellungen</string>
+    <string name="help_and_guide">Hilfe &amp; Anleitung</string>
+    <string name="help_open_failed">Die Anleitung konnte nicht geöffnet werden.</string>
+    <string name="help_guide_url" translatable="false">https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099</string>
     <string name="setup_assistant_title">Einrichtungsassistent</string>
     <string name="setup_assistant_intro">Wähle einen Schritt. Du kannst diese Einstellungen später erneut öffnen.</string>
     <string name="setup_notifications_short">Hinweise</string>

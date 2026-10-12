@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="help_and_guide">Допомога та інструкція</string>
+    <string name="help_open_failed">Не вдалося відкрити інструкцію.</string>
     <string name="push_reliability_title">Push-сповіщення</string>
     <string name="push_reliability_description">Перевірте ці налаштування, щоб отримувати сповіщення навіть із вимкненим екраном.</string>
     <string name="push_reliability_not_registered">Push-сповіщення ще не налаштовано на цьому пристрої.</string>
