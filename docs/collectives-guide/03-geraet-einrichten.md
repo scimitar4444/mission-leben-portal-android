@@ -59,9 +59,11 @@ Das betroffene Gerät in Authentik deaktivieren und die IT informieren. Nur in d
 ## Nach der Registrierung gemeinsam prüfen
 
 - Beim ersten Anmelden erklärt der Einrichtungsassistent die passenden Einstellungen. Er zeigt nur Schritte, für die das jeweilige Konto freigegeben ist.
-- Auf persönlichen Handys: Android-Benachrichtigungen erlauben und unter **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy** die Akku-Einstellungen prüfen. Sonst können Mail-, Talk- und Terminhinweise ausbleiben.
+- Auf persönlichen Handys: Unter **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy** mit **Benachrichtigungen einstellen** die Android-Hinweise erlauben und mit **Akku-Einstellungen öffnen** den Hintergrundbetrieb prüfen. Beides gilt nur für Mission Leben Zentral. Sonst können Mail-, Talk- und Terminhinweise ausbleiben.
 - Bei zwei persönlichen Handys: Registrierung, Schnellzugang, Benachrichtigungen und Akku-Einstellungen auf jedem Handy einzeln prüfen.
 - Nur bei einem persönlichen Konto mit Zimbra-Freigabe: Der freiwillige Handy-Kalender kann Zimbra-Termine für 1 Tag bis 2 Wochen anzeigen. Termine werden ausschließlich in Zimbra angelegt und geändert; vom Handy geht nichts zurück.
 - Auf gemeinsamen Tablets und Gruppenkonto-Diensthandys gibt es keinen persönlichen Handy-Kalenderabgleich. Eine Anmeldung per App-Bestätigung („Duo“) ist für Gruppenkonten ebenfalls nicht vorgesehen.
 
 Die installierte Version steht unten in den App-Einstellungen. Aktuelle reguläre Updates kommen weiterhin über GitHub.
+
+**Bei Problemen helfen:** Ist **IT Hilfe** freigegeben, kann die nutzende Person eine Fehlermeldung am PC fotografieren und direkt an ein Ticket anhängen. Das Ticket wird erst mit **Übermitteln** abgesendet. [Zur kurzen Foto-Anleitung](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099#h-eine-fehlermeldung-am-pc-fotografieren).

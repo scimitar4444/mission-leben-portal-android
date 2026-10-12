@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-12",
+  "status": "PUBLISHED_AND_BROWSER_VERIFIED",
+  "server": "ml-nextcloud / 172.16.40.140 / Nextcloud 34.0.4.1",
+  "pageIdsUpdated": [95685099, 95685102, 95685145],
+  "pageIdsUnchanged": [94019508, 95685097, 95685139],
+  "scope": "App-specific phone settings labels, separate Android notification and battery entries, four-step PC error photo attachment instructions and separate Übermitteln ticket submission",
+  "verification": {
+    "phpLint": "PASS",
+    "preflight": "All six page IDs, paths and before hashes match; no unsaved Text edits",
+    "readback": "All six live contents equal the read-derived plan",
+    "attachments": "All 30 existing Android attachments have unchanged IDs, names, sizes and SHA-256 hashes",
+    "textSessions": "Only the three changed pages reset through DocumentService, without force",
+    "browser": "All three changed guides show new text; both child photo links target the rendered heading; all five root guide images loaded at natural width 450",
+    "screenshot": "guide-photo-published.jpg",
+    "ticketSubmission": "NONE"
+  },
+  "rollback": "Guarded six-page plan at /tmp/ml-app-guides.MyxgGQih/plan.json; only three changed page bodies can restore through update_app_guides.php --rollback; no attachment deletion",
+  "invariants": "No Nextcloud core/app update, permissions, Authentik/group/flow changes or APK publication through this documentation step"
+}

@@ -1,5 +1,21 @@
 # Aktive Kollektiv-Anleitungen
 
+Am 12.10.2026 wurden App-Hilfe, Persönliches Handy und die Einrichter-Anleitung
+live ergänzt: „App-Einstellungen auf dem Handy“, die getrennten Knöpfe
+„Benachrichtigungen einstellen“ / „Akku-Einstellungen öffnen“ sowie vier kurze
+Schritte zum Fotografieren einer PC-Fehlermeldung und Anhängen an ein Ticket.
+„Übermitteln“ bleibt die ausdrückliche, getrennte Ticket-Absendung.
+`update_app_guides.php` prüft die sechs bekannten Seiten-IDs, Pfade, Vorher-Hashes
+und ungespeicherte Text-Änderungen; nur die drei genannten Seiten dürfen ändern.
+Alle 30 vorhandenen Android-Anhänge und die drei übrigen Seiten wurden per
+Readback unverändert bestätigt. Der Text-Sitzungsstand wurde ohne `force`
+aktualisiert. Die neuen Texte, Foto-Verweise und fünf App-Hilfebilder sind im
+angemeldeten Browser geprüft. Beleg und geschützter Rückweg:
+`artifacts/app-guide-settings-photo-20261012/`; der Read-derived-Plan kann mit
+`--rollback` über dasselbe Dateiziel nur bei unverändertem Nachher-Hash und ohne
+ungespeicherte Änderungen zurückgespielt werden. Kein OTA durch diesen
+Dokumentationsschritt, keine Berechtigungs-/Flow- oder Kernsystemänderung.
+
 Am 12.10.2026 wurde die vorhandene Seite **Android-App** (95685099) von einem
 Wegweiser zu einer aufgabenbezogenen App-Hilfe erweitert. Sie enthält kurze
 Bedienwege, Kapitel-Sprunglinks, Fehlerhilfe und fünf kleine Bedienbilder.

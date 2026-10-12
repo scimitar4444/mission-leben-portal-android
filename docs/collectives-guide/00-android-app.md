@@ -86,9 +86,16 @@ Es werden dienstliche Telefonnummern angezeigt, keine privaten. Mit dem **Stern*
 
 **Ein Problem melden:** Öffne die Kachel **IT Hilfe** und erstelle ein neues Ticket. Beschreibe kurz: Welche Anwendung? Was wolltest du tun? Welche Meldung erschien? Sende keine Passwörter oder TOTP-Codes mit.
 
-**Ein Foto hinzufügen:** Tippe beim Ticket auf **Datei hochladen / Foto machen** und dann auf **Foto aufnehmen**. Fotografiere nur das Problem, zum Beispiel eine Fehlermeldung oder ein defektes Gerät. Vermeide Personen, vertrauliche Unterlagen, Passwörter und TOTP-Codes.
+### Eine Fehlermeldung am PC fotografieren
 
-Prüfe die Vorschau. Mit **Verwerfen** entfernst du das Foto, mit **Noch mal aufnehmen** machst du ein neues. **Als Anhang verwenden** lädt das Foto als Ticket-Anhang hoch. Das Ticket selbst musst du danach noch absenden. Alternativ kannst du über **Datei auswählen** einen vorhandenen Anhang auswählen.
+1. Lass die Fehlermeldung auf dem PC sichtbar. Öffne auf dem Handy **IT Hilfe** und ein neues Ticket.
+2. Tippe auf **Datei hochladen / Foto machen → Foto aufnehmen**. Fotografiere die Meldung und bestätige das Foto in der Kamera mit dem **Haken**.
+3. Prüfe die Vorschau und tippe auf **Als Anhang verwenden**.
+4. Ergänze einen kurzen Betreff und beschreibe das Problem. Tippe zum Absenden auf **Übermitteln**.
+
+**Wichtig:** Das Foto anzuhängen sendet das Ticket noch nicht ab. Vermeide Personen, vertrauliche Unterlagen, Passwörter und TOTP-Codes im Bild.
+
+Mit **Verwerfen** entfernst du das Foto; mit **Noch mal aufnehmen** machst du ein neues. Über **Datei auswählen** kannst du stattdessen eine vorhandene Datei anhängen.
 
 **Direkt aus einer Anwendung:** Öffne in ihrer oberen App-Leiste das **Anwendungsmenü → Problem melden**. Anwendung und Betreff sind schon eingetragen. Ergänze dein Problem und sende das Ticket erst dann selbst ab.
 

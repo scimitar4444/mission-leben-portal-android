@@ -56,7 +56,8 @@ Beim ersten Anmelden führt dich der Einrichtungsassistent durch die wichtigsten
 Nutzt du zwei Handys, richte Schnellzugang, Benachrichtigungen und Akku-Einstellungen **auf jedem Handy separat** ein.
 
 - Erlaube Android-Benachrichtigungen, wenn du Hinweise zu neuen E-Mails, Talk-Nachrichten und Terminen erhalten möchtest. In den Einstellungen wählst du, wie viel Text zu sehen ist, wann Termine erinnert werden und ob eine Ruhezeit gelten soll.
-- Prüfe unter **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy** die Akku-Einstellungen. Manche Handys beenden Apps im Hintergrund besonders streng; dann können Hinweise verspätet oder gar nicht ankommen.
+- Unter **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy** öffnet **Benachrichtigungen einstellen** die Auswahl für Ton und Hinweise. Sie gilt nur für Mission Leben Zentral, nicht für andere Handy-Apps.
+- Prüfe dort auch die Akku-Ausnahme. **Akku-Einstellungen öffnen** hilft dir, den Hintergrundbetrieb zu erlauben. Manche Handys beenden Apps im Hintergrund besonders streng; dann können Hinweise verspätet oder gar nicht ankommen.
 - Wichtige IT-Mitteilungen stehen auf der Startseite. Ist eine Nachricht gelesen, kannst du sie klein zusammenklappen und später wieder öffnen.
 
 ## 5. Zimbra-Termine im Handy-Kalender anzeigen
@@ -66,3 +67,7 @@ Nur wenn Zimbra für dich freigegeben ist: Öffne **Einstellungen → Handy-Kale
 **Wichtig:** Das Handy zeigt die Termine nur an. Neue oder geänderte Termine trägst du weiterhin in Zimbra ein; Termine vom Handy werden nicht zu Zimbra übertragen. Andere Kalender-Apps mit Kalenderberechtigung können diese Termine ebenfalls sehen. Wenn du den Abgleich ausschaltest oder dich abmeldest, entfernt die App ihren lokalen Kalender.
 
 Besprechungslinks aus Zimbra öffnen bevorzugt die installierte Talk-App. Ohne Talk-App wird der Link im Browser geöffnet.
+
+## 6. Hilfe bei einem Problem
+
+Öffne **IT Hilfe** und erstelle ein Ticket. Eine Fehlermeldung am PC kannst du direkt mit dem Handy fotografieren und anhängen. [Zur kurzen Foto-Anleitung](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099#h-eine-fehlermeldung-am-pc-fotografieren).
