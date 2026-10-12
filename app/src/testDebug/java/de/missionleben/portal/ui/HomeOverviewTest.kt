@@ -155,20 +155,22 @@ class HomeOverviewTest {
         show()
         compose.onNodeWithTag("account-summary").assertIsDisplayed().performClick()
         assertEquals(1, settingsOpened)
-        compose.onNodeWithText("Kontakte").performClick()
+        compose.onNodeWithContentDescription("Kontakte").performClick()
         assertEquals(1, contactsOpened)
         screenshot("three-apps")
     }
 
     @Test @Config(qualifiers = "de-rDE-w320dp-h680dp-xhdpi")
-    fun compactContactsSitsBesideGreetingWithAFullTouchTargetEvenForLongNames() {
+    fun contactsHeaderSitsAboveGreetingWithAFullTouchTargetEvenForLongNames() {
         state.value = state.value.copy(user = state.value.user?.copy(displayName = "Alexandra-Maria Mustermann"))
         show()
         val greeting = compose.onNodeWithTag("greeting-copy", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-        val contacts = compose.onNodeWithTag("contacts-header").assertIsDisplayed()
-            .assertWidthIsEqualTo(64.dp).assertHeightIsAtLeast(48.dp).fetchSemanticsNode().boundsInRoot
-        assertTrue(contacts.left >= greeting.right)
-        assertTrue(contacts.top < greeting.bottom && contacts.bottom > greeting.top)
+        val contacts = compose.onNodeWithTag("contacts-header").assertIsDisplayed().fetchSemanticsNode()
+        assertTrue(contacts.boundsInRoot.bottom <= greeting.top)
+        // IconButton's visible icon area is 40dp, but its expanded touch target must remain 48dp.
+        val minimumTouchSize = with(compose.density) { 48.dp.toPx() }
+        assertTrue(contacts.touchBoundsInRoot.width >= minimumTouchSize)
+        assertTrue(contacts.touchBoundsInRoot.height >= minimumTouchSize)
         compose.onNodeWithTag("contacts-header").performClick()
         assertEquals(1, contactsOpened)
         screenshot("compact-contact-header-long-name-320")
