@@ -411,6 +411,7 @@ class PortalBrowserActivity : FragmentActivity() {
         installPasswordVisibility()
         installTalkChatGuard()
         installAnnouncementCenterGuard()
+        installAppHelpLayout()
         installDocumentsMobileLayout()
         installHelpdeskContainerLayout()
     }
@@ -419,6 +420,11 @@ class PortalBrowserActivity : FragmentActivity() {
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
         WebViewCompat.addDocumentStartJavaScript(webView, HelpdeskContainerLayout.SCRIPT,
             HelpdeskContainerLayout.ORIGINS)
+    }
+
+    private fun installAppHelpLayout() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        WebViewCompat.addDocumentStartJavaScript(webView, AppHelpLayout.SCRIPT, setOf(AppHelpLayout.ORIGIN))
     }
 
     private fun installDocumentsMobileLayout() {
@@ -599,6 +605,10 @@ class PortalBrowserActivity : FragmentActivity() {
             if (AnnouncementCenterPolicy.isAnnouncementPage(url)) {
                 // Fallback for older WebView providers without document-start script support.
                 view.evaluateJavascript(AnnouncementCenterPolicy.EMBEDDED_SCRIPT, null)
+            }
+            if (AppHelpLayout.isHelpPage(url)) {
+                // Also support WebView providers without document-start script injection.
+                view.evaluateJavascript(AppHelpLayout.SCRIPT, null)
             }
             if (DocumentsMobileLayout.isDocumentOrigin(url)) {
                 view.evaluateJavascript(DocumentsMobileLayout.SCRIPT, null)

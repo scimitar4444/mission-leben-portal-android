@@ -19,6 +19,24 @@ deren neue Anhänge über die Nextcloud-Datei-API, mit Datei-ID-/Pfad-/Hash-Prü
 Der vorherige Text und die Verifikation stehen in `artifacts/app-help-20261012/`.
 Es werden keine Berechtigungen, Flows oder App-Pakete geändert.
 
+Wichtig bei weiteren Hilfetext-Änderungen: AppData-`ISimpleFile.putContent()`
+aktualisiert nicht automatisch den kollaborativen Nextcloud-Text-Sitzungsstand.
+Am 12.10.2026 sah die Android-App deshalb noch den alten Text, obwohl die Datei
+und die Browser-Leseansicht bereits aktuell waren. `update_app_help.php` prüft
+nun ungespeicherte Text-Änderungen und setzt bei abweichendem Inhalt gezielt nur
+den Text-Sitzungsstand dieser Datei über `DocumentService.resetDocument()`
+zurück, niemals mit `force`. Die einmalige Reparatur ist in
+`reset_help_text_session.php` mit festem Datei-ID-/Pfad-/Hash-Ziel dokumentiert;
+vor dem Reset werden der aktuelle Hilfetext, die drei zugehörigen Text-Tabellen
+und der Yjs-Zustand in einem privaten, serverseitigen Kurzzeit-Backup gesichert.
+Session-Tokens aus diesem Backup gehören niemals in Git oder Übergaben.
+Eine bereits geöffnete alte Text-Ansicht muss anschließend neu geladen werden.
+
+Der Nextcloud-Kopf wird durch `AppHelpLayout` nur im Android-WebView unter
+`User-Guides-7` ausgeblendet, einschließlich des oberen Abstands. Der native
+Portal-Zurück-Knopf und die Kollektiv-Navigation bleiben erhalten. Browser,
+Authentik-Anmeldung und andere Nextcloud-Bereiche bleiben unverändert.
+
 Diese Texte entsprechen den vorhandenen Seiten unter **User Guides → Mission
 Leben Zentral**. Am 11.10.2026 wurden die Android-Anleitungen um bis zu zwei
 persönliche Handys, die gezielte Geräte-Ersetzung und das Passwort-Auge ergänzt.

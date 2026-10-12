@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-12",
+  "scope": "In-app help presentation and the existing help page's stale Nextcloud Text state",
+  "app": {
+    "versionName": "0.22.2-local",
+    "versionCode": 93,
+    "apkSha256": "0efb7c81434716300c6b30582563e9b8a288f20978e7e4ee94ef4080519bd87a",
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "installedWithDataPreserved": true,
+    "device": "TCL T807D, Android 16",
+    "otaPublished": false,
+    "physicalHelpRendering": "User confirmed the new introduction/chapter links and the missing Nextcloud top bar after reopening help",
+    "wakeSettingRestored": 0,
+    "protectedPortalNavigationChanged": false,
+    "permissionsChanged": false
+  },
+  "checks": {
+    "releaseUnitTests": 325,
+    "releaseUnitFailuresAndErrors": 0,
+    "releaseLint": "passed",
+    "releaseAssembly": "passed",
+    "helpJavascriptBehavior": "Exact-origin/path and main-frame guards, early injection, idempotence, SPA restoration passed",
+    "talkJavascriptRegression": "passed",
+    "phpSyntax": "Both help maintenance helpers passed on the identified Nextcloud host",
+    "gitDiffCheck": "passed"
+  },
+  "nextcloud": {
+    "host": "ml-nextcloud",
+    "ip": "172.16.40.140",
+    "pageId": 95685099,
+    "path": "Android-App/Readme.md",
+    "contentSha256BeforeReset": "43455701e7c99b5b0d7bd3e779f9358a272af61119179984c2da1faeab5d3cbc",
+    "contentSha256AfterTextSerialization": "57a2dd32d69d5f9a0c777fa4f1aca6687c9865ee527f17fe2781c2eb97684dad",
+    "afterSerializationContentCheck": "Only blank-line normalization; every nonempty Markdown line matches the local guide, all five image references retained",
+    "staleTextChecksum": "2dfa5fca",
+    "currentFileChecksum": "b3e36933",
+    "unsavedChangesBeforeReset": false,
+    "reset": "DocumentService.resetDocument(95685099), force=false; no other document reset",
+    "textStatePostcheck": "Text checksum f85ff4c1 matches the actual file, no unsaved steps",
+    "backedUpRows": { "text_documents": 1, "text_steps": 24, "text_sessions": 5 },
+    "privateTemporaryBackup": "/var/tmp/ml-help-text.YjMwevNk/help-text-state.ser.gz",
+    "backupSha256": "1c35fc15a71e453ddc656fef112620d00ba9c6519adc5d04e4996bc5b5e9e87b",
+    "browserAfterReload": "New introduction and chapter links visible; normal Nextcloud header retained; no app-only style injected",
+    "guidesOtherThanAndroidHelpChanged": false,
+    "coreOrConfigurationChanged": false
+  },
+  "futureGuideMaintenance": "update_app_help.php now contains an unsaved-edit guard and non-forced Text reset. PHP syntax verified; no second guide update executed from the amended helper in this turn",
+  "camera": {
+    "status": "Proposal only, not implemented",
+    "existingSupport": "WebChromeClient file chooser permits selected content URIs; website camera/microphone requests remain denied",
+    "proposedFlow": "Take photo, preview/remove, attach and transmit only when the user submits the ticket"
+  },
+  "rollback": {
+    "app": "Reinstall the previously verified readability-local-20261012 APK, without clearing application data",
+    "text": "Canonical Markdown was not changed by the reset; the private cache snapshot is retained for short-term recovery, not restored automatically over current content"
+  }
+}

@@ -35,6 +35,13 @@ try {
     if (!hash_equals($expected, hash('sha256', $file->getContent()))) {
         throw new RuntimeException('Concurrent page edit detected');
     }
+    // ISimpleFile does not emit the regular File node-written event used by Text.
+    // Without a reset, writers can still see an old collaborative document after a file update.
+    $textService = \OC::$server->get(\OCA\Text\Service\DocumentService::class);
+    $textDocument = $textService->getDocument($file->getId());
+    if ($textDocument !== null && $textService->hasUnsavedChanges($textDocument)) {
+        throw new RuntimeException('Refusing help update: Text has unsaved edits');
+    }
     $attachmentName = '.attachments.95685099';
     $attachments = $folder->fileExists($attachmentName) ? $folder->getFolder($attachmentName) : null;
     $names = [
@@ -80,15 +87,26 @@ try {
     if (!hash_equals($expected, hash('sha256', $file->getContent()))) {
         throw new RuntimeException('Concurrent page edit detected before save');
     }
+    $textDocument = $textService->getDocument($file->getId());
+    if ($textDocument !== null && $textService->hasUnsavedChanges($textDocument)) {
+        throw new RuntimeException('Concurrent Text edit detected before save');
+    }
     $content = $rollback ? $plan['beforeContent'] : $plan['content'];
     $file->putContent($content);
     $actual = hash('sha256', $file->getContent());
     if (!hash_equals(hash('sha256', $content), $actual)) {
         throw new RuntimeException('Page readback failed');
     }
+    $textDocument = $textService->getDocument($file->getId());
+    $textSessionReset = $textDocument !== null &&
+        $textDocument->getChecksum() !== $textService::computeCheckSum($content);
+    if ($textSessionReset) {
+        $textService->resetDocument($file->getId()); // Never force over unsaved changes.
+    }
     echo json_encode([
         'operation' => $rollback ? 'rollback' : 'update', 'pageId' => $file->getId(),
         'pageSha256' => $actual, 'images' => $outImages,
+        'textSessionReset' => $textSessionReset,
         'rollbackNote' => 'Restore only the guarded page content; leave new attachments recoverable.',
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT), "\n";
 } catch (Throwable $e) {
