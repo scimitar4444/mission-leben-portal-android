@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-12",
+  "status": "PUBLISHED_AND_BROWSER_VERIFIED",
+  "scope": "Existing Nextcloud Collectives Android-App help page 95685099 only, plus five new attachments on that page",
+  "pageUrl": "https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099",
+  "pagePath": "Android-App/Readme.md",
+  "beforeSha256": "467aa2ce53e56b887f50b83c581af3765669d5527bfb9fa143fde3174515e141",
+  "afterSha256": "43455701e7c99b5b0d7bd3e779f9358a272af61119179984c2da1faeab5d3cbc",
+  "applicationSourceBaseCommit": "c66a7b816562dc705648b27ce113d3b3c70dc23d",
+  "content": [
+    "Task-based instructions instead of a feature overview and sidebar-only directions",
+    "Home tiles and favorites, header icons, announcements and notice inbox boundaries",
+    "Notification privacy, quiet hours, reminders and battery delivery checks",
+    "Today, one-way calendar display, contacts, Talk start setting and conference links",
+    "Document download behavior and explicit outside-container retention warning",
+    "IT help and user-submitted contextual problem report",
+    "Setup assistant, language, device identity, secure unlock, Duo and shared-tablet logout",
+    "GitHub updates, normal Android scan and explicit harmful-app warning stop condition",
+    "Troubleshooting and preserved installation guide links"
+  ],
+  "illustrations": {
+    "kind": "Synthetic orientation illustrations reusing original Android vector icon paths; not real user screenshots",
+    "count": 5,
+    "widthPixels": 450,
+    "heightPixels": [104, 126, 132, 152, 186],
+    "attachmentIds": [96953412, 96953413, 96953414, 96953415, 96953416],
+    "source": "docs/collectives-guide/render_help_images.py and docs/collectives-guide/help-images/",
+    "privateData": false,
+    "screenshotProtectionChanged": false
+  },
+  "checks": {
+    "targetIdentity": "ml-nextcloud / 172.16.40.140 verified before writes",
+    "nextcloudStatus": "34.0.4; installed; maintenance false; needsDbUpgrade false",
+    "phpSyntax": "PASS",
+    "concurrentEditGuards": "Read-derived file ID, full filecache path and SHA-256 checked before save",
+    "remoteReadback": "Final Markdown exactly matches local source; page SHA-256 matches",
+    "otherFivePages": "All five unchanged against the current-turn before snapshot",
+    "oldThreeAttachments": "File IDs and hashes match prior guide evidence; not modified",
+    "newAttachments": "All five PNG hashes verified through Nextcloud file API",
+    "browser": "Authenticated Collectives page rendered all text and all five loaded inline images",
+    "chapterLinks": "All 12 target anchors exist; calendar, IT help and installation jumps exercised",
+    "childLink": "Personal-phone guide opened through the native Nextcloud link preview",
+    "mobileWidth": "393px viewport: illustrations render at 332px with correct aspect ratios; readable layout without image overflow",
+    "viewportCleanup": "Temporary viewport override reset; help tab retained as deliverable",
+    "preview": "help-published.jpg is the inspected full browser view; the two clipped screenshot attempts are not acceptance evidence",
+    "pythonSyntax": "PASS",
+    "gitDiffCheck": "PASS",
+    "appBuild": "Not required or performed; no Android application source or resources changed",
+    "physicalPhoneHelp": "Not exercised in this turn"
+  },
+  "rollback": {
+    "backup": "before.json retains current-turn original texts and hashes; original help source also remains in Git history",
+    "plan": "rollback-plan.json contains original content and the final content hash",
+    "procedure": "Stage rollback-plan.json as plan.json in a newly validated /tmp/ml-app-help.* directory; run update_app_help.php as www-data with --rollback. The helper refuses intervening edits. Do not remove unrelated attachments.",
+    "attachmentPolicy": "A content rollback leaves new images recoverable; no image deletion is required"
+  },
+  "unchanged": [
+    "App APK, version and OTA feed",
+    "Authenticator flows, groups, providers, session rules and permissions",
+    "Other guide pages, installation workflow and existing pictures",
+    "Screenshot protection and phone settings"
+  ],
+  "remaining": [
+    "User can reopen Hilfe & Anleitung in the installed pilot app to see the server-side content update",
+    "New native UI shortcuts remain a local pilot until a separate OTA release is authorized"
+  ]
+}

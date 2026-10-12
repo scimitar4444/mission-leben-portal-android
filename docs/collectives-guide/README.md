@@ -1,5 +1,24 @@
 # Aktive Kollektiv-Anleitungen
 
+Am 12.10.2026 wurde die vorhandene Seite **Android-App** (95685099) von einem
+Wegweiser zu einer aufgabenbezogenen App-Hilfe erweitert. Sie enthält kurze
+Bedienwege, Kapitel-Sprunglinks, Fehlerhilfe und fünf kleine Bedienbilder.
+Die verknüpften Installationsseiten und ihre Anhänge bleiben unverändert.
+Die Hilfe berücksichtigt auch die lokal umgesetzten Favoriten, die Glocke,
+„Problem melden“ und den neuen Hilfe-Einstieg. Deren OTA-Veröffentlichung ist
+weiterhin ein separater Schritt; die Seite nennt deshalb mögliche Unterschiede
+zwischen App-Versionen, ohne einen bereits erfolgten Rollout zu behaupten.
+
+Die neuen Bilder in `help-images/` sind neutrale Orientierungsbilder, keine
+Screenshots einer echten Sitzung. `render_help_images.py` verwendet dafür die
+originalen VectorDrawable-Pfade der App; es ändert keine Screenshot-Sperre und
+enthält keine persönlichen Daten. Die PNGs sind 450 Pixel breit und höchstens
+186 Pixel hoch. SVG-Quellen und Renderer bleiben zur Nachpflege erhalten.
+`update_app_help.php` schreibt ausschließlich die bestehende Hilfeseite und
+deren neue Anhänge über die Nextcloud-Datei-API, mit Datei-ID-/Pfad-/Hash-Prüfung.
+Der vorherige Text und die Verifikation stehen in `artifacts/app-help-20261012/`.
+Es werden keine Berechtigungen, Flows oder App-Pakete geändert.
+
 Diese Texte entsprechen den vorhandenen Seiten unter **User Guides → Mission
 Leben Zentral**. Am 11.10.2026 wurden die Android-Anleitungen um bis zu zwei
 persönliche Handys, die gezielte Geräte-Ersetzung und das Passwort-Auge ergänzt.
