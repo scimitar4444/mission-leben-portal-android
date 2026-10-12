@@ -45,6 +45,11 @@ object ReleaseNotesCatalog {
         ),
         92 to listOf(R.string.release_note_helpdesk_push),
         93 to listOf(R.string.release_note_shortcuts),
+        94 to listOf(
+            R.string.release_note_ticket_photo,
+            R.string.release_note_app_help,
+            R.string.release_note_phone_settings,
+        ),
     )
 
     fun forVersion(versionCode: Int): List<Int> = notesByVersion[versionCode].orEmpty()

@@ -8,6 +8,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ReleaseNotesPolicyTest {
+    @Test fun photoHelpReleaseHasNotesForStableAndPilotUpgrades() {
+        val current = listOf(
+            R.string.release_note_ticket_photo,
+            R.string.release_note_app_help,
+            R.string.release_note_phone_settings,
+        )
+        assertEquals(current, ReleaseNotesCatalog.forVersion(94))
+        assertEquals(current, ReleaseNotesCatalog.since(93, 94))
+        assertEquals(
+            listOf(R.string.release_note_helpdesk_push, R.string.release_note_shortcuts) + current,
+            ReleaseNotesCatalog.since(91, 94),
+        )
+    }
+
     @Test fun shortcutsReleaseExplainsFavoritesInboxAndProblemReport() {
         assertEquals(listOf(R.string.release_note_shortcuts), ReleaseNotesCatalog.forVersion(93))
     }

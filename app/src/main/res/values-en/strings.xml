@@ -394,4 +394,7 @@
     <string name="ticket_photo_failed">The photo could not be processed. Please try again.</string>
     <string name="ticket_file_failed">The file picker could not be opened.</string>
     <string name="ticket_camera_missing">The camera could not be opened. You can choose a file instead.</string>
+    <string name="release_note_ticket_photo">In IT Help, take a photo of a PC error with your phone and attach it to your ticket. Review the photo; the ticket is sent only when you tap Submit.</string>
+    <string name="release_note_app_help">Settings → Help &amp; guide now offers short explanations with small pictures of app features.</string>
+    <string name="release_note_phone_settings">Phone settings for the app are clearer: notification settings and battery settings. Both apply only to Mission Leben Zentral.</string>
 </resources>

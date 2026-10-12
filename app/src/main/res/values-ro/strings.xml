@@ -381,4 +381,7 @@
     <string name="ticket_photo_failed">Fotografia nu a putut fi procesată. Încearcă din nou.</string>
     <string name="ticket_file_failed">Selectorul de fișiere nu a putut fi deschis.</string>
     <string name="ticket_camera_missing">Camera nu a putut fi deschisă. Poți alege un fișier.</string>
+    <string name="release_note_ticket_photo">În Ajutor IT poți fotografia cu telefonul o eroare de pe PC și atașa fotografia la solicitare. Verifică fotografia; solicitarea se trimite doar când apeși Trimite.</string>
+    <string name="release_note_app_help">Setări → Ajutor și ghid oferă explicații scurte cu imagini mici pentru funcțiile aplicației.</string>
+    <string name="release_note_phone_settings">Setările aplicației pe telefon sunt mai clare: notificări și baterie. Ambele se aplică doar pentru Mission Leben Zentral.</string>
 </resources>

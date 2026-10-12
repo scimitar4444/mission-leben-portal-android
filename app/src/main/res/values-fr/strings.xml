@@ -380,4 +380,7 @@
     <string name="ticket_photo_failed">La photo ne peut pas être traitée. Réessaie.</string>
     <string name="ticket_file_failed">Impossible d’ouvrir le sélecteur de fichiers.</string>
     <string name="ticket_camera_missing">Impossible d’ouvrir l’appareil photo. Tu peux choisir un fichier.</string>
+    <string name="release_note_ticket_photo">Dans l’aide informatique, tu peux photographier une erreur sur le PC avec ton téléphone et joindre la photo à ton ticket. Vérifie la photo ; le ticket est envoyé seulement avec Envoyer.</string>
+    <string name="release_note_app_help">Réglages → Aide et guide propose des explications courtes avec de petites images sur les fonctions de l’application.</string>
+    <string name="release_note_phone_settings">Les réglages de l’application sur le téléphone sont plus clairs : notifications et batterie. Ils concernent uniquement Mission Leben Zentral.</string>
 </resources>

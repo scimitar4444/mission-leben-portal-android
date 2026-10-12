@@ -382,4 +382,7 @@
     <string name="ticket_photo_failed">Nie udało się przetworzyć zdjęcia. Spróbuj ponownie.</string>
     <string name="ticket_file_failed">Nie udało się otworzyć wyboru plików.</string>
     <string name="ticket_camera_missing">Nie udało się otworzyć aparatu. Możesz wybrać plik.</string>
+    <string name="release_note_ticket_photo">W Pomocy IT możesz sfotografować telefonem błąd na komputerze i dołączyć zdjęcie do zgłoszenia. Sprawdź zdjęcie; zgłoszenie zostanie wysłane dopiero po wybraniu Wyślij.</string>
+    <string name="release_note_app_help">Ustawienia → Pomoc i instrukcja zawierają krótkie objaśnienia z małymi obrazkami funkcji aplikacji.</string>
+    <string name="release_note_phone_settings">Ustawienia aplikacji w telefonie są teraz czytelniejsze: powiadomienia i bateria. Oba dotyczą tylko Mission Leben Zentral.</string>
 </resources>

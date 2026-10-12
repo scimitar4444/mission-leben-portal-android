@@ -420,4 +420,7 @@
     <string name="ticket_photo_failed">Das Foto konnte nicht verarbeitet werden. Bitte versuche es erneut.</string>
     <string name="ticket_file_failed">Die Dateiauswahl konnte nicht geöffnet werden.</string>
     <string name="ticket_camera_missing">Die Kamera konnte nicht geöffnet werden. Du kannst stattdessen eine Datei auswählen.</string>
+    <string name="release_note_ticket_photo">In IT Hilfe kannst du eine Fehlermeldung am PC mit dem Handy fotografieren und an dein Ticket anhängen. Prüfe das Foto; erst mit Übermitteln sendest du das Ticket ab.</string>
+    <string name="release_note_app_help">Unter Einstellungen → Hilfe &amp; Anleitung findest du kurze Erklärungen mit kleinen Bildern zu den App-Funktionen.</string>
+    <string name="release_note_phone_settings">Die App-Einstellungen auf dem Handy sind jetzt klarer: Benachrichtigungen einstellen und Akku-Einstellungen öffnen. Beides gilt nur für Mission Leben Zentral.</string>
 </resources>

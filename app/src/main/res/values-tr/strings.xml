@@ -380,4 +380,7 @@
     <string name="ticket_photo_failed">Fotoğraf işlenemedi. Lütfen tekrar dene.</string>
     <string name="ticket_file_failed">Dosya seçici açılamadı.</string>
     <string name="ticket_camera_missing">Kamera açılamadı. Bunun yerine dosya seçebilirsin.</string>
+    <string name="release_note_ticket_photo">BT Yardımında bilgisayardaki bir hatanın fotoğrafını telefonunla çekip talebine ekleyebilirsin. Fotoğrafı kontrol et; talep yalnızca Gönder düğmesine dokununca gönderilir.</string>
+    <string name="release_note_app_help">Ayarlar → Yardım ve kılavuz bölümünde uygulama özelliklerini küçük resimlerle anlatan kısa açıklamalar bulunur.</string>
+    <string name="release_note_phone_settings">Telefondaki uygulama ayarları artık daha açık: bildirimler ve pil. İkisi de yalnızca Mission Leben Zentral için geçerlidir.</string>
 </resources>

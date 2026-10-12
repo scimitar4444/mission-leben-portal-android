@@ -382,4 +382,7 @@
     <string name="ticket_photo_failed">Не вдалося обробити фото. Спробуй ще раз.</string>
     <string name="ticket_file_failed">Не вдалося відкрити вибір файлів.</string>
     <string name="ticket_camera_missing">Не вдалося відкрити камеру. Можна вибрати файл.</string>
+    <string name="release_note_ticket_photo">В ІТ-допомозі можна сфотографувати телефоном помилку на ПК й додати фото до заявки. Перевір фото; заявка надсилається лише після натискання Надіслати.</string>
+    <string name="release_note_app_help">Налаштування → Допомога та інструкція містять короткі пояснення функцій застосунку з невеликими зображеннями.</string>
+    <string name="release_note_phone_settings">Налаштування застосунку на телефоні стали зрозумілішими: сповіщення та акумулятор. Обидва стосуються лише Mission Leben Zentral.</string>
 </resources>

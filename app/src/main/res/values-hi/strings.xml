@@ -380,4 +380,7 @@
     <string name="ticket_photo_failed">फ़ोटो प्रोसेस नहीं हो सकी। फिर से कोशिश करें।</string>
     <string name="ticket_file_failed">फ़ाइल चयन नहीं खुल सका।</string>
     <string name="ticket_camera_missing">कैमरा नहीं खुल सका। आप फ़ाइल चुन सकते हैं।</string>
+    <string name="release_note_ticket_photo">आईटी सहायता में फ़ोन से पीसी की त्रुटि का फ़ोटो लेकर टिकट में जोड़ सकते हैं। फ़ोटो जाँचें; भेजें दबाने पर ही टिकट भेजा जाता है।</string>
+    <string name="release_note_app_help">सेटिंग → सहायता और मार्गदर्शिका में ऐप की सुविधाओं के छोटे चित्र और सरल विवरण मिलते हैं।</string>
+    <string name="release_note_phone_settings">फ़ोन पर ऐप की सेटिंग अब अधिक स्पष्ट हैं: सूचनाएँ और बैटरी। दोनों केवल Mission Leben Zentral पर लागू होती हैं।</string>
 </resources>
