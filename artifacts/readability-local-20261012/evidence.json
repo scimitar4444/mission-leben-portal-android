@@ -1,6 +1,6 @@
 {
   "date": "2026-10-12",
-  "status": "LOCAL_BUILT_TESTED_AND_PILOT_INSTALLED_LAYOUT_ACCEPTANCE_PENDING",
+  "status": "LOCAL_BUILT_TESTED_AND_PILOT_INSTALLED_HEADER_GEOMETRY_VERIFIED",
   "version": "0.22.2-local",
   "version_code": 93,
   "apk_sha256": "91d3a4c0f590f69660f2ee065604cef1ecdfacf8ccca6d8d98db098b10aba84a",
@@ -9,6 +9,19 @@
   "release_build": "PASS",
   "lint_release": "PASS_NO_ERRORS",
   "pilot_install": "ADB_REPLACE_SUCCESS; PACKAGE_VERSION_READ_BACK; NO_DATA_CLEAR_OR_REENROLLMENT",
+  "pilot_header_geometry": {
+    "brand_text_right_px": 599,
+    "contacts_icon_bounds_px": "[660,178][732,250]",
+    "bell_icon_bounds_px": "[792,178][864,250]",
+    "settings_icon_bounds_px": "[924,178][996,250]",
+    "brand_to_contacts_gap_px": 61,
+    "previous_gap_px": 37,
+    "icon_center_spacing_dp": 44,
+    "button_width_and_height_dp": 48,
+    "button_bounds_px": ["[600,142][744,286]", "[744,142][888,286]", "[888,142][1032,286]"],
+    "all_buttons_clickable_and_nonoverlapping": true
+  },
+  "pilot_navigation_check": "Not accepted: native target titles were absent in the subsequent tap sequence; a later focus read showed Chrome CustomTabActivity. The final hierarchy contained the app header again. Do not treat these tap results as verified contacts/inbox/settings navigation.",
   "changes": {
     "text": "ReadableText preserves Material explicit/style/inherited color precedence. Only Coral foreground text with the light Coral primary becomes #BF243A, including TextButton/OutlinedButton labels.",
     "scope": "Seven native Compose UI files use the shared foreground helper. Filled-control colors, icon tints, text size/layout, disabled alpha, white labels and dark-theme text are unchanged. Embedded web applications are not changed.",
@@ -23,9 +36,9 @@
   "ota_published": false,
   "server_group_flow_or_mfa_changes": false,
   "remaining_acceptance": [
-    "Updated icon positions on the unlocked pilot phone; unlock requested.",
+    "Navigation tap sequence was not conclusive because foreground changed; no further taps sent after discovering Chrome. Geometry is verified and existing click handlers are unchanged.",
     "User visual assessment of stronger accent text in the light theme; no system-wide theme change performed."
   ],
-  "wake_setting": "0 before and after installation and first UI read; temporary dump deleted; permanent wake unchanged",
+  "wake_setting": "0 before and after installation; temporarily enabled during short UI checks and restored to 0 after each check, confirmed by read-back; temporary dumps deleted",
   "rollback": "Previous signed local header/help APK retained in artifacts/header-help-local-20261012; revert scoped readability/header change and rebuild with production signer plus appropriate versionCode for a released rollback."
 }
