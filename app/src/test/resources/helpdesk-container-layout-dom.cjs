@@ -3,7 +3,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync('app/src/main/java/de/missionleben/portal/web/HelpdeskContainerLayout.kt', 'utf8');
-const script = source.match(/const val SCRIPT = """([\s\S]*?)"""/)[1];
+// The production Kotlin entry point replaces this JSON label before evaluation.
+const script = source.match(/const val SCRIPT = """([\s\S]*?)"""/)[1]
+  .replace('__ML_UPLOAD_LABEL_JSON__', () => JSON.stringify('Datei hochladen / Foto machen'));
 function page(origin = 'https://it-service.mission-leben.de:8443', pathname = '/otobo/customer.pl', embedded = false) {
   const nodes = [], events = [];
   const root = { appendChild(node) { nodes.push(node); } };
@@ -11,12 +13,15 @@ function page(origin = 'https://it-service.mission-leben.de:8443', pathname = '/
     documentElement: root, readyState: 'complete',
     heading: {textContent:'IT-Service – Mission Leben', setAttribute(k, v) {this[k] = v;}},
     querySelector(selector) { assert.equal(selector, '#oooHeader .oooWithSub h1'); return this.heading; },
+    querySelectorAll() { return []; },
     getElementById(id) { return nodes.find(n => n.id === id); },
     createElement(tag) { assert.equal(tag, 'style'); return {}; },
     addEventListener(name, action, options) { events.push({name, action, options}); },
   };
   const window = {}; window.top = embedded ? {} : window;
-  const context = vm.createContext({ window, document, location: {origin, pathname} });
+  const context = vm.createContext({ window, document, location: {origin, pathname},
+    MutationObserver: class { observe() {} },
+  });
   return {nodes, document, events, run() { vm.runInContext(script, context); }, root};
 }
 for (const origin of ['https://it-service.mission-leben.de', 'https://it-service.mission-leben.de:8443']) {
