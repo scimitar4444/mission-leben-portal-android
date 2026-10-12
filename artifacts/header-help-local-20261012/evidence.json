@@ -1,6 +1,6 @@
 {
   "date": "2026-10-12",
-  "status": "LOCAL_BUILT_TESTED_AND_PILOT_INSTALLED_UI_ACCEPTANCE_PENDING",
+  "status": "LOCAL_BUILT_TESTED_AND_PILOT_INSTALLED_BASIC_UI_VERIFIED_GUIDE_CONTENT_PENDING",
   "base_commit": "39b36a7dc58577ae15f3bf48dc6ddd8f4b3d331f",
   "version": "0.22.2-local",
   "version_code": 93,
@@ -10,6 +10,7 @@
   "release_build": "PASS",
   "lint_release": "PASS_NO_ERRORS",
   "pilot_install": "ADB_REPLACE_SUCCESS; PACKAGE_VERSION_READ_BACK; NO_DATA_CLEAR_OR_REENROLLMENT",
+  "pilot_ui": "Contacts, bell and settings share y=178..250; contacts opens existing Contacts screen with facility/favorite filters. Settings contains Help & guide; tapping it opens PortalBrowserActivity with a WebView. Actual Collectives content awaits user confirmation because the WebView does not expose page text in the UI hierarchy.",
   "features": {
     "header": "Signed-in contacts address book moved beside bell and settings; all three retain standard IconButton touch areas and use onBackground theme color. Brand text stays single-line within available width.",
     "greeting": "Old contact button removed; greeting and motivation use full width. Application tiles and birthdays unchanged.",
@@ -21,10 +22,10 @@
   "ota_published": false,
   "server_group_flow_or_mfa_changes": false,
   "remaining_acceptance": [
-    "Header positions and contacts entry on the unlocked pilot phone.",
-    "Help button and actual authenticated Collectives page on the pilot phone.",
+    "Actual authenticated Collectives content after help-button navigation; header/contact entry and help-button/browser entry already verified.",
     "Signed-out normal-browser guide path implemented; no live logout test to avoid disrupting the user's session."
   ],
-  "wake_setting": "0 before and after installation; permanent wake setting unchanged",
+  "wake_setting": "0 before and after installation; temporarily enabled for short UI checks and restored to 0 after each check, verified by read-back",
+  "readability_review": "Computed native-theme main text contrast: light 16.72:1, dark 15.81:1. Coral accent on the light canvas is 3.18:1; small accent text is a future improvement, not changed by this task. Embedded applications need separate review.",
   "rollback": "Previous local APK and registration retained; revert only this scoped UI/navigation change and rebuild with production signer plus an appropriate higher versionCode for a release rollback."
 }
