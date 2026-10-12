@@ -53,7 +53,7 @@ class HelpdeskContainerLayoutTest {
         assertTrue(script.contains("const uploadLabel = \"Datei hochladen / Foto machen\";"))
         assertTrue(script.contains("querySelectorAll('.DnDUpload .ReadyForUpload')"))
         assertTrue(script.contains("button.setAttribute('aria-label', uploadLabel)"))
-        assertTrue(script.contains("observer.observe(document, { childList: true, subtree: true })"))
+        assertTrue(script.contains("attributeFilter: ['class', 'style']"))
         assertTrue(script.contains("window.__mlHelpdeskContainerLayout.refresh()"))
         listOf("setInterval", ".click(", ".value =", "form.submit(", "innerHTML").forEach {
             assertFalse(it, script.contains(it))
@@ -65,5 +65,33 @@ class HelpdeskContainerLayoutTest {
         val script = HelpdeskContainerLayout.script(label)
         assertTrue(script.contains("const uploadLabel = \"\\\"\\\\\\u000a\\u0001\\u2028\\u2029__ML_UPLOAD_LABEL_JSON__\";"))
         assertFalse(script.contains("const uploadLabel = \"$label\";"))
+    }
+
+    @Test fun mobileEditorUsesTheSubjectWidthWithoutChangingSubjectOrEditorContents() {
+        val script = HelpdeskContainerLayout.SCRIPT
+        assertTrue(script.contains("@media only screen and (max-width: 767px)"))
+        assertTrue(script.contains("#oooContent .RichTextHolder {"))
+        assertTrue(script.contains("width: 91.2% !important; max-width: 100%"))
+        assertTrue(script.contains("margin-left: auto !important; margin-right: auto !important"))
+        assertTrue(script.contains(".ck-editor__editable { padding: 10px"))
+        assertTrue(script.contains(".ck-button__icon { width: 18px !important; height: 18px"))
+        assertTrue(script.contains("min-width: 44px !important; min-height: 44px"))
+        assertTrue(script.contains(".ck-toolbar__items { min-width: 0 !important; gap: 2px"))
+        assertTrue(script.contains(".ck-toolbar__separator { margin: 0"))
+        assertFalse(script.contains("#Subject"))
+        assertFalse(script.contains("contenteditable="))
+        assertFalse(script.contains("#RichText"))
+    }
+
+    @Test fun attachmentAndSubmitSpacingCollapsesWithoutHidingFilesOrTheUploadOverlay() {
+        val script = HelpdeskContainerLayout.SCRIPT
+        assertTrue(script.contains("#oooContent .DnDUploadBox { display: block"))
+        assertTrue(script.contains(".AttachmentListContainer { min-height: 0"))
+        assertTrue(script.contains(".AttachmentListContainer[data-ml-upload-busy=\"true\"] { min-height: 48px"))
+        assertTrue(script.contains("#oooContent #BottomActionRow { margin-top: 16px"))
+        assertTrue(script.contains("getComputedStyle(busy).display !== 'none'"))
+        assertFalse(script.contains(".AttachmentList { display: none"))
+        assertFalse(script.contains(".Busy { display: none"))
+        assertFalse(script.contains("submitRichText.click"))
     }
 }

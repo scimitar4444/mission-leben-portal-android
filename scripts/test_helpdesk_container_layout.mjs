@@ -8,7 +8,7 @@ const defaultLabel = 'Datei hochladen / Foto machen';
 
 function fixture({ origin = 'https://it-service.mission-leben.de:8443',
   path = '/otobo/customer.pl', frame = false, early = false, label = defaultLabel } = {}) {
-  const styles = [], observers = [], labels = [], listeners = new Map();
+  const styles = [], observers = [], labels = [], attachmentContainers = [], listeners = new Map();
   let writes = 0;
   const heading = { textContent: 'IT-Service – Mission Leben', setAttribute() {} };
   const root = { appendChild: style => { styles.push(style); } };
@@ -18,7 +18,8 @@ function fixture({ origin = 'https://it-service.mission-leben.de:8443',
     documentElement: early ? null : root,
     readyState: early ? 'loading' : 'complete',
     querySelector: selector => selector === '#oooHeader .oooWithSub h1' ? heading : null,
-    querySelectorAll: selector => selector === '.DnDUpload .ReadyForUpload' ? labels : [],
+    querySelectorAll: selector => selector === '.DnDUpload .ReadyForUpload' ? labels :
+      selector === '.AttachmentListContainer' ? attachmentContainers : [],
     createElement: () => ({}),
     getElementById: id => styles.find(style => style.id === id),
     addEventListener: (key, handler) => listeners.set(key, handler),
@@ -26,6 +27,7 @@ function fixture({ origin = 'https://it-service.mission-leben.de:8443',
   const window = {};
   window.top = frame ? {} : window;
   const context = vm.createContext({ document, window, location: { origin, pathname: path },
+    getComputedStyle: element => ({ display: element.display }),
     MutationObserver: class {
       constructor(handler) { this.handler = handler; }
       observe(target, options) { observers.push({ handler: this.handler, target, options }); }
@@ -43,6 +45,14 @@ function fixture({ origin = 'https://it-service.mission-leben.de:8443',
         closest: selector => selector === '.DnDUpload' ? button : null };
       labels.push(ready);
       return { ready, button };
+    },
+    addAttachmentList() {
+      const attributes = new Map(), busy = { display: 'none' }, files = [];
+      const container = { querySelector: selector => selector === '.Busy' ? busy : null,
+        getAttribute: name => attributes.get(name),
+        setAttribute: (name, value) => { writes++; attributes.set(name, value); } };
+      attachmentContainers.push(container);
+      return { container, busy, files };
     },
     run: () => vm.runInContext(template.replace('__ML_UPLOAD_LABEL_JSON__', () => JSON.stringify(label)), context),
     async mutate() { observers.forEach(({ handler }) => { handler(); handler(); }); await Promise.resolve(); },
@@ -63,7 +73,8 @@ for (const origin of ['https://it-service.mission-leben.de', 'https://it-service
   f.run(); await f.mutate();
   assert.equal(f.writes, initialWrites, 'Idempotent writes do not create mutation loops');
   assert.equal(f.observers.length, 1, 'Page-finished and document-start share one observer');
-  assert.equal(f.observers[0].options.attributes, undefined, 'Does not observe its own aria-label changes');
+  assert.deepEqual(Array.from(f.observers[0].options.attributeFilter), ['class', 'style'],
+    'Only vendor class/style changes are observed, not our aria-label or busy-state attribute');
   const second = f.addUpload(); await f.mutate();
   assert.equal(second.ready.textContent, defaultLabel, 'Ajax-created control gets the same label');
   assert.deepEqual(f.untouched, unchanged, 'Input, icons, progress, errors and ticket content are untouched');
@@ -89,4 +100,13 @@ for (const options of [
 const hostileLabel = 'Upload "file" \\ /\nphoto\u2028__ML_UPLOAD_LABEL_JSON__ <script> $&';
 const escaped = fixture({ label: hostileLabel }); const upload = escaped.addUpload(); escaped.run();
 assert.equal(upload.ready.textContent, hostileLabel, 'Label stays literal, not executable HTML or script');
-console.log('Helpdesk layout: localized upload label, Ajax, early injection, idempotence, guards and unchanged ticket controls passed.');
+const attachments = fixture(); const list = attachments.addAttachmentList(); attachments.run();
+assert.equal(list.container.getAttribute('data-ml-upload-busy'), 'false', 'Empty attachments need no placeholder height');
+const initialWrites = attachments.writes; await attachments.mutate();
+assert.equal(attachments.writes, initialWrites, 'Busy-state writes are idempotent');
+list.busy.display = 'block'; await attachments.mutate();
+assert.equal(list.container.getAttribute('data-ml-upload-busy'), 'true', 'Absolute loading overlay keeps a visible area');
+list.files.push('test-photo.jpg'); list.busy.display = 'none'; await attachments.mutate();
+assert.equal(list.container.getAttribute('data-ml-upload-busy'), 'false');
+assert.deepEqual(list.files, ['test-photo.jpg'], 'Selected attachments remain unchanged');
+console.log('Helpdesk layout: localized label, Ajax, guards, idempotence, compact editor and safe upload-state spacing passed.');

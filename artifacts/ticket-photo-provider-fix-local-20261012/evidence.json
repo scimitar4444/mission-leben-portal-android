@@ -1,6 +1,6 @@
 {
   "date": "2026-10-12",
-  "status": "LOCALLY_TESTED_AND_INSTALLED_PILOT_PHOTO_CONFIRMATION_PENDING",
+  "status": "LOCALLY_TESTED_AND_INSTALLED_PILOT_CAMERA_RETURN_CONFIRMED_BY_USER",
   "scope": "Repair the Android camera return path and clarify the IT Hilfe upload control",
   "cause": "The first camera build declared two providers with the same Android component name androidx.core.content.FileProvider. Live PackageManager ignored the duplicate; TCL camera could not open the output URI when confirming with V.",
   "fix": {
@@ -19,6 +19,7 @@
     "installation": "adb install -r succeeded; no uninstall or app-data reset",
     "installedHash": "Live base.apk SHA-256 equals the verified build",
     "liveProviderCheck": "PackageManager now registers .ticket-photos to .web.TicketPhotoProvider and .files to androidx.core.content.FileProvider as distinct components",
+    "cameraReturnAcceptance": "User reported hat funktioniert after being asked to take a new test photo and confirm the camera V. No real ticket submission was performed by the agent.",
     "otaPublished": false,
     "wakeSetting": "Remained at original value 0"
   },
@@ -44,7 +45,7 @@
     "procedure": "adb install -r using the previous same-signer local build; no data reset"
   },
   "remaining": [
-    "Pilot user confirms new upload label and physical camera V return to Foto prüfen",
+    "Physical camera V return confirmed by pilot user; full attachment draft cycle not independently observed",
     "Optional neutral attachment draft test by user without ticket submission",
     "Samsung camera acceptance before broad rollout",
     "OTA and live Kollektiv publication only with future release approval"

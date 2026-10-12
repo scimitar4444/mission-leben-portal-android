@@ -52,6 +52,14 @@ internal object HelpdeskContainerLayout {
                 button.setAttribute('aria-label', uploadLabel);
               }
             });
+            // The upload spinner is an absolute overlay: retain room only while it is visible.
+            document.querySelectorAll('.AttachmentListContainer').forEach(container => {
+              const busy = container.querySelector('.Busy');
+              const state = busy && getComputedStyle(busy).display !== 'none' ? 'true' : 'false';
+              if (container.getAttribute('data-ml-upload-busy') !== state) {
+                container.setAttribute('data-ml-upload-busy', state);
+              }
+            });
             if (document.getElementById('ml-helpdesk-container-layout')) return;
             const style = document.createElement('style');
             style.id = 'ml-helpdesk-container-layout';
@@ -72,6 +80,46 @@ internal object HelpdeskContainerLayout {
                   top: 50% !important; left: 10px !important; transform: translateY(-50%) !important;
                 }
                 #oooSearch { padding-left: 36px !important; }
+                /* RichTextHolder keeps desktop 17% side margins even on phones. Match the subject width. */
+                #oooContent .RichTextHolder {
+                  width: 91.2% !important; max-width: 100% !important; min-width: 0 !important;
+                  margin-left: auto !important; margin-right: auto !important; margin-top: 20px !important; box-sizing: border-box !important;
+                }
+                #oooContent .RichTextHolder .ck-editor,
+                #oooContent .RichTextHolder .ck-editor__main,
+                #oooContent .RichTextHolder .ck-editor__editable {
+                  width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important;
+                }
+                #oooContent .RichTextHolder .ck-editor__editable { padding: 10px !important; }
+                #oooContent .RichTextHolder .ck-toolbar {
+                  padding: 2px !important; --ck-icon-size: 18px;
+                }
+                #oooContent .RichTextHolder .ck-toolbar__items { min-width: 0 !important; gap: 2px !important; }
+                #oooContent .RichTextHolder .ck-toolbar__items > .ck-button,
+                #oooContent .RichTextHolder .ck-toolbar__items > .ck-dropdown,
+                #oooContent .RichTextHolder .ck-toolbar__items > .ck-toolbar__separator { margin: 0 !important; }
+                /* Smaller glyphs, not smaller touch targets; preserve every formatting tool. */
+                #oooContent .RichTextHolder .ck-toolbar__items > .ck-button,
+                #oooContent .RichTextHolder .ck-toolbar__items > .ck-dropdown > .ck-button {
+                  min-width: 44px !important; min-height: 44px !important; padding: 4px !important;
+                }
+                #oooContent .RichTextHolder .ck-toolbar .ck-button__icon { width: 18px !important; height: 18px !important; }
+                #oooContent .RichTextHolder .ck-toolbar .ck-dropdown__arrow { width: 8px !important; height: 16px !important; margin-left: 4px !important; }
+                #oooContent .RichTextHolder .ck-toolbar .ck-button__label { font-size: 12px !important; }
+                /* Do not reserve desktop-sized empty space between the attachment and Submit. */
+                #oooContent .RichTextHolder + .Row { margin-top: 16px !important; }
+                #oooContent .DnDUploadBox { display: block !important; }
+                #oooContent .DnDUpload {
+                  display: flex !important; align-items: center !important; justify-content: center !important;
+                  gap: 8px !important; height: auto !important; min-height: 56px !important; padding: 12px !important; box-sizing: border-box !important;
+                }
+                #oooContent .DnDUpload i.ooofo-save { font-size: 24px !important; line-height: 1 !important; margin: 0 !important; }
+                #oooContent .DnDUpload .ReadyForUpload {
+                  font-size: 14px !important; line-height: 1.4 !important; width: auto !important; min-width: 0 !important; flex: 1 !important;
+                }
+                #oooContent .AttachmentListContainer { min-height: 0 !important; height: auto !important; margin-top: 8px !important; }
+                #oooContent .AttachmentListContainer[data-ml-upload-busy="true"] { min-height: 48px !important; }
+                #oooContent #BottomActionRow { margin-top: 16px !important; }
                 #oooContent > #oooMainBox { height: auto !important; min-height: 0 !important; }
                 #oooMainBox > .oooTile_TicketList {
                   display: block !important; width: 100% !important; height: auto !important;
@@ -102,7 +150,7 @@ internal object HelpdeskContainerLayout {
             Promise.resolve().then(() => { queued = false; install(); });
           };
           const observer = new MutationObserver(schedule);
-          observer.observe(document, { childList: true, subtree: true });
+          observer.observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
           window.__mlHelpdeskContainerLayout = { refresh: install };
           install();
           if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });

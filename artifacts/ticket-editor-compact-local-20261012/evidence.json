@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-12",
+  "status": "LOCALLY_TESTED_AND_INSTALLED_PHYSICAL_LAYOUT_ACCEPTANCE_PENDING",
+  "scope": "Mobile IT Hilfe text editor and attachment/submit spacing; subject unchanged",
+  "changes": {
+    "editor": "91.2 percent responsive width, centered; 10px inner padding; 20px top gap instead of desktop margins",
+    "toolbar": "18px glyphs, smaller labels and spacing; primary toolbar buttons retain minimum 44x44px targets; no formatting control removed",
+    "attachment": "Compact flex upload button; no empty 144px attachment reservation; existing attached-file table remains untouched and in flow",
+    "uploadProgress": "Existing absolute Busy overlay remains intact; class/style mutation detection provides 48px container area while it is visible, without polling",
+    "submit": "16px instead of 80px margin before the existing BottomActionRow; no duplicate button, automatic submit or fixed overlay",
+    "guards": "Presentation-only existing trusted OTOBO customer origin/path/main-frame scope and mobile <=767px media rule"
+  },
+  "checks": {
+    "releaseUnitTests": 352,
+    "failures": 0,
+    "errors": 0,
+    "lint": "Passed; 0 errors, 127 warnings including existing warnings",
+    "assembly": "Passed",
+    "scriptBehavior": "scripts/test_helpdesk_container_layout.mjs passed; upload-state toggles, idempotence, scoped label and existing ticket controls",
+    "browserPreview": {
+      "scope": "Temporary CSS only in an agent-created empty New Ticket browser tab; no real upload or ticket submission",
+      "width393Before": { "editorWidth": 243.53125, "toolbarHeight": 208.1875, "submitTop": 1092 },
+      "width393After": { "editorWidth": 336.515625, "toolbarHeight": 186, "emptyAttachmentsHeight": 0, "submitTop": 777.1875 },
+      "measurementCaveat": "Spacing preview retained the longer server label; installed app supplies Datei hochladen / Foto machen",
+      "width360": "Editor responsive at 306.421875px, no document horizontal overflow; formatting dropdown opened and closed successfully",
+      "desktop": "1280px editor width remained 733.90625px; mobile rules inactive",
+      "cleanup": "Temporary stylesheet removed, viewport reset and empty test tabs closed"
+    },
+    "gitDiffCheck": "Passed"
+  },
+  "app": {
+    "versionName": "0.22.2-local",
+    "versionCode": 93,
+    "apkSha256": "12335448bbd26cb5a7397f7b5a7084b99034f6492ec28f39b19d0a81a4b8533f",
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "installation": "adb install -r succeeded on TCL T807D Android 16; no uninstall or data reset; installed base.apk hash verified",
+    "wakeSetting": "Remained at original value 0",
+    "otaPublished": false
+  },
+  "priorPhotoAcceptance": "Pilot user confirmed the corrected physical camera V workflow works",
+  "serverChanges": { "otobo": false, "authentik": false, "nextcloud": false },
+  "rollback": {
+    "apk": "artifacts/ticket-photo-provider-fix-local-20261012/mission-leben-zentral-0.22.2-local.apk",
+    "sha256": "f40b4b25f46de8ed215b49bb535a66a56ba9c5467a59110b13ec35a590123c9b",
+    "procedure": "adb install -r previous same-signer local APK, no data reset"
+  },
+  "remaining": ["Pilot user checks the updated editor and spacing on the physical phone", "Selected-file and busy-state physical layout check before broad rollout", "No OTA approval from this turn"]
+}
