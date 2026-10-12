@@ -12,10 +12,31 @@ internal object HelpdeskContainerLayout {
             uri.port in setOf(-1, 443, 8443) && uri.rawUserInfo == null && uri.path == "/otobo/customer.pl"
     }
 
-    const val SCRIPT = """
+    fun script(uploadLabel: String): String = SCRIPT.replace("__ML_UPLOAD_LABEL_JSON__", quote(uploadLabel))
+
+    private fun quote(value: String): String = buildString {
+        append('"')
+        value.forEach { character ->
+            when (character) {
+                '"' -> append("\\\"")
+                '\\' -> append("\\\\")
+                in '\u0000'..'\u001f', '\u2028', '\u2029' ->
+                    append("\\u" + character.code.toString(16).padStart(4, '0'))
+                else -> append(character)
+            }
+        }
+        append('"')
+    }
+
+    internal const val SCRIPT = """
         (() => {
           if (!['https://it-service.mission-leben.de', 'https://it-service.mission-leben.de:8443'].includes(location.origin) ||
               location.pathname !== '/otobo/customer.pl' || window.top !== window) return;
+          if (window.__mlHelpdeskContainerLayout) {
+            window.__mlHelpdeskContainerLayout.refresh();
+            return;
+          }
+          const uploadLabel = __ML_UPLOAD_LABEL_JSON__;
           const install = () => {
             if (!document.documentElement) return;
             // Rename only the known dashboard heading, never a ticket title, form or article.
@@ -23,6 +44,14 @@ internal object HelpdeskContainerLayout {
             if (heading && heading.textContent.trim() === 'IT-Service – Mission Leben') {
               heading.textContent = 'IT Hilfe'; heading.setAttribute('title', 'IT Hilfe');
             }
+            // Preserve the existing upload control, icons, input, handlers and progress/error labels.
+            document.querySelectorAll('.DnDUpload .ReadyForUpload').forEach(label => {
+              if (label.textContent !== uploadLabel) label.textContent = uploadLabel;
+              const button = label.closest('.DnDUpload');
+              if (button && button.getAttribute('aria-label') !== uploadLabel) {
+                button.setAttribute('aria-label', uploadLabel);
+              }
+            });
             if (document.getElementById('ml-helpdesk-container-layout')) return;
             const style = document.createElement('style');
             style.id = 'ml-helpdesk-container-layout';
@@ -65,6 +94,16 @@ internal object HelpdeskContainerLayout {
             `;
             document.documentElement.appendChild(style);
           };
+          // OTOBO creates its ready label asynchronously. Coalesce DOM changes; never poll.
+          let queued = false;
+          const schedule = () => {
+            if (queued) return;
+            queued = true;
+            Promise.resolve().then(() => { queued = false; install(); });
+          };
+          const observer = new MutationObserver(schedule);
+          observer.observe(document, { childList: true, subtree: true });
+          window.__mlHelpdeskContainerLayout = { refresh: install };
           install();
           if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });
         })();

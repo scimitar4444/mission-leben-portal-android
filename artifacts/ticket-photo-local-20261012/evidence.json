@@ -1,7 +1,7 @@
 {
   "date": "2026-10-12",
   "scope": "Native photo attachment selection in the existing IT Hilfe customer portal",
-  "status": "LOCAL_BUILD_INSTALLED_ON_PILOT_CAMERA_ACCEPTANCE_PENDING",
+  "status": "PILOT_FOUND_PROVIDER_COMPONENT_COLLISION_FIX_IN_PROGRESS",
   "app": {
     "versionName": "0.22.2-local",
     "versionCode": 93,
@@ -11,7 +11,7 @@
     "installedApkHash": "Live installed base.apk SHA-256 equals the verified build",
     "device": "TCL T807D, Android 16",
     "otaPublished": false,
-    "cameraDeviceAcceptance": "Native TCL camera CaptureActivity observed after installation. User capture, preview and discard confirmation pending; no ticket submitted by agent",
+    "cameraDeviceAcceptance": "User confirmed camera opens and takes a photo, X works, but V cannot return the photo. Live logs show duplicate FileProvider component ignored and SecurityException when TCL camera writes the output URI. No ticket submitted by agent.",
     "wakeSetting": "Remained at original value 0 throughout this turn"
   },
   "implementation": {
@@ -51,5 +51,5 @@
     "sha256": "0efb7c81434716300c6b30582563e9b8a288f20978e7e4ee94ef4080519bd87a",
     "procedure": "Reinstall previous same-signer local APK using adb install -r, no uninstall or application-data reset"
   },
-  "remaining": ["Physical camera/preview/discard acceptance", "Optional neutral photo attachment confirmation in a draft without ticket submission", "Samsung camera acceptance before broad rollout", "OTA release notes and Kollektiv publication with the future release"]
+  "remaining": ["Install distinct TicketPhotoProvider fix and verify live Android component registration", "Physical camera/preview/discard acceptance", "Optional neutral photo attachment confirmation in a draft without ticket submission", "Samsung camera acceptance before broad rollout", "OTA release notes and Kollektiv publication with the future release"]
 }

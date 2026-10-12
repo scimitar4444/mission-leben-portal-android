@@ -371,6 +371,7 @@
     <string name="release_note_shortcuts">Nouveau : utilise l’étoile pour placer tes applications favorites en premier. La cloche rassemble documents, annonces et réponses. Signale un problème à l’aide informatique depuis le menu de l’application.</string>
     <string name="ticket_attachment_title">Ajouter une pièce jointe</string>
     <string name="ticket_photo_take">Prendre une photo</string>
+    <string name="ticket_upload_or_photo">Téléverser un fichier / Prendre une photo</string>
     <string name="ticket_file_choose">Choisir un fichier</string>
     <string name="ticket_photo_preview">Vérifier la photo</string>
     <string name="ticket_photo_use">Joindre la photo</string>

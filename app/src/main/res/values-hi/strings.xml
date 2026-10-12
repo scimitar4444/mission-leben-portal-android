@@ -371,6 +371,7 @@
     <string name="release_note_shortcuts">नया: सितारे से पसंदीदा ऐप आगे लाएँ। घंटी में दस्तावेज़, घोषणाएँ और टिकट के उत्तर मिलते हैं। ऐप मेनू से आईटी सहायता को समस्या बता सकते हैं।</string>
     <string name="ticket_attachment_title">अटैचमेंट जोड़ें</string>
     <string name="ticket_photo_take">फ़ोटो लें</string>
+    <string name="ticket_upload_or_photo">फ़ाइल अपलोड करें / फ़ोटो लें</string>
     <string name="ticket_file_choose">फ़ाइल चुनें</string>
     <string name="ticket_photo_preview">फ़ोटो जाँचें</string>
     <string name="ticket_photo_use">अटैचमेंट में जोड़ें</string>

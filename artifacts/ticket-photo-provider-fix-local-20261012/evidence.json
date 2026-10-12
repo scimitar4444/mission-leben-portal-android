@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-12",
+  "status": "LOCALLY_TESTED_AND_INSTALLED_PILOT_PHOTO_CONFIRMATION_PENDING",
+  "scope": "Repair the Android camera return path and clarify the IT Hilfe upload control",
+  "cause": "The first camera build declared two providers with the same Android component name androidx.core.content.FileProvider. Live PackageManager ignored the duplicate; TCL camera could not open the output URI when confirming with V.",
+  "fix": {
+    "photoProvider": "de.missionleben.portal.web.TicketPhotoProvider, distinct from the existing APK update provider",
+    "security": "Non-exported, temporary URI grants, existing ticket-photos-only roots; no new Android permission and no relaxation of session gates",
+    "label": "Datei hochladen / Foto machen",
+    "labelScope": "Visible and accessibility-ready label on the existing OTOBO customer upload control only; includes Ajax-created controls; all nine app languages; no server/core change",
+    "preserved": "Existing file input, upload handlers, icons, progress/errors, ticket fields and separate ticket submission"
+  },
+  "app": {
+    "versionName": "0.22.2-local",
+    "versionCode": 93,
+    "apkSha256": "f40b4b25f46de8ed215b49bb535a66a56ba9c5467a59110b13ec35a590123c9b",
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "device": "TCL T807D, Android 16",
+    "installation": "adb install -r succeeded; no uninstall or app-data reset",
+    "installedHash": "Live base.apk SHA-256 equals the verified build",
+    "liveProviderCheck": "PackageManager now registers .ticket-photos to .web.TicketPhotoProvider and .files to androidx.core.content.FileProvider as distinct components",
+    "otaPublished": false,
+    "wakeSetting": "Remained at original value 0"
+  },
+  "checks": {
+    "releaseUnitTests": 350,
+    "failures": 0,
+    "errors": 0,
+    "lint": "Passed; 0 errors, 127 warnings including existing warnings",
+    "releaseAssembly": "Passed; production signer verified",
+    "javascriptBehavior": "scripts/test_helpdesk_container_layout.mjs passed: guards, localization/literal labels, early injection, Ajax, idempotence, preserved ticket/upload controls",
+    "newRegressions": "Distinct provider components, isolated provider roots, label quote escaping and localized DOM/accessibility scope",
+    "diffCheck": "Passed"
+  },
+  "guide": "docs/collectives-guide/00-android-app.md photo instructions updated locally; not yet published to Kollektiv",
+  "serverChanges": {
+    "otobo": false,
+    "authentik": false,
+    "nextcloud": false
+  },
+  "rollback": {
+    "apk": "artifacts/app-help-header-local-20261012/mission-leben-zentral-0.22.2-local.apk",
+    "sha256": "0efb7c81434716300c6b30582563e9b8a288f20978e7e4ee94ef4080519bd87a",
+    "procedure": "adb install -r using the previous same-signer local build; no data reset"
+  },
+  "remaining": [
+    "Pilot user confirms new upload label and physical camera V return to Foto prüfen",
+    "Optional neutral attachment draft test by user without ticket submission",
+    "Samsung camera acceptance before broad rollout",
+    "OTA and live Kollektiv publication only with future release approval"
+  ]
+}

@@ -2,6 +2,7 @@
 package de.missionleben.portal.web
 
 import android.app.Application
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.ExifInterface
@@ -43,6 +44,26 @@ class TicketPhotoStoreTest {
         assertEquals("content", uri.scheme)
         assertEquals("${context.packageName}.ticket-photos", uri.authority)
         assertTrue(uri.path!!.startsWith("/ticket_photos/"))
+    }
+
+    @Test fun photosAndUpdatesUseDistinctNonExportedAndroidComponents() {
+        val photos = context.packageManager.resolveContentProvider("${context.packageName}.ticket-photos", PackageManager.GET_META_DATA)!!
+        val updates = context.packageManager.resolveContentProvider("${context.packageName}.files", PackageManager.GET_META_DATA)!!
+        assertEquals(TicketPhotoProvider::class.java.name, photos.name)
+        assertNotEquals(updates.name, photos.name)
+        assertFalse(photos.exported)
+        assertTrue(photos.grantUriPermissions)
+        val providers = requireNotNull(context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_PROVIDERS).providers)
+        assertEquals(providers.size, providers.map { it.name }.distinct().size)
+    }
+
+    @Test fun ticketAndUpdateProvidersCannotShareOneAnothersFiles() {
+        val photo = TicketPhotoStore.createCapture(context)
+        assertThrows(IllegalArgumentException::class.java) {
+            FileProvider.getUriForFile(context, "${context.packageName}.files", photo)
+        }
+        val unrelated = File(context.filesDir, "updates/app.apk").apply { parentFile!!.mkdirs(); writeText("test") }
+        assertThrows(IllegalArgumentException::class.java) { TicketPhotoStore.uri(context, unrelated) }
     }
 
     @Test fun cleanupNeverDeletesAnotherDirectoryOrAnUnownedFile() {

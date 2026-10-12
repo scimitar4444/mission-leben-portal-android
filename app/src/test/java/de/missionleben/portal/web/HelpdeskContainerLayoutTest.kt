@@ -47,4 +47,23 @@ class HelpdeskContainerLayoutTest {
         assertTrue(script.contains("top: 50% !important; left: 10px !important; transform: translateY(-50%)"))
         assertTrue(script.contains("#oooSearch { padding-left: 36px"))
     }
+
+    @Test fun uploadLabelIsLocalizedWithoutChangingFileOrTicketData() {
+        val script = HelpdeskContainerLayout.script("Datei hochladen / Foto machen")
+        assertTrue(script.contains("const uploadLabel = \"Datei hochladen / Foto machen\";"))
+        assertTrue(script.contains("querySelectorAll('.DnDUpload .ReadyForUpload')"))
+        assertTrue(script.contains("button.setAttribute('aria-label', uploadLabel)"))
+        assertTrue(script.contains("observer.observe(document, { childList: true, subtree: true })"))
+        assertTrue(script.contains("window.__mlHelpdeskContainerLayout.refresh()"))
+        listOf("setInterval", ".click(", ".value =", "form.submit(", "innerHTML").forEach {
+            assertFalse(it, script.contains(it))
+        }
+    }
+
+    @Test fun labelEscapesJavascriptCharactersInOnePass() {
+        val label = "\"\\\n\u0001\u2028\u2029__ML_UPLOAD_LABEL_JSON__"
+        val script = HelpdeskContainerLayout.script(label)
+        assertTrue(script.contains("const uploadLabel = \"\\\"\\\\\\u000a\\u0001\\u2028\\u2029__ML_UPLOAD_LABEL_JSON__\";"))
+        assertFalse(script.contains("const uploadLabel = \"$label\";"))
+    }
 }

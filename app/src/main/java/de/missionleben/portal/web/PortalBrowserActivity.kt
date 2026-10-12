@@ -90,6 +90,9 @@ class PortalBrowserActivity : FragmentActivity() {
     private var contactComposeRunning = false
     private val deviceService by lazy { DeviceServiceRepository(applicationContext) }
     private val talkChatScript by lazy { TalkChatPolicy.script(AppPreferences(this).talkStartAtLastChat) }
+    private val helpdeskLayoutScript by lazy {
+        HelpdeskContainerLayout.script(getString(R.string.ticket_upload_or_photo))
+    }
     private val sessionPolicy by lazy {
         WebSessionPolicy(
             BuildConfig.AUTHENTIK_BASE_URL,
@@ -423,7 +426,7 @@ class PortalBrowserActivity : FragmentActivity() {
 
     private fun installHelpdeskContainerLayout() {
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
-        WebViewCompat.addDocumentStartJavaScript(webView, HelpdeskContainerLayout.SCRIPT,
+        WebViewCompat.addDocumentStartJavaScript(webView, helpdeskLayoutScript,
             HelpdeskContainerLayout.ORIGINS)
     }
 
@@ -620,7 +623,7 @@ class PortalBrowserActivity : FragmentActivity() {
                 view.evaluateJavascript(DocumentsMobileLayout.SCRIPT, null)
             }
             if (HelpdeskContainerLayout.isHelpdeskPage(url)) {
-                view.evaluateJavascript(HelpdeskContainerLayout.SCRIPT, null)
+                view.evaluateJavascript(helpdeskLayoutScript, null)
             }
             if (intent.getBooleanExtra(EXTRA_LOGOUT, false) && !logoutFinished) {
                 logoutFinished = true

@@ -371,6 +371,7 @@
     <string name="release_note_shortcuts">Yeni: Yıldız ile favori uygulamaları öne taşıyın. Zil; belgeleri, duyuruları ve talep yanıtlarını toplar. Uygulama menüsünden BT Yardımına sorun bildirebilirsiniz.</string>
     <string name="ticket_attachment_title">Ek ekle</string>
     <string name="ticket_photo_take">Fotoğraf çek</string>
+    <string name="ticket_upload_or_photo">Dosya yükle / Fotoğraf çek</string>
     <string name="ticket_file_choose">Dosya seç</string>
     <string name="ticket_photo_preview">Fotoğrafı kontrol et</string>
     <string name="ticket_photo_use">Ek olarak kullan</string>

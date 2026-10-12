@@ -373,6 +373,7 @@
     <string name="release_note_shortcuts">Nowe: gwiazdka przenosi ulubione aplikacje na początek. Dzwonek zbiera dokumenty, ogłoszenia i odpowiedzi. Problem można zgłosić do pomocy IT w menu aplikacji.</string>
     <string name="ticket_attachment_title">Dodaj załącznik</string>
     <string name="ticket_photo_take">Zrób zdjęcie</string>
+    <string name="ticket_upload_or_photo">Prześlij plik / Zrób zdjęcie</string>
     <string name="ticket_file_choose">Wybierz plik</string>
     <string name="ticket_photo_preview">Sprawdź zdjęcie</string>
     <string name="ticket_photo_use">Dodaj jako załącznik</string>

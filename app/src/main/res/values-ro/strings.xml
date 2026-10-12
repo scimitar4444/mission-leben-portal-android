@@ -372,6 +372,7 @@
     <string name="release_note_shortcuts">Nou: steaua aduce aplicațiile favorite în față. Clopoțelul adună documente, anunțuri și răspunsuri. Raportează o problemă către Ajutor IT din meniul aplicației.</string>
     <string name="ticket_attachment_title">Adaugă atașament</string>
     <string name="ticket_photo_take">Fă o fotografie</string>
+    <string name="ticket_upload_or_photo">Încarcă un fișier / Fă o fotografie</string>
     <string name="ticket_file_choose">Alege fișier</string>
     <string name="ticket_photo_preview">Verifică fotografia</string>
     <string name="ticket_photo_use">Atașează fotografia</string>

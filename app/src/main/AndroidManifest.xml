@@ -42,7 +42,7 @@
                 android:resource="@xml/update_file_paths" />
         </provider>
         <provider
-            android:name="androidx.core.content.FileProvider"
+            android:name=".web.TicketPhotoProvider"
             android:authorities="${applicationId}.ticket-photos"
             android:exported="false"
             android:grantUriPermissions="true">

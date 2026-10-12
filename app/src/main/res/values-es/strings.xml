@@ -371,6 +371,7 @@
     <string name="release_note_shortcuts">Nuevo: Usa la estrella para poner tus aplicaciones favoritas primero. La campana reúne documentos, anuncios y respuestas. Puedes informar de un problema a Ayuda de TI desde el menú de la aplicación.</string>
     <string name="ticket_attachment_title">Añadir adjunto</string>
     <string name="ticket_photo_take">Hacer una foto</string>
+    <string name="ticket_upload_or_photo">Subir archivo / Hacer foto</string>
     <string name="ticket_file_choose">Elegir archivo</string>
     <string name="ticket_photo_preview">Revisar foto</string>
     <string name="ticket_photo_use">Usar como adjunto</string>

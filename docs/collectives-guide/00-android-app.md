@@ -84,7 +84,7 @@ Es werden dienstliche Telefonnummern angezeigt, keine privaten. Mit dem **Stern*
 
 **Ein Problem melden:** Öffne die Kachel **IT Hilfe** und erstelle ein neues Ticket. Beschreibe kurz: Welche Anwendung? Was wolltest du tun? Welche Meldung erschien? Sende keine Passwörter oder TOTP-Codes mit.
 
-**Ein Foto hinzufügen:** Tippe beim Ticket auf **Anhang hinzufügen** und dann auf **Foto aufnehmen**. Fotografiere nur das Problem, zum Beispiel eine Fehlermeldung oder ein defektes Gerät. Vermeide Personen, vertrauliche Unterlagen, Passwörter und TOTP-Codes.
+**Ein Foto hinzufügen:** Tippe beim Ticket auf **Datei hochladen / Foto machen** und dann auf **Foto aufnehmen**. Fotografiere nur das Problem, zum Beispiel eine Fehlermeldung oder ein defektes Gerät. Vermeide Personen, vertrauliche Unterlagen, Passwörter und TOTP-Codes.
 
 Prüfe die Vorschau. Mit **Verwerfen** entfernst du das Foto, mit **Noch mal aufnehmen** machst du ein neues. **Als Anhang verwenden** lädt das Foto als Ticket-Anhang hoch. Das Ticket selbst musst du danach noch absenden. Alternativ kannst du über **Datei auswählen** einen vorhandenen Anhang auswählen.
 

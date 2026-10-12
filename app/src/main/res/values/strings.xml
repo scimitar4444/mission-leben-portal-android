@@ -410,6 +410,7 @@
     <string name="report_problem_body">Betroffene Anwendung: %1$s\n\nBitte beschreibe hier kurz dein Problem:</string>
     <string name="release_note_shortcuts">Neu: Mit dem Stern holst du Lieblingsanwendungen nach vorne. Die Glocke sammelt Dokumente, Ankündigungen und Ticketantworten. Über das Anwendungsmenü kannst du ein Problem an IT Hilfe melden.</string>
     <string name="ticket_attachment_title">Anhang hinzufügen</string>
+    <string name="ticket_upload_or_photo">Datei hochladen / Foto machen</string>
     <string name="ticket_photo_take">Foto aufnehmen</string>
     <string name="ticket_file_choose">Datei auswählen</string>
     <string name="ticket_photo_preview">Foto prüfen</string>

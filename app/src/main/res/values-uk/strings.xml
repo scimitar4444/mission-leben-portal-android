@@ -373,6 +373,7 @@
     <string name="release_note_shortcuts">Нове: зірочка переносить обрані застосунки на початок. Дзвіночок збирає документи, оголошення та відповіді. У меню застосунку можна повідомити ІТ про проблему.</string>
     <string name="ticket_attachment_title">Додати вкладення</string>
     <string name="ticket_photo_take">Зробити фото</string>
+    <string name="ticket_upload_or_photo">Завантажити файл / Зробити фото</string>
     <string name="ticket_file_choose">Вибрати файл</string>
     <string name="ticket_photo_preview">Перевірити фото</string>
     <string name="ticket_photo_use">Додати як вкладення</string>
