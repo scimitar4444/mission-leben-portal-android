@@ -4,7 +4,7 @@ Mission Leben Zentral hält für ntfy einen `remoteMessaging`-Vordergrunddienst 
 stiller Dauerbenachrichtigung. Der Dienst verbindet nach Netzunterbrechungen
 erneut, verwendet `START_STICKY` und startet nach Boot und Paket-Update.
 
-Ab 0.12.18 prüft die App in **Einstellungen → Benachrichtigungen → Push-Zustellung**:
+Ab 0.12.18 prüft die App in **Einstellungen → Benachrichtigungen** (aktueller Abschnitt **App-Einstellungen auf dem Handy**):
 
 - ob die App und ihr Verbindungskanal Benachrichtigungen anzeigen dürfen,
 - ob die Android-Akku-Ausnahme aktiv ist,

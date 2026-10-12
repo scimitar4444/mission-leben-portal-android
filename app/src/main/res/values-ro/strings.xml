@@ -2,8 +2,8 @@
 <resources>
     <string name="help_and_guide">Ajutor și instrucțiuni</string>
     <string name="help_open_failed">Instrucțiunile nu au putut fi deschise.</string>
-    <string name="push_reliability_title">Notificări push</string>
-    <string name="push_reliability_description">Verifică aceste setări pentru a primi notificări și cu ecranul stins.</string>
+    <string name="push_reliability_title">Setările aplicației pe telefon</string>
+    <string name="push_reliability_description">Aceste setări se aplică doar pentru Mission Leben Zentral.</string>
     <string name="push_reliability_not_registered">Notificările push nu sunt încă configurate pe acest dispozitiv.</string>
     <string name="push_reliability_notifications_ok">Notificări: permise</string>
     <string name="push_reliability_notifications_off">Notificări: dezactivate</string>

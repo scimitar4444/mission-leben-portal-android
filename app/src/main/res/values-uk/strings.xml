@@ -2,8 +2,8 @@
 <resources>
     <string name="help_and_guide">Допомога та інструкція</string>
     <string name="help_open_failed">Не вдалося відкрити інструкцію.</string>
-    <string name="push_reliability_title">Push-сповіщення</string>
-    <string name="push_reliability_description">Перевірте ці налаштування, щоб отримувати сповіщення навіть із вимкненим екраном.</string>
+    <string name="push_reliability_title">Налаштування застосунку на телефоні</string>
+    <string name="push_reliability_description">Ці налаштування стосуються лише Mission Leben Zentral.</string>
     <string name="push_reliability_not_registered">Push-сповіщення ще не налаштовано на цьому пристрої.</string>
     <string name="push_reliability_notifications_ok">Сповіщення: дозволено</string>
     <string name="push_reliability_notifications_off">Сповіщення: вимкнено</string>

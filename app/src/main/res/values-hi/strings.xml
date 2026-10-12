@@ -2,8 +2,8 @@
 <resources>
     <string name="help_and_guide">सहायता और निर्देश</string>
     <string name="help_open_failed">निर्देश नहीं खोले जा सके।</string>
-    <string name="push_reliability_title">पुश सूचनाएँ</string>
-    <string name="push_reliability_description">स्क्रीन बंद होने पर भी सूचना पाने के लिए ये सेटिंग जाँचें।</string>
+    <string name="push_reliability_title">फोन पर ऐप की सेटिंग</string>
+    <string name="push_reliability_description">ये सेटिंग केवल Mission Leben Zentral पर लागू होती हैं।</string>
     <string name="push_reliability_not_registered">इस डिवाइस पर पुश अभी सेट नहीं है।</string>
     <string name="push_reliability_notifications_ok">सूचनाएँ: अनुमति है</string>
     <string name="push_reliability_notifications_off">सूचनाएँ: बंद हैं</string>

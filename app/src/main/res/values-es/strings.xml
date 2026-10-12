@@ -2,8 +2,8 @@
 <resources>
     <string name="help_and_guide">Ayuda y guía</string>
     <string name="help_open_failed">No se pudo abrir la guía.</string>
-    <string name="push_reliability_title">Entrega de avisos</string>
-    <string name="push_reliability_description">Comprueba estos ajustes para recibir avisos con la pantalla apagada.</string>
+    <string name="push_reliability_title">Ajustes de la app en tu teléfono</string>
+    <string name="push_reliability_description">Estos ajustes solo se aplican a Mission Leben Zentral.</string>
     <string name="push_reliability_not_registered">Los avisos aún no están configurados en este dispositivo.</string>
     <string name="push_reliability_notifications_ok">Notificaciones: permitidas</string>
     <string name="push_reliability_notifications_off">Notificaciones: desactivadas</string>

@@ -56,7 +56,7 @@ Beim ersten Anmelden führt dich der Einrichtungsassistent durch die wichtigsten
 Nutzt du zwei Handys, richte Schnellzugang, Benachrichtigungen und Akku-Einstellungen **auf jedem Handy separat** ein.
 
 - Erlaube Android-Benachrichtigungen, wenn du Hinweise zu neuen E-Mails, Talk-Nachrichten und Terminen erhalten möchtest. In den Einstellungen wählst du, wie viel Text zu sehen ist, wann Termine erinnert werden und ob eine Ruhezeit gelten soll.
-- Prüfe unter **Einstellungen → Push-Zustellung** die Akku-Einstellungen. Manche Handys beenden Apps im Hintergrund besonders streng; dann können Hinweise verspätet oder gar nicht ankommen.
+- Prüfe unter **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy** die Akku-Einstellungen. Manche Handys beenden Apps im Hintergrund besonders streng; dann können Hinweise verspätet oder gar nicht ankommen.
 - Wichtige IT-Mitteilungen stehen auf der Startseite. Ist eine Nachricht gelesen, kannst du sie klein zusammenklappen und später wieder öffnen.
 
 ## 5. Zimbra-Termine im Handy-Kalender anzeigen

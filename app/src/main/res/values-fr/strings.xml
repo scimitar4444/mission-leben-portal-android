@@ -2,8 +2,8 @@
 <resources>
     <string name="help_and_guide">Aide et guide</string>
     <string name="help_open_failed">Le guide n’a pas pu être ouvert.</string>
-    <string name="push_reliability_title">Réception des notifications</string>
-    <string name="push_reliability_description">Vérifie ces réglages pour recevoir des alertes lorsque l’écran est éteint.</string>
+    <string name="push_reliability_title">Réglages de l’appli sur ton téléphone</string>
+    <string name="push_reliability_description">Ces réglages concernent uniquement Mission Leben Zentral.</string>
     <string name="push_reliability_not_registered">Les notifications ne sont pas encore configurées sur cet appareil.</string>
     <string name="push_reliability_notifications_ok">Notifications : autorisées</string>
     <string name="push_reliability_notifications_off">Notifications : désactivées</string>

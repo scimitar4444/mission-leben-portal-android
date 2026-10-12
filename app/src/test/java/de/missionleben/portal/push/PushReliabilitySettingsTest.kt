@@ -95,4 +95,20 @@ class PushReliabilitySettingsTest {
             }
         }
     }
+
+    @Test fun phoneSettingsExplainTheirMissionLebenAppScopeInEveryLanguage() {
+        val application = RuntimeEnvironment.getApplication()
+        for (language in listOf("de", "en", "es", "fr", "hi", "pl", "ro", "tr", "uk")) {
+            val context = application.createConfigurationContext(
+                Configuration(application.resources.configuration).apply {
+                    setLocale(Locale.forLanguageTag(language))
+                },
+            )
+            val title = context.getString(R.string.push_reliability_title)
+            val description = context.getString(R.string.push_reliability_description)
+            assertTrue(language, title.isNotBlank())
+            assertTrue(language, description.contains("Mission Leben Zentral"))
+            if (language != "de") assertNotEquals(language, "App-Einstellungen auf dem Handy", title)
+        }
+    }
 }

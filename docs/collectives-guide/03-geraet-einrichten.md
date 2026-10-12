@@ -59,7 +59,7 @@ Das betroffene Gerät in Authentik deaktivieren und die IT informieren. Nur in d
 ## Nach der Registrierung gemeinsam prüfen
 
 - Beim ersten Anmelden erklärt der Einrichtungsassistent die passenden Einstellungen. Er zeigt nur Schritte, für die das jeweilige Konto freigegeben ist.
-- Auf persönlichen Handys: Android-Benachrichtigungen erlauben und unter **Einstellungen → Push-Zustellung** die Akku-Einstellungen prüfen. Sonst können Mail-, Talk- und Terminhinweise ausbleiben.
+- Auf persönlichen Handys: Android-Benachrichtigungen erlauben und unter **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy** die Akku-Einstellungen prüfen. Sonst können Mail-, Talk- und Terminhinweise ausbleiben.
 - Bei zwei persönlichen Handys: Registrierung, Schnellzugang, Benachrichtigungen und Akku-Einstellungen auf jedem Handy einzeln prüfen.
 - Nur bei einem persönlichen Konto mit Zimbra-Freigabe: Der freiwillige Handy-Kalender kann Zimbra-Termine für 1 Tag bis 2 Wochen anzeigen. Termine werden ausschließlich in Zimbra angelegt und geändert; vom Handy geht nichts zurück.
 - Auf gemeinsamen Tablets und Gruppenkonto-Diensthandys gibt es keinen persönlichen Handy-Kalenderabgleich. Eine Anmeldung per App-Bestätigung („Duo“) ist für Gruppenkonten ebenfalls nicht vorgesehen.

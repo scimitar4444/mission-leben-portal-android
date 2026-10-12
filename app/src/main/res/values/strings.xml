@@ -26,8 +26,8 @@
     <string name="setup_assistant_next">Weiter</string>
     <string name="talk_meeting_native_failed">Die installierte Talk-App konnte diesen Besprechungslink nicht öffnen. Bitte prüfe die Talk-App oder versuche es später erneut.</string>
     <string name="settings_back">Zurück</string>
-    <string name="push_reliability_title">Push-Zustellung</string>
-    <string name="push_reliability_description">Diese Prüfung hilft, damit Hinweise auch bei ausgeschaltetem Bildschirm ankommen.</string>
+    <string name="push_reliability_title">App-Einstellungen auf dem Handy</string>
+    <string name="push_reliability_description">Diese Einstellungen gelten nur für Mission Leben Zentral.</string>
     <string name="push_reliability_not_registered">Push ist auf diesem Gerät noch nicht eingerichtet.</string>
     <string name="push_reliability_notifications_ok">Benachrichtigungen: erlaubt</string>
     <string name="push_reliability_notifications_off">Benachrichtigungen: ausgeschaltet</string>

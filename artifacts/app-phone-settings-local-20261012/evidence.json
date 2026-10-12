@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-12",
+  "status": "LOCALLY_TESTED_AND_INSTALLED_PILOT_COPY_ACCEPTANCE_PENDING",
+  "scope": "Clear nontechnical label for the app-specific phone settings, replacing Push-Zustellung",
+  "copy": {
+    "title": "App-Einstellungen auf dem Handy",
+    "description": "Diese Einstellungen gelten nur für Mission Leben Zentral.",
+    "languages": 9,
+    "localGuides": "Android app guide, personal phone guide, admin guide and technical push checklist updated; live Kollektiv pages not yet published"
+  },
+  "checks": {
+    "releaseUnitTests": { "tests": 358, "failures": 0, "errors": 0, "skipped": 0 },
+    "appScopeAndSettingsTests": "6 passed, including localized app name and title without German fallback",
+    "lintRelease": { "errors": 0, "warnings": 127, "result": "PASS" },
+    "assembleRelease": "PASS",
+    "gitDiffCheck": "PASS"
+  },
+  "app": {
+    "versionName": "0.22.2-local",
+    "versionCode": 93,
+    "apk": "artifacts/app-phone-settings-local-20261012/mission-leben-zentral-0.22.2-local.apk",
+    "sha256": "728cde496c937decd893674bb93213ad9030670c9bf1e89b5a5cd1cb9654ed07",
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "productionSignerMatches": true,
+    "installation": "adb install -r Success on existing TCL T807D; no uninstall or data reset; MainActivity launched",
+    "installedHashMatchesArtifact": true,
+    "physicalCopyAcceptance": "USER_REVIEW_PENDING",
+    "wakeSetting": "Unchanged at 0",
+    "otaPublished": false
+  },
+  "invariants": "Resource labels only; category IDs, preferences, intent targets, permissions and server/Authentik state unchanged",
+  "rollback": "Existing notification-settings-local-20261012 APK with the same signer and versionCode; no data migration",
+  "release": "0.23.0 publication remains paused"
+}

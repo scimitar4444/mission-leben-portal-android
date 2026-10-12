@@ -38,7 +38,7 @@ Auf dem Sperrbildschirm bleiben Inhalte verborgen. Gemeinsame Tablets zeigen kei
 
 **Nach Feierabend Ruhe haben:** Schalte dort **Ruhezeit** ein und wähle **Von** und **Bis**. Du kannst normale Benachrichtigungen auch ganz ausschalten. Systemmeldungen, Gerätesperren und Anmeldeanfragen bleiben ausgenommen; Android muss Benachrichtigungen aber grundsätzlich erlauben.
 
-**Ton und Hinweise einstellen:** Öffne **Einstellungen → Benachrichtigungen → Push-Zustellung → Benachrichtigungen einstellen**. Dort stellst du die Android-Hinweise für die ganze App und ihre einzelnen Kategorien ein, zum Beispiel Mail, Talk, Termine oder IT Hilfe.
+**Ton und Hinweise einstellen:** Öffne **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy → Benachrichtigungen einstellen**. Das gilt nur für **Mission Leben Zentral** und die Kategorien darin, zum Beispiel Mail, Talk, Termine oder IT Hilfe – nicht für andere Apps auf deinem Handy.
 
 **Einen weggewischten Hinweis wiederfinden:** Öffne die **Glocke → Neu für mich**. Dokument- und Tickethinweise bleiben dort bis zu 14 Tage auffindbar, auch wenn du sie bei Android weggewischt hast. Tippe auf einen Eintrag oder auf **Alle als gelesen markieren**. Mails und Talk-Nachrichten findest du weiterhin direkt in Zimbra beziehungsweise Talk; die Glocke ist kein vollständiges Nachrichtenarchiv.
 
@@ -134,7 +134,7 @@ Tippe unten in den Einstellungen auf die **Versionsnummer**, um **Neu in dieser 
 ### Keine Benachrichtigungen
 
 1. Öffne **Einstellungen → Benachrichtigungen**. Prüfe, ob Hinweise eingeschaltet sind und gerade keine Ruhezeit gilt.
-2. Prüfe im Bereich **Push-Zustellung**, ob Android Benachrichtigungen erlaubt und die **Akku-Ausnahme** aktiv ist.
+2. Prüfe im Bereich **App-Einstellungen auf dem Handy**, ob Android Benachrichtigungen erlaubt und die **Akku-Ausnahme** aktiv ist.
 3. Tippe bei Bedarf auf **Akku-Einstellungen öffnen**. Erlaube Hintergrundbetrieb; schütze die App gegebenenfalls in **Letzte Apps** vor **Alle schließen**. Die Namen unterscheiden sich je nach Handy.
 
 Die Akku-Anzeige bestätigt die Freigaben, nicht eine dauerhafte Serververbindung. Bleibt das Problem bestehen, melde es über **IT Hilfe**.
