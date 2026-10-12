@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-12",
+  "status": "OTA_PUBLISHED_PUBLIC_MANIFEST_FULL_APK_SIGNATURE_AND_CI_VERIFIED",
+  "userAuthorization": "After the guide is finished, publish OTA; previous release pause explicitly lifted",
+  "sourceCommit": "341b35ebeefd98b0b448535c9b91b104e9df2f10",
+  "tag": "v0.23.0",
+  "tagObject": "5ed22ea47c707e8e29454946ef1c51b10cede633",
+  "versionName": "0.23.0",
+  "versionCode": 94,
+  "url": "https://github.com/scimitar4444/mission-leben-portal-android/releases/tag/v0.23.0",
+  "publishedAt": "2026-10-12T21:38:35Z",
+  "apk": {
+    "sha256": "dcdc2c97b7de50c8e1e27be17771c38ad5387f4c62c839a7a985eb238793932a",
+    "sizeBytes": 27925707,
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "productionSignerUnchanged": true,
+    "apiDigestAndSizeMatch": true,
+    "completedPublicDownloadEqualsSignedBuild": true
+  },
+  "manifest": {
+    "schema": 1,
+    "sha256": "499e49bf0cb8d3bd6204219dc1350c78429abe03ac14346ddba9d686cf8a2bb4",
+    "latestPublicEqualsBuiltManifest": true,
+    "verificationTransport": "Direct HTTPS without workspace proxy"
+  },
+  "checks": {
+    "releaseUnitTests": {"tests": 359, "failures": 0, "errors": 0, "skipped": 0},
+    "debugAndComposeTests": {"tests": 386, "failures": 0, "errors": 0, "skipped": 0},
+    "lintRelease": {"errors": 0, "warnings": 130},
+    "releaseAssembly": "PASS from committed Git archive",
+    "javascriptAndDomPrograms": "Seven PASS, including current upload label template and compact form contract",
+    "bootstrapContractTests": 17,
+    "helpdeskAssignmentTests": 2,
+    "otoboConfigTests": 2,
+    "releaseNotes": "Three new entries in all nine languages; stable 91→94 includes ticket push and shortcuts; pilot 93→94 shows only new entries",
+    "permissions": "aapt dump permissions identical to production 0.22.0; no camera, storage or gallery permission added",
+    "staleTestsRepairedBeforePublication": "Old DOM fixture did not substitute localized upload label; two old debug assertions expected contacts beside greeting instead of in header. Tests now verify the real 48dp touch target and accessible contact icon. Final local run and CI all pass.",
+    "gitDiffCheck": "PASS",
+    "remoteMainAndTagDereference": "Both equal release source commit at publication",
+    "githubCi": {
+      "run": 38311486936,
+      "headSha": "341b35ebeefd98b0b448535c9b91b104e9df2f10",
+      "result": "SUCCESS",
+      "jobs": {"build":"success","bootstrap-source-tests":"success","bridge-tests":"success","enrollment-portal-tests":"success"}
+    },
+    "bridgeAndEnrollmentPublicHealth": "Both status ok"
+  },
+  "guides": {
+    "status": "PUBLISHED_AND_BROWSER_VERIFIED",
+    "changedPages": [95685099,95685102,95685145],
+    "unchangedPages": [94019508,95685097,95685139],
+    "all30AndroidAttachmentsUnchanged": true,
+    "reference": "artifacts/app-guide-settings-photo-20261012/evidence.json"
+  },
+  "deviceAcceptance": {
+    "pilot": "Same functional 0.22.2-local / code 93 installed earlier on TCL T807D, registration retained; user confirmed camera return and compact ticket form",
+    "finalOtaInstallation": "NOT_YET_USER_TESTED; release publication does not claim installation",
+    "remaining": "Samsung camera acceptance and a real visible IT-ticket-reply push with correct ticket target remain separate E2E gates",
+    "noAgentTicketSubmitted": true,
+    "noWakeSettingsChangedThisTurn": true
+  },
+  "invariants": {
+    "absoluteSessionLifetimeDays": 90,
+    "authentikGroupsFlowsProvidersChangedThisTurn": false,
+    "newAndroidPermissions": false,
+    "screenshotsRemainBlocked": true,
+    "serverDeploymentOrRestartThisReleaseTurn": false,
+    "installer": "Existing GitHub APK/visible Android installer and security scan; no F-Droid or silent installation",
+    "unrelatedDirtyBootstrapAndInstrumentationExcluded": true
+  },
+  "rollback": "Retain v0.22.0. Stop offering v0.23.0 if needed and issue a production-signed forward fix with versionCode >94; no silent downgrade or stale database restore. Guide rollback is separately guarded.",
+  "updateHandoff": {"thread":"01a0ce21-5cd3-7e51-b113-f98a3e9bbb2f", "status":"SENT_SUCCESSFULLY", "file":"Authentik-Update-Uebergabe.md", "authority":"Existing user authorization; information only"}
+}

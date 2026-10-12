@@ -21,9 +21,10 @@ Wegweiser zu einer aufgabenbezogenen App-Hilfe erweitert. Sie enthält kurze
 Bedienwege, Kapitel-Sprunglinks, Fehlerhilfe und fünf kleine Bedienbilder.
 Die verknüpften Installationsseiten und ihre Anhänge bleiben unverändert.
 Die Hilfe berücksichtigt auch die lokal umgesetzten Favoriten, die Glocke,
-„Problem melden“ und den neuen Hilfe-Einstieg. Deren OTA-Veröffentlichung ist
-weiterhin ein separater Schritt; die Seite nennt deshalb mögliche Unterschiede
-zwischen App-Versionen, ohne einen bereits erfolgten Rollout zu behaupten.
+„Problem melden“ und den neuen Hilfe-Einstieg. Diese Funktionen gehören zum
+am 12.10.2026 auf ausdrückliche Nutzerfreigabe veröffentlichten OTA-Release
+0.23.0 (versionCode 94). Die Seite nennt mögliche Unterschiede, weil ältere
+installierte App-Versionen noch nicht alle Funktionen enthalten.
 
 Die neuen Bilder in `help-images/` sind neutrale Orientierungsbilder, keine
 Screenshots einer echten Sitzung. `render_help_images.py` verwendet dafür die

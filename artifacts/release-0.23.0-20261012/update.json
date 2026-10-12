@@ -1,0 +1,9 @@
+{
+  "apkUrl": "https://github.com/scimitar4444/mission-leben-portal-android/releases/download/v0.23.0/mission-leben-zentral.apk",
+  "packageName": "de.missionleben.portal",
+  "schema": 1,
+  "sha256": "dcdc2c97b7de50c8e1e27be17771c38ad5387f4c62c839a7a985eb238793932a",
+  "sizeBytes": 27925707,
+  "versionCode": 94,
+  "versionName": "0.23.0"
+}
