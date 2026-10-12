@@ -10,6 +10,7 @@ import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.push.PushManager
 import de.missionleben.portal.push.UnreadNotificationStore
 import de.missionleben.portal.web.PortalBrowserActivity
+import de.missionleben.portal.web.TicketPhotoStore
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -19,6 +20,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 object DeviceSecurityLock {
     fun clearPersistentSession(context: Context) {
         val applicationContext = context.applicationContext
+        TicketPhotoStore.clearAll(applicationContext)
         AppPreferences(applicationContext).apply {
             enrollmentState = EnrollmentState.BLOCKED
             clearReauthentication()

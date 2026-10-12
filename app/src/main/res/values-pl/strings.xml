@@ -371,4 +371,15 @@
     <string name="report_problem_subject">Problem z %1$s</string>
     <string name="report_problem_body">Aplikacja: %1$s\n\nKrótko opisz problem:</string>
     <string name="release_note_shortcuts">Nowe: gwiazdka przenosi ulubione aplikacje na początek. Dzwonek zbiera dokumenty, ogłoszenia i odpowiedzi. Problem można zgłosić do pomocy IT w menu aplikacji.</string>
+    <string name="ticket_attachment_title">Dodaj załącznik</string>
+    <string name="ticket_photo_take">Zrób zdjęcie</string>
+    <string name="ticket_file_choose">Wybierz plik</string>
+    <string name="ticket_photo_preview">Sprawdź zdjęcie</string>
+    <string name="ticket_photo_use">Dodaj jako załącznik</string>
+    <string name="ticket_photo_retake">Zrób ponownie</string>
+    <string name="ticket_photo_discard">Odrzuć</string>
+    <string name="ticket_photo_hint">Dodanie zdjęcia przesyła je jako załącznik. Zgłoszenie wysyłasz potem samodzielnie. Fotografuj tylko potrzebne informacje.</string>
+    <string name="ticket_photo_failed">Nie udało się przetworzyć zdjęcia. Spróbuj ponownie.</string>
+    <string name="ticket_file_failed">Nie udało się otworzyć wyboru plików.</string>
+    <string name="ticket_camera_missing">Nie udało się otworzyć aparatu. Możesz wybrać plik.</string>
 </resources>

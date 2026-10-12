@@ -369,4 +369,15 @@
     <string name="report_problem_subject">Problème avec %1$s</string>
     <string name="report_problem_body">Application : %1$s\n\nDécris brièvement ton problème :</string>
     <string name="release_note_shortcuts">Nouveau : utilise l’étoile pour placer tes applications favorites en premier. La cloche rassemble documents, annonces et réponses. Signale un problème à l’aide informatique depuis le menu de l’application.</string>
+    <string name="ticket_attachment_title">Ajouter une pièce jointe</string>
+    <string name="ticket_photo_take">Prendre une photo</string>
+    <string name="ticket_file_choose">Choisir un fichier</string>
+    <string name="ticket_photo_preview">Vérifier la photo</string>
+    <string name="ticket_photo_use">Joindre la photo</string>
+    <string name="ticket_photo_retake">Reprendre la photo</string>
+    <string name="ticket_photo_discard">Supprimer</string>
+    <string name="ticket_photo_hint">La photo est téléversée lorsque tu la joins. Tu dois ensuite envoyer le ticket. Ne photographie que les informations nécessaires.</string>
+    <string name="ticket_photo_failed">La photo ne peut pas être traitée. Réessaie.</string>
+    <string name="ticket_file_failed">Impossible d’ouvrir le sélecteur de fichiers.</string>
+    <string name="ticket_camera_missing">Impossible d’ouvrir l’appareil photo. Tu peux choisir un fichier.</string>
 </resources>

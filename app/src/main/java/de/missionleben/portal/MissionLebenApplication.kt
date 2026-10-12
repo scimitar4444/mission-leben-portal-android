@@ -14,6 +14,7 @@ import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.push.PushManager
 import de.missionleben.portal.security.PersonalSessionLockTracker
 import de.missionleben.portal.security.SharedSessionLifecyclePolicy
+import de.missionleben.portal.web.TicketPhotoStore
 
 class MissionLebenApplication : Application() {
     private lateinit var preferences: AppPreferences
@@ -33,6 +34,7 @@ class MissionLebenApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        TicketPhotoStore.clearAll(this) // Orphaned camera files never survive a new app process.
         preferences = AppPreferences(this)
         registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {

@@ -118,6 +118,9 @@ class AppPreferences(context: Context) {
         return screenTurnedOff
     }
 
+    fun hasSharedSessionScreenTurnedOff(): Boolean =
+        preferences.getBoolean(KEY_SHARED_SESSION_SCREEN_TURNED_OFF, false)
+
     fun clearReauthentication(keepBoundPersonalIdentity: Boolean = false) {
         if (keepBoundPersonalIdentity && hasCurrentPersonalBinding()) {
             reauthenticationRequired = false

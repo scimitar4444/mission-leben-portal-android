@@ -409,4 +409,15 @@
     <string name="report_problem_subject">Problem mit %1$s</string>
     <string name="report_problem_body">Betroffene Anwendung: %1$s\n\nBitte beschreibe hier kurz dein Problem:</string>
     <string name="release_note_shortcuts">Neu: Mit dem Stern holst du Lieblingsanwendungen nach vorne. Die Glocke sammelt Dokumente, Ankündigungen und Ticketantworten. Über das Anwendungsmenü kannst du ein Problem an IT Hilfe melden.</string>
+    <string name="ticket_attachment_title">Anhang hinzufügen</string>
+    <string name="ticket_photo_take">Foto aufnehmen</string>
+    <string name="ticket_file_choose">Datei auswählen</string>
+    <string name="ticket_photo_preview">Foto prüfen</string>
+    <string name="ticket_photo_use">Als Anhang verwenden</string>
+    <string name="ticket_photo_retake">Noch mal aufnehmen</string>
+    <string name="ticket_photo_discard">Verwerfen</string>
+    <string name="ticket_photo_hint">Mit „Als Anhang verwenden“ lädst du das Foto hoch. Das Ticket sendest du danach selbst. Bitte nur nötige Informationen fotografieren.</string>
+    <string name="ticket_photo_failed">Das Foto konnte nicht verarbeitet werden. Bitte versuche es erneut.</string>
+    <string name="ticket_file_failed">Die Dateiauswahl konnte nicht geöffnet werden.</string>
+    <string name="ticket_camera_missing">Die Kamera konnte nicht geöffnet werden. Du kannst stattdessen eine Datei auswählen.</string>
 </resources>

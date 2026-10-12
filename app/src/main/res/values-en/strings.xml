@@ -383,4 +383,15 @@
     <string name="report_problem_subject">Problem with %1$s</string>
     <string name="report_problem_body">Application: %1$s\n\nPlease briefly describe your problem:</string>
     <string name="release_note_shortcuts">New: Use the star to move favorite apps to the front. The bell collects documents, announcements and ticket replies. Report a problem to IT Help from the application menu.</string>
+    <string name="ticket_attachment_title">Add attachment</string>
+    <string name="ticket_photo_take">Take photo</string>
+    <string name="ticket_file_choose">Choose file</string>
+    <string name="ticket_photo_preview">Review photo</string>
+    <string name="ticket_photo_use">Use as attachment</string>
+    <string name="ticket_photo_retake">Retake photo</string>
+    <string name="ticket_photo_discard">Discard</string>
+    <string name="ticket_photo_hint">Using the photo uploads it as an attachment. You still send the ticket yourself. Please photograph only necessary information.</string>
+    <string name="ticket_photo_failed">The photo could not be processed. Please try again.</string>
+    <string name="ticket_file_failed">The file picker could not be opened.</string>
+    <string name="ticket_camera_missing">The camera could not be opened. You can choose a file instead.</string>
 </resources>

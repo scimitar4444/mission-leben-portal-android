@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-12",
+  "scope": "Native photo attachment selection in the existing IT Hilfe customer portal",
+  "status": "LOCAL_BUILD_INSTALLED_ON_PILOT_CAMERA_ACCEPTANCE_PENDING",
+  "app": {
+    "versionName": "0.22.2-local",
+    "versionCode": 93,
+    "apkSha256": "4a6079c5f1d06d307db257c4d697eb1e119fed8496a553eb5fdc1971d44b6f54",
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "installation": "adb install -r succeeded; existing application data preserved",
+    "installedApkHash": "Live installed base.apk SHA-256 equals the verified build",
+    "device": "TCL T807D, Android 16",
+    "otaPublished": false,
+    "cameraDeviceAcceptance": "Native TCL camera CaptureActivity observed after installation. User capture, preview and discard confirmation pending; no ticket submitted by agent",
+    "wakeSetting": "Remained at original value 0 throughout this turn"
+  },
+  "implementation": {
+    "entry": "The existing WebView file attachment input on https://it-service.mission-leben.de[:443|:8443]/otobo/customer.pl",
+    "choices": ["Foto aufnehmen", "Datei auswählen"],
+    "review": ["Als Anhang verwenden", "Noch mal aufnehmen", "Verwerfen"],
+    "transfer": "Only explicit photo confirmation returns its URI to the requesting page. OTOBO may immediately upload it as a draft attachment. The ticket requires separate submission by the user.",
+    "storage": "Temporary app-private cache/ticket-photos only; no MediaStore or Downloads writes by this app",
+    "output": "JPEG quality 85, maximum edge 1600 px, EXIF orientation applied and metadata removed; maximum output 4 MiB",
+    "provider": "Dedicated non-exported FileProvider restricted to cache/ticket-photos; transient read/write grant to the selected camera; revoked on result or cancellation",
+    "cleanup": "Raw captures deleted after processing/cancellation. Discarded/retaken previews deleted. Confirmed temporary photos removed when browser closes, web data clears, device blocks, or the application process restarts.",
+    "sessionProtection": "Result rejected after main-page navigation, inactive protected session, reauthentication requirement or device block. Pending external picker prevents a newer request stealing a late result.",
+    "permissions": "No new Android CAMERA, microphone, storage or gallery permission. WebView website camera/microphone permission requests remain denied. Native attachment dialogs retain FLAG_SECURE.",
+    "systemCameraCaveat": "The app does not write a gallery copy. Separate behavior of an OEM or third-party camera app is outside the app's control."
+  },
+  "checks": {
+    "releaseUnitTests": 346,
+    "newTicketPhotoTests": 21,
+    "failuresAndErrors": 0,
+    "lint": "Passed, 0 errors, 127 warnings including existing warnings",
+    "assembly": "Passed and production signer verified",
+    "gitDiffCheck": "Passed",
+    "actualForm": "Read-only browser inspection verified OTOBO FileUpload type=file, multiple, unrestricted accept types; no ticket sent",
+    "covered": ["MIME and request modes", "native choice and secure preview", "capture URI and cancellation", "resize, rotation and EXIF removal", "discard and retake", "confirmed photo lifetime", "lock during preview", "page change and late result", "untrusted picker own-provider rejection", "nine supported languages"]
+  },
+  "serverChanges": {
+    "otobo": false,
+    "authentikFlowsOrGroups": false,
+    "nextcloud": false
+  },
+  "guide": {
+    "source": "docs/collectives-guide/00-android-app.md",
+    "status": "Photo instructions prepared locally, not published to Kollektiv before release"
+  },
+  "rollback": {
+    "apk": "artifacts/app-help-header-local-20261012/mission-leben-zentral-0.22.2-local.apk",
+    "sha256": "0efb7c81434716300c6b30582563e9b8a288f20978e7e4ee94ef4080519bd87a",
+    "procedure": "Reinstall previous same-signer local APK using adb install -r, no uninstall or application-data reset"
+  },
+  "remaining": ["Physical camera/preview/discard acceptance", "Optional neutral photo attachment confirmation in a draft without ticket submission", "Samsung camera acceptance before broad rollout", "OTA release notes and Kollektiv publication with the future release"]
+}

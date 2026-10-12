@@ -369,4 +369,15 @@
     <string name="report_problem_subject">%1$s के साथ समस्या</string>
     <string name="report_problem_body">ऐप: %1$s\n\nकृपया अपनी समस्या संक्षेप में बताएँ:</string>
     <string name="release_note_shortcuts">नया: सितारे से पसंदीदा ऐप आगे लाएँ। घंटी में दस्तावेज़, घोषणाएँ और टिकट के उत्तर मिलते हैं। ऐप मेनू से आईटी सहायता को समस्या बता सकते हैं।</string>
+    <string name="ticket_attachment_title">अटैचमेंट जोड़ें</string>
+    <string name="ticket_photo_take">फ़ोटो लें</string>
+    <string name="ticket_file_choose">फ़ाइल चुनें</string>
+    <string name="ticket_photo_preview">फ़ोटो जाँचें</string>
+    <string name="ticket_photo_use">अटैचमेंट में जोड़ें</string>
+    <string name="ticket_photo_retake">फिर से फ़ोटो लें</string>
+    <string name="ticket_photo_discard">हटाएँ</string>
+    <string name="ticket_photo_hint">फ़ोटो जोड़ने पर वह अपलोड होती है। टिकट आपको खुद भेजना होगा। केवल ज़रूरी जानकारी की फ़ोटो लें।</string>
+    <string name="ticket_photo_failed">फ़ोटो प्रोसेस नहीं हो सकी। फिर से कोशिश करें।</string>
+    <string name="ticket_file_failed">फ़ाइल चयन नहीं खुल सका।</string>
+    <string name="ticket_camera_missing">कैमरा नहीं खुल सका। आप फ़ाइल चुन सकते हैं।</string>
 </resources>

@@ -371,4 +371,15 @@
     <string name="report_problem_subject">Проблема з %1$s</string>
     <string name="report_problem_body">Застосунок: %1$s\n\nКоротко опиши проблему:</string>
     <string name="release_note_shortcuts">Нове: зірочка переносить обрані застосунки на початок. Дзвіночок збирає документи, оголошення та відповіді. У меню застосунку можна повідомити ІТ про проблему.</string>
+    <string name="ticket_attachment_title">Додати вкладення</string>
+    <string name="ticket_photo_take">Зробити фото</string>
+    <string name="ticket_file_choose">Вибрати файл</string>
+    <string name="ticket_photo_preview">Перевірити фото</string>
+    <string name="ticket_photo_use">Додати як вкладення</string>
+    <string name="ticket_photo_retake">Зробити ще раз</string>
+    <string name="ticket_photo_discard">Відхилити</string>
+    <string name="ticket_photo_hint">Фото завантажується, коли ти додаєш його як вкладення. Потім потрібно надіслати звернення. Фотографуй лише необхідну інформацію.</string>
+    <string name="ticket_photo_failed">Не вдалося обробити фото. Спробуй ще раз.</string>
+    <string name="ticket_file_failed">Не вдалося відкрити вибір файлів.</string>
+    <string name="ticket_camera_missing">Не вдалося відкрити камеру. Можна вибрати файл.</string>
 </resources>

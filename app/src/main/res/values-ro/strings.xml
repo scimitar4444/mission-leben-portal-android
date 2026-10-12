@@ -370,4 +370,15 @@
     <string name="report_problem_subject">Problemă cu %1$s</string>
     <string name="report_problem_body">Aplicație: %1$s\n\nDescrie pe scurt problema:</string>
     <string name="release_note_shortcuts">Nou: steaua aduce aplicațiile favorite în față. Clopoțelul adună documente, anunțuri și răspunsuri. Raportează o problemă către Ajutor IT din meniul aplicației.</string>
+    <string name="ticket_attachment_title">Adaugă atașament</string>
+    <string name="ticket_photo_take">Fă o fotografie</string>
+    <string name="ticket_file_choose">Alege fișier</string>
+    <string name="ticket_photo_preview">Verifică fotografia</string>
+    <string name="ticket_photo_use">Atașează fotografia</string>
+    <string name="ticket_photo_retake">Fotografiază din nou</string>
+    <string name="ticket_photo_discard">Renunță</string>
+    <string name="ticket_photo_hint">Fotografia este încărcată când o atașezi. Trimiți apoi personal tichetul. Fotografiază doar informațiile necesare.</string>
+    <string name="ticket_photo_failed">Fotografia nu a putut fi procesată. Încearcă din nou.</string>
+    <string name="ticket_file_failed">Selectorul de fișiere nu a putut fi deschis.</string>
+    <string name="ticket_camera_missing">Camera nu a putut fi deschisă. Poți alege un fișier.</string>
 </resources>

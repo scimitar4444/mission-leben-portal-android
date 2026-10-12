@@ -369,4 +369,15 @@
     <string name="report_problem_subject">Problema con %1$s</string>
     <string name="report_problem_body">Aplicación: %1$s\n\nDescribe brevemente tu problema:</string>
     <string name="release_note_shortcuts">Nuevo: Usa la estrella para poner tus aplicaciones favoritas primero. La campana reúne documentos, anuncios y respuestas. Puedes informar de un problema a Ayuda de TI desde el menú de la aplicación.</string>
+    <string name="ticket_attachment_title">Añadir adjunto</string>
+    <string name="ticket_photo_take">Hacer una foto</string>
+    <string name="ticket_file_choose">Elegir archivo</string>
+    <string name="ticket_photo_preview">Revisar foto</string>
+    <string name="ticket_photo_use">Usar como adjunto</string>
+    <string name="ticket_photo_retake">Repetir foto</string>
+    <string name="ticket_photo_discard">Descartar</string>
+    <string name="ticket_photo_hint">Al usar la foto, se sube como adjunto. Después debes enviar el ticket. Fotografía solo la información necesaria.</string>
+    <string name="ticket_photo_failed">No se pudo procesar la foto. Inténtalo de nuevo.</string>
+    <string name="ticket_file_failed">No se pudo abrir el selector de archivos.</string>
+    <string name="ticket_camera_missing">No se pudo abrir la cámara. Puedes elegir un archivo.</string>
 </resources>

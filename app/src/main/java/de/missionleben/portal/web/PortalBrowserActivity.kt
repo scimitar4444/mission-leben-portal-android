@@ -35,7 +35,6 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -75,7 +74,7 @@ class PortalBrowserActivity : FragmentActivity() {
     private lateinit var progress: ProgressBar
     private var browserTitle by mutableStateOf("")
     private lateinit var policy: WebNavigationPolicy
-    private var fileCallback: ValueCallback<Array<Uri>>? = null
+    private lateinit var fileChooser: PortalFileChooser
     private var logoutFinished = false
     private var endpointBridgeInstalled = false
     private var authorizationResultDelivered = false
@@ -135,17 +134,6 @@ class PortalBrowserActivity : FragmentActivity() {
         }
     }
 
-    private val fileChooserLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-    ) { result ->
-        val callback = fileCallback ?: return@registerForActivityResult
-        fileCallback = null
-        val values = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-            ?.filter { uri -> uri.scheme == "content" }
-            ?.toTypedArray()
-        callback.onReceiveValue(values)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -172,6 +160,12 @@ class PortalBrowserActivity : FragmentActivity() {
             intent.getStringExtra(EXTRA_TITLE).orEmpty()
         }
         buildLayout(initialTitle)
+        fileChooser = PortalFileChooser(this,
+            currentPage = { webView.url.orEmpty() },
+            mayReturnFiles = { protectedFileActionAllowed() },
+            mayUseTicketPhoto = { HelpdeskContainerLayout.isHelpdeskPage(webView.url.orEmpty()) &&
+                intent.getBooleanExtra(EXTRA_APP_CONTENT, false) && protectedFileActionAllowed() },
+        )
         configureWebView()
         installBackNavigation()
 
@@ -253,6 +247,17 @@ class PortalBrowserActivity : FragmentActivity() {
 
     private fun requiresFreshPersonalContext(): Boolean =
         deviceMode == DeviceMode.PERSONAL && intent.getBooleanExtra(EXTRA_FRESH_PERSONAL_CONTEXT, false)
+
+    private fun protectedFileActionAllowed(): Boolean {
+        if (isFinishing || isDestroyed || logoutFinished || sessionExpiredResultDelivered || sharedSessionResultDelivered) return false
+        if (!::webView.isInitialized || !policy.isTrustedWebUrl(webView.url.orEmpty())) return false
+        if (!intent.getBooleanExtra(EXTRA_APP_CONTENT, false)) return true
+        val preferences = AppPreferences(this)
+        return preferences.enrollmentState == EnrollmentState.TRUSTED && !preferences.reauthenticationRequired &&
+            !(deviceMode == DeviceMode.PERSONAL &&
+                (application as MissionLebenApplication).personalSessionLockTracker.isLockRequired()) &&
+            !SharedSessionLifecyclePolicy.shouldInvalidate(deviceMode, preferences.hasSharedSessionScreenTurnedOff())
+    }
 
     private fun personalAuthorizationLocked(): Boolean = requiresFreshPersonalContext() &&
         (application as MissionLebenApplication).personalSessionLockTracker.isLockRequired()
@@ -574,6 +579,7 @@ class PortalBrowserActivity : FragmentActivity() {
         override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = handleNavigation(url, true)
 
         override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+            if (::fileChooser.isInitialized) fileChooser.pageChanged(url)
             if (interceptExpiredSession(url)) return
             super.onPageStarted(view, url, favicon)
         }
@@ -776,16 +782,7 @@ class PortalBrowserActivity : FragmentActivity() {
             fileChooserParams: FileChooserParams,
         ): Boolean {
             if (!policy.isTrustedWebUrl(webView.url.orEmpty())) return false
-            fileCallback?.onReceiveValue(null)
-            fileCallback = filePathCallback
-            return runCatching {
-                fileChooserLauncher.launch(fileChooserParams.createIntent())
-                true
-            }.getOrElse {
-                fileCallback = null
-                filePathCallback.onReceiveValue(null)
-                false
-            }
+            return fileChooser.show(filePathCallback, fileChooserParams)
         }
     }
 
@@ -842,7 +839,7 @@ class PortalBrowserActivity : FragmentActivity() {
     }
 
     override fun onDestroy() {
-        fileCallback?.onReceiveValue(null)
+        if (::fileChooser.isInitialized) fileChooser.destroy()
         if (::webView.isInitialized) {
             webView.stopLoading()
             if (endpointBridgeInstalled) {
@@ -1037,6 +1034,7 @@ class PortalBrowserActivity : FragmentActivity() {
         }
 
         fun clearLocalWebData(context: Context, onComplete: (() -> Unit)? = null) {
+            TicketPhotoStore.clearAll(context)
             val completed = AtomicBoolean(false)
             val completeClear: () -> Unit = {
                 if (completed.compareAndSet(false, true)) {

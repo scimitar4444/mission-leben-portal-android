@@ -369,4 +369,15 @@
     <string name="report_problem_subject">%1$s ile ilgili sorun</string>
     <string name="report_problem_body">Uygulama: %1$s\n\nLütfen sorununuzu kısaca açıklayın:</string>
     <string name="release_note_shortcuts">Yeni: Yıldız ile favori uygulamaları öne taşıyın. Zil; belgeleri, duyuruları ve talep yanıtlarını toplar. Uygulama menüsünden BT Yardımına sorun bildirebilirsiniz.</string>
+    <string name="ticket_attachment_title">Ek ekle</string>
+    <string name="ticket_photo_take">Fotoğraf çek</string>
+    <string name="ticket_file_choose">Dosya seç</string>
+    <string name="ticket_photo_preview">Fotoğrafı kontrol et</string>
+    <string name="ticket_photo_use">Ek olarak kullan</string>
+    <string name="ticket_photo_retake">Yeniden çek</string>
+    <string name="ticket_photo_discard">Vazgeç</string>
+    <string name="ticket_photo_hint">Fotoğraf ek olarak yüklenir. Talebi daha sonra kendin gönderirsin. Yalnızca gerekli bilgilerin fotoğrafını çek.</string>
+    <string name="ticket_photo_failed">Fotoğraf işlenemedi. Lütfen tekrar dene.</string>
+    <string name="ticket_file_failed">Dosya seçici açılamadı.</string>
+    <string name="ticket_camera_missing">Kamera açılamadı. Bunun yerine dosya seçebilirsin.</string>
 </resources>
