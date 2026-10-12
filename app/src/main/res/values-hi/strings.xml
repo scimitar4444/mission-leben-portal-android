@@ -11,7 +11,7 @@
     <string name="push_reliability_battery_ok">Android बैटरी छूट: चालू</string>
     <string name="push_reliability_battery_limited">बैटरी बचत पुश सूचना को देर से पहुँचा सकती है या रोक सकती है।</string>
     <string name="push_reliability_allow_battery">बैटरी छूट की अनुमति दें</string>
-    <string name="push_reliability_open_manufacturer">डिवाइस सेटिंग खोलें</string>
+    <string name="push_reliability_open_manufacturer">बैटरी सेटिंग खोलें</string>
     <string name="push_reliability_limit">यह जाँच चालू सर्वर कनेक्शन या निर्माता की पाबंदियाँ नहीं दिखाती। सूचना न मिले तो बैकग्राउंड में चलने दें और विकल्प हो तो हाल के ऐप में “सभी बंद करें” से ऐप को बचाएँ। यह स्क्रीन लॉक नहीं है।</string>
     <string name="push_reliability_prompt_title">सूचनाएँ भरोसेमंद ढंग से पाएँ</string>
     <string name="push_reliability_prompt_notifications">सूचनाएँ बंद हैं। उन्हें दिखाने के लिए Android सेटिंग खोलें।</string>
@@ -349,7 +349,6 @@
     <string name="release_note_talk_setup_choice">सेटअप सहायक में अब चुन सकते हैं कि Talk चैट सूची से खुले या पिछली चैट से।</string>
     <string name="push_helpdesk_title">आईटी सहायता</string>
     <string name="push_helpdesk_body">तुम्हारे अनुरोध का नया जवाब आया है।</string>
-    <string name="helpdesk_notification_settings">आईटी सहायता: ध्वनि और सूचनाएँ</string>
     <string name="privacy_ticket_minimal">केवल सामान्य सूचना, बिना नाम, विषय या जवाब के पाठ के।</string>
     <string name="privacy_ticket_standard">नाम और विषय दिखाएँ। आईटी सहायता में अनुरोध की संख्या और विषय दिखते हैं, जवाब का पाठ नहीं।</string>
     <string name="privacy_ticket_detailed">संदेश या अनुरोध के जवाब की छोटी झलक भी दिखाएँ।</string>

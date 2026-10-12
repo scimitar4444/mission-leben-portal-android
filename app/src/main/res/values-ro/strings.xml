@@ -7,11 +7,11 @@
     <string name="push_reliability_not_registered">Notificările push nu sunt încă configurate pe acest dispozitiv.</string>
     <string name="push_reliability_notifications_ok">Notificări: permise</string>
     <string name="push_reliability_notifications_off">Notificări: dezactivate</string>
-    <string name="push_reliability_open_notifications">Deschide notificările</string>
+    <string name="push_reliability_open_notifications">Setări notificări</string>
     <string name="push_reliability_battery_ok">Excepție baterie Android: activă</string>
     <string name="push_reliability_battery_limited">Economisirea bateriei poate întârzia sau opri notificările.</string>
     <string name="push_reliability_allow_battery">Permite excepția pentru baterie</string>
-    <string name="push_reliability_open_manufacturer">Deschide setările dispozitivului</string>
+    <string name="push_reliability_open_manufacturer">Deschide setările bateriei</string>
     <string name="push_reliability_limit">Această verificare nu vede conexiunea activă sau restricțiile producătorului. Dacă nu sosesc notificări, permite funcționarea în fundal și, dacă există opțiunea, protejează aplicația de „Închide tot” în aplicațiile recente. Nu este blocarea ecranului.</string>
     <string name="push_reliability_prompt_title">Primește notificări în mod fiabil</string>
     <string name="push_reliability_prompt_notifications">Notificările sunt dezactivate. Deschide setările Android pentru a le afișa.</string>
@@ -350,7 +350,6 @@
     <string name="release_note_talk_setup_choice">Asistentul de configurare permite acum alegerea deschiderii Talk în lista conversațiilor sau în ultima conversație.</string>
     <string name="push_helpdesk_title">Ajutor IT</string>
     <string name="push_helpdesk_body">Ai un răspuns nou la solicitarea ta.</string>
-    <string name="helpdesk_notification_settings">Ajutor IT: sunet și notificări</string>
     <string name="privacy_ticket_minimal">Doar o notificare neutră, fără nume, subiect sau textul răspunsului.</string>
     <string name="privacy_ticket_standard">Afișează nume și subiecte. Ajutor IT afișează numărul și subiectul solicitării, fără textul răspunsului.</string>
     <string name="privacy_ticket_detailed">Afișează și o scurtă previzualizare a mesajului sau răspunsului.</string>

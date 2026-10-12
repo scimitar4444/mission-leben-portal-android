@@ -7,11 +7,11 @@
     <string name="push_reliability_not_registered">Los avisos aún no están configurados en este dispositivo.</string>
     <string name="push_reliability_notifications_ok">Notificaciones: permitidas</string>
     <string name="push_reliability_notifications_off">Notificaciones: desactivadas</string>
-    <string name="push_reliability_open_notifications">Abrir notificaciones</string>
+    <string name="push_reliability_open_notifications">Configurar notificaciones</string>
     <string name="push_reliability_battery_ok">Excepción de batería Android: activa</string>
     <string name="push_reliability_battery_limited">El ahorro de batería puede retrasar o detener los avisos.</string>
     <string name="push_reliability_allow_battery">Permitir excepción de batería</string>
-    <string name="push_reliability_open_manufacturer">Abrir ajustes del dispositivo</string>
+    <string name="push_reliability_open_manufacturer">Abrir ajustes de batería</string>
     <string name="push_reliability_limit">Esta comprobación no detecta la conexión activa ni las restricciones del fabricante. Si faltan avisos, permite el uso en segundo plano y, si existe la opción, protege la app de «Cerrar todo» en Aplicaciones recientes. No es el bloqueo de pantalla.</string>
     <string name="push_reliability_prompt_title">Recibir avisos de forma fiable</string>
     <string name="push_reliability_prompt_notifications">Las notificaciones están desactivadas. Abre los ajustes de Android para ver los avisos.</string>
@@ -349,7 +349,6 @@
     <string name="release_note_talk_setup_choice">El asistente de configuración permite elegir si Talk abre la lista de chats o el último chat.</string>
     <string name="push_helpdesk_title">Ayuda informática</string>
     <string name="push_helpdesk_body">Hay una nueva respuesta a tu solicitud.</string>
-    <string name="helpdesk_notification_settings">Ayuda informática: sonido y avisos</string>
     <string name="privacy_ticket_minimal">Solo un aviso neutro, sin nombres, asunto ni texto de respuesta.</string>
     <string name="privacy_ticket_standard">Mostrar nombres y asuntos. La ayuda informática muestra el número y asunto de la solicitud, sin el texto de respuesta.</string>
     <string name="privacy_ticket_detailed">Mostrar también una breve vista previa del mensaje o de la respuesta.</string>

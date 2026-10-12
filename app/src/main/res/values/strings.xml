@@ -31,11 +31,11 @@
     <string name="push_reliability_not_registered">Push ist auf diesem Gerät noch nicht eingerichtet.</string>
     <string name="push_reliability_notifications_ok">Benachrichtigungen: erlaubt</string>
     <string name="push_reliability_notifications_off">Benachrichtigungen: ausgeschaltet</string>
-    <string name="push_reliability_open_notifications">Benachrichtigungen öffnen</string>
+    <string name="push_reliability_open_notifications">Benachrichtigungen einstellen</string>
     <string name="push_reliability_battery_ok">Android-Akku-Ausnahme: aktiv</string>
     <string name="push_reliability_battery_limited">Android-Akkusparen kann Push verzögern oder stoppen.</string>
     <string name="push_reliability_allow_battery">Akku-Ausnahme erlauben</string>
-    <string name="push_reliability_open_manufacturer">Hersteller-Einstellungen öffnen</string>
+    <string name="push_reliability_open_manufacturer">Akku-Einstellungen öffnen</string>
     <string name="push_reliability_limit">Diese Prüfung zeigt keine Live-Verbindung oder Hersteller-Sperren. Bleiben Hinweise aus, erlaube Hintergrundbetrieb und schütze die App ggf. in „Letzte Apps“ vor „Alle schließen“. Gemeint ist nicht die Bildschirmsperre.</string>
     <string name="push_reliability_prompt_title">Hinweise zuverlässig empfangen</string>
     <string name="push_reliability_prompt_notifications">Benachrichtigungen sind ausgeschaltet. Öffne die Android-Einstellung, damit Hinweise angezeigt werden können.</string>
@@ -296,7 +296,6 @@
     <string name="push_talk_title">Talk</string>
     <string name="push_talk_body">Neue Talk-Aktivität.</string>
     <string name="push_helpdesk_title">IT Hilfe</string>
-    <string name="helpdesk_notification_settings">IT Hilfe: Ton und Hinweise einstellen</string>
     <string name="privacy_ticket_minimal">Nur ein neutraler Hinweis – ohne Namen, Betreff oder Antworttext.</string>
     <string name="privacy_ticket_standard">Namen und Betreff anzeigen. Bei IT Hilfe siehst du die Ticketnummer und den Betreff, aber keinen Antworttext.</string>
     <string name="privacy_ticket_detailed">Zusätzlich eine kurze Textvorschau der Nachricht oder Ticketantwort anzeigen.</string>

@@ -7,11 +7,11 @@
     <string name="push_reliability_not_registered">Les notifications ne sont pas encore configurées sur cet appareil.</string>
     <string name="push_reliability_notifications_ok">Notifications : autorisées</string>
     <string name="push_reliability_notifications_off">Notifications : désactivées</string>
-    <string name="push_reliability_open_notifications">Ouvrir les notifications</string>
+    <string name="push_reliability_open_notifications">Régler les notifications</string>
     <string name="push_reliability_battery_ok">Exception batterie Android : active</string>
     <string name="push_reliability_battery_limited">L’économie de batterie peut retarder ou arrêter les alertes.</string>
     <string name="push_reliability_allow_battery">Autoriser l’exception batterie</string>
-    <string name="push_reliability_open_manufacturer">Ouvrir les réglages de l’appareil</string>
+    <string name="push_reliability_open_manufacturer">Ouvrir les réglages de batterie</string>
     <string name="push_reliability_limit">Ce contrôle ne voit ni la connexion active ni les restrictions du fabricant. Si les alertes manquent, autorise l’activité en arrière-plan et, si possible, protège l’appli de « Tout fermer » dans les applis récentes. Ce n’est pas le verrouillage de l’écran.</string>
     <string name="push_reliability_prompt_title">Recevoir les alertes de façon fiable</string>
     <string name="push_reliability_prompt_notifications">Les notifications sont désactivées. Ouvre les réglages Android pour afficher les alertes.</string>
@@ -349,7 +349,6 @@
     <string name="release_note_talk_setup_choice">L’assistant de configuration permet de choisir si Talk ouvre la liste des discussions ou la dernière discussion.</string>
     <string name="push_helpdesk_title">Aide informatique</string>
     <string name="push_helpdesk_body">Une nouvelle réponse à ta demande est disponible.</string>
-    <string name="helpdesk_notification_settings">Aide informatique : sons et notifications</string>
     <string name="privacy_ticket_minimal">Un avis neutre uniquement, sans nom, objet ni texte de réponse.</string>
     <string name="privacy_ticket_standard">Afficher les noms et objets. L’aide informatique affiche le numéro et l’objet de la demande, sans texte de réponse.</string>
     <string name="privacy_ticket_detailed">Afficher aussi un court aperçu du message ou de la réponse.</string>

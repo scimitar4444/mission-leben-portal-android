@@ -7,11 +7,11 @@
     <string name="push_reliability_not_registered">Powiadomienia push nie są jeszcze skonfigurowane na tym urządzeniu.</string>
     <string name="push_reliability_notifications_ok">Powiadomienia: dozwolone</string>
     <string name="push_reliability_notifications_off">Powiadomienia: wyłączone</string>
-    <string name="push_reliability_open_notifications">Otwórz ustawienia powiadomień</string>
+    <string name="push_reliability_open_notifications">Ustawienia powiadomień</string>
     <string name="push_reliability_battery_ok">Wyjątek oszczędzania baterii Android: aktywny</string>
     <string name="push_reliability_battery_limited">Oszczędzanie baterii może opóźnić lub zatrzymać powiadomienia.</string>
     <string name="push_reliability_allow_battery">Zezwól na wyjątek baterii</string>
-    <string name="push_reliability_open_manufacturer">Otwórz ustawienia urządzenia</string>
+    <string name="push_reliability_open_manufacturer">Otwórz ustawienia baterii</string>
     <string name="push_reliability_limit">Ta kontrola nie wykrywa bieżącego połączenia ani ograniczeń producenta. Gdy brak powiadomień, zezwól na pracę w tle i, jeśli można, chroń aplikację przed „Zamknij wszystkie” na liście ostatnich aplikacji. To nie jest blokada ekranu.</string>
     <string name="push_reliability_prompt_title">Otrzymuj powiadomienia niezawodnie</string>
     <string name="push_reliability_prompt_notifications">Powiadomienia są wyłączone. Otwórz ustawienia Androida, aby je wyświetlać.</string>
@@ -351,7 +351,6 @@
     <string name="release_note_talk_setup_choice">W asystencie konfiguracji można teraz wybrać, czy Talk otwiera listę rozmów, czy ostatnią rozmowę.</string>
     <string name="push_helpdesk_title">Pomoc IT</string>
     <string name="push_helpdesk_body">Jest nowa odpowiedź na Twoje zgłoszenie.</string>
-    <string name="helpdesk_notification_settings">Pomoc IT: dźwięk i powiadomienia</string>
     <string name="privacy_ticket_minimal">Tylko neutralna informacja, bez nazw, tematu i treści odpowiedzi.</string>
     <string name="privacy_ticket_standard">Pokaż nazwy i tematy. Pomoc IT pokazuje numer i temat zgłoszenia, bez treści odpowiedzi.</string>
     <string name="privacy_ticket_detailed">Pokaż również krótki podgląd wiadomości lub odpowiedzi na zgłoszenie.</string>

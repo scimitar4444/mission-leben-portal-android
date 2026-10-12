@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-12",
+  "status": "LOCALLY_BUILT_AND_TESTED_NOT_INSTALLED_OR_PUBLISHED",
+  "scope": "Remove duplicate IT Hilfe notification-settings link and clarify the two existing Android settings actions",
+  "changes": {
+    "duplicateRemoved": "No helpdesk-only TextButton in NotificationPrivacyPanel, including its setup-assistant reuse",
+    "notifications": "Single full-width outlined Benachrichtigungen einstellen button in PushReliabilityPanel, visible whether notifications are enabled or disabled",
+    "target": "Existing ACTION_APP_NOTIFICATION_SETTINGS with EXTRA_APP_PACKAGE only; no channel filter; app-details fallback preserved",
+    "battery": "Existing manufacturer button labelled Akku-Einstellungen öffnen; Samsung never-sleeping activity and TCL app-details destinations unchanged",
+    "localization": "Nine supported languages updated; unused helpdesk-only label removed",
+    "guide": "Local Android app guide explains the general notification entry and uses the new battery label; live Kollektiv page not changed"
+  },
+  "checks": {
+    "releaseUnitTests": { "tests": 357, "failures": 0, "errors": 0, "skipped": 0 },
+    "newSettingsTests": "5 passed: app-wide intent, fallback, Samsung destination, TCL destination, nine language labels",
+    "lintRelease": { "errors": 0, "warnings": 127, "result": "PASS" },
+    "assembleRelease": "PASS",
+    "gitDiffCheck": "PASS",
+    "physicalAppearance": "NOT_TESTED_FOR_THIS_DELTA"
+  },
+  "app": {
+    "versionName": "0.22.2-local",
+    "versionCode": 93,
+    "apk": "artifacts/notification-settings-local-20261012/mission-leben-zentral-0.22.2-local.apk",
+    "sha256": "f59be32ac56ce93d0504aa276c02d771041324595e28e349f65f425fc6422f1b",
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "productionSignerMatches": true,
+    "otaPublished": false,
+    "installedThisTurn": false
+  },
+  "invariants": {
+    "channelIdsAndPreferencesChanged": false,
+    "newPermissions": false,
+    "serverOrAuthentikChanges": false,
+    "phoneWakeSetting": "Unchanged at 0",
+    "unrelatedDirtyBootstrap": "Preserved and excluded from this change"
+  },
+  "rollback": "Revert only this UI/resource/guide change; no notification-channel or data migration required. Existing accepted pilot APK remains in ticket-editor-compact-local-20261012.",
+  "release": "0.23.0 publication remains paused at the user's explicit wait request"
+}

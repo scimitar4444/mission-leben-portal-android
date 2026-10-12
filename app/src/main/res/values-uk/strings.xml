@@ -7,11 +7,11 @@
     <string name="push_reliability_not_registered">Push-сповіщення ще не налаштовано на цьому пристрої.</string>
     <string name="push_reliability_notifications_ok">Сповіщення: дозволено</string>
     <string name="push_reliability_notifications_off">Сповіщення: вимкнено</string>
-    <string name="push_reliability_open_notifications">Відкрити налаштування сповіщень</string>
+    <string name="push_reliability_open_notifications">Налаштувати сповіщення</string>
     <string name="push_reliability_battery_ok">Виняток економії заряду Android: активний</string>
     <string name="push_reliability_battery_limited">Економія заряду може затримати або зупинити сповіщення.</string>
     <string name="push_reliability_allow_battery">Дозволити виняток економії заряду</string>
-    <string name="push_reliability_open_manufacturer">Відкрити налаштування пристрою</string>
+    <string name="push_reliability_open_manufacturer">Відкрити налаштування акумулятора</string>
     <string name="push_reliability_limit">Ця перевірка не показує активне з’єднання або обмеження виробника. Якщо сповіщення не надходять, дозвольте роботу у фоні та, якщо можливо, захистіть застосунок від «Закрити всі» у списку нещодавніх застосунків. Це не блокування екрана.</string>
     <string name="push_reliability_prompt_title">Отримуйте сповіщення надійно</string>
     <string name="push_reliability_prompt_notifications">Сповіщення вимкнено. Відкрийте налаштування Android, щоб їх увімкнути.</string>
@@ -351,7 +351,6 @@
     <string name="release_note_talk_setup_choice">У помічнику налаштування тепер можна вибрати, чи Talk відкриватиме список чатів або останній чат.</string>
     <string name="push_helpdesk_title">ІТ-допомога</string>
     <string name="push_helpdesk_body">Є нова відповідь на твоє звернення.</string>
-    <string name="helpdesk_notification_settings">ІТ-допомога: звук і сповіщення</string>
     <string name="privacy_ticket_minimal">Лише нейтральне сповіщення, без імен, теми чи тексту відповіді.</string>
     <string name="privacy_ticket_standard">Показувати імена й теми. ІТ-допомога показує номер і тему звернення, без тексту відповіді.</string>
     <string name="privacy_ticket_detailed">Також показувати короткий перегляд повідомлення чи відповіді.</string>

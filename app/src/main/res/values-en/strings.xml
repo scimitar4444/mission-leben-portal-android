@@ -10,11 +10,11 @@
     <string name="push_reliability_not_registered">Push is not set up on this device yet.</string>
     <string name="push_reliability_notifications_ok">Notifications: allowed</string>
     <string name="push_reliability_notifications_off">Notifications: off</string>
-    <string name="push_reliability_open_notifications">Open notifications</string>
+    <string name="push_reliability_open_notifications">Notification settings</string>
     <string name="push_reliability_battery_ok">Android battery exemption: active</string>
     <string name="push_reliability_battery_limited">Android battery saving may delay or stop push.</string>
     <string name="push_reliability_allow_battery">Allow battery exemption</string>
-    <string name="push_reliability_open_manufacturer">Open device settings</string>
+    <string name="push_reliability_open_manufacturer">Open battery settings</string>
     <string name="push_reliability_limit">This check cannot see the live server connection or manufacturer restrictions. If alerts stop, allow background use and, if available, protect the app from “Clear all” in Recent apps. This is not the screen lock.</string>
     <string name="push_reliability_prompt_title">Receive alerts reliably</string>
     <string name="push_reliability_prompt_notifications">Notifications are off. Open Android settings so alerts can be shown.</string>
@@ -271,7 +271,6 @@
     <string name="push_talk_title">Talk</string>
     <string name="push_talk_body">New Talk activity.</string>
     <string name="push_helpdesk_title">IT Help</string>
-    <string name="helpdesk_notification_settings">IT Help: sound and notifications</string>
     <string name="privacy_ticket_minimal">A neutral notice only, without names, subject or reply text.</string>
     <string name="privacy_ticket_standard">Show names and subjects. IT Help shows the ticket number and subject, but no reply text.</string>
     <string name="privacy_ticket_detailed">Also show a short preview of the message or ticket reply.</string>

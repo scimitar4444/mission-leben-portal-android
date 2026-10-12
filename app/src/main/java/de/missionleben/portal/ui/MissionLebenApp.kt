@@ -1849,7 +1849,6 @@ internal fun NotificationPrivacyPanel(
 ) {
     if (!state.pushConfigured) return
     val helpdeskAvailable = AppFeaturePolicy.from(state.applications).helpdesk
-    val context = LocalContext.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -1971,13 +1970,6 @@ internal fun NotificationPrivacyPanel(
                         checked = state.quietHoursEnabled,
                         onCheckedChange = null,
                     )
-                }
-                if (helpdeskAvailable) {
-                    TextButton(onClick = {
-                        context.startActivity(android.content.Intent(android.provider.Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
-                            .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
-                            .putExtra(android.provider.Settings.EXTRA_CHANNEL_ID, "helpdesk"))
-                    }) { Text(stringResource(R.string.helpdesk_notification_settings)) }
                 }
                 if (state.quietHoursEnabled) {
                     Spacer(Modifier.height(10.dp))

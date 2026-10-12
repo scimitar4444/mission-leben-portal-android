@@ -15,6 +15,7 @@ import de.missionleben.portal.ui.ReadableText as Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import de.missionleben.portal.R
@@ -51,10 +52,13 @@ internal fun PushReliabilityPanel(
                     else R.string.push_reliability_notifications_off,
                 ),
             )
-            if (!status.notificationsAllowed) {
-                OutlinedButton(onClick = onNotifications) {
-                    Text(androidx.compose.ui.res.stringResource(R.string.push_reliability_open_notifications))
-                }
+            // Keep one app-wide settings entry, also when Android already allows notifications.
+            // It covers every category, not just a particular approved application.
+            OutlinedButton(
+                onClick = onNotifications,
+                modifier = Modifier.fillMaxWidth().testTag("android-notification-settings"),
+            ) {
+                Text(androidx.compose.ui.res.stringResource(R.string.push_reliability_open_notifications))
             }
             Text(
                 androidx.compose.ui.res.stringResource(
