@@ -60,6 +60,7 @@ data class NotificationBadgeCounts(
 }
 
 class UnreadNotificationStore(context: Context) {
+    private val inbox = NoticeInboxStore(context)
     private val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
 
     @Synchronized
@@ -79,6 +80,7 @@ class UnreadNotificationStore(context: Context) {
 
     @Synchronized
     fun cancel(eventId: String): Boolean {
+        inbox.markRead(eventId)
         if (eventId.isBlank()) return false
         var changed = false
         val editor = preferences.edit()
@@ -96,6 +98,7 @@ class UnreadNotificationStore(context: Context) {
     fun cancel(action: PushAction, eventId: String): Boolean {
         val target = NotificationBadgeTarget.fromAction(action) ?: return false
         if (!PushCommand.validEventId(eventId)) return false
+        inbox.markRead(eventId, action)
         val unread = unread(target).toMutableSet()
         if (!unread.remove(eventId)) return false
         return preferences.edit().putString(unreadKey(target), unread.joinToString("\n")).commit()
@@ -103,12 +106,14 @@ class UnreadNotificationStore(context: Context) {
 
     @Synchronized
     fun clear(target: NotificationBadgeTarget): Boolean {
+        inbox.markApplicationRead(target)
         if (unread(target).isEmpty()) return false
         return preferences.edit().remove(unreadKey(target)).commit()
     }
 
     @Synchronized
     fun clearAll() {
+        inbox.clear()
         preferences.edit().clear().apply()
     }
 

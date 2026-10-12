@@ -355,4 +355,18 @@
     <string name="privacy_ticket_detailed">Pokaż również krótki podgląd wiadomości lub odpowiedzi na zgłoszenie.</string>
     <string name="quiet_hours_all_apps">W tym okresie powiadomienia z Twoich dostępnych aplikacji nie będą wyświetlane.</string>
     <string name="release_note_helpdesk_push">Nowe odpowiedzi IT na Twoje zgłoszenia mogą teraz pojawiać się w osobnej kategorii „Pomoc IT”. Dotknij, aby otworzyć właściwe zgłoszenie.</string>
+    <string name="notice_inbox_title">Nowe dla mnie</string>
+    <string name="notice_inbox_description">Usunięte powiadomienia nadal są dostępne tutaj. Starsze otwierają odpowiednią aplikację.</string>
+    <string name="notice_inbox_empty">Brak powiadomień. Nowe dokumenty, ogłoszenia i odpowiedzi pojawią się tutaj.</string>
+    <string name="notice_mark_all_read">Oznacz wszystkie jako przeczytane</string>
+    <string name="notice_new">Nowe</string>
+    <string name="notice_document">Nowy dokument</string>
+    <string name="notice_ticket">Odpowiedź na zgłoszenie</string>
+    <string name="app_favorite_add">Dodaj %1$s do ulubionych</string>
+    <string name="app_favorite_remove">Usuń %1$s z ulubionych</string>
+    <string name="app_actions">Menu aplikacji</string>
+    <string name="report_problem">Zgłoś problem</string>
+    <string name="report_problem_subject">Problem z %1$s</string>
+    <string name="report_problem_body">Aplikacja: %1$s\n\nKrótko opisz problem:</string>
+    <string name="release_note_shortcuts">Nowe: gwiazdka przenosi ulubione aplikacje na początek. Dzwonek zbiera dokumenty, ogłoszenia i odpowiedzi. Problem można zgłosić do pomocy IT w menu aplikacji.</string>
 </resources>

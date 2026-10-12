@@ -118,6 +118,7 @@ object NotificationPresenter {
     /** Only locally acknowledge this application; never change server read state. */
     @Synchronized
     fun dismissApplication(context: Context, target: NotificationBadgeTarget) {
+        NoticeInboxStore(context).markApplicationRead(target)
         val unread = UnreadNotificationStore(context)
         val eventIds = unread.eventIds(target)
         unread.clear(target) // Keep deduplication history so replay cannot re-post it.
@@ -216,6 +217,7 @@ object NotificationPresenter {
         }
         if (eventId != null && detail?.targetId?.isNotBlank() == true) {
             NotificationTargetStore(context).put(eventId, action, detail.targetId)
+            NoticeInboxStore(context).rememberTarget(eventId, action, detail.targetId)
         }
         val intent = Intent(context, MainActivity::class.java).apply {
             setAction(Intent.ACTION_VIEW)

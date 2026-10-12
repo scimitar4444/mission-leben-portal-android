@@ -89,6 +89,8 @@ import de.missionleben.portal.model.NewsItem
 import de.missionleben.portal.model.PortalCapability
 import de.missionleben.portal.model.PortalApplication
 import de.missionleben.portal.model.UiState
+import de.missionleben.portal.model.ApplicationShortcuts
+import de.missionleben.portal.model.NoticeInboxPolicy
 import de.missionleben.portal.push.NotificationPrivacy
 import de.missionleben.portal.push.PushReliabilityStatus
 import de.missionleben.portal.push.PushRegistrationStore
@@ -147,6 +149,10 @@ fun MissionLebenApp(
     onDismissUpdate: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
+    onToggleApplicationFavorite: (String) -> Unit = {},
+    onRefreshInbox: () -> Unit = {},
+    onOpenInboxNotice: (String) -> Unit = {},
+    onMarkInboxRead: () -> Unit = {},
 ) {
     Surface(
         modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
@@ -171,6 +177,10 @@ fun MissionLebenApp(
                 onOpenCalendarDay = onOpenCalendarDay,
                 onOpenPublicUrl = onOpenPublicUrl,
                 onReloadApplications = onReloadApplications,
+                onToggleApplicationFavorite = onToggleApplicationFavorite,
+                onRefreshInbox = onRefreshInbox,
+                onOpenInboxNotice = onOpenInboxNotice,
+                onMarkInboxRead = onMarkInboxRead,
                 onSearchContacts = onSearchContacts,
                 onLoadContactFavorites = onLoadContactFavorites,
                 onToggleContactFavorite = onToggleContactFavorite,
@@ -428,10 +438,15 @@ private fun Home(
     onOpenSetupAssistant: () -> Unit,
     currentLanguageTag: String?,
     onLanguageChange: (String?) -> Unit,
+    onToggleApplicationFavorite: (String) -> Unit,
+    onRefreshInbox: () -> Unit,
+    onOpenInboxNotice: (String) -> Unit,
+    onMarkInboxRead: () -> Unit,
 ) {
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
     var talkDialogOpen by rememberSaveable { mutableStateOf(false) }
     var contactsOpen by remember(state.signedIn, state.user?.subject) { mutableStateOf(false) }
+    var inboxOpen by remember(state.signedIn, state.user?.subject) { mutableStateOf(false) }
     val canHandoffTalk = AppFeaturePolicy.from(state.applications).canHandoffTalk(state.capabilities)
 
     LaunchedEffect(canHandoffTalk) {
@@ -439,9 +454,17 @@ private fun Home(
     }
 
     BackHandler(
-        enabled = state.mode == DeviceMode.PERSONAL && !settingsOpen && !contactsOpen && !talkDialogOpen,
+        enabled = state.mode == DeviceMode.PERSONAL && !settingsOpen && !contactsOpen && !talkDialogOpen && !inboxOpen,
         onBack = onMoveToBackground,
     )
+
+    BackHandler(enabled = inboxOpen) { inboxOpen = false }
+    if (inboxOpen && state.signedIn) {
+        NoticeInboxScreen(state, onBack = { inboxOpen = false }, onRefresh = onRefreshInbox,
+            onOpenNotice = { onOpenInboxNotice(it) }, onMarkAllRead = onMarkInboxRead,
+            onMarkAnnouncementRead = onMarkAnnouncementRead)
+        return
+    }
 
     if (contactsOpen && state.signedIn) {
         ContactsScreen(
@@ -496,6 +519,8 @@ private fun Home(
     HomeOverview(
         state = state,
         onSettings = { settingsOpen = true },
+        onInbox = { inboxOpen = true; onRefreshInbox() },
+        onToggleApplicationFavorite = onToggleApplicationFavorite,
         onContacts = { contactsOpen = true },
         onStartLogin = onStartLogin,
         onRetryQuickUnlock = onRetryQuickUnlock,
@@ -541,7 +566,12 @@ internal fun HomeOverview(
     onTalkHandoff: () -> Unit,
     onDismissMessage: () -> Unit,
     onOpenCalendarDay: (String) -> Unit = onOpenUrl,
+    onInbox: () -> Unit = {},
+    onToggleApplicationFavorite: (String) -> Unit = {},
 ) {
+    val orderedApplications = ApplicationShortcuts.ordered(state.applications, state.favoriteApplicationSlugs)
+    val newNotices = NoticeInboxPolicy.visible(state.noticeHistory, state.applications, state.mode).count { !it.read } +
+        state.announcements.count { it.id !in state.readAnnouncementIds }
     LazyColumn(
         modifier = Modifier.fillMaxSize().testTag("home-overview"),
         contentPadding = PaddingValues(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 20.dp),
@@ -554,6 +584,14 @@ internal fun HomeOverview(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.weight(1f)) { BrandHeader() }
+                if (state.signedIn) Box {
+                    IconButton(onClick = onInbox, modifier = Modifier.testTag("notice-inbox-button")) {
+                        Icon(painterResource(R.drawable.ic_notice_bell), stringResource(R.string.notice_inbox_title))
+                    }
+                    if (newNotices > 0) Badge(Modifier.align(Alignment.TopEnd)) {
+                        Text(if (newNotices > 99) "99+" else newNotices.toString())
+                    }
+                }
                 IconButton(onClick = onSettings) {
                     Icon(painterResource(R.drawable.ic_settings), stringResource(R.string.settings_title))
                 }
@@ -610,15 +648,17 @@ internal fun HomeOverview(
             } else if (state.applications.isEmpty()) {
                 item { EmptyApps(onOpenUrl) }
             } else {
-                items((state.applications.size + 1) / 2) { rowIndex ->
-                    val first = state.applications[rowIndex * 2]
-                    val second = state.applications.getOrNull(rowIndex * 2 + 1)
+                items((orderedApplications.size + 1) / 2) { rowIndex ->
+                    val first = orderedApplications[rowIndex * 2]
+                    val second = orderedApplications.getOrNull(rowIndex * 2 + 1)
                     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         AppTile(
                             first,
                             state.unreadNotificationBadges.countFor(first),
                             Modifier.weight(1f),
                             onOpenUrl,
+                            first.slug in state.favoriteApplicationSlugs,
+                            onToggleApplicationFavorite,
                         )
                         if (second != null) {
                             AppTile(
@@ -626,6 +666,8 @@ internal fun HomeOverview(
                                 state.unreadNotificationBadges.countFor(second),
                                 Modifier.weight(1f),
                                 onOpenUrl,
+                                second.slug in state.favoriteApplicationSlugs,
+                                onToggleApplicationFavorite,
                             )
                         } else {
                             Spacer(Modifier.weight(1f))
@@ -1611,6 +1653,8 @@ private fun AppTile(
     unreadCount: Int,
     modifier: Modifier,
     onOpenUrl: (String) -> Unit,
+    favorite: Boolean,
+    onToggleFavorite: (String) -> Unit,
 ) {
     val appearance = remember(application.slug, application.name) { AppTileAppearance.from(application) }
     val dark = isSystemInDarkTheme()
@@ -1624,8 +1668,9 @@ private fun AppTile(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
+        Box(Modifier.fillMaxWidth().weight(1f)) {
         Row(
-            Modifier.fillMaxWidth().weight(1f).padding(horizontal = 10.dp, vertical = 12.dp),
+            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(start = 10.dp, end = 36.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -1652,6 +1697,13 @@ private fun AppTile(
             Text(application.name, Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+        IconButton(onClick = { onToggleFavorite(application.slug) },
+            modifier = Modifier.align(Alignment.TopEnd).size(36.dp).testTag("app-favorite-" + application.slug)) {
+            Icon(painterResource(if (favorite) R.drawable.ic_contact_star else R.drawable.ic_contact_star_outline),
+                stringResource(if (favorite) R.string.app_favorite_remove else R.string.app_favorite_add, application.name),
+                Modifier.size(18.dp), tint = if (favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         }
     }
 }

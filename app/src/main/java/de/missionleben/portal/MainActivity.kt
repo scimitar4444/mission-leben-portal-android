@@ -137,6 +137,10 @@ class MainActivity : FragmentActivity() {
                 routeTalkMeeting(talkUrl)
                 return@registerForActivityResult
             }
+            PortalBrowserActivity.problemReportApplication(result.data)?.let { slug ->
+                viewModel.reportProblemFor(slug)
+                return@registerForActivityResult
+            }
             when {
                 PortalBrowserActivity.sharedSessionEnded(result.data) -> {
                     viewModel.endSharedSessionAfterScreenOff()
@@ -255,6 +259,10 @@ class MainActivity : FragmentActivity() {
                     onOpenCalendarDay = viewModel::openCalendarDay,
                     onOpenPublicUrl = ::openUrl,
                     onReloadApplications = viewModel::loadApplications,
+                    onToggleApplicationFavorite = viewModel::toggleApplicationFavorite,
+                    onRefreshInbox = viewModel::refreshInbox,
+                    onOpenInboxNotice = viewModel::openInboxNotice,
+                    onMarkInboxRead = viewModel::markInboxRead,
                     onSearchContacts = viewModel::searchContacts,
                     onLoadContactFavorites = viewModel::loadContactFavorites,
                     onToggleContactFavorite = viewModel::toggleContactFavorite,
@@ -518,12 +526,21 @@ class MainActivity : FragmentActivity() {
         notificationBadgeTarget: NotificationBadgeTarget?,
     ) {
         val mode = viewModel.uiState.value.mode ?: return
+        val state = viewModel.uiState.value
+        val application = de.missionleben.portal.model.ApplicationShortcuts.applicationForUrl(state.applications, url)
+            ?: notificationBadgeTarget?.let { target -> state.applications.firstOrNull {
+                NotificationBadgeTarget.fromApplication(it) == target
+            } }
+        val canReport = state.signedIn && state.enrollmentState == de.missionleben.portal.model.EnrollmentState.TRUSTED &&
+            de.missionleben.portal.push.NotificationNavigation.approvedHelpdeskApplication(state.applications) != null
         appBrowserLauncher.launch(
             PortalBrowserActivity.appIntent(
                 context = this,
                 url = url,
                 mode = mode,
                 notificationBadgeTarget = notificationBadgeTarget,
+                problemReportApplicationSlug = if (canReport) application?.slug else null,
+                title = application?.name,
             ),
         )
     }

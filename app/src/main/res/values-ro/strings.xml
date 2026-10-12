@@ -354,4 +354,18 @@
     <string name="privacy_ticket_detailed">Afișează și o scurtă previzualizare a mesajului sau răspunsului.</string>
     <string name="quiet_hours_all_apps">În acest interval nu sunt afișate notificări din aplicațiile tale autorizate.</string>
     <string name="release_note_helpdesk_push">Răspunsurile IT noi la solicitările tale pot fi acum anunțate în categoria separată „Ajutor IT”. Atinge pentru a deschide solicitarea corespunzătoare.</string>
+    <string name="notice_inbox_title">Noutăți pentru mine</string>
+    <string name="notice_inbox_description">Notificările închise rămân disponibile aici. Cele mai vechi deschid aplicația corespunzătoare.</string>
+    <string name="notice_inbox_empty">Nu există notificări. Documentele, anunțurile și răspunsurile noi vor apărea aici.</string>
+    <string name="notice_mark_all_read">Marchează tot ca citit</string>
+    <string name="notice_new">Nou</string>
+    <string name="notice_document">Document nou</string>
+    <string name="notice_ticket">Răspuns la solicitare</string>
+    <string name="app_favorite_add">Adaugă %1$s la favorite</string>
+    <string name="app_favorite_remove">Elimină %1$s din favorite</string>
+    <string name="app_actions">Meniul aplicației</string>
+    <string name="report_problem">Raportează o problemă</string>
+    <string name="report_problem_subject">Problemă cu %1$s</string>
+    <string name="report_problem_body">Aplicație: %1$s\n\nDescrie pe scurt problema:</string>
+    <string name="release_note_shortcuts">Nou: steaua aduce aplicațiile favorite în față. Clopoțelul adună documente, anunțuri și răspunsuri. Raportează o problemă către Ajutor IT din meniul aplicației.</string>
 </resources>

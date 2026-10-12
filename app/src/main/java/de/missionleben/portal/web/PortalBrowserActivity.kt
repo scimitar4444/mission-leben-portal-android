@@ -348,7 +348,10 @@ class PortalBrowserActivity : FragmentActivity() {
             setContent {
                 MissionLebenTheme {
                     Box(Modifier.padding(horizontal = 16.dp)) {
-                        PortalHeader(browserTitle, onBack = ::finishApplicationBrowserFromBack)
+                        PortalHeader(browserTitle, onBack = ::finishApplicationBrowserFromBack,
+                            onReportProblem = intent.getStringExtra(EXTRA_REPORT_PROBLEM_APP)?.takeIf { it.isNotBlank() }?.let {
+                                { reportProblem(it) }
+                            })
                     }
                 }
             }
@@ -843,7 +846,18 @@ class PortalBrowserActivity : FragmentActivity() {
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
+    private fun reportProblem(slug: String) {
+        if (!intent.getBooleanExtra(EXTRA_APP_CONTENT, false)) return
+        setResult(RESULT_OK, Intent().putExtra(EXTRA_REPORT_PROBLEM_APP, slug).apply {
+            intent.getStringExtra(EXTRA_NOTIFICATION_BADGE_TARGET)?.let {
+                putExtra(EXTRA_VISITED_NOTIFICATION_BADGE_TARGET, it)
+            }
+        })
+        finish()
+    }
+
     companion object {
+        private const val EXTRA_REPORT_PROBLEM_APP = "report_problem_app_slug"
         private const val EXTRA_URL = "url"
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_REDIRECT_URI = "redirect_uri"
@@ -893,12 +907,14 @@ class PortalBrowserActivity : FragmentActivity() {
             mode: DeviceMode,
             title: String? = null,
             notificationBadgeTarget: NotificationBadgeTarget? = null,
+            problemReportApplicationSlug: String? = null,
         ): Intent =
             Intent(context, PortalBrowserActivity::class.java)
                 .putExtra(EXTRA_URL, url)
                 .putExtra(EXTRA_DEVICE_MODE, mode.name)
                 .putExtra(EXTRA_APP_CONTENT, true)
                 .putExtra(EXTRA_TITLE, title ?: context.getString(R.string.browser_web_application))
+                .putExtra(EXTRA_REPORT_PROBLEM_APP, problemReportApplicationSlug)
                 .apply {
                     notificationBadgeTarget?.let {
                         putExtra(EXTRA_NOTIFICATION_BADGE_TARGET, it.name)
@@ -968,6 +984,9 @@ class PortalBrowserActivity : FragmentActivity() {
         fun talkMeetingUrl(intent: Intent?): String? =
             intent?.getStringExtra(EXTRA_TALK_MEETING_URL)
                 ?.takeIf { TalkMeetingLinkPolicy.parse(it) != null }
+
+        fun problemReportApplication(intent: Intent?): String? =
+            intent?.getStringExtra(EXTRA_REPORT_PROBLEM_APP)?.takeIf { it.isNotBlank() && it.length <= 200 }
 
         fun logoutIntent(context: Context, url: String, mode: DeviceMode): Intent =
             Intent(context, PortalBrowserActivity::class.java)

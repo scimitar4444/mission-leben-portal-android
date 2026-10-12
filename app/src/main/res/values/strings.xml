@@ -392,4 +392,18 @@
     <string name="release_note_mobile_helpdesk">IT Hilfe ist jetzt auch mobil erreichbar. Die Übersicht zeigt deine vorhandenen Tickets in einer kompakteren Ansicht.</string>
     <string name="release_note_talk_setup_choice">Im Einrichtungsassistenten kannst du jetzt wählen, ob Talk mit der Chatübersicht oder dem letzten Chat startet.</string>
     <string name="release_note_helpdesk_push">Neue Antworten der IT auf deine Tickets können dich jetzt in der eigenen Kategorie „IT Hilfe“ benachrichtigen. Ein Tipp öffnet das passende Ticket.</string>
+    <string name="notice_inbox_title">Neu für mich</string>
+    <string name="notice_inbox_description">Auch weggewischte Hinweise bleiben hier auffindbar. Ältere Hinweise öffnen die jeweilige Anwendung.</string>
+    <string name="notice_inbox_empty">Noch keine Hinweise. Neue Dokumente, Ankündigungen und Ticketantworten findest du künftig hier.</string>
+    <string name="notice_mark_all_read">Alle als gelesen markieren</string>
+    <string name="notice_new">Neu</string>
+    <string name="notice_document">Neues Dokument</string>
+    <string name="notice_ticket">Antwort auf dein Ticket</string>
+    <string name="app_favorite_add">%1$s als Favorit markieren</string>
+    <string name="app_favorite_remove">%1$s aus Favoriten entfernen</string>
+    <string name="app_actions">Anwendungsmenü</string>
+    <string name="report_problem">Problem melden</string>
+    <string name="report_problem_subject">Problem mit %1$s</string>
+    <string name="report_problem_body">Betroffene Anwendung: %1$s\n\nBitte beschreibe hier kurz dein Problem:</string>
+    <string name="release_note_shortcuts">Neu: Mit dem Stern holst du Lieblingsanwendungen nach vorne. Die Glocke sammelt Dokumente, Ankündigungen und Ticketantworten. Über das Anwendungsmenü kannst du ein Problem an IT Hilfe melden.</string>
 </resources>

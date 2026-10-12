@@ -353,4 +353,18 @@
     <string name="privacy_ticket_detailed">Afficher aussi un court aperçu du message ou de la réponse.</string>
     <string name="quiet_hours_all_apps">Aucune notification de tes applications autorisées ne sera affichée pendant cette période.</string>
     <string name="release_note_helpdesk_push">Les nouvelles réponses du service informatique à tes tickets peuvent désormais être signalées dans la catégorie distincte « Aide informatique ». Appuie pour ouvrir le ticket concerné.</string>
+    <string name="notice_inbox_title">Nouveau pour moi</string>
+    <string name="notice_inbox_description">Les notifications effacées restent disponibles ici. Les anciens avis ouvrent la bonne application.</string>
+    <string name="notice_inbox_empty">Aucun avis pour le moment. Les nouveaux documents, annonces et réponses apparaîtront ici.</string>
+    <string name="notice_mark_all_read">Tout marquer comme lu</string>
+    <string name="notice_new">Nouveau</string>
+    <string name="notice_document">Nouveau document</string>
+    <string name="notice_ticket">Réponse à ton ticket</string>
+    <string name="app_favorite_add">Ajouter %1$s aux favoris</string>
+    <string name="app_favorite_remove">Retirer %1$s des favoris</string>
+    <string name="app_actions">Menu de l’application</string>
+    <string name="report_problem">Signaler un problème</string>
+    <string name="report_problem_subject">Problème avec %1$s</string>
+    <string name="report_problem_body">Application : %1$s\n\nDécris brièvement ton problème :</string>
+    <string name="release_note_shortcuts">Nouveau : utilise l’étoile pour placer tes applications favorites en premier. La cloche rassemble documents, annonces et réponses. Signale un problème à l’aide informatique depuis le menu de l’application.</string>
 </resources>

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.app.NotificationManagerCompat
 import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.data.ContactFavoritesStore
+import de.missionleben.portal.data.ApplicationFavoritesStore
 import de.missionleben.portal.calendar.CalendarSyncCoordinator
 import de.missionleben.portal.model.EnrollmentState
 import de.missionleben.portal.push.PushManager
@@ -24,6 +25,7 @@ object DeviceSecurityLock {
         }
         SecureSessionVault(applicationContext).clear()
         ContactFavoritesStore(applicationContext).clearAll()
+        ApplicationFavoritesStore(applicationContext).clear()
         UnreadNotificationStore(applicationContext).clearAll()
         NotificationManagerCompat.from(applicationContext).cancelAll()
         PushManager.stop(applicationContext)

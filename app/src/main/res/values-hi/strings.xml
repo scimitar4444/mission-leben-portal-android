@@ -353,4 +353,18 @@
     <string name="privacy_ticket_detailed">संदेश या अनुरोध के जवाब की छोटी झलक भी दिखाएँ।</string>
     <string name="quiet_hours_all_apps">इस अवधि में तुम्हारे अधिकृत ऐप्स की सूचनाएँ नहीं दिखाई जाती हैं।</string>
     <string name="release_note_helpdesk_push">आपके टिकट पर आईटी के नए उत्तर अब अलग “आईटी सहायता” श्रेणी में सूचना दे सकते हैं। संबंधित टिकट खोलने के लिए टैप करें।</string>
+    <string name="notice_inbox_title">मेरे लिए नया</string>
+    <string name="notice_inbox_description">हटाई गई सूचनाएँ यहाँ उपलब्ध रहती हैं। पुरानी सूचनाएँ संबंधित ऐप खोलती हैं।</string>
+    <string name="notice_inbox_empty">अभी कोई सूचना नहीं है। नए दस्तावेज़, घोषणाएँ और टिकट के उत्तर यहाँ दिखेंगे।</string>
+    <string name="notice_mark_all_read">सभी को पढ़ा हुआ मानें</string>
+    <string name="notice_new">नया</string>
+    <string name="notice_document">नया दस्तावेज़</string>
+    <string name="notice_ticket">आपके टिकट का उत्तर</string>
+    <string name="app_favorite_add">%1$s को पसंदीदा बनाएँ</string>
+    <string name="app_favorite_remove">%1$s को पसंदीदा से हटाएँ</string>
+    <string name="app_actions">ऐप मेनू</string>
+    <string name="report_problem">समस्या बताएँ</string>
+    <string name="report_problem_subject">%1$s के साथ समस्या</string>
+    <string name="report_problem_body">ऐप: %1$s\n\nकृपया अपनी समस्या संक्षेप में बताएँ:</string>
+    <string name="release_note_shortcuts">नया: सितारे से पसंदीदा ऐप आगे लाएँ। घंटी में दस्तावेज़, घोषणाएँ और टिकट के उत्तर मिलते हैं। ऐप मेनू से आईटी सहायता को समस्या बता सकते हैं।</string>
 </resources>

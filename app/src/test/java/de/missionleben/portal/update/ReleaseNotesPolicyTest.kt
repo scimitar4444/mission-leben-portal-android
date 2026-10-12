@@ -8,6 +8,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ReleaseNotesPolicyTest {
+    @Test fun shortcutsReleaseExplainsFavoritesInboxAndProblemReport() {
+        assertEquals(listOf(R.string.release_note_shortcuts), ReleaseNotesCatalog.forVersion(93))
+    }
     @Test fun employeeOverviewReleaseIncludesAllPublicChanges() {
         val expected = listOf(
             R.string.release_note_today,

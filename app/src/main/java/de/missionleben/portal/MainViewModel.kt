@@ -24,6 +24,11 @@ import de.missionleben.portal.calendar.CalendarSnapshot
 import de.missionleben.portal.calendar.TodayAgenda
 import de.missionleben.portal.calendar.LocalCalendarStore
 import de.missionleben.portal.data.AppPreferences
+import de.missionleben.portal.data.ApplicationFavoritesStore
+import de.missionleben.portal.model.ApplicationShortcuts
+import de.missionleben.portal.model.NoticeInboxPolicy
+import de.missionleben.portal.push.NoticeInboxStore
+import de.missionleben.portal.push.InboxNotice
 import de.missionleben.portal.data.NewsRepository
 import de.missionleben.portal.data.PortalAuthenticationException
 import de.missionleben.portal.data.PortalRepository
@@ -96,6 +101,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val updateRepository = UpdateRepository(application)
     private val updatesManagedByFdroid = UpdateChannel.managedByFdroid(application)
     private val unreadNotificationStore = UnreadNotificationStore(application)
+    private val noticeInbox = NoticeInboxStore(application)
+    private val applicationFavorites = ApplicationFavoritesStore(application)
+    private var sharedApplicationFavorites: Set<String> = emptySet()
+    private var inboxRefreshJob: Job? = null
     private val calendarSettings = CalendarSyncSettings(application)
     private val calendarCoordinator = CalendarSyncCoordinator(application)
     private val contactFavoritesStore = ContactFavoritesStore(application)
@@ -225,6 +234,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun clearOverviewSessionData() {
         clearToday()
         sharedContactFavorites = emptyList()
+        sharedApplicationFavorites = emptySet()
+        inboxRefreshJob?.cancel()
+        _uiState.update { it.copy(favoriteApplicationSlugs = emptySet(), noticeHistory = emptyList(),
+            noticeSummaries = emptyMap(), noticeHistoryLoading = false) }
     }
 
     suspend fun searchContacts(query: String, mine: Boolean, offset: Int, facility: String, initial: String): ContactPage {
@@ -267,6 +280,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (storedDeviceId != null && !deviceService.hasDeviceCredential(storedDeviceId)) {
             runCatching { calendarCoordinator.clearAndDisable() }
             contactFavoritesStore.clearAll()
+            applicationFavorites.clear()
             preferences.deviceId = null
             preferences.enrollmentProfile = null
             preferences.enrollmentState = EnrollmentState.NOT_ENROLLED
@@ -347,6 +361,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun resetProfile() {
+        applicationFavorites.clear()
         sessionEpoch++
         clearOverviewSessionData()
         contactFavoritesStore.clearAll()
@@ -676,7 +691,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     runCatching { portalRepository.applications(token) }
                         .onSuccess { applications ->
                             if (epoch != sessionEpoch || !_uiState.value.signedIn) return@onSuccess
-                            _uiState.update { it.copy(applications = applications, applicationsLoading = false) }
+                            _uiState.update { it.copy(applications = applications, applicationsLoading = false,
+                                favoriteApplicationSlugs = if (it.mode == DeviceMode.PERSONAL)
+                                    applicationFavorites.load(it.user?.subject.orEmpty()) else sharedApplicationFavorites) }
+                            refreshUnreadNotificationBadges()
                             refreshCalendarAccess(applications)
                             loadCapabilitiesWithToken(token)
                             syncPushRegistrationWithToken(token)
@@ -874,7 +892,87 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun refreshUnreadNotificationBadges() {
-        _uiState.update { it.copy(unreadNotificationBadges = unreadNotificationStore.counts()) }
+        _uiState.update { it.copy(unreadNotificationBadges = unreadNotificationStore.counts(),
+            noticeHistory = if (it.signedIn) noticeInbox.notices() else emptyList()) }
+    }
+
+    fun toggleApplicationFavorite(slug: String) {
+        val state = _uiState.value
+        val subject = state.user?.subject ?: return
+        if (!state.signedIn || state.applications.none { it.slug == slug }) return
+        val favorites = state.favoriteApplicationSlugs.toMutableSet()
+        if (!favorites.add(slug)) favorites.remove(slug)
+        if (state.mode == DeviceMode.PERSONAL) applicationFavorites.save(subject, favorites)
+        else sharedApplicationFavorites = favorites
+        _uiState.update { it.copy(favoriteApplicationSlugs = favorites.toSet()) }
+    }
+
+    fun reportProblemFor(applicationSlug: String) {
+        val state = _uiState.value
+        if (!state.signedIn) return
+        val source = state.applications.firstOrNull { it.slug == applicationSlug } ?: return
+        val helpdesk = NotificationNavigation.approvedHelpdeskApplication(state.applications) ?: return
+        val url = ApplicationShortcuts.problemReportUrl(helpdesk, source,
+            string(R.string.report_problem_subject, source.name), string(R.string.report_problem_body, source.name)) ?: return
+        openApplication(url, notificationEventId = null, notificationBadgeTarget = NotificationBadgeTarget.HELPDESK)
+    }
+
+    fun openInboxNotice(eventId: String) {
+        val state = _uiState.value
+        if (!state.signedIn) return
+        val notice = NoticeInboxPolicy.visible(noticeInbox.notices(), state.applications, state.mode)
+            .firstOrNull { it.eventId == eventId } ?: return
+        noticeInbox.markRead(eventId)
+        refreshUnreadNotificationBadges()
+        pendingPushAction = PendingPushAction(notice.action, notice.eventId, notice.targetId)
+        resolvePendingPushAction()
+    }
+
+    fun markInboxRead() {
+        val state = _uiState.value
+        if (!state.signedIn) return
+        NoticeInboxPolicy.visible(noticeInbox.notices(), state.applications, state.mode).forEach {
+            unreadNotificationStore.cancel(it.eventId)
+            NotificationPresenter.cancel(getApplication(), it.eventId)
+        }
+        state.announcements.forEach { markAnnouncementRead(it.id) }
+        refreshUnreadNotificationBadges()
+    }
+
+    fun refreshInbox() {
+        val state = _uiState.value
+        if (!state.signedIn || expireAtAbsoluteDeadline()) return
+        refreshUnreadNotificationBadges()
+        refreshAnnouncements()
+        val deviceId = preferences.deviceId ?: return
+        if (effectiveNotificationPrivacy(state.mode) == NotificationPrivacy.MINIMAL || inboxRefreshJob?.isActive == true) return
+        val epoch = sessionEpoch
+        inboxRefreshJob = viewModelScope.launch {
+            _uiState.update { it.copy(noticeHistoryLoading = true) }
+            try {
+                val recent = NoticeInboxPolicy.visible(noticeInbox.notices(), state.applications, state.mode)
+                    .filter { System.currentTimeMillis() - it.receivedAtMillis < 24L * 60 * 60 * 1000 }
+                    .filter { it.eventId !in state.noticeSummaries }.take(12)
+                kotlinx.coroutines.withTimeoutOrNull(15_000L) {
+                    for (notice in recent) {
+                        if (epoch != sessionEpoch || !_uiState.value.signedIn) break
+                        val detail = try { deviceService.notificationDetail(notice.eventId, notice.action, deviceId, identity) }
+                            catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                            catch (_: Exception) { continue }
+                        if (epoch != sessionEpoch || !_uiState.value.signedIn) break
+                        if (detail.isExpired()) continue
+                        noticeInbox.rememberTarget(notice.eventId, notice.action, detail.targetId)
+                        _uiState.update { it.copy(noticeSummaries = it.noticeSummaries +
+                            (notice.eventId to (detail.title to detail.summary))) }
+                    }
+                }
+            } finally {
+                if (epoch == sessionEpoch && _uiState.value.signedIn) {
+                    refreshUnreadNotificationBadges()
+                    _uiState.update { it.copy(noticeHistoryLoading = false) }
+                }
+            }
+        }
     }
 
     fun markApplicationVisited(target: NotificationBadgeTarget) {
@@ -1875,6 +1973,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             notificationNavigationJob?.cancel()
             notificationNavigationJob = viewModelScope.launch {
                 var targetId = NotificationTargetStore(getApplication()).get(pending.eventId, action)
+                    .ifBlank { pending.targetHint }
                 // Older app versions did not persist calendar targets. A tap can
                 // also arrive before the background detail job finishes.
                 if (action in setOf(PushAction.OPEN_CALENDAR, PushAction.OPEN_HELPDESK) && targetId.isBlank() &&
@@ -1912,6 +2011,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private data class PendingPushAction(
         val action: PushAction,
         val eventId: String?,
+        val targetHint: String = "",
     )
 
     private fun handleAccessTokenFailure(

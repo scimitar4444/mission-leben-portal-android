@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-12",
+  "status": "LOCAL_IMPLEMENTED_TESTED_AND_PILOT_INSTALLED",
+  "version": "0.22.2-local",
+  "version_code": 93,
+  "apk_sha256": "c1d4caef12a77cba2ebf508e8bad7e1b6a42ae482cb73a6a7ed952d9e55f1bd7",
+  "signer_sha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+  "unit_tests": {"tests": 312, "failures": 0, "errors": 0},
+  "release_build": "PASS",
+  "lint_release": "PASS_NO_ERRORS",
+  "pilot_install": "ADB_REPLACE_SUCCESS_VERSION_READ_BACK_REGISTRATION_NOT_RESET",
+  "phone_ui_acceptance": "FAVORITE_REORDERS_AND_PERSISTS_AFTER_CATALOG_RELOAD; TEST_FAVORITE_RESTORED_TO_ORIGINAL_STATE; INBOX_OPENS_WITH_CORRECT_EMPTY_STATE; NATIVE_PROBLEM_MENU_OPENS_IT_HELP_NEW_TICKET; USER_CONFIRMED_APPLICATION_NAME_PREFILLED_IN_SUBJECT_AND_BODY; FINAL_BELL_AND_SECURITY_CLEANUP_CORRECTIONS_INSTALLED_SUCCESSFULLY",
+  "ota_published": false,
+  "server_changes": false,
+  "group_flow_or_mfa_changes": false,
+  "features": {
+    "favorites": "Stable favorite-first ordering of currently approved catalog only; personal account-separated slugs; shared-session memory only.",
+    "problem_report": "Native WebView overflow menu; approved IT Hilfe GET form with application name in Subject and Body; never submits a ticket automatically.",
+    "notice_inbox": "Bell merges current announcements with document and helpdesk event history; Android dismissal acknowledges badges but retains history; server cancellation removes the event."
+  },
+  "security_and_limits": {
+    "history": "At most 100 document/helpdesk events for 14 days; identifiers and validated ticket/article IDs only on disk, no titles or messages.",
+    "summaries": "Memory-only, fetched on demand through existing signed notification-detail endpoint; server event expiry can require fallback to approved application.",
+    "local_lock": "Clears in-memory content; metadata remains for the same session after unlock.",
+    "logout_or_offboarding": "Existing UnreadNotificationStore.clearAll now also clears notice metadata; profile reset, lost device credential and central DeviceSecurityLock cleanup also clear application favorites.",
+    "authorization": "Current catalog checked before displaying or opening events; existing protected-action/device/session checks retained; documents excluded for shared mode.",
+    "background_work": "No new timer, worker or background connection; summaries requested only when inbox is opened/refreshed.",
+    "backup": "Existing cloud/device-transfer sharedpref exclusions cover new metadata preferences."
+  },
+  "rollback": "OTA remains unchanged. Revert scoped app changes to previous commit 6857d9823bfda52b2a0ddb922ef0c1c36387c5d1 and rebuild with production signer plus a higher versionCode for an in-place rollback; Android release downgrades should not be assumed to preserve data.",
+  "remaining_acceptance": [
+    "Final bell icon visual confirmation after last local update; favorite ordering/reload, inbox entry and contextual report have been accepted on the phone.",
+    "Real document/ticket event followed by Android dismissal and exact approved navigation from history.",
+    "No actual ticket, mail or synthetic production push created during this turn."
+  ],
+  "wake_setting": "0 before test; temporary wake enabled for UI checks; restored to 0 after final installation and read back successfully"
+}

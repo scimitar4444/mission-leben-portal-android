@@ -353,4 +353,18 @@
     <string name="privacy_ticket_detailed">Mesajın veya talep yanıtının kısa bir önizlemesini de göster.</string>
     <string name="quiet_hours_all_apps">Bu süre içinde izin verilen uygulamalarından bildirim gösterilmez.</string>
     <string name="release_note_helpdesk_push">Taleplerinize gelen yeni BT yanıtları artık ayrı “BT Yardımı” kategorisinde bildirilebilir. İlgili talebi açmak için dokunun.</string>
+    <string name="notice_inbox_title">Benim için yeni</string>
+    <string name="notice_inbox_description">Kapatılan bildirimler burada bulunabilir. Eski bildirimler ilgili uygulamayı açar.</string>
+    <string name="notice_inbox_empty">Henüz bildirim yok. Yeni belgeler, duyurular ve talep yanıtları burada görünür.</string>
+    <string name="notice_mark_all_read">Tümünü okundu işaretle</string>
+    <string name="notice_new">Yeni</string>
+    <string name="notice_document">Yeni belge</string>
+    <string name="notice_ticket">Talebinize yanıt</string>
+    <string name="app_favorite_add">%1$s favorilere eklensin</string>
+    <string name="app_favorite_remove">%1$s favorilerden kaldırılsın</string>
+    <string name="app_actions">Uygulama menüsü</string>
+    <string name="report_problem">Sorun bildir</string>
+    <string name="report_problem_subject">%1$s ile ilgili sorun</string>
+    <string name="report_problem_body">Uygulama: %1$s\n\nLütfen sorununuzu kısaca açıklayın:</string>
+    <string name="release_note_shortcuts">Yeni: Yıldız ile favori uygulamaları öne taşıyın. Zil; belgeleri, duyuruları ve talep yanıtlarını toplar. Uygulama menüsünden BT Yardımına sorun bildirebilirsiniz.</string>
 </resources>

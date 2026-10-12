@@ -38,8 +38,11 @@ object PushEventDispatcher {
                 RichNotificationJobService.schedule(context, command)
             }
             is PushCommand.Cancel -> synchronized(NotificationPresenter) {
+                NoticeInboxStore(context).remove(command.eventId)
                 NotificationPresenter.cancel(context, command.eventId)
-                if (UnreadNotificationStore(context).cancel(command.eventId)) notifyUnreadChanged(context)
+                UnreadNotificationStore(context).cancel(command.eventId)
+                // Already-read notices can still disappear from the history.
+                notifyUnreadChanged(context)
             }
             is PushCommand.LoginApproval -> {
                 if (!MissionLebenApplication.portalVisible) {
@@ -55,6 +58,7 @@ object PushEventDispatcher {
     }
 
     fun recordUnread(context: Context, action: PushAction, eventId: String) = synchronized(NotificationPresenter) {
+        NoticeInboxStore(context).record(action, eventId)
         if (UnreadNotificationStore(context).record(action, eventId)) notifyUnreadChanged(context)
     }
 
