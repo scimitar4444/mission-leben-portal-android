@@ -10,6 +10,9 @@ object NotificationNavigation {
     fun approvedDocumentsApplication(applications: List<PortalApplication>): PortalApplication? =
         applications.firstOrNull { it.slug == "projectsend-ml-dokumente-test" }
 
+    fun approvedHelpdeskApplication(applications: List<PortalApplication>): PortalApplication? =
+        applications.firstOrNull { it.slug == "otobo-mitarbeiter" }
+
     fun resolve(
         action: PushAction,
         targetId: String,
@@ -33,8 +36,22 @@ object NotificationNavigation {
         return when (action) {
             PushAction.OPEN_MAIL -> zimbraMessageUrl(zimbraWebBaseUrl, validated)
             PushAction.OPEN_TALK -> talkRoomUrl(applicationLaunchUrl, validated)
+            PushAction.OPEN_HELPDESK -> helpdeskTicketUrl(applicationLaunchUrl, validated)
             PushAction.OPEN_CALENDAR, PushAction.OPEN_DOCUMENTS, PushAction.REFRESH_SECURITY_STATE -> applicationLaunchUrl
         }
+    }
+
+    private fun helpdeskTicketUrl(launchUrl: String, targetId: String): String {
+        val base = runCatching { URI(launchUrl) }.getOrNull() ?: return launchUrl
+        // Never accept a URL from a notification; use only the approved catalog
+        // entry and the fixed customer endpoint, preserving its 443/8443 port.
+        if (base.scheme != "https" || base.host != "it-service.mission-leben.de" ||
+            base.rawUserInfo != null || base.port !in setOf(-1, 443, 8443) ||
+            base.path != "/otobo/customer.pl"
+        ) return launchUrl
+        val (ticket, article) = targetId.split(':')
+        return URI("https", base.rawAuthority, base.path,
+            "Action=CustomerTicketZoom&TicketID=$ticket&ArticleID=$article", null).toASCIIString()
     }
 
     internal fun zimbraCalendarOverviewUrl(targetUrl: String, baseUrl: String): String? {

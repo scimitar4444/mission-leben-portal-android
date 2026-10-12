@@ -347,4 +347,12 @@
     <string name="release_note_compact_documents">ML Документи займають менше місця на телефоні. Значки показують тип файлу; меню більше не містить окремих налаштувань облікового запису.</string>
     <string name="release_note_mobile_helpdesk">ІТ-допомога тепер доступна й на телефоні. Огляд показує наявні заявки в компактнішому вигляді.</string>
     <string name="release_note_talk_setup_choice">У помічнику налаштування тепер можна вибрати, чи Talk відкриватиме список чатів або останній чат.</string>
+    <string name="push_helpdesk_title">ІТ-допомога</string>
+    <string name="push_helpdesk_body">Є нова відповідь на твоє звернення.</string>
+    <string name="helpdesk_notification_settings">ІТ-допомога: звук і сповіщення</string>
+    <string name="privacy_ticket_minimal">Лише нейтральне сповіщення, без імен, теми чи тексту відповіді.</string>
+    <string name="privacy_ticket_standard">Показувати імена й теми. ІТ-допомога показує номер і тему звернення, без тексту відповіді.</string>
+    <string name="privacy_ticket_detailed">Також показувати короткий перегляд повідомлення чи відповіді.</string>
+    <string name="quiet_hours_all_apps">У цей період сповіщення з доступних тобі застосунків не показуються.</string>
+    <string name="release_note_helpdesk_push">Нові відповіді ІТ на твої заявки тепер можуть надходити в окремій категорії «ІТ-допомога». Торкнися, щоб відкрити відповідну заявку.</string>
 </resources>

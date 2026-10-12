@@ -25,7 +25,9 @@ KEY_ID = re.compile(r"^[a-f0-9]{24}$")
 ROOM_TOKEN = re.compile(r"^[A-Za-z0-9_-]{6,128}$")
 TALK_NOTIFICATION_TARGET = re.compile(r"^[A-Za-z0-9_-]{4,128}$")
 ZIMBRA_ITEM_ID = re.compile(r"^(?:[A-Za-z0-9_-]{1,64}:)?[0-9]{1,20}$")
-EVENT_TYPES = {"open_mail", "open_calendar", "open_talk", "open_documents"}
+EVENT_TYPES = {"open_mail", "open_calendar", "open_talk", "open_documents", "open_helpdesk"}
+HELPDESK_TARGET = re.compile(r"^[1-9][0-9]{0,19}:[1-9][0-9]{0,19}$")
+HELPDESK_PUSH_MIN_VERSION = (0, 22, 1)
 PROJECTSEND_ISSUER = "https://id.mission-leben.de/application/o/projectsend-ml-dokumente-test/"
 PROJECTSEND_SUBJECT = re.compile(r"^[a-f0-9]{64}$")
 PROJECTSEND_EVENT_ID = re.compile(r"^notification:[1-9][0-9]{0,19}$")
@@ -40,6 +42,11 @@ KNOWN_CAPABILITIES = {"open_talk", "device_profile_switch"}
 def supports_document_push(app_version: str) -> bool:
     match = APP_VERSION.fullmatch(app_version)
     return match is not None and tuple(int(part) for part in match.groups()) >= DOCUMENT_PUSH_MIN_VERSION
+
+
+def supports_helpdesk_push(app_version: str) -> bool:
+    match = APP_VERSION.fullmatch(app_version)
+    return match is not None and tuple(int(part) for part in match.groups()) >= HELPDESK_PUSH_MIN_VERSION
 
 
 class ApiError(Exception):
@@ -96,6 +103,7 @@ def _notification_target(event_type: str, value: Any) -> str:
     pattern = {
         "open_mail": ZIMBRA_ITEM_ID,
         "open_talk": TALK_NOTIFICATION_TARGET,
+        "open_helpdesk": HELPDESK_TARGET,
     }.get(event_type)
     if pattern is None:
         return ""
@@ -432,6 +440,8 @@ class BridgeService:
                 _text(payload.get("app_version"), 30)
             ):
                 self.store.queue_pending_document_events(user.subject, device_id)
+            if supports_helpdesk_push(_text(payload.get("app_version"), 30)):
+                self.store.queue_pending_helpdesk_events(user.subject, device_id)
         except PermissionError as error:
             if created:
                 try:
@@ -527,8 +537,33 @@ class BridgeService:
         return {"handoff_id": handoff_id, "status": "accepted"}
 
     def ingest_event(self, source: str, payload: dict[str, Any]) -> dict[str, Any]:
-        if source not in {"zimbra", "nextcloud", "test", "projectsend"}:
+        if source not in {"zimbra", "nextcloud", "test", "projectsend", "otobo"}:
             raise ApiError(400, "unknown event source")
+        if source == "otobo":
+            if set(payload) != {"recipient_login", "ticket_id", "article_id", "ticket_number", "title", "preview"}:
+                raise ApiError(400, "invalid OTOBO event fields")
+            target = f"{payload['ticket_id']}:{payload['article_id']}"
+            if not HELPDESK_TARGET.fullmatch(target):
+                raise ApiError(400, "invalid OTOBO target")
+            login = _text(payload["recipient_login"], 254, required=True).lower()
+            if self.communication_directory is None:
+                raise ApiError(503, "helpdesk assignments are unavailable")
+            try:
+                subject = self.communication_directory.helpdesk_subject(login)
+            except RuntimeError as error:
+                raise ApiError(503, "helpdesk assignments are unavailable") from error
+            if subject is None:
+                return {"created": False, "dispatched": 0, "ignored": True}
+            payload = {
+                "source_event_id": f"article:{target}", "user_subject": subject,
+                "event_type": "open_helpdesk", "target_id": target,
+                "title": "IT Hilfe",
+                "summary": f"Ticket {_text(payload['ticket_number'], 32)}: {_text(payload['title'], 120)}",
+                "preview": _text(payload["preview"], 280),
+                "expires_at": datetime.fromtimestamp(time.time() + 86400, timezone.utc).isoformat(),
+            }
+        elif payload.get("event_type") == "open_helpdesk":
+            raise ApiError(400, "ticket events require the OTOBO source")
         if source == "projectsend":
             if set(payload) != {"source_event_id", "issuer", "user_subject", "event_type"}:
                 raise ApiError(400, "invalid ProjectSend event fields")
@@ -586,6 +621,8 @@ class BridgeService:
                     r for r in registrations
                     if r["mode"] == "personal" and supports_document_push(r["app_version"])
                 ]
+            elif source == "otobo":
+                registrations = [r for r in registrations if supports_helpdesk_push(r["app_version"])]
             for registration in registrations:
                 registration_delivery_epoch = event["deliver_epoch"]
                 if event_type == "open_calendar" and display_epoch is not None:
@@ -602,7 +639,7 @@ class BridgeService:
                 )
             if registrations:
                 dispatches = self.dispatch_due_events(event_id=event["event_id"])
-            elif source != "projectsend":
+            elif source not in {"projectsend", "otobo"}:
                 self.store.finish_event_without_targets(event["event_id"])
         return {"event_id": event["event_id"], "created": created, "dispatched": dispatches}
 
@@ -625,6 +662,14 @@ class BridgeService:
                 ):
                     self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
                     continue
+                if event["source"] == "otobo":
+                    try:
+                        allowed = self.communication_directory is not None and self.communication_directory.allows_helpdesk(event["subject"])
+                    except RuntimeError:
+                        continue
+                    if not allowed or not supports_helpdesk_push(registration["app_version"]):
+                        self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
+                        continue
                 if event["expires_epoch"] is not None and event["expires_epoch"] <= int(time.time()):
                     self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
                     continue
@@ -719,6 +764,13 @@ class BridgeService:
         if resolved is None:
             raise ApiError(404, "notification event was not found")
         event, privacy = resolved
+        if event["source"] == "otobo":
+            try:
+                allowed = self.communication_directory is not None and self.communication_directory.allows_helpdesk(event["subject"])
+            except RuntimeError as error:
+                raise ApiError(503, "helpdesk assignments are unavailable") from error
+            if not allowed:
+                raise ApiError(403, "helpdesk access is no longer available")
         if event["expires_epoch"] is not None and event["expires_epoch"] <= now:
             raise ApiError(410, "notification event has expired")
         if event["mode"] != "personal" or privacy == "minimal":

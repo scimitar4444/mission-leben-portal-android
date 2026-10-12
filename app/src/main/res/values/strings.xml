@@ -292,6 +292,13 @@
     <string name="push_calendar_body">Ein Termin steht bevor.</string>
     <string name="push_talk_title">Talk</string>
     <string name="push_talk_body">Neue Talk-Aktivität.</string>
+    <string name="push_helpdesk_title">IT Hilfe</string>
+    <string name="helpdesk_notification_settings">IT Hilfe: Ton und Hinweise einstellen</string>
+    <string name="privacy_ticket_minimal">Nur ein neutraler Hinweis – ohne Namen, Betreff oder Antworttext.</string>
+    <string name="privacy_ticket_standard">Namen und Betreff anzeigen. Bei IT Hilfe siehst du die Ticketnummer und den Betreff, aber keinen Antworttext.</string>
+    <string name="privacy_ticket_detailed">Zusätzlich eine kurze Textvorschau der Nachricht oder Ticketantwort anzeigen.</string>
+    <string name="quiet_hours_all_apps">In diesem Zeitraum werden keine Hinweise aus deinen freigegebenen Apps angezeigt.</string>
+    <string name="push_helpdesk_body">Es gibt eine neue Antwort auf dein Ticket.</string>
     <string name="push_documents_title">ML Dokumente</string>
     <string name="push_documents_body">Ein neues Dokument liegt in deinem persönlichen Postfach.</string>
     <string name="push_security_title">Gerätesicherheit</string>
@@ -384,4 +391,5 @@
     <string name="release_note_compact_documents">ML Dokumente ist auf dem Handy kompakter. Dateitypen sind an Symbolen erkennbar; das Menü zeigt keine eigenen Konto-Einstellungen mehr.</string>
     <string name="release_note_mobile_helpdesk">IT Hilfe ist jetzt auch mobil erreichbar. Die Übersicht zeigt deine vorhandenen Tickets in einer kompakteren Ansicht.</string>
     <string name="release_note_talk_setup_choice">Im Einrichtungsassistenten kannst du jetzt wählen, ob Talk mit der Chatübersicht oder dem letzten Chat startet.</string>
+    <string name="release_note_helpdesk_push">Neue Antworten der IT auf deine Tickets können dich jetzt in der eigenen Kategorie „IT Hilfe“ benachrichtigen. Ein Tipp öffnet das passende Ticket.</string>
 </resources>

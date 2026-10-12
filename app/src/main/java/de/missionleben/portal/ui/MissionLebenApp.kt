@@ -804,7 +804,7 @@ private fun SettingsScreen(
             stringResource(state.notificationPrivacy.labelRes),
             state.calendarReminderMinutes,
         )
-        else -> "Talk · ${stringResource(state.notificationPrivacy.labelRes)}"
+        else -> stringResource(state.notificationPrivacy.labelRes)
     }
     val languageSummary = stringResource(when (currentLanguageTag) {
         "de" -> R.string.language_german
@@ -1765,6 +1765,8 @@ internal fun NotificationPrivacyPanel(
     compact: Boolean = false,
 ) {
     if (!state.pushConfigured) return
+    val helpdeskAvailable = AppFeaturePolicy.from(state.applications).helpdesk
+    val context = LocalContext.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -1791,6 +1793,7 @@ internal fun NotificationPrivacyPanel(
                     Column(Modifier.weight(1f)) {
                         Text(
                             stringResource(when {
+                                helpdeskAvailable -> R.string.notifications_title
                                 zimbraAvailable && talkAvailable -> R.string.communication_notifications_title
                                 zimbraAvailable -> R.string.communication_notifications_zimbra_only
                                 else -> R.string.communication_notifications_talk_only
@@ -1821,6 +1824,11 @@ internal fun NotificationPrivacyPanel(
                 Spacer(Modifier.height(8.dp))
                 Text(
                     stringResource(when {
+                        helpdeskAvailable -> when (state.notificationPrivacy) {
+                            NotificationPrivacy.MINIMAL -> R.string.privacy_ticket_minimal
+                            NotificationPrivacy.STANDARD -> R.string.privacy_ticket_standard
+                            NotificationPrivacy.DETAILED -> R.string.privacy_ticket_detailed
+                        }
                         zimbraAvailable && talkAvailable -> state.notificationPrivacy.descriptionRes
                         zimbraAvailable -> when (state.notificationPrivacy) {
                             NotificationPrivacy.MINIMAL -> R.string.privacy_minimal_description_zimbra_only
@@ -1867,6 +1875,7 @@ internal fun NotificationPrivacyPanel(
                         )
                         Text(
                             stringResource(when {
+                                helpdeskAvailable -> R.string.quiet_hours_all_apps
                                 zimbraAvailable && talkAvailable -> R.string.quiet_hours_description
                                 zimbraAvailable -> R.string.quiet_hours_description_zimbra_only
                                 else -> R.string.quiet_hours_description_talk_only
@@ -1879,6 +1888,13 @@ internal fun NotificationPrivacyPanel(
                         checked = state.quietHoursEnabled,
                         onCheckedChange = null,
                     )
+                }
+                if (helpdeskAvailable) {
+                    TextButton(onClick = {
+                        context.startActivity(android.content.Intent(android.provider.Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                            .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            .putExtra(android.provider.Settings.EXTRA_CHANNEL_ID, "helpdesk"))
+                    }) { Text(stringResource(R.string.helpdesk_notification_settings)) }
                 }
                 if (state.quietHoursEnabled) {
                     Spacer(Modifier.height(10.dp))

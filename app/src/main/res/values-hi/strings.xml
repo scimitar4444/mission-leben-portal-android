@@ -345,4 +345,12 @@
     <string name="release_note_compact_documents">फ़ोन पर ML दस्तावेज़ अब कम जगह लेते हैं। आइकन फ़ाइल का प्रकार बताते हैं; मेनू में अलग खाता सेटिंग नहीं दिखाई देती।</string>
     <string name="release_note_mobile_helpdesk">आईटी सहायता अब मोबाइल पर भी उपलब्ध है। आपके मौजूदा टिकट अधिक संक्षिप्त रूप में दिखाई देते हैं।</string>
     <string name="release_note_talk_setup_choice">सेटअप सहायक में अब चुन सकते हैं कि Talk चैट सूची से खुले या पिछली चैट से।</string>
+    <string name="push_helpdesk_title">आईटी सहायता</string>
+    <string name="push_helpdesk_body">तुम्हारे अनुरोध का नया जवाब आया है।</string>
+    <string name="helpdesk_notification_settings">आईटी सहायता: ध्वनि और सूचनाएँ</string>
+    <string name="privacy_ticket_minimal">केवल सामान्य सूचना, बिना नाम, विषय या जवाब के पाठ के।</string>
+    <string name="privacy_ticket_standard">नाम और विषय दिखाएँ। आईटी सहायता में अनुरोध की संख्या और विषय दिखते हैं, जवाब का पाठ नहीं।</string>
+    <string name="privacy_ticket_detailed">संदेश या अनुरोध के जवाब की छोटी झलक भी दिखाएँ।</string>
+    <string name="quiet_hours_all_apps">इस अवधि में तुम्हारे अधिकृत ऐप्स की सूचनाएँ नहीं दिखाई जाती हैं।</string>
+    <string name="release_note_helpdesk_push">आपके टिकट पर आईटी के नए उत्तर अब अलग “आईटी सहायता” श्रेणी में सूचना दे सकते हैं। संबंधित टिकट खोलने के लिए टैप करें।</string>
 </resources>

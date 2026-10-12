@@ -1863,6 +1863,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 it.slug.contains("nextcloud", ignoreCase = true) || it.name.contains("nextcloud", ignoreCase = true)
             }
             PushAction.OPEN_DOCUMENTS -> NotificationNavigation.approvedDocumentsApplication(applications)
+            PushAction.OPEN_HELPDESK -> NotificationNavigation.approvedHelpdeskApplication(applications)
             PushAction.REFRESH_SECURITY_STATE -> null
         }
         pendingPushAction = null
@@ -1876,7 +1877,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 var targetId = NotificationTargetStore(getApplication()).get(pending.eventId, action)
                 // Older app versions did not persist calendar targets. A tap can
                 // also arrive before the background detail job finishes.
-                if (action == PushAction.OPEN_CALENDAR && targetId.isBlank() &&
+                if (action in setOf(PushAction.OPEN_CALENDAR, PushAction.OPEN_HELPDESK) && targetId.isBlank() &&
                     pending.eventId != null && deviceId != null &&
                     effectiveNotificationPrivacy(preferences.deviceMode) != NotificationPrivacy.MINIMAL
                 ) {

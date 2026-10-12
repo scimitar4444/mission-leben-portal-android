@@ -345,4 +345,12 @@
     <string name="release_note_compact_documents">ML Belgeler telefonda daha az yer kaplar. Simgeler dosya türünü gösterir; menüde ayrı hesap ayarları artık görünmez.</string>
     <string name="release_note_mobile_helpdesk">BT Yardımı artık mobilde de kullanılabilir. Genel bakış mevcut taleplerini daha kompakt gösterir.</string>
     <string name="release_note_talk_setup_choice">Kurulum yardımcısında Talk uygulamasının sohbet listesiyle mi yoksa son sohbetle mi açılacağını seçebilirsin.</string>
+    <string name="push_helpdesk_title">BT Yardımı</string>
+    <string name="push_helpdesk_body">Talebine yeni bir yanıt var.</string>
+    <string name="helpdesk_notification_settings">BT Yardımı: ses ve bildirimler</string>
+    <string name="privacy_ticket_minimal">Yalnızca tarafsız bir bildirim; ad, konu veya yanıt metni yok.</string>
+    <string name="privacy_ticket_standard">Adları ve konuları göster. BT Yardımı, yanıt metni olmadan talep numarasını ve konusunu gösterir.</string>
+    <string name="privacy_ticket_detailed">Mesajın veya talep yanıtının kısa bir önizlemesini de göster.</string>
+    <string name="quiet_hours_all_apps">Bu süre içinde izin verilen uygulamalarından bildirim gösterilmez.</string>
+    <string name="release_note_helpdesk_push">Taleplerinize gelen yeni BT yanıtları artık ayrı “BT Yardımı” kategorisinde bildirilebilir. İlgili talebi açmak için dokunun.</string>
 </resources>

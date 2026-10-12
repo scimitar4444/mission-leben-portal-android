@@ -345,4 +345,12 @@
     <string name="release_note_compact_documents">ML Documents est plus compact sur ton téléphone. Les icônes indiquent le type de fichier ; le menu ne propose plus de réglages de compte séparés.</string>
     <string name="release_note_mobile_helpdesk">L’aide informatique est aussi accessible sur mobile. La vue d’ensemble affiche tes tickets existants de façon plus compacte.</string>
     <string name="release_note_talk_setup_choice">L’assistant de configuration permet de choisir si Talk ouvre la liste des discussions ou la dernière discussion.</string>
+    <string name="push_helpdesk_title">Aide informatique</string>
+    <string name="push_helpdesk_body">Une nouvelle réponse à ta demande est disponible.</string>
+    <string name="helpdesk_notification_settings">Aide informatique : sons et notifications</string>
+    <string name="privacy_ticket_minimal">Un avis neutre uniquement, sans nom, objet ni texte de réponse.</string>
+    <string name="privacy_ticket_standard">Afficher les noms et objets. L’aide informatique affiche le numéro et l’objet de la demande, sans texte de réponse.</string>
+    <string name="privacy_ticket_detailed">Afficher aussi un court aperçu du message ou de la réponse.</string>
+    <string name="quiet_hours_all_apps">Aucune notification de tes applications autorisées ne sera affichée pendant cette période.</string>
+    <string name="release_note_helpdesk_push">Les nouvelles réponses du service informatique à tes tickets peuvent désormais être signalées dans la catégorie distincte « Aide informatique ». Appuie pour ouvrir le ticket concerné.</string>
 </resources>

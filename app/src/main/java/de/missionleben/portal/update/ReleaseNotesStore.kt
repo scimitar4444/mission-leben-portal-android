@@ -43,6 +43,7 @@ object ReleaseNotesCatalog {
             R.string.release_note_mobile_helpdesk,
             R.string.release_note_talk_setup_choice,
         ),
+        92 to listOf(R.string.release_note_helpdesk_push),
     )
 
     fun forVersion(versionCode: Int): List<Int> = notesByVersion[versionCode].orEmpty()

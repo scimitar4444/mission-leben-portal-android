@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS notification_events (
     source TEXT NOT NULL,
     source_event_id TEXT NOT NULL,
     subject TEXT NOT NULL,
-    event_type TEXT NOT NULL CHECK (event_type IN ('open_mail', 'open_calendar', 'open_talk', 'open_documents')),
+    event_type TEXT NOT NULL CHECK (event_type IN ('open_mail', 'open_calendar', 'open_talk', 'open_documents', 'open_helpdesk')),
     title TEXT NOT NULL,
     summary TEXT NOT NULL,
     preview TEXT NOT NULL,
@@ -199,18 +199,18 @@ class Store:
                 LEFT JOIN event_deliveries d
                   ON d.event_id = e.event_id AND d.device_id = r.device_id
                 WHERE e.delivered_at IS NULL AND d.event_id IS NULL
-                  AND e.event_type != 'open_documents'
+                  AND e.event_type NOT IN ('open_documents', 'open_helpdesk')
                 """,
                 (int(time.time()),),
             )
-            connection.execute("PRAGMA user_version=10")
+            connection.execute("PRAGMA user_version=11")
 
     @staticmethod
     def _ensure_document_event_schema(connection: sqlite3.Connection) -> None:
         row = connection.execute(
             "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'notification_events'"
         ).fetchone()
-        if row is None or "'open_documents'" in row["sql"]:
+        if row is None or "'open_helpdesk'" in row["sql"]:
             return
         # SQLite cannot extend a CHECK constraint in place. Preserve event IDs
         # and delivery FKs while replacing only this table in one transaction.
@@ -225,7 +225,7 @@ class Store:
                     source_event_id TEXT NOT NULL,
                     subject TEXT NOT NULL,
                     event_type TEXT NOT NULL CHECK (event_type IN (
-                        'open_mail', 'open_calendar', 'open_talk', 'open_documents'
+                        'open_mail', 'open_calendar', 'open_talk', 'open_documents', 'open_helpdesk'
                     )),
                     title TEXT NOT NULL,
                     summary TEXT NOT NULL,
@@ -1003,6 +1003,22 @@ class Store:
                 """,
                 (now, device_id, subject, now - 7 * 86_400, now),
             )
+            return cursor.rowcount
+
+    def queue_pending_helpdesk_events(self, subject: str, device_id: str) -> int:
+        now = int(time.time())
+        with self._connect() as connection:
+            cursor = connection.execute("""
+                INSERT OR IGNORE INTO event_delivery_queue(event_id, device_id, deliver_epoch, created_at)
+                SELECT e.event_id, r.device_id, e.deliver_epoch, ?
+                FROM push_registrations r
+                JOIN users u ON u.subject = r.subject AND u.active = 1
+                JOIN notification_events e ON e.subject = r.subject
+                LEFT JOIN event_deliveries d ON d.event_id = e.event_id AND d.device_id = r.device_id
+                WHERE r.device_id = ? AND r.subject = ? AND r.push_enabled = 1
+                  AND e.source = 'otobo' AND e.event_type = 'open_helpdesk'
+                  AND e.expires_epoch > ? AND d.event_id IS NULL
+            """, (now, device_id, subject, now))
             return cursor.rowcount
 
     def due_delivery_queue(

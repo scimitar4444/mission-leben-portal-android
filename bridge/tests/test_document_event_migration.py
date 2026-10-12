@@ -62,6 +62,14 @@ class DocumentEventMigrationTest(unittest.TestCase):
             })
             self.assertTrue(created)
             self.assertEqual("open_documents", event["event_type"])
+            ticket, created = store.put_event({
+                "source": "otobo", "source_event_id": "article:1:2", "subject": "person",
+                "event_type": "open_helpdesk", "title": "IT Hilfe", "summary": "Antwort", "preview": "",
+                "target_id": "1:2", "display_at": None, "expires_at": None,
+                "expires_epoch": None, "deliver_epoch": 1,
+            })
+            self.assertTrue(created)
+            self.assertEqual("open_helpdesk", ticket["event_type"])
             Store(path, b"h" * 32, SecretBox(b"d" * 32))
             self.assertEqual("open_mail", store.get_event("old-event")["event_type"])
 

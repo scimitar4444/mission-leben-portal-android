@@ -268,6 +268,13 @@
     <string name="push_calendar_body">An appointment is coming up.</string>
     <string name="push_talk_title">Talk</string>
     <string name="push_talk_body">New Talk activity.</string>
+    <string name="push_helpdesk_title">IT Help</string>
+    <string name="helpdesk_notification_settings">IT Help: sound and notifications</string>
+    <string name="privacy_ticket_minimal">A neutral notice only, without names, subject or reply text.</string>
+    <string name="privacy_ticket_standard">Show names and subjects. IT Help shows the ticket number and subject, but no reply text.</string>
+    <string name="privacy_ticket_detailed">Also show a short preview of the message or ticket reply.</string>
+    <string name="quiet_hours_all_apps">No notifications from your approved apps are shown during this period.</string>
+    <string name="push_helpdesk_body">There is a new reply to your ticket.</string>
     <string name="push_documents_title">ML Documents</string>
     <string name="push_documents_body">A new document is available in your personal inbox.</string>
     <string name="push_security_title">Device security</string>
@@ -359,4 +366,5 @@
     <string name="release_note_compact_documents">ML Documents is more compact on your phone. Icons identify file types; the menu no longer shows separate account settings.</string>
     <string name="release_note_mobile_helpdesk">IT Help is now available on mobile too. The overview shows your existing tickets in a more compact layout.</string>
     <string name="release_note_talk_setup_choice">The setup assistant now lets you choose whether Talk opens the chat overview or your last chat.</string>
+    <string name="release_note_helpdesk_push">New IT replies to your tickets can now notify you in the separate “IT Help” category. Tap to open the relevant ticket.</string>
 </resources>

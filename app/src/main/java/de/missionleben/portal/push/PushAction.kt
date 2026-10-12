@@ -38,6 +38,13 @@ enum class PushAction(
         bodyRes = R.string.push_documents_body,
         notificationId = 105,
     ),
+    OPEN_HELPDESK(
+        wireName = "open_helpdesk",
+        channelId = "helpdesk",
+        titleRes = R.string.push_helpdesk_title,
+        bodyRes = R.string.push_helpdesk_body,
+        notificationId = 106,
+    ),
     REFRESH_SECURITY_STATE(
         wireName = "refresh_security_state",
         channelId = "security",

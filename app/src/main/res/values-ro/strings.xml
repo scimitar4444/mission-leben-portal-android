@@ -346,4 +346,12 @@
     <string name="release_note_compact_documents">ML Documente ocupă mai puțin spațiu pe telefon. Pictogramele arată tipul fișierului; meniul nu mai afișează setări separate ale contului.</string>
     <string name="release_note_mobile_helpdesk">Ajutor IT este disponibil și pe telefon. Prezentarea afișează tichetele existente într-un format mai compact.</string>
     <string name="release_note_talk_setup_choice">Asistentul de configurare permite acum alegerea deschiderii Talk în lista conversațiilor sau în ultima conversație.</string>
+    <string name="push_helpdesk_title">Ajutor IT</string>
+    <string name="push_helpdesk_body">Ai un răspuns nou la solicitarea ta.</string>
+    <string name="helpdesk_notification_settings">Ajutor IT: sunet și notificări</string>
+    <string name="privacy_ticket_minimal">Doar o notificare neutră, fără nume, subiect sau textul răspunsului.</string>
+    <string name="privacy_ticket_standard">Afișează nume și subiecte. Ajutor IT afișează numărul și subiectul solicitării, fără textul răspunsului.</string>
+    <string name="privacy_ticket_detailed">Afișează și o scurtă previzualizare a mesajului sau răspunsului.</string>
+    <string name="quiet_hours_all_apps">În acest interval nu sunt afișate notificări din aplicațiile tale autorizate.</string>
+    <string name="release_note_helpdesk_push">Răspunsurile IT noi la solicitările tale pot fi acum anunțate în categoria separată „Ajutor IT”. Atinge pentru a deschide solicitarea corespunzătoare.</string>
 </resources>

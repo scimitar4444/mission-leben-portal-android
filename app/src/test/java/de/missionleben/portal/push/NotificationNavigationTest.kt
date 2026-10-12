@@ -8,6 +8,19 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NotificationNavigationTest {
+    @Test fun `helpdesk opens exact ticket and reply on approved fixed host only`() {
+        val launch = "https://it-service.mission-leben.de:8443/otobo/customer.pl"
+        assertEquals("$launch?Action=CustomerTicketZoom&TicketID=42&ArticleID=84",
+            NotificationNavigation.resolve(PushAction.OPEN_HELPDESK, "42:84", launch, ""))
+        listOf("https://evil.example/otobo/customer.pl", "http://it-service.mission-leben.de/otobo/customer.pl",
+            "https://it-service.mission-leben.de:9999/otobo/customer.pl").forEach { invalid ->
+            assertEquals(invalid, NotificationNavigation.resolve(PushAction.OPEN_HELPDESK, "42:84", invalid, ""))
+        }
+        listOf("https://evil.example", "0:2", "1:0", "../1:2", "1:2&evil=1").forEach { invalid ->
+            assertEquals(launch, NotificationNavigation.resolve(PushAction.OPEN_HELPDESK, invalid, launch, ""))
+        }
+        assertNull(NotificationNavigation.approvedHelpdeskApplication(listOf(PortalApplication("IT Hilfe", "fake", launch))))
+    }
     @Test
     fun `document tap selects only the currently approved documents catalog entry`() {
         val launch = "https://dokumente.mission-leben.de/auth/oidc/redirect"

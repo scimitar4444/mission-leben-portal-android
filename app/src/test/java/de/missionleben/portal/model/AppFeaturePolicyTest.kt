@@ -32,4 +32,11 @@ class AppFeaturePolicyTest {
         val unknown = PortalApplication("Future", "future-app", "https://example.invalid/")
         assertFalse(AppFeaturePolicy.from(listOf(unknown)).communication)
     }
+
+    @Test fun `helpdesk only enables notification controls not mail calendar or talk`() {
+        val feature = AppFeaturePolicy.from(listOf(PortalApplication("IT Hilfe", "otobo-mitarbeiter", "https://it-service.mission-leben.de:8443/otobo/customer.pl")))
+        assertTrue(feature.helpdesk)
+        assertTrue(feature.communication)
+        assertFalse(feature.zimbra || feature.talk)
+    }
 }

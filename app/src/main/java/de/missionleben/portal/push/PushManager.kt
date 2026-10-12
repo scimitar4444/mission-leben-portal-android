@@ -60,6 +60,9 @@ object PushManager {
                 NotificationChannel("documents", context.getString(R.string.push_documents_title), NotificationManager.IMPORTANCE_DEFAULT).apply {
                     description = context.getString(R.string.push_documents_body)
                 },
+                NotificationChannel("helpdesk", context.getString(R.string.push_helpdesk_title), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                    description = context.getString(R.string.push_helpdesk_body)
+                },
                 NotificationChannel("security", context.getString(R.string.channel_security_name), NotificationManager.IMPORTANCE_HIGH).apply {
                     description = context.getString(R.string.channel_security_description)
                 },

@@ -6,13 +6,15 @@ import de.missionleben.portal.model.PortalApplication
 enum class NotificationBadgeTarget {
     ZIMBRA,
     TALK,
-    DOCUMENTS;
+    DOCUMENTS,
+    HELPDESK;
 
     companion object {
         fun fromAction(action: PushAction): NotificationBadgeTarget? = when (action) {
             PushAction.OPEN_MAIL, PushAction.OPEN_CALENDAR -> ZIMBRA
             PushAction.OPEN_TALK -> TALK
             PushAction.OPEN_DOCUMENTS -> DOCUMENTS
+            PushAction.OPEN_HELPDESK -> HELPDESK
             PushAction.REFRESH_SECURITY_STATE -> null
         }
 
@@ -30,6 +32,7 @@ enum class NotificationBadgeTarget {
 
         private fun fromMarker(marker: String): NotificationBadgeTarget? {
             return when {
+                "otobo-mitarbeiter" in marker -> HELPDESK
                 "projectsend-ml-dokumente-test" in marker -> DOCUMENTS
                 "zimbra" in marker -> ZIMBRA
                 "talk" in marker || "/apps/spreed" in marker -> TALK
@@ -43,6 +46,7 @@ data class NotificationBadgeCounts(
     val zimbra: Int = 0,
     val talk: Int = 0,
     val documents: Int = 0,
+    val helpdesk: Int = 0,
 ) {
     fun countFor(application: PortalApplication): Int = when (
         NotificationBadgeTarget.fromApplication(application)
@@ -50,6 +54,7 @@ data class NotificationBadgeCounts(
         NotificationBadgeTarget.ZIMBRA -> zimbra
         NotificationBadgeTarget.TALK -> talk
         NotificationBadgeTarget.DOCUMENTS -> documents
+        NotificationBadgeTarget.HELPDESK -> helpdesk
         null -> 0
     }
 }
@@ -111,6 +116,7 @@ class UnreadNotificationStore(context: Context) {
         zimbra = unread(NotificationBadgeTarget.ZIMBRA).size,
         talk = unread(NotificationBadgeTarget.TALK).size,
         documents = unread(NotificationBadgeTarget.DOCUMENTS).size,
+        helpdesk = unread(NotificationBadgeTarget.HELPDESK).size,
     )
 
     fun isUnread(action: PushAction, eventId: String): Boolean =

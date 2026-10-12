@@ -49,7 +49,7 @@ class NotificationDismissalTest {
         manager.cancelAll()
         scheduler = context.getSystemService(JobScheduler::class.java)
         scheduler.cancelAll()
-        listOf("mail", "calendar", "talk", "documents", "security", "connection").forEach {
+        listOf("mail", "calendar", "talk", "documents", "helpdesk", "security", "connection").forEach {
             manager.createNotificationChannel(NotificationChannel(it, it, NotificationManager.IMPORTANCE_DEFAULT))
         }
         AppPreferences(context).apply {
@@ -105,6 +105,22 @@ class NotificationDismissalTest {
         NotificationPresenter.dismissApplication(context, NotificationBadgeTarget.DOCUMENTS)
         assertEquals(0, unread.counts().documents)
         assertFalse("documents" in activeChannels())
+    }
+
+    @Test fun helpdeskHasOwnCounterAndOpeningOrSwipingClearsOnlyHelpdesk() {
+        val first = "ticket-event-0123456789"
+        val second = "ticket-event-1123456789"
+        receive(PushAction.OPEN_TALK, talk)
+        receive(PushAction.OPEN_HELPDESK, first)
+        receive(PushAction.OPEN_HELPDESK, second)
+        assertEquals(2, unread.counts().helpdesk)
+        assertTrue("helpdesk" in activeChannels())
+        swipe(first)
+        assertEquals(1, unread.counts().helpdesk)
+        NotificationPresenter.dismissApplication(context, NotificationBadgeTarget.HELPDESK)
+        assertEquals(0, unread.counts().helpdesk)
+        assertEquals(1, unread.counts().talk)
+        assertEquals(setOf("talk"), activeChannels())
     }
 
     @Test fun openingZimbraClearsMailAndCalendarButKeepsTalkAndSecurity() {

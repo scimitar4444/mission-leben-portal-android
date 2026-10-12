@@ -1,0 +1,6 @@
+services:
+  bridge:
+    environment:
+      BRIDGE_OTOBO_HMAC_SECRET_FILE: /run/secrets/otobo-hmac-secret
+    volumes:
+      - ./secrets/otobo-hmac-secret:/run/secrets/otobo-hmac-secret:ro

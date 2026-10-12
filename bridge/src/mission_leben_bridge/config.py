@@ -58,6 +58,7 @@ class Settings:
     dev_mode: bool
     employee_directory_file: Path | None = None
     projectsend_hmac_secret: bytes | None = None
+    otobo_hmac_secret: bytes | None = None
 
     @property
     def ntfy_configured(self) -> bool:
@@ -84,6 +85,10 @@ class Settings:
         )
         if projectsend_secret is not None and len(projectsend_secret) < 32:
             raise RuntimeError("ProjectSend HMAC secret must contain at least 32 bytes")
+        otobo_secret_file = os.getenv("BRIDGE_OTOBO_HMAC_SECRET_FILE", "").strip()
+        otobo_secret = Path(otobo_secret_file).read_bytes().strip() if otobo_secret_file else None
+        if otobo_secret is not None and len(otobo_secret) < 32:
+            raise RuntimeError("OTOBO HMAC secret must contain at least 32 bytes")
 
         data_key_value = os.getenv("BRIDGE_DATA_KEY", "").strip()
         if data_key_value:
@@ -246,4 +251,5 @@ class Settings:
                 if os.getenv("BRIDGE_EMPLOYEE_DIRECTORY_FILE") else None
             ),
             projectsend_hmac_secret=projectsend_secret,
+            otobo_hmac_secret=otobo_secret,
         )

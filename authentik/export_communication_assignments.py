@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 
 from authentik.core.models import Application, Group, User
 from authentik.policies.engine import PolicyEngine
@@ -19,6 +20,7 @@ TALK_GROUPS = {"APP_NEXTCLOUD_USER", "APP_NEXTCLOUD_NATIVE"}
 REQUIRED_GROUPS = {ZIMBRA_GROUP, *TALK_GROUPS}
 ZIMBRA_APPLICATION_SLUG = "zimbra-mail"
 TALK_APPLICATION_SLUG = "talk"
+HELPDESK_APPLICATION_SLUG = "otobo-mitarbeiter"
 
 raw_subjects = json.loads(os.environ.get("ML_COMMUNICATION_SUBJECTS_JSON", "[]"))
 if not isinstance(raw_subjects, list) or not all(isinstance(value, str) for value in raw_subjects):
@@ -36,10 +38,10 @@ if missing_groups:
 applications = {
     application.slug: application
     for application in Application.objects.filter(
-        slug__in={ZIMBRA_APPLICATION_SLUG, TALK_APPLICATION_SLUG}
+        slug__in={ZIMBRA_APPLICATION_SLUG, TALK_APPLICATION_SLUG, HELPDESK_APPLICATION_SLUG}
     )
 }
-if set(applications) != {ZIMBRA_APPLICATION_SLUG, TALK_APPLICATION_SLUG}:
+if not {ZIMBRA_APPLICATION_SLUG, TALK_APPLICATION_SLUG}.issubset(applications):
     raise RuntimeError("required Authentik communication applications are missing")
 
 assignments = []
@@ -56,7 +58,10 @@ for user in users:
     talk = bool(TALK_GROUPS & group_names) and PolicyEngine(
         applications[TALK_APPLICATION_SLUG], user
     ).build().passing
-    if not zimbra and not talk:
+    helpdesk = bool(str(user.email or "").strip()) and HELPDESK_APPLICATION_SLUG in applications and PolicyEngine(
+        applications[HELPDESK_APPLICATION_SLUG], user
+    ).build().passing
+    if not zimbra and not talk and not helpdesk:
         continue
     attributes = user.attributes or {}
     personal_calendar = (
@@ -72,10 +77,13 @@ for user in users:
             "zimbra": zimbra,
             "talk": talk,
             "personal_calendar": personal_calendar,
+            # OTOBO Customer::AuthModule::OpenIDConnect::UID is 'email'.
+            "helpdesk": helpdesk,
+            "helpdesk_login": str(user.email or "").strip().lower() if helpdesk else "",
         }
     )
 
 print(
     "ML_COMMUNICATION_ASSIGNMENTS="
-    + json.dumps({"assignments": assignments}, ensure_ascii=False, separators=(",", ":"))
+    + json.dumps({"assignments": assignments, "generated_at": int(time.time())}, ensure_ascii=False, separators=(",", ":"))
 )

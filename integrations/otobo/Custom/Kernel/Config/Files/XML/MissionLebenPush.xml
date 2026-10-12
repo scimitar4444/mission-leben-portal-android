@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<otobo_config version="2.0" init="Application">
+    <Setting Name="Ticket::EventModulePost###9900-MissionLebenPush" Required="0" Valid="1">
+        <Description Translatable="1">Queue customer-visible agent replies for the Mission Leben Android Bridge.</Description>
+        <Navigation>Ticket::Core::EventModulePost</Navigation>
+        <Value><Hash>
+            <Item Key="Event">ArticleCreate</Item>
+            <Item Key="Module">Kernel::System::Ticket::Event::MissionLebenPush</Item>
+            <Item Key="Transaction">1</Item>
+        </Hash></Value>
+    </Setting>
+    <Setting Name="MissionLebenPush::Enabled" Required="1" Valid="1">
+        <Description Translatable="1">Enable ticket push delivery; disabled until Bridge and pilot are ready.</Description>
+        <Navigation>Ticket::MissionLebenPush</Navigation>
+        <Value><Item ValueType="Checkbox">0</Item></Value>
+    </Setting>
+    <Setting Name="MissionLebenPush::URL" Required="1" Valid="1">
+        <Description Translatable="1">Pinned Bridge ticket-event endpoint.</Description>
+        <Navigation>Ticket::MissionLebenPush</Navigation>
+        <Value><Item ValueType="String">https://id.mission-leben.de/device-bridge/sources/otobo</Item></Value>
+    </Setting>
+    <Setting Name="MissionLebenPush::SecretFile" Required="1" Valid="1">
+        <Description Translatable="1">Dedicated source key file, readable by OTOBO only.</Description>
+        <Navigation>Ticket::MissionLebenPush</Navigation>
+        <Value><Item ValueType="String">/opt/otobo/var/mission-leben-push.hmac</Item></Value>
+    </Setting>
+</otobo_config>

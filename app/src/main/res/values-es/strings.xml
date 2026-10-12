@@ -345,4 +345,12 @@
     <string name="release_note_compact_documents">ML Documentos ocupa menos espacio en el móvil. Los iconos indican el tipo de archivo; el menú ya no muestra ajustes de cuenta separados.</string>
     <string name="release_note_mobile_helpdesk">Ayuda de TI también está disponible en el móvil. La vista general muestra tus tickets existentes de forma más compacta.</string>
     <string name="release_note_talk_setup_choice">El asistente de configuración permite elegir si Talk abre la lista de chats o el último chat.</string>
+    <string name="push_helpdesk_title">Ayuda informática</string>
+    <string name="push_helpdesk_body">Hay una nueva respuesta a tu solicitud.</string>
+    <string name="helpdesk_notification_settings">Ayuda informática: sonido y avisos</string>
+    <string name="privacy_ticket_minimal">Solo un aviso neutro, sin nombres, asunto ni texto de respuesta.</string>
+    <string name="privacy_ticket_standard">Mostrar nombres y asuntos. La ayuda informática muestra el número y asunto de la solicitud, sin el texto de respuesta.</string>
+    <string name="privacy_ticket_detailed">Mostrar también una breve vista previa del mensaje o de la respuesta.</string>
+    <string name="quiet_hours_all_apps">Durante este período no se muestran avisos de tus aplicaciones autorizadas.</string>
+    <string name="release_note_helpdesk_push">Las nuevas respuestas de TI a tus solicitudes pueden avisarte en la categoría independiente «Ayuda de TI». Toca para abrir la solicitud correspondiente.</string>
 </resources>

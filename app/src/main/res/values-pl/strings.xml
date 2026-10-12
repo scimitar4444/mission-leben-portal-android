@@ -347,4 +347,12 @@
     <string name="release_note_compact_documents">ML Dokumenty zajmują mniej miejsca na telefonie. Ikony wskazują typ pliku; menu nie pokazuje już osobnych ustawień konta.</string>
     <string name="release_note_mobile_helpdesk">Pomoc IT jest teraz dostępna także na telefonie. Przegląd pokazuje istniejące zgłoszenia w bardziej zwartej formie.</string>
     <string name="release_note_talk_setup_choice">W asystencie konfiguracji można teraz wybrać, czy Talk otwiera listę rozmów, czy ostatnią rozmowę.</string>
+    <string name="push_helpdesk_title">Pomoc IT</string>
+    <string name="push_helpdesk_body">Jest nowa odpowiedź na Twoje zgłoszenie.</string>
+    <string name="helpdesk_notification_settings">Pomoc IT: dźwięk i powiadomienia</string>
+    <string name="privacy_ticket_minimal">Tylko neutralna informacja, bez nazw, tematu i treści odpowiedzi.</string>
+    <string name="privacy_ticket_standard">Pokaż nazwy i tematy. Pomoc IT pokazuje numer i temat zgłoszenia, bez treści odpowiedzi.</string>
+    <string name="privacy_ticket_detailed">Pokaż również krótki podgląd wiadomości lub odpowiedzi na zgłoszenie.</string>
+    <string name="quiet_hours_all_apps">W tym okresie powiadomienia z Twoich dostępnych aplikacji nie będą wyświetlane.</string>
+    <string name="release_note_helpdesk_push">Nowe odpowiedzi IT na Twoje zgłoszenia mogą teraz pojawiać się w osobnej kategorii „Pomoc IT”. Dotknij, aby otworzyć właściwe zgłoszenie.</string>
 </resources>

@@ -1,0 +1,87 @@
+{
+  "recorded_at_utc": "2026-10-12T11:15:30Z",
+  "integration": "it-hilfe-ticket-reply-push",
+  "status": {
+    "local_implementation": "COMPLETE",
+    "android_pilot_installation": "ADB_INSTALL_SUCCESS",
+    "android_device_acceptance": "PENDING_USER_OPEN_AND_REAL_REPLY",
+    "bridge_production": "DEPLOYED_HEALTHY",
+    "otobo_extension_production": "INSTALLED_ENABLED",
+    "live_signature_tls_contract": "PASSED_WITH_UNMAPPED_INVALID_RECIPIENT_NO_PUSH",
+    "real_ticket_reply_end_to_end": "NOT_TESTED",
+    "ota_publication": "NOT_REQUESTED_NOT_PUBLISHED"
+  },
+  "android": {
+    "package": "de.missionleben.portal",
+    "version_name": "0.22.1-local",
+    "version_code": 92,
+    "apk_sha256": "577b6273cf927f507fccf8d1f63d6ffb16f826d9f7d7ce349ef25ff32d2145ff",
+    "signer_sha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "installation": "adb install -r; Success; no uninstall or data reset",
+    "device_disconnected_before_app_start": true,
+    "temporary_stay_awake_original_value": "0",
+    "temporary_stay_awake_restore": "PENDING_RECONNECT; user informed",
+    "channel": "helpdesk",
+    "server_registered_pilot_version_at_postcheck": "0.22.0; requires opening newly installed app"
+  },
+  "verification": {
+    "android_release_unit_tests": 294,
+    "android_release_unit_failures": 0,
+    "android_lint_release": "PASSED",
+    "bridge_unit_tests": 152,
+    "authentik_source_unit_tests": 64,
+    "otobo_synthetic_perl_checks": 22,
+    "otobo_xml_contract_tests": 2,
+    "otobo_perl_syntax": "OK",
+    "otobo_unsigned_request": 401,
+    "outside_source_network_request": 403,
+    "otobo_signed_unmapped_probe": 202,
+    "helpdesk_events_after_probe": 0,
+    "assignment_count": 12,
+    "helpdesk_assignment_count": 12,
+    "assignment_sync_timer": "ACTIVE existing five-minute timer",
+    "sqlite_user_version": 11,
+    "sqlite_integrity_check": "ok",
+    "sqlite_foreign_key_errors": 0,
+    "bridge_authentik_otobo_existing_containers": "HEALTHY",
+    "ntfy_zimbra_authentik_restarted": false,
+    "otobo_daemon_restart_needed": false,
+    "otobo_daemon_config_reload": "SchedulerTaskWorker forks each task, discards OM and reloads ZZZAAuto.pm"
+  },
+  "changes": {
+    "otobo_original_source_files_overwritten": false,
+    "otobo_database_schema_changed": false,
+    "otobo_configuration": "Four additive SysConfig settings; only MissionLebenPush::Enabled activated",
+    "authentik_groups_flows_providers_modified": false,
+    "bridge_version": "0.10.11",
+    "bridge_image": "sha256:861b41ce3d3767fbca9399603ba84c3db57ea53c82bca00b311b6802cc9079cc",
+    "source_key": "Dedicated file; no secret included in this report",
+    "new_mobile_background_services": 0,
+    "existing_ticket_email_delivery_changed": false
+  },
+  "sha256": {
+    "service.py": "6908441d2068191efbce1b2409f45da77158dea82f28eb401c07d9160eeb26d8",
+    "store.py": "f53a463e7fffb755df9ee6f22d0b0d92e5bac11aa325a696c43b1c557a4740f1",
+    "http_api.py": "f82ce95842c2ff934fd1bad4cd5e477bc74b5a0b40a429ea2e64404ab6ef6000",
+    "config.py": "3d54a37c9884d90380d4e6da80b763d03c09c9bee8bb8dbf83f4460790d1708f",
+    "communication_directory.py": "fa6214f5acfc48d810af0dfb24b02168970ba7a2d1586aa5ec6bb2f385b1846c",
+    "export_communication_assignments.py": "783917aa15c7836c84a885bd3ddc629cf61607e58acd2370cb5db4231a740484",
+    "MissionLebenPush.pm": "d8959219ac72d5afa0bc4206fd68eaa79a1f54475535005150be055e59875d75",
+    "MissionLebenPush.xml": "f1b73ee4fa1ca8af97d1e997b2aab0032a0ca5d75b95e0d33578d17cfa6f6542"
+  },
+  "rollback": {
+    "bridge_backup": "/opt/mission-leben-bridge/backups/it-helpdesk-push-20261012.1HIHPD",
+    "bridge_rollback_image": "mission-leben-device-bridge:rollback-helpdesk-20261012",
+    "otobo_backup": "/root/codex-backups/it-helpdesk-push-20261012",
+    "first_step": "Set only MissionLebenPush::Enabled=0 using Admin::Config::Update",
+    "database": "Keep compatible Bridge schema 11; do not restore a stale SQLite backup over newer messages",
+    "original_containers": "Only bridge was recreated; existing ntfy, Zimbra worker and Authentik untouched"
+  },
+  "remaining_acceptance": [
+    "Open installed app, approve local biometrics and verify current Bridge registration reports 0.22.1-local",
+    "Customer-visible IT reply produces one IT Hilfe notification on the pilot phone",
+    "Tap opens correct ticket/reply; own reply and internal note remain silent",
+    "Swipe/open clears only IT Hilfe local badge; general off and quiet hours respected on device",
+    "Restore temporary stay-awake setting after phone reconnects"
+  ]
+}

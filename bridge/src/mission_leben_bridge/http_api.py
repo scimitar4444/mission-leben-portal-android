@@ -272,6 +272,13 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                 self._empty(204)
                 return
 
+            if method == "POST" and path == "/sources/otobo":
+                raw, payload = self._body_json()
+                if self._verify_internal(raw) != "otobo":
+                    raise ApiError(403, "ticket events require the OTOBO source")
+                self._json(202, self.server.service.ingest_event("otobo", payload))
+                return
+
             if method == "POST" and path == "/sources/nextcloud-talk":
                 raw, _ = self._body_json()
                 self._json(
@@ -332,8 +339,12 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
 
     def _verify_internal(self, body: bytes) -> str:
         source = self.headers.get("X-ML-Source", "")
+        if source == "otobo" and self.path not in {"/sources/otobo", "/internal/v1/events"}:
+            raise ApiError(403, "OTOBO may only submit ticket events")
         secret = (
-            self.server.settings.projectsend_hmac_secret
+            self.server.settings.otobo_hmac_secret
+            if source == "otobo"
+            else self.server.settings.projectsend_hmac_secret
             if source == "projectsend"
             else self.server.settings.internal_hmac_secret
         )

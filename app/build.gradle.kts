@@ -66,8 +66,8 @@ android {
         applicationId = "de.missionleben.portal"
         minSdk = 33
         targetSdk = 36
-        versionCode = 91
-        versionName = "0.22.0"
+        versionCode = 92
+        versionName = "0.22.1-local"
 
         testInstrumentationRunner = providers.gradleProperty("ML_TEST_INSTRUMENTATION_RUNNER")
             .orElse("androidx.test.runner.AndroidJUnitRunner").get()
