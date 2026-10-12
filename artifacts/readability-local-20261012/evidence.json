@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-12",
+  "status": "LOCAL_BUILT_TESTED_AND_PILOT_INSTALLED_LAYOUT_ACCEPTANCE_PENDING",
+  "version": "0.22.2-local",
+  "version_code": 93,
+  "apk_sha256": "91d3a4c0f590f69660f2ee065604cef1ecdfacf8ccca6d8d98db098b10aba84a",
+  "signer_sha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+  "tests": {"tests": 322, "failures": 0, "errors": 0},
+  "release_build": "PASS",
+  "lint_release": "PASS_NO_ERRORS",
+  "pilot_install": "ADB_REPLACE_SUCCESS; PACKAGE_VERSION_READ_BACK; NO_DATA_CLEAR_OR_REENROLLMENT",
+  "changes": {
+    "text": "ReadableText preserves Material explicit/style/inherited color precedence. Only Coral foreground text with the light Coral primary becomes #BF243A, including TextButton/OutlinedButton labels.",
+    "scope": "Seven native Compose UI files use the shared foreground helper. Filled-control colors, icon tints, text size/layout, disabled alpha, white labels and dark-theme text are unchanged. Embedded web applications are not changed.",
+    "header": "Contacts icon shifted 8dp right, bell 4dp right, settings unchanged; visual spacing reduced from 48dp to 44dp, extra room beside brand. Parent IconButton hit areas unchanged and non-overlapping."
+  },
+  "accent_text_contrast": {
+    "white": 5.95,
+    "canvas": 5.70,
+    "lavender": 5.27,
+    "light_primary_container": 4.63
+  },
+  "ota_published": false,
+  "server_group_flow_or_mfa_changes": false,
+  "remaining_acceptance": [
+    "Updated icon positions on the unlocked pilot phone; unlock requested.",
+    "User visual assessment of stronger accent text in the light theme; no system-wide theme change performed."
+  ],
+  "wake_setting": "0 before and after installation and first UI read; temporary dump deleted; permanent wake unchanged",
+  "rollback": "Previous signed local header/help APK retained in artifacts/header-help-local-20261012; revert scoped readability/header change and rebuild with production signer plus appropriate versionCode for a released rollback."
+}

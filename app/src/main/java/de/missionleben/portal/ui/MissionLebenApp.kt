@@ -46,7 +46,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import de.missionleben.portal.ui.ReadableText as Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -593,6 +593,7 @@ internal fun HomeOverview(
                         Icon(
                             painterResource(R.drawable.ic_contacts),
                             stringResource(R.string.contacts_title),
+                            modifier = Modifier.offset(x = 8.dp),
                             tint = MaterialTheme.colorScheme.onBackground,
                         )
                     }
@@ -602,6 +603,7 @@ internal fun HomeOverview(
                         Icon(
                             painterResource(R.drawable.ic_notice_bell),
                             stringResource(R.string.notice_inbox_title),
+                            modifier = Modifier.offset(x = 4.dp),
                             tint = MaterialTheme.colorScheme.onBackground,
                         )
                     }

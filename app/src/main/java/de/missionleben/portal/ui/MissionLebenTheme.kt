@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.Color
 val Ink = Color(0xFF1D1726)
 val Coral = Color(0xFFFD4B5A)
 val CoralDark = Color(0xFFD62E43)
+// Foreground only: filled controls and icons keep the existing Coral palette.
+val CoralText = Color(0xFFBF243A)
 val Lavender = Color(0xFFF5EFF8)
 val Canvas = Color(0xFFFCF9FD)
 val Success = Color(0xFF188A62)
