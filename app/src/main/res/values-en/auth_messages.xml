@@ -1,0 +1,9 @@
+<resources>
+    <string name="password_step_hint">Enter your normal password here, not your TOTP code. Only enter the code when it is explicitly requested.</string>
+    <string name="auth_server_rejected">The sign-in service did not approve the sign-in. Please sign in again.</string>
+    <string name="auth_server_unavailable">The sign-in service is currently unavailable. Please try again later.</string>
+    <string name="auth_server_login_required">The sign-in service requires a new sign-in or another confirmation step. Please sign in again.</string>
+    <string name="auth_server_error">The sign-in service could not complete the sign-in. Please try again.</string>
+    <string name="release_note_web_cookie_storage">Web sign-ins are saved more reliably to keep Zimbra, Talk and IT Help available after an app restart.</string>
+    <string name="release_note_clear_login_errors">A hint explains when to enter your normal password instead of TOTP. Sign-in service errors are no longer all shown as a cancellation.</string>
+</resources>

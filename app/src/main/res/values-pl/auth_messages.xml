@@ -1,0 +1,9 @@
+<resources>
+    <string name="password_step_hint">Wpisz tutaj zwykłe hasło, nie kod TOTP. Kod wpisuj tylko wtedy, gdy zostaniesz o niego wyraźnie poproszony.</string>
+    <string name="auth_server_rejected">Usługa logowania nie zatwierdziła logowania. Zaloguj się ponownie.</string>
+    <string name="auth_server_unavailable">Usługa logowania jest teraz niedostępna. Spróbuj później.</string>
+    <string name="auth_server_login_required">Usługa wymaga ponownego logowania lub dodatkowego potwierdzenia. Zaloguj się ponownie.</string>
+    <string name="auth_server_error">Usługa nie mogła ukończyć logowania. Spróbuj ponownie.</string>
+    <string name="release_note_web_cookie_storage">Sesje internetowe są zapisywane bardziej niezawodnie, aby Zimbra, Talk i Pomoc IT pozostały dostępne po ponownym uruchomieniu aplikacji.</string>
+    <string name="release_note_clear_login_errors">Wskazówka wyjaśnia, kiedy wpisać zwykłe hasło zamiast kodu TOTP. Błędy usługi logowania nie są już zawsze opisywane jako anulowanie.</string>
+</resources>

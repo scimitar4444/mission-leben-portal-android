@@ -1,0 +1,9 @@
+<resources>
+    <string name="password_step_hint">Introdu aici parola obișnuită, nu codul TOTP. Introdu codul doar când este cerut explicit.</string>
+    <string name="auth_server_rejected">Serviciul de autentificare nu a aprobat autentificarea. Conectează-te din nou.</string>
+    <string name="auth_server_unavailable">Serviciul de autentificare nu este disponibil. Încearcă mai târziu.</string>
+    <string name="auth_server_login_required">Serviciul cere o nouă autentificare sau încă o confirmare. Conectează-te din nou.</string>
+    <string name="auth_server_error">Serviciul nu a putut finaliza autentificarea. Încearcă din nou.</string>
+    <string name="release_note_web_cookie_storage">Sesiunile web sunt salvate mai sigur, pentru ca Zimbra, Talk și Ajutor IT să rămână disponibile după repornirea aplicației.</string>
+    <string name="release_note_clear_login_errors">Un indiciu explică atunci când trebuie introdusă parola obișnuită în loc de TOTP. Erorile serviciului de autentificare nu mai sunt afișate toate ca anulări.</string>
+</resources>

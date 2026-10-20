@@ -1,0 +1,9 @@
+<resources>
+    <string name="password_step_hint">Saisis ici ton mot de passe habituel, pas ton code TOTP. Saisis le code uniquement quand il est demandé explicitement.</string>
+    <string name="auth_server_rejected">Le service de connexion n’a pas autorisé la connexion. Reconnecte-toi.</string>
+    <string name="auth_server_unavailable">Le service de connexion est indisponible. Réessaie plus tard.</string>
+    <string name="auth_server_login_required">Le service demande une nouvelle connexion ou une confirmation supplémentaire. Reconnecte-toi.</string>
+    <string name="auth_server_error">Le service n’a pas pu terminer la connexion. Réessaie.</string>
+    <string name="release_note_web_cookie_storage">Les connexions web sont enregistrées plus sûrement pour garder Zimbra, Talk et Aide informatique accessibles après le redémarrage de l’application.</string>
+    <string name="release_note_clear_login_errors">Une indication précise quand saisir ton mot de passe habituel plutôt que le code TOTP. Les erreurs du service ne sont plus toutes affichées comme une annulation.</string>
+</resources>

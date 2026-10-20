@@ -47,6 +47,16 @@ class PasswordVisibilityPolicyTest {
         assertTrue(script.contains("const showLabel = \"__ML_HIDE_JSON__\";"))
     }
 
+    @Test fun passwordHintIsPresentationOnlyAndEscapedLikeOtherLabels() {
+        val script = requireNotNull(PasswordVisibilityPolicy.script(
+            "https://id.example.org", "Show", "Hide", "__ML_SHOW_JSON__\"\n\u2028",
+        ))
+        assertTrue(script.contains("const passwordHint = \"__ML_SHOW_JSON__\\\"\\u000a\\u2028\";"))
+        assertTrue(script.contains("hint.textContent = passwordHint"))
+        assertTrue(script.contains("aria-describedby"))
+        assertFalse(script.contains(".value"))
+    }
+
     @Test fun helperDoesNotReadStoreOrSendPassword() {
         val script = requireNotNull(script())
         for (forbidden in listOf(".value", "localStorage", "sessionStorage", "fetch(", "postMessage",

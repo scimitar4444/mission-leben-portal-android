@@ -1,0 +1,9 @@
+<resources>
+    <string name="password_step_hint">Buraya TOTP kodunu değil, normal parolanı gir. Kodu yalnızca açıkça istendiğinde gir.</string>
+    <string name="auth_server_rejected">Oturum açma hizmeti oturum açmayı onaylamadı. Lütfen tekrar oturum aç.</string>
+    <string name="auth_server_unavailable">Oturum açma hizmeti şu anda kullanılamıyor. Lütfen daha sonra tekrar dene.</string>
+    <string name="auth_server_login_required">Hizmet yeni bir oturum açma veya ek onay istiyor. Lütfen tekrar oturum aç.</string>
+    <string name="auth_server_error">Hizmet oturum açmayı tamamlayamadı. Lütfen tekrar dene.</string>
+    <string name="release_note_web_cookie_storage">Web oturumları daha güvenilir kaydedilir; uygulama yeniden başlatıldığında Zimbra, Talk ve BT Yardım erişilebilir kalır.</string>
+    <string name="release_note_clear_login_errors">Bir ipucu TOTP yerine normal parolanın ne zaman girileceğini açıklar. Oturum açma hizmetindeki tüm hatalar artık iptal olarak gösterilmez.</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="password_step_hint">Введи тут звичайний пароль, а не код TOTP. Вводь код лише тоді, коли його явно запитують.</string>
+    <string name="auth_server_rejected">Служба входу не підтвердила вхід. Увійди ще раз.</string>
+    <string name="auth_server_unavailable">Служба входу зараз недоступна. Спробуй пізніше.</string>
+    <string name="auth_server_login_required">Служба вимагає нового входу або додаткового підтвердження. Увійди ще раз.</string>
+    <string name="auth_server_error">Служба не змогла завершити вхід. Спробуй ще раз.</string>
+    <string name="release_note_web_cookie_storage">Вебсеанси зберігаються надійніше, щоб Zimbra, Talk та ІТ-допомога залишалися доступними після перезапуску програми.</string>
+    <string name="release_note_clear_login_errors">Підказка пояснює, коли вводити звичайний пароль замість TOTP. Помилки служби входу більше не завжди показуються як скасування.</string>
+</resources>

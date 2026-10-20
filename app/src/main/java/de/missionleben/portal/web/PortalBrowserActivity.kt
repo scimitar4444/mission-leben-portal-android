@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import de.missionleben.portal.ui.MissionLebenTheme
 import de.missionleben.portal.ui.PortalHeader
 import de.missionleben.portal.R
+import de.missionleben.portal.auth.AuthorizationFailure
 import de.missionleben.portal.data.AppPreferences
 import de.missionleben.portal.device.DeviceServiceRepository
 import de.missionleben.portal.device.EnrollmentQrParser
@@ -89,6 +90,7 @@ class PortalBrowserActivity : FragmentActivity() {
     private var contactComposeAttempts = 0
     private var contactComposeRunning = false
     private val deviceService by lazy { DeviceServiceRepository(applicationContext) }
+    private val sessionCookies by lazy { WebSessionCookies.forContext(applicationContext) }
     private val talkChatScript by lazy { TalkChatPolicy.script(AppPreferences(this).talkStartAtLastChat) }
     private val helpdeskLayoutScript by lazy {
         HelpdeskContainerLayout.script(getString(R.string.ticket_upload_or_photo))
@@ -107,6 +109,7 @@ class PortalBrowserActivity : FragmentActivity() {
             BuildConfig.AUTHENTIK_BASE_URL,
             getString(R.string.password_show),
             getString(R.string.password_hide),
+            getString(R.string.password_step_hint),
         )
     }
     private val deviceMode by lazy {
@@ -148,11 +151,13 @@ class PortalBrowserActivity : FragmentActivity() {
         policy = WebNavigationPolicy(BuildConfig.WEB_ALLOWED_HOST_SUFFIXES, redirectUri)
         if (!policy.isTrustedWebUrl(startUrl)) {
             Toast.makeText(this, R.string.browser_address_blocked, Toast.LENGTH_LONG).show()
+            authorizationFailed(AuthorizationFailure.INVALID_RESPONSE)
             finish()
             return
         }
         if (WebViewCompat.getCurrentWebViewPackage(this) == null) {
             Toast.makeText(this, R.string.browser_webview_missing, Toast.LENGTH_LONG).show()
+            authorizationFailed(AuthorizationFailure.BROWSER_UNAVAILABLE)
             finish()
             return
         }
@@ -170,6 +175,7 @@ class PortalBrowserActivity : FragmentActivity() {
                 intent.getBooleanExtra(EXTRA_APP_CONTENT, false) && protectedFileActionAllowed() },
         )
         configureWebView()
+        sessionCookies.record(WebSessionDiagnostics.Event.BROWSER_OPEN, startUrl)
         installBackNavigation()
 
         if (savedInstanceState == null) pendingContactEmail = intent.getStringExtra(EXTRA_CONTACT_EMAIL)
@@ -181,7 +187,8 @@ class PortalBrowserActivity : FragmentActivity() {
                 if (isFinishing || isDestroyed) return@clearLoginContext
                 if (!cleared || personalAuthorizationLocked()) {
                     Toast.makeText(this, R.string.auth_context_clear_failed, Toast.LENGTH_LONG).show()
-                    setResult(RESULT_CANCELED)
+                    authorizationFailed(if (!cleared) AuthorizationFailure.CONTEXT_RESET_FAILED
+                        else AuthorizationFailure.LOCAL_LOCK_REQUIRED)
                     finish()
                 } else {
                     personalLoginContextCleared = true
@@ -221,7 +228,7 @@ class PortalBrowserActivity : FragmentActivity() {
                 webView.visibility = View.INVISIBLE
                 webView.stopLoading()
             }
-            setResult(RESULT_CANCELED)
+            authorizationFailed(AuthorizationFailure.LOCAL_LOCK_REQUIRED)
             finish()
             return
         }
@@ -280,7 +287,23 @@ class PortalBrowserActivity : FragmentActivity() {
         if (::webView.isInitialized && isAuthentikOrigin(webView.url.orEmpty())) {
             webView.evaluateJavascript(PasswordVisibilityPolicy.HIDE_SCRIPT, null)
         }
+        persistPersonalCookies(WebSessionDiagnostics.Event.PERSONAL_PAUSE, webViewUrl())
         super.onPause()
+    }
+
+    private fun webViewUrl(): String? = if (::webView.isInitialized) webView.url else null
+
+    private fun persistPersonalCookies(event: WebSessionDiagnostics.Event, url: String?) {
+        if (!::webView.isInitialized || logoutFinished || sharedSessionResultDelivered ||
+            intent.getBooleanExtra(EXTRA_LOGOUT, false) ||
+            intent.getBooleanExtra(EXTRA_SELF_ENROLLMENT, false)
+        ) return
+        // This stores existing WebView cookies only; biometric lock never erases them.
+        sessionCookies.persistPersonal(deviceMode, event, url)
+    }
+
+    private fun authorizationFailed(failure: AuthorizationFailure) {
+        setResult(RESULT_CANCELED, Intent().putExtra(EXTRA_AUTHORIZATION_FAILURE, failure.name))
     }
 
     override fun onStop() {
@@ -590,6 +613,9 @@ class PortalBrowserActivity : FragmentActivity() {
         override fun onPageFinished(view: WebView, url: String) {
             super.onPageFinished(view, url)
             if (interceptExpiredSession(url)) return
+            if (policy.isTrustedWebUrl(url)) {
+                persistPersonalCookies(WebSessionDiagnostics.Event.PAGE_FINISHED, url)
+            }
             loadPendingInitialTarget(view, url)
             openPendingContactEmail()
             browserTitle = view.title?.takeIf { it.isNotBlank() } ?: browserTitle
@@ -696,16 +722,22 @@ class PortalBrowserActivity : FragmentActivity() {
         }
         if (policy.isAuthorizationRedirect(url)) {
             if (requiresFreshPersonalContext() && (!personalLoginContextCleared || personalAuthorizationLocked())) {
-                setResult(RESULT_CANCELED)
+                authorizationFailed(AuthorizationFailure.LOCAL_LOCK_REQUIRED)
                 finish()
                 return true
             }
             if (!authorizationResultDelivered) {
                 authorizationResultDelivered = true
                 val response = Uri.parse(url)
+                if (response.getQueryParameter("error") == null && response.getQueryParameter("code") != null) {
+                    // Called before finish/result delivery; this is not proof of native token exchange.
+                    persistPersonalCookies(WebSessionDiagnostics.Event.AUTHORIZATION_RETURN, BuildConfig.AUTHENTIK_BASE_URL)
+                }
                 Log.i(
                     AUTH_LOG_TAG,
-                    "Authorization redirect received: parameters=${response.queryParameterNames.sorted()}",
+                    "Authorization redirect received: hasCode=${response.getQueryParameter("code") != null}, " +
+                        "hasError=${response.getQueryParameter("error") != null}, " +
+                        "hasState=${response.getQueryParameter("state") != null}",
                 )
                 setResult(
                     RESULT_OK,
@@ -747,6 +779,7 @@ class PortalBrowserActivity : FragmentActivity() {
             !intent.getBooleanExtra(EXTRA_SELF_ENROLLMENT, false)
         if (!isApplicationBrowser || !sessionPolicy.isInteractiveAuthentication(url)) return false
         if (!sessionExpiredResultDelivered) {
+            sessionCookies.record(WebSessionDiagnostics.Event.WEB_REAUTHENTICATION, url)
             sessionExpiredResultDelivered = true
             webView.stopLoading()
             setResult(RESULT_OK, Intent().putExtra(EXTRA_SESSION_EXPIRED, true))
@@ -872,6 +905,7 @@ class PortalBrowserActivity : FragmentActivity() {
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_REDIRECT_URI = "redirect_uri"
         private const val EXTRA_AUTHORIZATION_RESPONSE = "authorization_response"
+        private const val EXTRA_AUTHORIZATION_FAILURE = "authorization_failure"
         private const val EXTRA_SESSION_EXPIRED = "session_expired"
         private const val EXTRA_DEVICE_BLOCKED = "device_blocked"
         private const val EXTRA_SHARED_SESSION_ENDED = "shared_session_ended"
@@ -956,6 +990,12 @@ class PortalBrowserActivity : FragmentActivity() {
         fun freshContextConfirmed(intent: Intent?): Boolean =
             intent?.getBooleanExtra(EXTRA_FRESH_CONTEXT_CONFIRMED, false) == true
 
+        fun authorizationFailure(intent: Intent?): AuthorizationFailure? =
+            intent?.getStringExtra(EXTRA_AUTHORIZATION_FAILURE)?.let { value ->
+                AuthorizationFailure.entries.firstOrNull { it.name == value }
+                    ?: AuthorizationFailure.INVALID_RESPONSE
+            }
+
         fun authorizationResponse(intent: Intent?): Uri? {
             val response = intent?.data?.toString()
                 ?: intent?.getStringExtra(EXTRA_AUTHORIZATION_RESPONSE)
@@ -1009,12 +1049,16 @@ class PortalBrowserActivity : FragmentActivity() {
         fun clearLoginContext(context: Context, onComplete: (Boolean) -> Unit) {
             val handler = Handler(Looper.getMainLooper())
             val cookies = CookieManager.getInstance()
+            val diagnostics = WebSessionCookies.forContext(context)
+            diagnostics.record(WebSessionDiagnostics.Event.FRESH_LOGIN_CLEAR)
             val gate = CookieClearanceGate { success ->
                 if (!success) {
+                    diagnostics.record(WebSessionDiagnostics.Event.CLEAR_FAILED)
                     onComplete(false)
                 } else {
                     val storageCleared = runCatching {
-                        cookies.flush()
+                        diagnostics.record(WebSessionDiagnostics.Event.CLEAR_ACKNOWLEDGED)
+                        check(diagnostics.persist())
                         WebStorage.getInstance().deleteAllData()
                         WebViewDatabase.getInstance(context).apply {
                             clearHttpAuthUsernamePassword()
@@ -1037,11 +1081,14 @@ class PortalBrowserActivity : FragmentActivity() {
         }
 
         fun clearLocalWebData(context: Context, onComplete: (() -> Unit)? = null) {
+            val diagnostics = WebSessionCookies.forContext(context)
+            diagnostics.record(WebSessionDiagnostics.Event.LOCAL_DATA_CLEAR)
             TicketPhotoStore.clearAll(context)
             val completed = AtomicBoolean(false)
             val completeClear: () -> Unit = {
                 if (completed.compareAndSet(false, true)) {
-                    CookieManager.getInstance().flush()
+                    // A flush failure must not prevent removal of the remaining local data.
+                    diagnostics.persist()
                     WebStorage.getInstance().deleteAllData()
                     WebViewDatabase.getInstance(context).apply {
                         clearHttpAuthUsernamePassword()
@@ -1063,9 +1110,16 @@ class PortalBrowserActivity : FragmentActivity() {
                     onComplete?.invoke()
                 }
             }
-            CookieManager.getInstance().removeAllCookies { completeClear() }
+            CookieManager.getInstance().removeAllCookies {
+                diagnostics.record(if (CookieManager.getInstance().hasCookies())
+                    WebSessionDiagnostics.Event.CLEAR_FAILED else WebSessionDiagnostics.Event.CLEAR_ACKNOWLEDGED)
+                completeClear()
+            }
             Handler(Looper.getMainLooper()).postDelayed(
-                { completeClear() },
+                {
+                    if (!completed.get()) diagnostics.record(WebSessionDiagnostics.Event.CLEAR_FAILED)
+                    completeClear()
+                },
                 WEB_DATA_CLEAR_TIMEOUT_MILLIS,
             )
         }

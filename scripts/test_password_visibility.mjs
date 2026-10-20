@@ -4,8 +4,9 @@ import vm from 'node:vm';
 
 const source = readFileSync(new URL('../app/src/main/java/de/missionleben/portal/web/PasswordVisibilityPolicy.kt', import.meta.url), 'utf8');
 const template = source.match(/internal const val SCRIPT = """([\s\S]*?)"""/)[1];
-const script = template.replace(/__ML_(ORIGIN|SHOW|HIDE)_JSON__/g, (_, key) => JSON.stringify({
+const script = template.replace(/__ML_(ORIGIN|SHOW|HIDE|HINT)_JSON__/g, (_, key) => JSON.stringify({
   ORIGIN: 'https://id.example.org', SHOW: 'Passwort anzeigen', HIDE: 'Passwort verbergen',
+  HINT: 'Hier dein normales Kennwort eingeben, nicht den TOTP-Code.',
 }[key]));
 
 function fixture({ origin = 'https://id.example.org', path = '/if/flow/login/', frame = false } = {}) {
@@ -49,9 +50,19 @@ function fixture({ origin = 'https://id.example.org', path = '/if/flow/login/', 
     get disabled() { return this._disabled; }
     set disabled(disabled) { this._disabled = disabled; mutate(this, 'attributes', 'disabled'); }
     get parentElement() { return this.parent; }
+    getRootNode() { return this.parent ? this.parent.getRootNode() : this; }
     get isConnected() { return this === document || Boolean(this.parent?.isConnected || this.host?.isConnected); }
     setAttribute(name, value) { this.attributes.set(name, value); mutate(this, 'attributes', name); }
     getAttribute(name) { return this.attributes.get(name); }
+    removeAttribute(name) { this.attributes.delete(name); }
+    insertAdjacentElement(position, node) {
+      assert.equal(position, 'afterend');
+      node.remove();
+      node.parent = this.parent;
+      this.parent.children.splice(this.parent.children.indexOf(this) + 1, 0, node);
+      mutate(this.parent, 'childList');
+      return node;
+    }
     appendChild(node) {
       node.remove();
       node.parent = this;
@@ -111,7 +122,8 @@ function fixture({ origin = 'https://id.example.org', path = '/if/flow/login/', 
 }
 
 const f = fixture();
-const password = f.field();
+const primaryStage = f.shadow();
+const password = f.field(primaryStage.root);
 const otp = f.field(f.document, 'text');
 f.run();
 assert.equal(password.button().type, 'button', 'eye must never submit the form');
@@ -119,6 +131,11 @@ assert.equal(password.button().getAttribute('aria-label'), 'Passwort anzeigen');
 assert.equal(password.button().getAttribute('aria-controls'), 'password-input');
 assert.equal(password.input.type, 'password');
 assert.equal(otp.button(), undefined, 'TOTP is not a password field');
+assert.equal(password.input.getAttribute('aria-describedby'), 'ml-password-step-hint-1');
+assert.equal(otp.input.getAttribute('aria-describedby'), undefined, 'do not relabel TOTP');
+assert.equal(primaryStage.root.querySelectorAll('p').length, 1);
+assert.equal(primaryStage.root.querySelectorAll('p')[0].textContent,
+  'Hier dein normales Kennwort eingeben, nicht den TOTP-Code.');
 assert.equal(password.button().dispatch('click').defaultPrevented, true);
 f.flush();
 assert.equal(password.input.type, 'text');
@@ -129,6 +146,7 @@ f.flush();
 assert.equal(password.input.type, 'password');
 f.run();
 assert.equal(password.group.querySelectorAll('button').length, 1, 'page-finished fallback must be idempotent');
+assert.equal(primaryStage.root.querySelectorAll('p').length, 1, 'password hint is idempotent');
 
 for (const [target, type] of [[f.window, 'blur'], [f.window, 'pagehide'],
   [f.document, 'submit'], [f.document, 'reset'], [f.document, 'visibilitychange']]) {
@@ -173,20 +191,35 @@ f.flush();
 assert.equal(lateNative.group.querySelectorAll('button').length, 1, 'yield to a native eye added later');
 assert.equal(lateNative.input.type, 'password');
 
-const native = f.field(f.document, 'password', true);
+const native = f.field(primaryStage.root, 'password', true);
 f.flush();
 assert.equal(native.group.querySelectorAll('button').length, 1, 'keep native Authentik eye');
+assert.ok(native.input.getAttribute('aria-describedby'), 'hint also works beside native eye');
+const described = f.field(primaryStage.root);
+described.input.setAttribute('aria-describedby', 'server-instructions');
+f.flush();
+assert.ok(described.input.getAttribute('aria-describedby').startsWith('server-instructions '));
 password.button().dispatch('click');
 shadow.host.remove();
 f.flush();
 f.window.__mlPasswordVisibility.hideAll();
 assert.equal(password.input.type, 'password');
-assert.equal(f.observers.length, 3, 'one observer per root, not per refresh');
+assert.equal(f.observers.length, 4, 'one observer per root, not per refresh');
 
 f.location.pathname = '/if/user/';
 f.window.__mlPasswordVisibility.refresh();
 f.flush();
 assert.equal(password.button(), undefined, 'remove enhancement outside a flow');
+assert.equal(f.document.querySelectorAll('p').length, 0, 'remove stale step hints');
+assert.equal(primaryStage.root.querySelectorAll('p').length, 0);
+
+const factor = fixture();
+const otpStage = factor.shadow();
+otpStage.host.tagName = 'AK-STAGE-AUTHENTICATOR-VALIDATE';
+const maskedCode = factor.field(otpStage.root);
+factor.run();
+assert.equal(maskedCode.input.getAttribute('aria-describedby'), undefined,
+  'a masked field in an MFA stage is never labelled as the account password');
 
 for (const options of [{ origin: 'https://evil.example' }, { origin: 'http://id.example.org' },
   { path: '/if/admin/' }, { path: '/if/flow-lookalike/' }, { frame: true }]) {

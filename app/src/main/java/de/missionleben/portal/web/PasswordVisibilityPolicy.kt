@@ -5,7 +5,7 @@ import java.util.Locale
 
 /** Presentation only: never reads the password or changes authentication decisions. */
 internal object PasswordVisibilityPolicy {
-    fun script(baseUrl: String, showLabel: String, hideLabel: String): String? {
+    fun script(baseUrl: String, showLabel: String, hideLabel: String, passwordHint: String = ""): String? {
         val base = runCatching { URI(baseUrl) }.getOrNull() ?: return null
         if (!base.scheme.equals("https", ignoreCase = true) || base.host == null ||
             base.rawUserInfo != null || base.port !in -1..65535
@@ -16,9 +16,10 @@ internal object PasswordVisibilityPolicy {
             "ORIGIN" to quote(origin),
             "SHOW" to quote(showLabel),
             "HIDE" to quote(hideLabel),
+            "HINT" to quote(passwordHint),
         )
         // One pass: labels containing placeholder-like text must remain literal labels.
-        return Regex("__ML_(ORIGIN|SHOW|HIDE)_JSON__").replace(SCRIPT) {
+        return Regex("__ML_(ORIGIN|SHOW|HIDE|HINT)_JSON__").replace(SCRIPT) {
             replacements.getValue(it.groupValues[1])
         }
     }
@@ -49,6 +50,42 @@ internal object PasswordVisibilityPolicy {
           }
           const showLabel = __ML_SHOW_JSON__;
           const hideLabel = __ML_HIDE_JSON__;
+          const passwordHint = __ML_HINT_JSON__;
+          const hints = new Map();
+          let hintNumber = 0;
+          const removeHint = (input, hint) => {
+            const ids = (input.getAttribute('aria-describedby') || '').split(/\s+/)
+              .filter(id => id && id !== hint.id);
+            if (ids.length) input.setAttribute('aria-describedby', ids.join(' '));
+            else input.removeAttribute('aria-describedby');
+            hint.remove();
+            hints.delete(input);
+          };
+          const inPasswordStage = root => {
+            for (let current = root; current; current = current.host?.getRootNode()) {
+              if (current.host?.tagName === 'AK-STAGE-PASSWORD') return true;
+            }
+            return false;
+          };
+          const hintPassword = (input, root) => {
+            const group = input.parentElement;
+            if (!passwordHint || !inPasswordStage(root) ||
+                input.getAttribute('autocomplete') === 'one-time-code' ||
+                !group?.classList.contains('pf-c-input-group')) return;
+            let hint = hints.get(input);
+            if (!hint) {
+              hint = document.createElement('p');
+              hint.id = 'ml-password-step-hint-' + (++hintNumber);
+              hint.className = 'pf-c-form__helper-text';
+              hint.textContent = passwordHint;
+              hint.style.marginTop = '0.5rem';
+              hint.style.fontSize = '0.9rem';
+              hints.set(input, hint);
+            }
+            if (!hint.isConnected) group.insertAdjacentElement('afterend', hint);
+            const ids = (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+            if (!ids.includes(hint.id)) input.setAttribute('aria-describedby', [...ids, hint.id].join(' '));
+          };
           const watched = new WeakSet();
           const byInput = new WeakMap();
           const records = new Set();
@@ -136,17 +173,24 @@ internal object PasswordVisibilityPolicy {
             }
             for (const element of root.querySelectorAll('*')) {
               if (element.tagName === 'INPUT' &&
-                  (element.type === 'password' || byInput.has(element))) enhance(element);
+                  (element.type === 'password' || byInput.has(element))) {
+                hintPassword(element, root);
+                enhance(element);
+              }
               if (element.shadowRoot) visit(element.shadowRoot);
             }
           };
           const refresh = () => {
             if (!location.pathname.startsWith('/if/flow/')) {
               for (const record of records) forget(record);
+              for (const [input, hint] of hints) removeHint(input, hint);
               return;
             }
             for (const record of records) {
               if (!record.input.isConnected) forget(record);
+            }
+            for (const [input, hint] of hints) {
+              if (!input.isConnected || (input.type !== 'password' && !byInput.has(input))) removeHint(input, hint);
             }
             visit(document);
           };

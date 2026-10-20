@@ -373,6 +373,13 @@
     <string name="release_note_calendar_capacity">Der Kalenderabgleich ist zuverlässiger und unterstützt jetzt bis zu 200 Termine. Bei vorübergehenden Fehlern bleiben vorhandene Termine erhalten.</string>
     <string name="password_show">Passwort anzeigen</string>
     <string name="password_hide">Passwort verbergen</string>
+    <string name="password_step_hint">Hier dein normales Kennwort eingeben, nicht den TOTP-Code. Den Code nur eingeben, wenn ausdrücklich danach gefragt wird.</string>
+    <string name="auth_server_rejected">Der Anmeldedienst hat die Anmeldung nicht freigegeben. Bitte erneut anmelden.</string>
+    <string name="auth_server_unavailable">Der Anmeldedienst ist gerade nicht verfügbar. Bitte später erneut versuchen.</string>
+    <string name="auth_server_login_required">Der Anmeldedienst verlangt eine erneute Anmeldung oder einen weiteren Bestätigungsschritt. Bitte erneut anmelden.</string>
+    <string name="auth_server_error">Die Anmeldung konnte beim Anmeldedienst nicht abgeschlossen werden. Bitte erneut versuchen.</string>
+    <string name="release_note_web_cookie_storage">Web-Anmeldungen werden zuverlässiger gespeichert, damit Zimbra, Talk und IT Hilfe nach einem App-Neustart weiter erreichbar bleiben.</string>
+    <string name="release_note_clear_login_errors">Ein Hinweis erklärt, wann dein normales Kennwort statt TOTP nötig ist. Fehler des Anmeldedienstes werden nicht mehr pauschal als Abbruch angezeigt.</string>
     <string name="release_note_web_session_fix">Eine fehlende Web-Anmeldung löscht keine weiterhin gültige persönliche App-Sitzung mehr. Der Hinweis „90 Tage abgelaufen“ erscheint nur bei tatsächlichem Fristablauf.</string>
     <string name="release_note_password_eye">Beim Anmelden kannst du dein Kennwort mit dem Auge kurz anzeigen und wieder verbergen. Beim Verlassen wird es wieder verdeckt.</string>
     <string name="release_note_two_personal_handsets">Du kannst deinen persönlichen Mitarbeiterzugang jetzt auf bis zu zwei Handys gleichzeitig nutzen. Jedes Handy wird einzeln registriert. Für Gruppenkonten bleibt es bei einem Handy.</string>
