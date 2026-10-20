@@ -216,7 +216,10 @@ Nach jedem Authentik-Update muss das Skript vor dem Neustart erneut gegen den ne
 
 ## 8. Lokale Android Websitzungskorrektur vom 20.10.2026
 
-Status: lokal umgesetzt und auf einem persönlichen Gerät geprüft; OTA 0.23.1 wird vorbereitet.
+Status: App 0.23.1 / versionCode 95 ist am 20.10.2026 als GitHub-OTA veröffentlicht.
+Öffentliches Latest-Manifest und vollständiger APK-Download stimmen mit dem
+signierten Release überein. PR 11 mit allen vier erfolgreichen CI-Prüfungen ist
+übernommen; Release-Quellstand ist `25fa8745f402e8cccaa6d44f64150a5aaf7e4531`.
 Auf ausdrücklichen USB-Testwunsch liegt die identisch signierte lokale Fassung
 auf einem persönlichen Testhandy. Nach Prozessneustart und bestätigter Biometrie war der
 Authentik-Cookie weiterhin vorhanden; die Weiterleitung lief über den
@@ -283,12 +286,11 @@ Darstellung des neuen Kennworthinweises im tatsächlichen Authentik-Flow bleibt
 eine gesonderte Geräteprüfung. Betroffene Benutzer werden dafür nicht
 automatisch erneut angemeldet; keine fremde Sitzung verwenden.
 
-Rückweg: Bis zur Freigabe laufen Produktion und OTA unverändert mit 0.23.0.
-Das lokale APK trägt vorerst ebenfalls 0.23.0/94, ist aber nur durch seinen
-SHA-256 im Nachweis als Testfassung identifiziert. Das vorherige unveränderte
-Produktions-APK liegt lokal als `device-before.apk` neben dem Test-APK und kann
-bei Bedarf mit `adb install -r` ohne Deinstallation zurückgespielt werden.
-Für einen lokalen Rückbau ausschließlich die in `evidence.json` bezeichneten
-Dateiänderungen rückgängig machen; die schon vorher vorhandenen Änderungen
-an `authentik/bootstrap_endpoint_devices.py` sowie andere Arbeiten erhalten.
-Kein Bootstrap, keine Serveränderung, kein globaler Checkout-/Reset-Befehl.
+Der persönliche Funktionstest erfolgte vor der Versionsanhebung mit einem
+lokalen APK unter 0.23.0/94. Die Installation des finalen OTA-APKs ist damit
+nicht behauptet. Rückweg nach Veröffentlichung: 0.23.0 erhalten, bei Problemen
+das Angebot von 0.23.1 stoppen und eine gleich signierte Vorwärtskorrektur mit
+versionCode größer als 95 veröffentlichen. Keine stille Herabstufung,
+Deinstallation oder Datenlöschung und keine alte Authentik-Datenbanksicherung
+zurückspielen. Fremde Bootstrap-Arbeiten und andere Änderungen erhalten;
+kein Bootstrap und kein globaler Checkout-/Reset-Befehl aus dieser Korrektur.

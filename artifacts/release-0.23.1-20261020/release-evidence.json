@@ -1,0 +1,105 @@
+{
+  "date": "2026-10-20",
+  "status": "OTA_PUBLISHED_PUBLIC_APK_MANIFEST_SIGNATURE_AND_PR_CI_VERIFIED",
+  "userAuthorization": "dan ota bitte",
+  "sourceCommit": "25fa8745f402e8cccaa6d44f64150a5aaf7e4531",
+  "buildArchiveCommit": "37fc3de3a97f2fbca4ccce2242a1ea259e043bc8",
+  "sourceTree": "0d18899f2242cf42d4acc16c11a9bfdb6953a0fc",
+  "mergeTreeEqualsBuildArchive": true,
+  "tag": "v0.23.1",
+  "tagObject": "2a1df5baad682a48d35ba6f38570a43e9965bec0",
+  "versionName": "0.23.1",
+  "versionCode": 95,
+  "url": "https://github.com/scimitar4444/mission-leben-portal-android/releases/tag/v0.23.1",
+  "publishedAt": "2026-10-20T06:41:21Z",
+  "apk": {
+    "sha256": "373acf9dd300dfe429baae6bdf52662938fdb9f90bd471c0feed86262e660a79",
+    "sizeBytes": 27999618,
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "productionSignerUnchanged": true,
+    "draftApiAssetDigestMatched": true,
+    "fullPublicDownloadEqualToLocalSignedBuild": true,
+    "testInstrumentationAbsentFromReleaseDex": true
+  },
+  "manifest": {
+    "schema": 1,
+    "sha256": "966cd034e059348ed8a987b06834f5a7ce5d2b1d3ceac3ca8c81654b7c9e5def",
+    "latestPublicEqualsBuiltManifest": true,
+    "transport": "HTTPS, certificate verification enabled, direct full download"
+  },
+  "checks": {
+    "releaseUnitTests": {
+      "tests": 369,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "debugUnitTests": {
+      "tests": 396,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "lintRelease": {
+      "errors": 0,
+      "warnings": 124
+    },
+    "releaseBuild": "PASS from committed Git archive, then signed locally",
+    "javascript": "Password hints/visibility, Talk start, contact composer, mobile documents and Helpdesk DOM fixtures PASS",
+    "permissions": "aapt output exactly identical to previous 0.23.0",
+    "releaseNotes": "Two current notes in all nine languages; version 94 to 95 test added",
+    "githubPr": {
+      "number": 11,
+      "url": "https://github.com/scimitar4444/mission-leben-portal-android/pull/11",
+      "state": "MERGED",
+      "runId": 39381292624,
+      "headSha": "37fc3de3a97f2fbca4ccce2242a1ea259e043bc8",
+      "jobs": {
+        "build": "success",
+        "bootstrap-source-tests": "success",
+        "bridge-tests": "success",
+        "enrollment-portal-tests": "success"
+      }
+    },
+    "securityReview": "Implementing agent source review and negative tests; not an independent human review"
+  },
+  "deviceAcceptance": {
+    "synthetic": "Actual AOSP API35/WebView124 cookie store: seed/flush, process restart recovery, personal-lock preservation, fresh-login and Shared cleanup, second restart confirms erasure. Separate emulator safety smoke PASS.",
+    "personalPilot": "Functional implementation installed over existing registration; user confirmed biometric unlock, cold restart and all three applications (Zimbra, Talk, IT Help) without renewed sign-in. Short foreground switch had no biometric prompt.",
+    "pilotVersionLabel": "0.23.0/94 local test before final version/notes-only bump",
+    "finalOtaInstallation": "NOT_YET_USER_TESTED; publication is not installation",
+    "wakeSettingRestored": true,
+    "ntfyForegroundServiceRunningAfterPilot": true,
+    "deliberateRealUserCookieErasure": false,
+    "foreignSessionOrNamedIncidentUserRetry": false
+  },
+  "invariants": {
+    "absoluteSessionLifetimeDays": 90,
+    "authentikOrFlowsGroupsAccountsChanged": false,
+    "serverDeploymentOrRestart": false,
+    "newAndroidPermissions": false,
+    "nativeTokenCopiedIntoCookies": false,
+    "biometricProtectionRetained": true,
+    "sharedCookieErasureRetained": true,
+    "freshPersonalContextGateRetained": true,
+    "unrelatedDirtyBootstrapExcluded": true,
+    "installer": "Existing GitHub APK and visible Android installer, security scan remains possible"
+  },
+  "remaining": [
+    "Historical cause of the original missing/different/rejected WebView cookie remains unproven; explicit flush is a robustness improvement, not proof of an Authentik update cause.",
+    "Fresh login/password-hint and error UX in actual Authentik stage, deliberate renewal/abort and physical Shared tablet were not repeated using a real user. Their local/synthetic regressions pass."
+  ],
+  "futureAuthentikUpdateChecks": [
+    "Verify cookie name authentik_session still matches diagnostics; no cookie values in logs.",
+    "Exercise personal cold start after biometric unlock; verify existing Web-SSO separately from native token refresh.",
+    "Confirm password-stage shadow DOM selector AK-STAGE-PASSWORD and MFA-code exclusion; preserve eye masking.",
+    "Verify OAuth state failures, actual server errors and user back remain distinct.",
+    "Preserve acknowledged fresh-context clearing, Shared logout, 90-day deadline, Endpoint trust and MFA; no bootstrap or factor changes inferred."
+  ],
+  "rollback": "Retain v0.23.0; if needed stop offering 0.23.1 and publish a production-signed forward fix with versionCode >95. Do not silently downgrade installed devices, uninstall, erase data or restore old Authentik databases.",
+  "updateHandoff": {
+    "thread": "01a0ce21-5cd3-7e51-b113-f98a3e9bbb2f",
+    "status": "SENT_SUCCESSFULLY",
+    "authority": "Standing user information handoff only"
+  }
+}
