@@ -68,6 +68,12 @@ class AuthRepository(context: Context) {
             onError(context.getString(R.string.auth_expired))
             return
         }
+        // State must be checked for error redirects as well as successful responses.
+        if (redirectUri.getQueryParameter("state") != request.state) {
+            Log.w(AUTH_LOG_TAG, "Authorization response rejected: state mismatch")
+            onError(context.getString(R.string.auth_state_mismatch))
+            return
+        }
         val authorizationError = if (redirectUri.getQueryParameter("error") != null) {
             AuthorizationException.fromOAuthRedirect(redirectUri)
         } else {
@@ -79,18 +85,25 @@ class AuthRepository(context: Context) {
                 "Authorization server returned an error: type=${authorizationError.type}, " +
                     "code=${authorizationError.code}",
             )
-            onError(context.getString(R.string.auth_cancelled))
+            onError(context.getString(AuthorizationFailure.fromOAuth(
+                redirectUri.getQueryParameter("error").orEmpty(),
+            ).messageResource))
             return
         }
         val response = runCatching { AuthorizationResponse.Builder(request).fromUri(redirectUri).build() }
             .getOrElse {
-                Log.w(AUTH_LOG_TAG, "Authorization response could not be parsed", it)
+                Log.w(AUTH_LOG_TAG, "Authorization response could not be parsed")
                 onError(context.getString(R.string.auth_invalid_response))
                 return
             }
         if (response.state != request.state) {
             Log.w(AUTH_LOG_TAG, "Authorization response rejected: state mismatch")
             onError(context.getString(R.string.auth_state_mismatch))
+            return
+        }
+        if (response.authorizationCode.isNullOrBlank()) {
+            Log.w(AUTH_LOG_TAG, "Authorization response rejected: code missing")
+            onError(context.getString(R.string.auth_invalid_response))
             return
         }
 

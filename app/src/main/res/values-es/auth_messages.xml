@@ -1,0 +1,9 @@
+<resources>
+    <string name="password_step_hint">Introduce aquí tu contraseña habitual, no el código TOTP. Introduce el código solo cuando se solicite expresamente.</string>
+    <string name="auth_server_rejected">El servicio de acceso no ha autorizado el inicio de sesión. Vuelve a iniciar sesión.</string>
+    <string name="auth_server_unavailable">El servicio de acceso no está disponible. Inténtalo más tarde.</string>
+    <string name="auth_server_login_required">El servicio requiere un nuevo inicio de sesión u otro paso de confirmación. Vuelve a iniciar sesión.</string>
+    <string name="auth_server_error">El servicio no ha podido completar el inicio de sesión. Inténtalo de nuevo.</string>
+    <string name="release_note_web_cookie_storage">Las sesiones web se guardan de forma más fiable para mantener disponibles Zimbra, Talk y Ayuda TI tras reiniciar la app.</string>
+    <string name="release_note_clear_login_errors">Un aviso explica cuándo introducir la contraseña habitual en lugar del código TOTP. Los errores del servicio de acceso ya no se muestran siempre como cancelaciones.</string>
+</resources>

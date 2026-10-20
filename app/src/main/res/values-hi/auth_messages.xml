@@ -1,0 +1,9 @@
+<resources>
+    <string name="password_step_hint">यहाँ अपना सामान्य पासवर्ड डालें, TOTP कोड नहीं। कोड केवल तभी डालें जब स्पष्ट रूप से माँगा जाए।</string>
+    <string name="auth_server_rejected">साइन-इन सेवा ने साइन-इन की अनुमति नहीं दी। कृपया फिर से साइन इन करें।</string>
+    <string name="auth_server_unavailable">साइन-इन सेवा अभी उपलब्ध नहीं है। कृपया बाद में फिर प्रयास करें।</string>
+    <string name="auth_server_login_required">सेवा को नया साइन-इन या एक और पुष्टि चाहिए। कृपया फिर से साइन इन करें।</string>
+    <string name="auth_server_error">सेवा साइन-इन पूरा नहीं कर सकी। कृपया फिर प्रयास करें।</string>
+    <string name="release_note_web_cookie_storage">वेब साइन-इन अधिक भरोसेमंद ढंग से सहेजे जाते हैं, ताकि ऐप दोबारा शुरू होने पर Zimbra, Talk और आईटी सहायता उपलब्ध रहें।</string>
+    <string name="release_note_clear_login_errors">एक संकेत बताता है कि TOTP के बजाय सामान्य पासवर्ड कब डालना है। साइन-इन सेवा की सभी त्रुटियाँ अब रद्द होने के रूप में नहीं दिखाई जातीं।</string>
+</resources>

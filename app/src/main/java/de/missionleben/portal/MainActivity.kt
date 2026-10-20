@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
+import de.missionleben.portal.auth.AuthorizationFailure
 import de.missionleben.portal.model.DeviceMode
 import de.missionleben.portal.model.AppFeaturePolicy
 import de.missionleben.portal.model.EnrollmentState
@@ -124,7 +125,13 @@ class MainActivity : FragmentActivity() {
             "Authorization browser result: resultOk=${result.resultCode == RESULT_OK}, " +
                 "hasResponse=${redirectUri != null}",
         )
-        viewModel.completeAuthorization(redirectUri, PortalBrowserActivity.freshContextConfirmed(result.data))
+        viewModel.completeAuthorization(
+            redirectUri,
+            PortalBrowserActivity.freshContextConfirmed(result.data),
+            PortalBrowserActivity.authorizationFailure(result.data)
+                ?: if (result.resultCode == RESULT_OK && redirectUri == null)
+                    AuthorizationFailure.INVALID_RESPONSE else null,
+        )
     }
 
     private val appBrowserLauncher = registerForActivityResult(

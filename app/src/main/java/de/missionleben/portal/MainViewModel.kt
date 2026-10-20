@@ -12,6 +12,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import de.missionleben.portal.auth.AccessTokenFailure
 import de.missionleben.portal.auth.AuthRepository
+import de.missionleben.portal.auth.AuthorizationFailure
 import de.missionleben.portal.auth.ReauthenticationPolicy
 import de.missionleben.portal.auth.PersonalAuthenticationPolicy
 import de.missionleben.portal.auth.PersonalLoginAttempt
@@ -494,10 +495,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    fun completeAuthorization(redirectUri: Uri?, freshContextConfirmed: Boolean = false) {
+    fun completeAuthorization(
+        redirectUri: Uri?,
+        freshContextConfirmed: Boolean = false,
+        browserFailure: AuthorizationFailure? = null,
+    ) {
         if (redirectUri == null) {
             cancelPendingAuthorization()
-            _uiState.update { it.copy(busy = false, message = string(R.string.message_auth_cancelled)) }
+            _uiState.update { it.copy(busy = false, message = string(
+                browserFailure?.messageResource ?: R.string.message_auth_cancelled,
+            )) }
             return
         }
         val epoch = pendingAuthorizationEpoch ?: return

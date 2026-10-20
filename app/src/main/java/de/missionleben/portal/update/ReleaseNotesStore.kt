@@ -50,6 +50,10 @@ object ReleaseNotesCatalog {
             R.string.release_note_app_help,
             R.string.release_note_phone_settings,
         ),
+        95 to listOf(
+            R.string.release_note_web_cookie_storage,
+            R.string.release_note_clear_login_errors,
+        ),
     )
 
     fun forVersion(versionCode: Int): List<Int> = notesByVersion[versionCode].orEmpty()

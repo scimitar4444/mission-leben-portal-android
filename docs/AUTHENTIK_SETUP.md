@@ -213,3 +213,82 @@ Nach jedem Authentik-Update muss das Skript vor dem Neustart erneut gegen den ne
 - Gerät verloren: Authentik-Device mit `mission-leben.de/status=disabled` sperren, Grund und Zeitpunkt dokumentieren und zugehörige Refresh Tokens widerrufen; nicht löschen.
 - Admin-Anwendungen dürfen unabhängig vom Gerät weiterhin zusätzliche MFA verlangen.
 - Geräteklassen und Trust-Status gehören in Attribute/Policies, nicht als Wildwuchs in die `ORG_*`-Struktur.
+
+## 8. Lokale Android Websitzungskorrektur vom 20.10.2026
+
+Status: lokal umgesetzt und auf einem persönlichen Gerät geprüft; OTA 0.23.1 wird vorbereitet.
+Auf ausdrücklichen USB-Testwunsch liegt die identisch signierte lokale Fassung
+auf einem persönlichen Testhandy. Nach Prozessneustart und bestätigter Biometrie war der
+Authentik-Cookie weiterhin vorhanden; die Weiterleitung lief über den
+Autorisierungsflow bis zu Zimbra ohne interaktiven Erneuerungsdialog. Der kurze
+App-Wechsel führte nicht zu einer erneuten Biometrieabfrage. Der Benutzer hat
+Zimbra-Posteingang, Talk-Chatliste und IT-Hilfe-Ticketportal danach ausdrücklich
+als funktionsfähig ohne Neuanmeldung bestätigt. Eine frische Kennwortanmeldung
+wurde auf diesem Konto bewusst nicht erzwungen. Das USB-Wachhalten wurde auf
+den vorherigen Wert 0 zurückgesetzt; der ntfy-Vordergrunddienst läuft.
+Ausgangspunkt ist die Web-SSO-Ursacheneingrenzung des Authentik-Update-Tasks.
+Der erste anonyme Web-Aufruf beweist weder einen Ablauf der nativen 90-Tage-Sitzung
+noch einen Authentik-Updatefehler. Ein fehlendes explizites Flush war ein
+Robustheitskandidat, keine bewiesene Ursache des ursprünglichen Cookieverlustes.
+
+`WebSessionCookies` persistiert vorhandene persönliche Web-Cookies beim
+Autorisierungsrücksprung mit Code, nach abgeschlossenen vertrauenswürdigen
+Webseiten und beim Pausieren des Browsers. Die Rücksprung-Persistierung ist
+keine Bestätigung des späteren nativen Tokenaustauschs. Androids
+[`CookieManager.flush()`](https://developer.android.com/reference/android/webkit/CookieManager#flush())
+speichert den bestehenden Cookiezustand; Cookieinhalt, Laufzeit und Faktoren
+werden nicht umgeschrieben. Shared-Browser werden von dieser persönlichen
+Persistierung ausgeschlossen. Es gibt weder Polling noch neue Serveraufrufe.
+
+Unter dem lokalen Logcat-Tag `MissionLebenWebSession` stehen ausschließlich
+geschlossene Ereigniskategorien, `authentik_session` vorhanden/fehlend/nicht
+prüfbar, WebView-Version und Host mit freigegebenen öffentlichen Pfadformen.
+Andere Pfade werden redigiert. Query, Fragment, Cookiewerte, Token,
+Benutzername, Kennwort, TOTP und Server-Fehlerbeschreibungen werden nicht
+übernommen. Ereignisse gibt es beim Browserstart, vor Web-Erneuerung, vor
+bewusster Löschung, nach deren Rückmeldung sowie bei gestarteter,
+abgeschlossener oder fehlgeschlagener Persistierung. Ein erfolgreicher
+Flush-Aufruf allein bedeutet nicht, dass eine gültige Anmeldung vorhanden ist.
+Es gibt keinen Diagnoseexport und keine zusätzliche dauerhafte Protokolldatei;
+Logcat kann nach Neustart des Handys oder Buffer-Rotation fehlen.
+
+OAuth-Serverantworten werden von einem Browserabbruch getrennt: verweigerte
+Anmeldung, vorübergehend nicht verfügbar, weiterer Anmeldeschritt und
+unbekannter Serverfehler erhalten neutrale eigene Meldungen. Error-Redirects
+benötigen ebenfalls den passenden OAuth-State. Fehlender Code und bekannte
+Browser-/Bereinigungsfehler werden nicht als Nutzerabbruch ausgegeben.
+Am erkannten Authentik-Kennwortschritt wird ein kurzer Hinweis zum normalen
+Kennwort statt TOTP ergänzt; MFA-Codefelder erhalten keinen Kennworthinweis. Die
+Ergänzung liest keine Eingaben und ändert keine Authentik-Stage.
+
+Unverändert bleiben der frische persönliche Anmeldekontext mit bestätigter
+Cookiebereinigung, MFA, Gerätebindung, absolute Sitzungsfrist, Biometriesperre
+sowie Shared-Abmeldung und deren Datenbereinigung. Keine native Tokenkopie
+in Cookies, kein MFA-Bypass, keine Authentik-/Flow-/Gruppen-/Kontenänderung.
+Der neue Code benötigt keine neue Serverversion, Schemaänderung oder Mounts.
+
+Release-Nachweis: `artifacts/release-0.23.1-20261020/release-evidence.json`.
+Der isolierte AOSP-API-35-Test verwendet ausschließlich synthetische Cookies
+auf `example.invalid`, beendet den App-Prozess zwischen den Phasen und prüft
+Wiederverfügbarkeit sowie dauerhaft wirksame Löschung. Die bestehenden
+Negativtests für Sperre, Fresh-Context-Gate, Shared-Abmeldung und 90-Tage-Grenze
+bleiben Teil der Regression. Das ist keine Anmeldung eines echten Benutzers.
+
+Auf einem persönlichen Gerät sind bestehende Registrierung, App-Kaltstart mit
+Biometrie, kurzer App-Wechsel und Zimbra/Talk/IT Hilfe nach dem Neustart geprüft.
+Bewusste Cookie-Löschung, frische Kennwortanmeldung, Fehleranzeige, Shared-Abmeldung
+und Bildschirm-Aus wurden lokal/synthetisch geprüft, aber in diesem Durchlauf
+nicht auf einem echten Benutzerkonto oder Shared-Tablet wiederholt. Die
+Darstellung des neuen Kennworthinweises im tatsächlichen Authentik-Flow bleibt
+eine gesonderte Geräteprüfung. Betroffene Benutzer werden dafür nicht
+automatisch erneut angemeldet; keine fremde Sitzung verwenden.
+
+Rückweg: Bis zur Freigabe laufen Produktion und OTA unverändert mit 0.23.0.
+Das lokale APK trägt vorerst ebenfalls 0.23.0/94, ist aber nur durch seinen
+SHA-256 im Nachweis als Testfassung identifiziert. Das vorherige unveränderte
+Produktions-APK liegt lokal als `device-before.apk` neben dem Test-APK und kann
+bei Bedarf mit `adb install -r` ohne Deinstallation zurückgespielt werden.
+Für einen lokalen Rückbau ausschließlich die in `evidence.json` bezeichneten
+Dateiänderungen rückgängig machen; die schon vorher vorhandenen Änderungen
+an `authentik/bootstrap_endpoint_devices.py` sowie andere Arbeiten erhalten.
+Kein Bootstrap, keine Serveränderung, kein globaler Checkout-/Reset-Befehl.
