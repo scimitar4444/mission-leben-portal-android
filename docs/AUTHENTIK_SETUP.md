@@ -329,6 +329,13 @@ Compose-Projekt ist `mission-leben-device` (nicht der
 Verzeichnisname); nur Service `bridge` neu erstellen, andere Dienste unverändert.
 Build-Quellen auf dem Host sind mit dem ausgelieferten Stand abgeglichen.
 
+OTA 0.23.2/96 ist seit 21.10.2026 reguläres GitHub-Latest-Release. Öffentliche
+APK und Manifest sind vollständig heruntergeladen und gegen die lokalen
+Artefakte geprüft; die APK ist exakt die am Handy abgenommene Datei. PR 13 mit
+fünf erfolgreichen CI-Jobs; Nachweis unter
+`artifacts/release-0.23.2-20261021/release-evidence.json`. Flotteninstallation
+separat anhand der nächsten Versionsmeldungen prüfen.
+
 Rollout erst nach Prüfung der beiden signierten Routen, SQLite-Integrität/
 Foreign Keys, Containerzustand und echtem Gerätetest. Mit Default
 `BRIDGE_ANNOUNCEMENT_PUSH_ENABLED=false` bleibt die Neuerung aus. Explizites

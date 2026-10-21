@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-21",
+  "status": "OTA_PUBLISHED_PUBLIC_APK_MANIFEST_SIGNATURE_AND_PR_CI_VERIFIED",
+  "userAuthorization": "gut dann relese",
+  "tag": "v0.23.2",
+  "tagObject": "04319c36f6707e38241e6ed49e496b1c4986cea7",
+  "sourceCommit": "1f5f128817db9f7a917cdfbb0d01dc570f1ea458",
+  "buildArchiveCommit": "3970b954a39d0dc35164523cc32d10c312594ad6",
+  "sourceTree": "7158aeb8a9ab2db215767b46ba95ab04de3c3563",
+  "mergeTreeEqualsBuildArchive": true,
+  "versionName": "0.23.2",
+  "versionCode": 96,
+  "url": "https://github.com/scimitar4444/mission-leben-portal-android/releases/tag/v0.23.2",
+  "releaseId": 419774219,
+  "publishedAt": "2026-10-21T16:12:12Z",
+  "latestRegularReleaseVerified": true,
+  "apk": {
+    "sha256": "7ddd17d5c1b12efc3ecb5d0c40d75220721d6eb5f87f3656bc480dfb8608afe8",
+    "sizeBytes": 28003714,
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "productionSignerUnchanged": true,
+    "exactSameApkAsAcceptedPhysicalPilot": true,
+    "draftApiAssetDigestMatched": true,
+    "fullPublicDownloadEqualToLocalSignedBuild": true,
+    "publicDownloadSignatureVerified": true,
+    "testInstrumentationAbsentFromReleaseDex": true,
+    "cleanCommittedArchivePayloadComparison": {
+      "executableResourcesAssetsIdenticalEntries": 547,
+      "excludedJarSigningEntries": ["META-INF/MANIFEST.MF", "META-INF/MISSION-.RSA", "META-INF/MISSION-.SF"],
+      "soleNonSigningDifference": "META-INF/version-control-info.textproto: diagnostic NO_SUPPORTED_VCS_FOUND in archive versus NO_VALID_GIT_FOUND in pilot build; no executable/resource difference",
+      "publishedArtifactSelection": "Reuse the exact production-signed and device-accepted pilot APK after clean-source payload comparison; no resigning or code change"
+    }
+  },
+  "manifest": {
+    "schema": 1,
+    "sha256": "1955c317a6f4a0f69b8e1903f4d89c6e2b0308dd1eef2abe0f7ab3f0cc600e0f",
+    "sizeBytes": 342,
+    "latestPublicEqualsBuiltManifest": true,
+    "fullPublicApkAndManifestDownloaded": true,
+    "transport": "HTTPS with certificate verification and HTTPS-only redirects",
+    "requestHeaders": {"User-Agent": "MissionLebenPortal/0.23.1", "Accept-Encoding": "identity"}
+  },
+  "checks": {
+    "archiveBuild": "PASS from committed Git archive with Gradle task cache; reports inspected; no dirty working-tree sources copied",
+    "debugUnitTests": {"tests": 405, "failures": 0, "errors": 0, "skipped": 0},
+    "releaseUnitTests": {"tests": 375, "failures": 0, "errors": 0, "skipped": 0},
+    "releaseLint": {"errors": 0, "warnings": 130},
+    "bridgeFinalContainerTests": {"tests": 170, "result": "PASS_before_pilot"},
+    "phpContractTests": {"checks": 14, "result": "PASS_before_pilot_and_PR_CI"},
+    "permissions": "aapt output exactly identical to verified public 0.23.1 APK",
+    "githubPr": {
+      "number": 13,
+      "url": "https://github.com/scimitar4444/mission-leben-portal-android/pull/13",
+      "state": "MERGED",
+      "runId": 39631918156,
+      "headSha": "3970b954a39d0dc35164523cc32d10c312594ad6",
+      "jobs": {"build": "success", "bootstrap-source-tests": "success", "bridge-tests": "success", "enrollment-portal-tests": "success", "nextcloud-adapter-tests": "success"}
+    },
+    "securityReview": "Implementing agent source review and negative tests, not an independent human review"
+  },
+  "deviceAcceptance": {
+    "version": "0.23.2/96",
+    "registrationRetained": true,
+    "userPerformedBiometricUnlock": true,
+    "freshAnnouncement19": "Automatically discovered, one ntfy delivery, zero pending; actual handset detail HTTP200 and separate Android announcement visible",
+    "notificationTap": "Actual system notification tap opens native bell and auto-cancels tray alert",
+    "homeRead": "Expand, collapse again, directly reachable Gelesen removes home card; read announcement retained in bell",
+    "alreadyReadAnnouncement18": "Narrow existing-post pilot receipt succeeded; read state correctly suppressed repeated visible alert",
+    "wakeSettingRestored": true,
+    "fleetInstallation": "NOT_CLAIMED; publication and device version reporting are separate"
+  },
+  "backend": {
+    "deploymentEvidence": "artifacts/announcement-push-local-20261021/evidence.json",
+    "bridgeVersion": "0.10.12",
+    "schema": 12,
+    "nextcloudAdapterVersion": "0.3.3",
+    "flag": "BRIDGE_ANNOUNCEMENT_PUSH_ENABLED=true",
+    "healthBeforePublication": "healthy; healthz 200 with announcement push enabled",
+    "restartedDuringThisReleaseTurn": false
+  },
+  "invariants": {
+    "authentikGroupsFlowsMfaSessionsEndpointTrustChanged": false,
+    "newAndroidPermissions": false,
+    "biometricAndSharedPrivacyRetained": true,
+    "ntfyTransportsAnnouncementContent": false,
+    "oldClientsReceiveNewAction": false,
+    "historicalBroadcastOnEnable": false,
+    "unrelatedBootstrapExcludedSha256": "1d2773f504e1cae6cfa30f9cdc14a27afb66e9f16ff1b6c5fbd24e9e313bb914",
+    "installer": "Existing GitHub OTA and visible Android installer; security scan remains possible"
+  },
+  "remaining": [
+    "Current handset had no visible Today panel; agenda co-existence covered by synthetic render tests, not this physical pilot.",
+    "Multiple handsets, restricted audience and network interruption not additionally exercised live in this single-handset pilot.",
+    "Deleting or expiring a source denies future delivery/detail; already visible Android alerts are not remotely recalled.",
+    "No claim that other devices have installed the published OTA."
+  ],
+  "rollback": "Keep previous v0.23.1; stop offering v0.23.2 if necessary and publish a production-signed forward fix with versionCode greater than96. No silent downgrade/uninstall/data wipe. Backend: flag off and recreate bridge only; keep current DB. Before old image, remove only the new announcement events and cascading delivery references; never restore stale whole DB.",
+  "updateHandoff": {"authentikUpdate": "SENT_PUBLICATION_DELTA", "nextcloudUpdate": "SENT_PUBLICATION_DELTA"}
+}

@@ -29,6 +29,12 @@ this check. Multi-handset, restricted-group and network-interruption live
 checks are not claimed by this pilot. OTA publication is tracked separately
 from these device results; old clients remain excluded.
 
+Android 0.23.2/96 was subsequently published as the regular GitHub Latest OTA
+on 2026-10-21; full public APK/manifest downloads and production signature
+matched the accepted pilot. See
+`artifacts/release-0.23.2-20261021/release-evidence.json` in the repository root.
+This does not assert installation across the fleet.
+
 Two additional read-only POST endpoints use the existing HMAC secret and the
 exact request path in the signature:
 

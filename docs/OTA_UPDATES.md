@@ -1,5 +1,20 @@
 # OTA-Updates
 
+## Veröffentlicht: 0.23.2 / Code 96 (21.10.2026)
+
+Reguläres Latest-Release mit eigener Ankündigungs-Benachrichtigung und getrennten,
+als gelesen ausblendbaren Startseitenhinweisen. Die unverändert produktiv
+signierte APK ist bytegleich mit dem abgenommenen Handy-Pilot. Öffentliches
+Latest-Manifest, vollständiger APK-Download, Hash, Größe und Signatur wurden nach
+Veröffentlichung geprüft. Keine neuen Android-Berechtigungen. Die Veröffentlichung
+ist kein Nachweis, dass andere Geräte bereits aktualisiert wurden.
+
+Release: [Mission Leben Zentral 0.23.2](https://github.com/scimitar4444/mission-leben-portal-android/releases/tag/v0.23.2)
+
+Nachweis: `artifacts/release-0.23.2-20261021/release-evidence.json`.
+
+## Updateablauf
+
 Mission Leben Zentral prüft einmal bei jedem echten App-Start automatisch, ob im öffentlichen GitHub-Projekt ein neueres Release vorhanden ist. Das Zurückkehren aus einer Web-Anwendung löst innerhalb desselben App-Laufs keine weitere Prüfung aus. Über **Nach Updates suchen** kann die Prüfung jederzeit manuell erzwungen werden. Die feste Manifest-Adresse lautet:
 
 ```text
