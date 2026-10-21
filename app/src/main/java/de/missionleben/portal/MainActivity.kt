@@ -79,7 +79,12 @@ class MainActivity : FragmentActivity() {
                         intent.getStringExtra(PushEventDispatcher.EXTRA_ENROLLMENT_STATE),
                     )
                 }
-                PushEventDispatcher.ACTION_UNREAD_CHANGED -> viewModel.refreshUnreadNotificationBadges()
+                PushEventDispatcher.ACTION_UNREAD_CHANGED -> {
+                    viewModel.refreshUnreadNotificationBadges()
+                    if (intent.getStringExtra(PushEventDispatcher.EXTRA_PUSH_ACTION) == "open_announcements") {
+                        viewModel.refreshAnnouncements()
+                    }
+                }
             }
         }
     }

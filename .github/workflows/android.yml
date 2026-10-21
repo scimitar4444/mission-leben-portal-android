@@ -59,6 +59,15 @@ jobs:
       - name: Test bridge
         run: PYTHONPATH=bridge/src python -W error::ResourceWarning -m unittest discover -s bridge/tests -v
 
+  nextcloud-adapter-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check read-only announcement push adapter
+        run: |
+          php -l nextcloud-app/missionleben_announcements/lib/Controller/AnnouncementPushController.php
+          php nextcloud-app/missionleben_announcements/tests/AnnouncementPushTest.php nextcloud-app/missionleben_announcements/lib/Controller/AnnouncementPushController.php
+
   enrollment-portal-tests:
     runs-on: ubuntu-latest
     steps:

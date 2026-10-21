@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_announcements_body">Jest nowe ogłoszenie. Dotknij tutaj, aby przeczytać je w aplikacji.</string>
+    <string name="release_note_announcement_push">Ważne ogłoszenia mają teraz osobną kategorię powiadomień. Dotknij, aby otworzyć listę ogłoszeń.</string>
+    <string name="release_note_home_notice_read">Ogłoszenia i dzisiejsze terminy pozostają osobno. Dotknij „Przeczytane”, aby ukryć ogłoszenie na ekranie głównym; nadal znajdziesz je pod dzwonkiem.</string>
     <string name="help_and_guide">Pomoc i instrukcja</string>
     <string name="help_open_failed">Nie udało się otworzyć instrukcji.</string>
     <string name="push_reliability_title">Ustawienia aplikacji w telefonie</string>

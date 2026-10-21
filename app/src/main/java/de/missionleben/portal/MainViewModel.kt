@@ -813,6 +813,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun markAnnouncementRead(announcementId: Long) {
         val subject = _uiState.value.user?.subject ?: return
         preferences.markAnnouncementRead(subject, announcementId)
+        synchronized(NotificationPresenter) {
+            val targets = NotificationTargetStore(getApplication())
+            unreadNotificationStore.eventIds(NotificationBadgeTarget.ANNOUNCEMENTS).forEach { eventId ->
+                if (targets.get(eventId, PushAction.OPEN_ANNOUNCEMENTS) == announcementId.toString()) {
+                    unreadNotificationStore.cancel(PushAction.OPEN_ANNOUNCEMENTS, eventId)
+                    NotificationPresenter.cancel(getApplication(), eventId)
+                }
+            }
+        }
         _uiState.update {
             it.copy(readAnnouncementIds = it.readAnnouncementIds + announcementId)
         }
@@ -949,6 +958,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshInbox() {
         val state = _uiState.value
         if (!state.signedIn || expireAtAbsoluteDeadline()) return
+        _uiState.update { it.copy(noticeInboxRequested = false) }
         refreshUnreadNotificationBadges()
         refreshAnnouncements()
         val deviceId = preferences.deviceId ?: return
@@ -1950,6 +1960,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.update { it.copy(message = string(R.string.message_sign_in_to_open)) }
             return
         }
+        if (action == PushAction.OPEN_ANNOUNCEMENTS) {
+            pendingPushAction = null
+            NotificationPresenter.dismissApplication(getApplication(), NotificationBadgeTarget.ANNOUNCEMENTS)
+            _uiState.update { it.copy(noticeInboxRequested = true) }
+            return
+        }
         val applications = _uiState.value.applications
         if (applications.isEmpty()) {
             if (!_uiState.value.applicationsLoading) {
@@ -1969,6 +1985,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             PushAction.OPEN_DOCUMENTS -> NotificationNavigation.approvedDocumentsApplication(applications)
             PushAction.OPEN_HELPDESK -> NotificationNavigation.approvedHelpdeskApplication(applications)
+            PushAction.OPEN_ANNOUNCEMENTS -> null // Handled natively above, never an untrusted URL.
             PushAction.REFRESH_SECURITY_STATE -> null
         }
         pendingPushAction = null

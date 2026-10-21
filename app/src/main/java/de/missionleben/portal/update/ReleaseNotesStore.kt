@@ -50,6 +50,7 @@ object ReleaseNotesCatalog {
             R.string.release_note_app_help,
             R.string.release_note_phone_settings,
         ),
+        96 to listOf(R.string.release_note_announcement_push, R.string.release_note_home_notice_read),
         95 to listOf(
             R.string.release_note_web_cookie_storage,
             R.string.release_note_clear_login_errors,

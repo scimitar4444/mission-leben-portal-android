@@ -73,7 +73,7 @@ class RichNotificationJobService : JobService() {
         ): Boolean {
             if (!UnreadNotificationStore(context).isUnread(action, eventId)) return false
             val preferences = AppPreferences(context)
-            if (!PushRegistrationStore(context).communicationAllowed()) return false
+            if (!PushRegistrationStore(context).deliveryAllowed(action)) return false
             val privacy = NotificationPrivacy.effective(
                 preferences.deviceMode,
                 PushRegistrationStore(context).personalPrivacy,

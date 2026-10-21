@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_announcements_body">A new announcement is available. Tap to read it in the app.</string>
+    <string name="release_note_announcement_push">New important notices now arrive in a separate notification category. Tap to open the notices overview.</string>
+    <string name="release_note_home_notice_read">Notices and today’s appointments remain separate. Tap “Read” to hide a notice from the home screen; it remains available under the bell.</string>
     <string name="auth_fresh_login_required">Please sign in with Authentik again. An existing browser session cannot unlock the app.</string>
     <string name="auth_context_clear_failed">The previous browser session could not be safely isolated. Please start sign-in again.</string>
     <string name="auth_session_only_title">Sign in without saving quick access?</string>

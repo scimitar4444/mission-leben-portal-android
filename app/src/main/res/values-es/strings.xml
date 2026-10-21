@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_announcements_body">Hay un nuevo aviso. Toca aquí para leerlo en la app.</string>
+    <string name="release_note_announcement_push">Los avisos importantes llegan en una categoría de notificaciones propia. Toca para abrir el resumen de avisos.</string>
+    <string name="release_note_home_notice_read">Los avisos y las citas de hoy permanecen separados. Toca «Leído» para ocultar un aviso de la pantalla de inicio; seguirá disponible en la campana.</string>
     <string name="help_and_guide">Ayuda y guía</string>
     <string name="help_open_failed">No se pudo abrir la guía.</string>
     <string name="push_reliability_title">Ajustes de la app en tu teléfono</string>

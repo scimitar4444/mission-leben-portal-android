@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_announcements_body">Yeni bir duyuru var. Uygulamada okumak için buraya dokun.</string>
+    <string name="release_note_announcement_push">Önemli duyurular artık ayrı bir bildirim kategorisinde gelir. Duyuru listesini açmak için dokun.</string>
+    <string name="release_note_home_notice_read">Duyurular ve bugünün randevuları ayrı kalır. Duyuruyu ana ekrandan gizlemek için “Okundu” seçeneğine dokun; zil altında okumaya devam edebilirsin.</string>
     <string name="help_and_guide">Yardım ve kılavuz</string>
     <string name="help_open_failed">Kılavuz açılamadı.</string>
     <string name="push_reliability_title">Telefondaki uygulama ayarları</string>

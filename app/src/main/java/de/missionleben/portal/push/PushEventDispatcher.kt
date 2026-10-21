@@ -17,7 +17,7 @@ object PushEventDispatcher {
                     AppPreferences(context).deviceMode != DeviceMode.PERSONAL
                 ) {
                     return@synchronized
-                } else if (PushRegistrationStore(context).communicationAllowed()) {
+                } else if (PushRegistrationStore(context).deliveryAllowed(command.action)) {
                     val eventId = "legacy-${command.action.wireName}-${System.nanoTime()}"
                     recordUnread(context, command.action, eventId)
                     NotificationPresenter.showGeneric(context, command.action, eventId)
@@ -29,7 +29,7 @@ object PushEventDispatcher {
                 if (command.eventType == PushAction.OPEN_DOCUMENTS &&
                     AppPreferences(context).deviceMode != DeviceMode.PERSONAL
                 ) return@synchronized
-                if (!PushRegistrationStore(context).communicationAllowed()) return@synchronized
+                if (!PushRegistrationStore(context).deliveryAllowed(command.eventType)) return@synchronized
                 recordUnread(context, command.eventType, command.eventId)
                 if (!UnreadNotificationStore(context).isUnread(command.eventType, command.eventId)) {
                     return@synchronized
@@ -59,7 +59,10 @@ object PushEventDispatcher {
 
     fun recordUnread(context: Context, action: PushAction, eventId: String) = synchronized(NotificationPresenter) {
         NoticeInboxStore(context).record(action, eventId)
-        if (UnreadNotificationStore(context).record(action, eventId)) notifyUnreadChanged(context)
+        if (UnreadNotificationStore(context).record(action, eventId)) {
+            context.sendBroadcast(Intent(ACTION_UNREAD_CHANGED).setPackage(context.packageName)
+                .putExtra(EXTRA_PUSH_ACTION, action.wireName))
+        }
     }
 
     fun acknowledgeDismissal(context: Context, action: PushAction, eventId: String) = synchronized(NotificationPresenter) {

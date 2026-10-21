@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_announcements_body">Є нове оголошення. Натисни тут, щоб прочитати його в застосунку.</string>
+    <string name="release_note_announcement_push">Важливі оголошення тепер мають окрему категорію сповіщень. Натисни, щоб відкрити список оголошень.</string>
+    <string name="release_note_home_notice_read">Оголошення й сьогоднішні події залишаються окремо. Натисни «Прочитано», щоб приховати оголошення на головному екрані; воно залишиться доступним під дзвіночком.</string>
     <string name="help_and_guide">Допомога та інструкція</string>
     <string name="help_open_failed">Не вдалося відкрити інструкцію.</string>
     <string name="push_reliability_title">Налаштування застосунку на телефоні</string>

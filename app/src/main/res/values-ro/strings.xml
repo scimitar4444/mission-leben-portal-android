@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_announcements_body">Este disponibil un anunț nou. Apasă aici pentru a-l citi în aplicație.</string>
+    <string name="release_note_announcement_push">Anunțurile importante au acum o categorie proprie de notificări. Apasă pentru a deschide lista de anunțuri.</string>
+    <string name="release_note_home_notice_read">Anunțurile și programările de azi rămân separate. Apasă „Citit” pentru a ascunde anunțul de pe ecranul principal; îl găsești în continuare la clopoțel.</string>
     <string name="help_and_guide">Ajutor și instrucțiuni</string>
     <string name="help_open_failed">Instrucțiunile nu au putut fi deschise.</string>
     <string name="push_reliability_title">Setările aplicației pe telefon</string>

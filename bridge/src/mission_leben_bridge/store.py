@@ -17,6 +17,7 @@ PRAGMA foreign_keys=ON;
 CREATE TABLE IF NOT EXISTS users (
     subject TEXT PRIMARY KEY,
     email TEXT NOT NULL,
+    nextcloud_user_id TEXT NOT NULL DEFAULT '',
     display_name TEXT NOT NULL,
     active INTEGER NOT NULL,
     verified_at INTEGER NOT NULL
@@ -54,7 +55,7 @@ CREATE TABLE IF NOT EXISTS notification_events (
     source TEXT NOT NULL,
     source_event_id TEXT NOT NULL,
     subject TEXT NOT NULL,
-    event_type TEXT NOT NULL CHECK (event_type IN ('open_mail', 'open_calendar', 'open_talk', 'open_documents', 'open_helpdesk')),
+    event_type TEXT NOT NULL CHECK (event_type IN ('open_mail', 'open_calendar', 'open_talk', 'open_documents', 'open_helpdesk', 'open_announcements')),
     title TEXT NOT NULL,
     summary TEXT NOT NULL,
     preview TEXT NOT NULL,
@@ -125,6 +126,11 @@ CREATE TABLE IF NOT EXISTS announcement_cache (
     fetched_at INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS announcement_push_state (
+    singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+    catalog TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS calendar_snapshots (
     subject TEXT PRIMARY KEY REFERENCES users(subject) ON DELETE CASCADE,
     payload_ciphertext TEXT NOT NULL,
@@ -155,6 +161,9 @@ class Store:
         self._migrate_legacy_device_store()
         with self._connect() as connection:
             connection.executescript(SCHEMA)
+            user_columns = {row['name'] for row in connection.execute('PRAGMA table_info(users)')}
+            if 'nextcloud_user_id' not in user_columns:
+                connection.execute("ALTER TABLE users ADD COLUMN nextcloud_user_id TEXT NOT NULL DEFAULT ''")
             columns = {
                 row["name"]
                 for row in connection.execute("PRAGMA table_info(push_registrations)").fetchall()
@@ -199,18 +208,18 @@ class Store:
                 LEFT JOIN event_deliveries d
                   ON d.event_id = e.event_id AND d.device_id = r.device_id
                 WHERE e.delivered_at IS NULL AND d.event_id IS NULL
-                  AND e.event_type NOT IN ('open_documents', 'open_helpdesk')
+                  AND e.event_type NOT IN ('open_documents', 'open_helpdesk', 'open_announcements')
                 """,
                 (int(time.time()),),
             )
-            connection.execute("PRAGMA user_version=11")
+            connection.execute("PRAGMA user_version=12")
 
     @staticmethod
     def _ensure_document_event_schema(connection: sqlite3.Connection) -> None:
         row = connection.execute(
             "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'notification_events'"
         ).fetchone()
-        if row is None or "'open_helpdesk'" in row["sql"]:
+        if row is None or "'open_announcements'" in row["sql"]:
             return
         # SQLite cannot extend a CHECK constraint in place. Preserve event IDs
         # and delivery FKs while replacing only this table in one transaction.
@@ -225,7 +234,7 @@ class Store:
                     source_event_id TEXT NOT NULL,
                     subject TEXT NOT NULL,
                     event_type TEXT NOT NULL CHECK (event_type IN (
-                        'open_mail', 'open_calendar', 'open_talk', 'open_documents', 'open_helpdesk'
+                        'open_mail', 'open_calendar', 'open_talk', 'open_documents', 'open_helpdesk', 'open_announcements'
                     )),
                     title TEXT NOT NULL,
                     summary TEXT NOT NULL,
@@ -338,20 +347,22 @@ class Store:
             connection.execute("PRAGMA foreign_keys=ON")
             connection.close()
 
-    def upsert_user(self, subject: str, email: str, display_name: str, active: bool = True) -> None:
+    def upsert_user(self, subject: str, email: str, display_name: str, active: bool = True,
+                    nextcloud_user_id: str = '') -> None:
         now = int(time.time())
         with self._connect() as connection:
             connection.execute(
                 """
-                INSERT INTO users(subject, email, display_name, active, verified_at)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO users(subject, email, display_name, active, verified_at, nextcloud_user_id)
+                VALUES (?, ?, ?, ?, ?, ?)
                 ON CONFLICT(subject) DO UPDATE SET
                     email=excluded.email,
                     display_name=excluded.display_name,
                     active=excluded.active,
+                    nextcloud_user_id=CASE WHEN excluded.nextcloud_user_id != '' THEN excluded.nextcloud_user_id ELSE users.nextcloud_user_id END,
                     verified_at=excluded.verified_at
                 """,
-                (subject, email, display_name, int(active), now),
+                (subject, email, display_name, int(active), now, nextcloud_user_id),
             )
 
     def set_user_active(self, subject: str, active: bool) -> bool:
@@ -843,6 +854,37 @@ class Store:
             ).fetchall()
         return [value for row in rows if (value := self._decode_registration(row)) is not None]
 
+    def announcement_recipients(self) -> list[dict[str, str]]:
+        """No credentials or notification contents in the discovery snapshot."""
+        with self._connect() as connection:
+            rows = connection.execute("""
+                SELECT DISTINCT u.subject AS key, u.email, u.nextcloud_user_id AS user_id, r.app_version
+                FROM users u JOIN push_registrations r ON r.subject = u.subject
+                WHERE u.active = 1 AND r.push_enabled = 1 AND r.push_provider = 'ntfy'
+            """).fetchall()
+        return [dict(row) for row in rows]
+
+    def announcement_recipient(self, subject: str) -> dict[str, str] | None:
+        with self._connect() as connection:
+            row = connection.execute("SELECT subject AS key, email, nextcloud_user_id AS user_id FROM users WHERE subject = ? AND active = 1", (subject,)).fetchone()
+        return dict(row) if row is not None else None
+
+    def announcement_catalog(self) -> list[int] | None:
+        with self._connect() as connection:
+            row = connection.execute("SELECT catalog FROM announcement_push_state WHERE singleton = 1").fetchone()
+        return json.loads(row[0]) if row else None
+
+    def save_announcement_catalog(self, ids: list[int]) -> None:
+        with self._connect() as connection:
+            connection.execute("INSERT INTO announcement_push_state(singleton, catalog) VALUES (1, ?) ON CONFLICT(singleton) DO UPDATE SET catalog = excluded.catalog", (json.dumps(ids),))
+            # Do not let the five-minute display cache hide a just-published post
+            # or retain a removed one after the worker observed the change.
+            connection.execute("DELETE FROM announcement_cache")
+
+    def invalidate_announcement_cache(self) -> None:
+        with self._connect() as connection:
+            connection.execute("DELETE FROM announcement_cache")
+
     def registrations_for_offboarding(self, subject: str) -> list[dict[str, Any]]:
         """Return push targets even when the local user was already marked inactive."""
         with self._connect() as connection:
@@ -975,6 +1017,16 @@ class Store:
                 (event_id, device_id, deliver_epoch, int(time.time())),
             )
 
+    def queue_announcement_delivery(self, event_id: str, device_id: str, deliver_epoch: int) -> int:
+        with self._connect() as connection:
+            cursor = connection.execute("""
+                INSERT OR IGNORE INTO event_delivery_queue(event_id, device_id, deliver_epoch, created_at)
+                SELECT ?, ?, ?, ? WHERE NOT EXISTS (
+                    SELECT 1 FROM event_deliveries WHERE event_id = ? AND device_id = ?
+                )
+            """, (event_id, device_id, deliver_epoch, int(time.time()), event_id, device_id))
+        return cursor.rowcount
+
     def queue_pending_document_events(self, subject: str, device_id: str) -> int:
         """Replay recent document alerts after a compatible personal app registers.
 
@@ -1022,7 +1074,8 @@ class Store:
             return cursor.rowcount
 
     def due_delivery_queue(
-        self, *, event_id: str | None = None, limit: int = 100
+        self, *, event_id: str | None = None, limit: int = 100,
+        announcements_only: bool | None = None,
     ) -> list[dict[str, Any]]:
         now = int(time.time())
         query = """
@@ -1036,6 +1089,9 @@ class Store:
         if event_id is not None:
             query += " AND q.event_id = ?"
             parameters.append(event_id)
+        if announcements_only is not None:
+            query += " AND e.source " + ("= ?" if announcements_only else "!= ?")
+            parameters.append('announcements')
         query += " ORDER BY q.deliver_epoch ASC, q.event_id, q.device_id LIMIT ?"
         parameters.append(limit)
         with self._connect() as connection:

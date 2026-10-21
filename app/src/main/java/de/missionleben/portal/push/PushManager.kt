@@ -66,6 +66,9 @@ object PushManager {
                 NotificationChannel("security", context.getString(R.string.channel_security_name), NotificationManager.IMPORTANCE_HIGH).apply {
                     description = context.getString(R.string.channel_security_description)
                 },
+                NotificationChannel("announcements", context.getString(R.string.announcements_title), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                    description = context.getString(R.string.push_announcements_body)
+                },
                 NotificationChannel("connection", context.getString(R.string.channel_connection_name), NotificationManager.IMPORTANCE_LOW).apply {
                     description = context.getString(R.string.channel_connection_description)
                     enableVibration(false)

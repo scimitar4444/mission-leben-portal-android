@@ -16,6 +16,7 @@ from .ntfy import NtfyManager, NullNtfyManager
 from .security import SecretBox
 from .service import BridgeService
 from .store import Store
+from .announcement_push import AnnouncementPushWorker
 
 
 def main() -> None:
@@ -55,6 +56,7 @@ def main() -> None:
         settings.announcement_stale_ttl_seconds,
         EmployeeDirectory(settings.employee_directory_file) if settings.employee_directory_file else None,
         CommunicationDirectory(settings.communication_directory_file) if settings.communication_directory_file else None,
+        announcement_push_enabled=os.getenv('BRIDGE_ANNOUNCEMENT_PUSH_ENABLED', 'false').lower() == 'true',
     )
     duo_api = None
     if settings.duo_configured and settings.duo_secret_key is not None:
@@ -78,6 +80,23 @@ def main() -> None:
 
     dispatcher = threading.Thread(target=dispatch_due_events, name="notification-dispatcher", daemon=True)
     dispatcher.start()
+    announcement_worker = None
+    if service.announcement_push_enabled:
+        worker = AnnouncementPushWorker(service)
+
+        def poll_announcements() -> None:
+            while not stop_dispatcher.is_set():
+                try:
+                    queued = worker.poll()
+                    if queued:
+                        logging.getLogger('mission_leben_bridge.announcements').info('announcement deliveries queued: %d', queued)
+                except Exception:
+                    # Deliberately no source exception / recipient / content in logs.
+                    logging.getLogger('mission_leben_bridge.announcements').warning('announcement discovery failed; will retry')
+                stop_dispatcher.wait(15)
+
+        announcement_worker = threading.Thread(target=poll_announcements, name='announcement-discovery', daemon=True)
+        announcement_worker.start()
     server = BridgeHttpServer(settings, service, duo_api)
     logging.getLogger("mission_leben_bridge").info(
         "bridge listening on %s:%d (ntfy configured: %s, login approval configured: %s)",
