@@ -358,7 +358,7 @@
     <string name="quiet_hours_all_apps">Bu süre içinde izin verilen uygulamalarından bildirim gösterilmez.</string>
     <string name="release_note_helpdesk_push">Taleplerinize gelen yeni BT yanıtları artık ayrı “BT Yardımı” kategorisinde bildirilebilir. İlgili talebi açmak için dokunun.</string>
     <string name="notice_inbox_title">Benim için yeni</string>
-    <string name="notice_inbox_description">Duyurular yayımlandıktan sonra 14 gün boyunca okunabilir; gizlense, süresi dolsa veya Nextcloud’dan silinse bile. Eski belge ve destek bildirimleri ilgili uygulamayı açar.</string>
+    <string name="notice_inbox_description">Son 14 günün yeni ve okunmuş bildirimlerini burada bulabilirsin.</string>
     <string name="announcement_archived">Arşivlendi</string>
     <string name="announcement_history_unavailable">Duyuru geçmişi şu anda kullanılamıyor. Lütfen yeniden yenileyin.</string>
     <string name="release_note_announcement_history">Duyurular, süresi dolsa veya Nextcloud’dan silinse bile yayımlandıktan sonra 14 gün zil altında kalır. “Okundu” yalnızca ana ekrandan gizler.</string>

@@ -26,6 +26,7 @@ class AnnouncementHistoryScreenTest {
         compose.setContent { MaterialTheme {
             NoticeInboxScreen(state.value, {}, {}, { error("Must not open another application") }, {}, {})
         } }
+        compose.onNodeWithText("Hier findest du neue und gelesene Meldungen der letzten 14 Tage.").assertIsDisplayed()
         compose.onNodeWithText("Archiviert").assertIsDisplayed()
         compose.onNodeWithText(item.subject).assertIsDisplayed().performClick()
         compose.onAllNodesWithText(item.message).assertCountEquals(2)

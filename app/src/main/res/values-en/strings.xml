@@ -372,7 +372,7 @@
     <string name="release_note_talk_setup_choice">The setup assistant now lets you choose whether Talk opens the chat overview or your last chat.</string>
     <string name="release_note_helpdesk_push">New IT replies to your tickets can now notify you in the separate “IT Help” category. Tap to open the relevant ticket.</string>
     <string name="notice_inbox_title">New for me</string>
-    <string name="notice_inbox_description">Announcements remain readable for 14 days after publication, even after hiding, expiry or deletion in Nextcloud. Older document and ticket notices open the relevant application.</string>
+    <string name="notice_inbox_description">Find new and read updates from the last 14 days here.</string>
     <string name="announcement_archived">Archived</string>
     <string name="announcement_history_unavailable">The announcement history is currently unavailable. Please refresh again.</string>
     <string name="release_note_announcement_history">Announcements remain readable under the bell for 14 days after publication, even after expiry or deletion in Nextcloud. “Read” only hides them from the home screen.</string>
