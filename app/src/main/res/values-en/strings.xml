@@ -264,7 +264,9 @@
     <string name="talk_link_not_nextcloud">This is not a Nextcloud Talk link.</string>
     <string name="talk_link_enter_valid">Enter a valid Nextcloud Talk link.</string>
     <string name="talk_chat_title">Talk – chat only</string>
-    <string name="talk_chat_only_notice">Talk runs in chat mode here. Audio and video are disabled.</string>
+    <string name="talk_chat_only_notice">Talk supports chat and voice messages here. Calls remain disabled.</string>
+    <string name="talk_microphone_denied">Allow microphone access for voice messages. Text messages still work.</string>
+    <string name="release_note_talk_voice">Record voice messages in Talk. Allow microphone access the first time. Leaving cancels the recording; the camera stays blocked.</string>
     <string name="talk_media_disabled">Audio and video calls are disabled in Mission Leben Zentral.</string>
     <string name="device_service_http_error">Device Service returned HTTP %1$d.</string>
     <string name="push_mail_title">New mail</string>

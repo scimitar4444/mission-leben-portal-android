@@ -248,7 +248,9 @@
     <string name="talk_link_not_nextcloud">Це не посилання Nextcloud Talk.</string>
     <string name="talk_link_enter_valid">Введіть дійсне посилання Nextcloud Talk.</string>
     <string name="talk_chat_title">Talk — лише чат</string>
-    <string name="talk_chat_only_notice">Talk тут працює в режимі чату. Аудіо та відео вимкнено.</string>
+    <string name="talk_chat_only_notice">Talk підтримує чат і голосові повідомлення. Дзвінки залишаються вимкненими.</string>
+    <string name="talk_microphone_denied">Дозволь мікрофон для голосових повідомлень. Текстові повідомлення працюють і далі.</string>
+    <string name="release_note_talk_voice">Записуй голосові повідомлення в Talk. Під час першого використання дозволь мікрофон. Вихід скасовує запис; камера залишається заблокованою.</string>
     <string name="talk_media_disabled">Аудіо- та відеодзвінки вимкнено в Mission Leben Zentral.</string>
     <string name="device_service_http_error">Device Service повернув HTTP %1$d.</string>
     <string name="push_mail_title">Нова пошта</string>

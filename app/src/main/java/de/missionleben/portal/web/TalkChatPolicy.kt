@@ -24,7 +24,7 @@ object TalkChatPolicy {
             '.call-button',
             '.talk-tab__call-button',
             '.talk-dashboard__actions button:has(.video-outline-icon)',
-            'button:has(.microphone-outline-icon)',
+            '.talk-dashboard__actions button:has(.microphone-outline-icon)',
             '.talk-dashboard__actions button:has(.phone-outline-icon)',
             '.instant-meeting__dialog',
             '.event-section',

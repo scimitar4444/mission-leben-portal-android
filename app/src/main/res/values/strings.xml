@@ -288,7 +288,9 @@
     <string name="talk_link_not_nextcloud">Der Link ist kein Nextcloud-Talk-Link.</string>
     <string name="talk_link_enter_valid">Bitte einen gültigen Nextcloud-Talk-Link eingeben.</string>
     <string name="talk_chat_title">Talk – nur Chat</string>
-    <string name="talk_chat_only_notice">Talk läuft hier im Chat-Modus. Audio und Video sind deaktiviert.</string>
+    <string name="talk_chat_only_notice">Talk unterstützt hier Chat und Sprachnachrichten. Anrufe bleiben deaktiviert.</string>
+    <string name="talk_microphone_denied">Für Sprachnachrichten bitte das Mikrofon erlauben. Textnachrichten funktionieren weiter.</string>
+    <string name="release_note_talk_voice">In Talk kannst du Sprachnachrichten aufnehmen. Erlaube dafür beim ersten Mal das Mikrofon. Die Aufnahme wird beim Verlassen abgebrochen; die Kamera bleibt gesperrt.</string>
     <string name="talk_media_disabled">Audio- und Videoanrufe sind in Mission Leben Zentral deaktiviert.</string>
     <string name="device_service_http_error">Device Service antwortet mit HTTP %1$d.</string>
 
