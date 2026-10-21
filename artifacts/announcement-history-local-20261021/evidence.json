@@ -1,6 +1,6 @@
 {
   "date": "2026-10-21",
-  "status": "LOCALLY_IMPLEMENTED_BUILT_SIGNED_AND_TESTED_NOT_DEPLOYED_NO_OTA",
+  "status": "BACKEND_DEPLOYED_PHONE_INSTALLED_SIGNED_HISTORY_ROUTE_VERIFIED_AWAITING_FRESH_EXPIRY_DELETE_PILOT_NO_OTA",
   "branch": "fix/announcement-history-14d-0.23.3",
   "baseCommit": "7370561",
   "runtimeSourceCommit": "98f026b789ef9f8b8ac85bd3165eef4cf8aed0ba",
@@ -16,7 +16,7 @@
     "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
     "signatureVerified": true,
     "permissionsEqualPublic0232": true,
-    "installed": false,
+    "installed": true,
     "published": false
   },
   "tests": {
@@ -27,15 +27,18 @@
     "phpPushContract": {"checks": 14, "result": "PASS"},
     "phpHistoryDomainControllerMigration": {"checks": 29, "result": "PASS", "isolation": "Standalone CLI stubs, no Nextcloud bootstrap or production DB; real query execution and cryptographic implementation not claimed"},
     "ui": "Synthetic deleted/expired text readable in native dialog; removing authorization data closes already open dialog; expired notice absent from home while agenda remains",
-    "liveMigration": "NOT_RUN",
-    "liveSignedHistoryRoute": "NOT_DEPLOYED_NOT_TESTED",
-    "physicalDevice": "NOT_INSTALLED_NO_USB_DEVICE_AVAILABLE",
+    "liveMigration": "PASS_targeted_own_adapter_0.3.3_to_0.3.4_new_table_only_source_schemas_byte_equal_NC35.0.2_maintenance_false_needsDbUpgrade_false",
+    "liveSignedHistoryRoute": "PASS_catalogue_empty_history_empty_retention14_unknown_uid404_missing_uid_with_valid_email404_unsigned401_phone_GET_history200",
+    "physicalDevice": "0.23.3_97_installed_data_retained_human_biometric_unlock_native_bell_loads_history_without_error_fresh_expiry_and_delete_test_pending",
+    "usbStayAwake": "Original0 temporarily3; restored0 and read-back verified while waiting for fresh user test publication",
     "testHarnessCorrections": "JSON parser test moved into Robolectric; container fixture mounts corrected to retain repository-relative exporter/watchdog paths"
   },
   "container": {
     "tag": "localhost/mission-leben-bridge:announcement-history-local-20261021",
     "id": "1f9400db8cbef70147198996a5a6f6b7c7bf6a2ee22c8d67b1b307706b7d0c9d",
-    "deployed": false
+    "deployed": true,
+    "dockerImage": "mission-leben-device-bridge:0.10.13",
+    "dockerImageId": "729b020010a85f7bccadd13d6a2fbee4481da44240216dc787bfb97a20e18683"
   },
   "sourceHashes": {
     "nextcloudArchiveService": "72061f1ef10f2ee913a0fdeaacf5adecb85fd3db0a82e2f9a4638a9203d8dda1",
@@ -62,5 +65,25 @@
     "alreadyDeletedBeforeActivation": "Not reconstructable from this feature"
   },
   "rollback": "Prefer forward fix; old clients ignore added route. On complete adapter rollback, clean only the new owned archive table if cleanup worker is removed. Never restore stale whole DB or uninstall/downgrade Android silently.",
-  "handoff": {"authentikUpdate": "SENT_LOCAL_DELTA", "nextcloudUpdate": "SENT_LOCAL_DELTA"}
+  "deployment": {
+    "date": "2026-10-21",
+    "bridgeHost": "ml-id (172.16.60.202)",
+    "bridgeComposeProject": "mission-leben-device",
+    "bridgeCompose": "/opt/mission-leben-bridge/compose.device-pilot.yml",
+    "bridgeComposeSha256": "809e4f0fa8cbfe935d999ab06a72fe5f055d6e53d990752004993455c0a55ccb",
+    "bridgeHealth": "healthy; all healthz capabilities true; schema12; quick_check ok; zero foreign-key violations",
+    "bridgeOtherServices": "Only bridge recreated; ntfy, zimbra-worker, enrollment and Authentik containers unchanged",
+    "pendingApprovalsInPreRestartSnapshot": 0,
+    "nextcloudHost": "ml-nextcloud (172.16.40.140)",
+    "nextcloudApp": "/opt/nextcloud/custom_apps/missionleben_announcements",
+    "nextcloudInstalledVersion": "0.3.4",
+    "nextcloudMigration": "000004Date20261021183000",
+    "nextcloudDb": "MariaDB11.8.6; own table oc_ml_announcement_history and retention index created",
+    "backupBothHosts": "/root/codex-backups/20261021-announcement-history",
+    "nextcloudBackupScope": "Own prior app sources plus appconfig and migrations rows; source table schemas; additive own migration only, no stale full DB restore",
+    "bridgeBackupScope": "Verified SQLite online backup, prior source and compose; previous image before-history-20261021",
+    "preflightCorrection": "SQLite backup as container user0 was denied before writes/restart; normal runtime UID10001 backup succeeded and checked ok",
+    "remainingGate": "User fresh targeted announcement, read/home removal, expiry and source-deletion archive readability; not OTA authorized"
+  },
+  "handoff": {"authentikUpdate": "SENT_BACKEND_DEPLOYED_PILOT_INSTALLED_FINAL_HISTORY_GATE_PENDING", "nextcloudUpdate": "SENT_BACKEND_DEPLOYED_PILOT_INSTALLED_FINAL_HISTORY_GATE_PENDING"}
 }

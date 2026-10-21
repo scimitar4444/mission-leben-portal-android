@@ -1,0 +1,11 @@
+--- compose.device-pilot.yml
++++ compose.device-pilot.yml
+@@ -48,7 +48,7 @@
+ 
+   bridge:
+     build: .
+-    image: mission-leben-device-bridge:0.10.12
++    image: mission-leben-device-bridge:0.10.13
+     container_name: mission-leben-device-bridge
+     restart: unless-stopped
+     init: true

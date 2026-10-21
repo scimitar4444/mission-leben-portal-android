@@ -1,13 +1,20 @@
 # Ankündigungshistorie – lokaler Stand 21.10.2026
 
-Lokal umgesetzt und getestet: App 0.23.3/97, Bridge 0.10.13 (weiter Schema 12), Nextcloud-Adapter 0.3.4.
-Noch nicht ausgerollt oder als OTA veröffentlicht.
+App 0.23.3/97 ist auf dem persönlichen Pilot-Handy installiert, Registrierung
+erhalten und durch den Nutzer biometrisch entsperrt. Bridge 0.10.13 (weiter
+Schema 12) und Nextcloud-Adapter 0.3.4 sind am 21.10.2026 ausgerollt.
+Kein OTA veröffentlicht; Ablauf-/Löschtest mit neuem echten Hinweis steht aus.
 
 Tests: 415 Android-Debug- und 383 Release-Tests, keine Fehler; Release-Lint
 0 Fehler/130 Warnungen. 176 Bridge-Tests im finalen Python-3.13-Container und
 43 isolierte PHP-Prüfungen (14 bisherige Push-Verträge + 29 Historie/Migration)
-bestanden. Reale Datenbankmigration, signierte Historienroute und Handyabnahme
-sind damit ausdrücklich noch nicht nachgewiesen.
+bestanden. Zusätzlich: reale gezielte Migration nur der eigenen App auf
+Nextcloud 35.0.2/MariaDB 11.8.6 erfolgreich, eigener Tabellen-/Retentionindex
+vorhanden; ursprüngliche Announcement-Center-Tabellenschemata bytegleich.
+Signierte Historienroute mit 14-Tage-Vertrag und leerem aktuellem Katalog
+erfolgreich; ungültige UID auch mit gültiger E-Mail 404, unsigniert 401.
+Handy lädt die native Historie per HTTP200 ohne Fehler. Das ist noch keine
+Abnahme der Aufbewahrung nach echtem Ablauf oder Quellenlöschung.
 
 Nutzerfreigabe: Hinweise sollen nach Ausblenden auf der Startseite, zeitlichem
 Ablauf und ausdrücklichem Löschen in Nextcloud in der Glocke nachlesbar bleiben.
@@ -38,11 +45,18 @@ Die Glocke kennzeichnet alte Hinweise als „Archiviert“. „Gelesen“ änder
 den lokalen Lesestatus und die Startseitenanzeige, nicht das Archiv. Historische
 Inhalte werden niemals erneut auf die Startseite oder als Push übernommen.
 
-Vor Ausbringung: eigene Nextcloud-App gezielt auf 0.3.4 migrieren (nur neue
-eigene Tabelle), HMAC-/UID-/Gruppen-/TTL-Prüfung; Archiveintrag vor Ablauf oder
-Löschung erfassen und danach echten Leseabruf prüfen. Server nicht ohne Sicherung
-oder parallel zu Nextcloud-Updatearbeiten ändern. Danach Bridge 0.10.13, dann
-gleich signierte Test-App 0.23.3 und tatsächliche Geräteabnahme vor OTA.
+Für die letzte Abnahme: neuen Hinweis vor Ablauf/Löschung erfassen, auf dem Handy
+als gelesen aus der Startseite ausblenden, Ablauf und Quellenlöschung prüfen und
+Inhalt in der Glocke nachlesen. Bereits vor Aktivierung gelöschte Hinweise sind
+nicht rekonstruierbar. Vor dieser tatsächlichen Geräteabnahme kein OTA.
+
+Quell-/Konfigurationssicherungen beider Hosts:
+`/root/codex-backups/20261021-announcement-history`. Nextcloud: alte eigene
+Appquellen, eigene appconfig-/migrations-Zeilen, ursprüngliche Quelltabellen-Schemata.
+Bridge: geprüfte Online-SQLite-Sicherung, Compose, Quellen und Rückweg-Image
+`mission-leben-device-bridge:before-history-20261021`. Nur Bridge neu erstellt;
+andere Container unverändert. Bridge healthy, Schema12, quick_check ok, keine
+FK-Verletzungen; Nextcloud wartungsfrei und kein ausstehendes DB-Upgrade.
 
 Rückweg: vorzugsweise vorwärts korrigieren, keine alte Gesamt-Datenbank
 zurückspielen. Alte Apps ignorieren den zusätzlichen Pfad. Bei vollständiger
