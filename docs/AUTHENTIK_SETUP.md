@@ -313,6 +313,21 @@ Bridge-Schema 12 ergänzt die Katalog-Baseline, `users.nextcloud_user_id` und de
 engen Ereignistyp `open_announcements`; die CHECK-Migration erhält IDs und FKs.
 Fremde/alte App-Versionen erhalten diesen Ereignistyp nicht.
 
+Pilotstand 21.10.2026: Adapter 0.3.3 und Bridge 0.10.12/Schema 12 sind ausgerollt;
+signierte Routen, HTTP 401 ohne Signatur, SQLite-Integrität/FKs und die Baseline
+ohne historische Massenversendung sind live geprüft. Ein kompatibles Handy hat
+den eng begrenzten Testpush erhalten und Details abgefragt. Eine bereits gelesene
+Ankündigung wurde dabei korrekt unterdrückt. Eine anschließend vom Nutzer neu
+veröffentlichte Ankündigung wurde automatisch erkannt, genau einmal zugestellt
+und am Handy als eigene Android-Meldung angezeigt. Tippen öffnet die Glocke;
+Auf-/Zuklappen, „Gelesen“, Ausblenden auf der Startseite und Erhalt in der Glocke
+sind am Gerät geprüft. Gleichzeitige Kalenderanzeige ist synthetisch getestet,
+war auf dem aktuellen Gerät aber nicht sichtbar; mehrere Handys, eingeschränkte
+Zielgruppe und Netzunterbrechung sind hier nicht live abgenommen. Kein OTA
+veröffentlicht. Compose-Projekt ist `mission-leben-device` (nicht der
+Verzeichnisname); nur Service `bridge` neu erstellen, andere Dienste unverändert.
+Build-Quellen auf dem Host sind mit dem ausgelieferten Stand abgeglichen.
+
 Rollout erst nach Prüfung der beiden signierten Routen, SQLite-Integrität/
 Foreign Keys, Containerzustand und echtem Gerätetest. Mit Default
 `BRIDGE_ANNOUNCEMENT_PUSH_ENABLED=false` bleibt die Neuerung aus. Explizites
