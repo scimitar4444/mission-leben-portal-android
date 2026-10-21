@@ -26,8 +26,8 @@ bell; home expand/collapse, the directly reachable read button, removal from
 home and retention as read in the bell passed on-device. Agenda independence
 has synthetic rendering coverage; the handset had no visible Today panel in
 this check. Multi-handset, restricted-group and network-interruption live
-checks are not claimed by this pilot. No Android OTA has been published;
-old clients remain excluded.
+checks are not claimed by this pilot. OTA publication is tracked separately
+from these device results; old clients remain excluded.
 
 Two additional read-only POST endpoints use the existing HMAC secret and the
 exact request path in the signature:

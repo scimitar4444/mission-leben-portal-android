@@ -295,7 +295,7 @@ Deinstallation oder Datenlöschung und keine alte Authentik-Datenbanksicherung
 zurückspielen. Fremde Bootstrap-Arbeiten und andere Änderungen erhalten;
 kein Bootstrap und kein globaler Checkout-/Reset-Befehl aus dieser Korrektur.
 
-## 9. Ankündigungs-Push 0.23.2 – lokal vorbereitet, nicht ausgerollt (21.10.2026)
+## 9. Ankündigungs-Push 0.23.2 (21.10.2026)
 
 Keine Änderung an Authentik-Gruppen, Flows/MFA, Sessions, Endpoint-Trust oder
 Bootstrap. Der Bridge-Benutzerdatensatz übernimmt zusätzlich den verifizierten
@@ -323,8 +323,9 @@ und am Handy als eigene Android-Meldung angezeigt. Tippen öffnet die Glocke;
 Auf-/Zuklappen, „Gelesen“, Ausblenden auf der Startseite und Erhalt in der Glocke
 sind am Gerät geprüft. Gleichzeitige Kalenderanzeige ist synthetisch getestet,
 war auf dem aktuellen Gerät aber nicht sichtbar; mehrere Handys, eingeschränkte
-Zielgruppe und Netzunterbrechung sind hier nicht live abgenommen. Kein OTA
-veröffentlicht. Compose-Projekt ist `mission-leben-device` (nicht der
+Zielgruppe und Netzunterbrechung sind hier nicht live abgenommen. Die
+OTA-Veröffentlichung wird getrennt von dieser Geräteabnahme protokolliert.
+Compose-Projekt ist `mission-leben-device` (nicht der
 Verzeichnisname); nur Service `bridge` neu erstellen, andere Dienste unverändert.
 Build-Quellen auf dem Host sind mit dem ausgelieferten Stand abgeglichen.
 
