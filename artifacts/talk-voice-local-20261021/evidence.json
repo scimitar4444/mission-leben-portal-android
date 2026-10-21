@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-21",
+  "status": "LOCAL_TEST_APK_BUILT_SIGNED_AND_AUTOMATED_TESTED_NOT_INSTALLED_NOT_PUBLISHED",
+  "authorization": "User requested a test build for Talk voice messages, not OTA or server changes",
+  "branch": "feat/talk-voice-pilot-0.23.4",
+  "sourceCommit": "efc222ea59b6458a8629afef5cd0bfdd97e6f55c",
+  "versionName": "0.23.4-local",
+  "versionCode": 99,
+  "apk": {
+    "file": "mission-leben-zentral-0.23.4-local.apk",
+    "sha256": "d01b4500f10c160113863063c176f07ada77920ed10ecccbc1c0b0c94c19e83b",
+    "sizeBytes": 28044674,
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "productionSignerUnchanged": true,
+    "signatureVerified": true,
+    "packageName": "de.missionleben.portal",
+    "installed": false,
+    "published": false
+  },
+  "tests": {
+    "cleanCommittedArchiveBuild": "PASS; exact Gradle task inputs reused cached tests where available",
+    "androidDebug": {"tests": 430, "failures": 0, "errors": 0, "skipped": 0},
+    "androidRelease": {"tests": 398, "failures": 0, "errors": 0, "skipped": 0},
+    "releaseLint": {"errors": 0, "warnings": 131, "newWarning": "Former media-disabled string now unused; dependency-availability notice also refreshed, no dependency changed"},
+    "nodeTalkChatPolicy": "PASS existing overview/last-chat/room guards",
+    "nodeTalkVoicePolicy": "PASS audio-only, iframe/background/foreign-path denial, cancel-before-track-stop, late stream cancellation, native resume and source wiring contracts",
+    "physicalDevice": "NOT_RUN; no USB device connected",
+    "realAudioSendPlaybackAndLockStop": "NOT_VERIFIED; required before rollout",
+    "githubCiPrOta": "NOT_CREATED_OR_TRIGGERED; local branch only",
+    "initialBuildRepairs": "Kotlin lazy gate/launcher declarations given explicit types after recursive inference error; bundled Node path used because node is absent from shell PATH"
+  },
+  "permissionDelta": {
+    "added": ["android.permission.RECORD_AUDIO"],
+    "optionalHardware": ["android.hardware.microphone"],
+    "cameraAdded": false,
+    "microphoneForegroundServiceAdded": false,
+    "runtimePrompt": "Only after audio-only request from visible trusted Talk app content; text remains usable on denial",
+    "webGrant": "Literal AUDIO_CAPTURE only; never grants request.resources"
+  },
+  "security": {
+    "origin": "https://nextcloud.mission-leben.de with default or443 port only",
+    "topPage": "Strict Talk apps/spreed or call/token paths; no unrelated apps, prefix lookalikes or userinfo",
+    "currentSessionAndRegisteredDevice": true,
+    "androidResultBoundToOriginalRequestAndDocument": true,
+    "documentStartGuardRequired": true,
+    "onPauseStopDestroyOrNavigation": "Cancel original pending request; abort Talk recorder before stopping stream; late results cannot retarget another request",
+    "mediaBoundary": "WebView grants origin-scoped microphone access, not a native proof of voice-message versus audio-call intent; Talk call controls remain filtered",
+    "contentCacheOrNativeRecordingFileAdded": false,
+    "authentikGroupFlowMfaTrustChanged": false,
+    "nextcloudCoreAppOrBackendModified": false,
+    "secretsOrRecordingContentLogged": false
+  },
+  "talkContract": {
+    "liveInstalledVersionReadOnly": "25.0.6",
+    "upstreamSource": "https://github.com/nextcloud/spreed/blob/v25.0.6/src/components/NewMessage/NewMessageAudioRecorder.vue",
+    "abortSelector": ".audio-recorder button:has(.close-icon)",
+    "checkButton": "End recording AND send; not a preview",
+    "updateCheck": "After Talk upgrades recheck microphone control, abort selector, aborted flag before stop/generateFile, and physical no-send on background/lock"
+  },
+  "sourceHashes": {
+    "manifest": "aac7f7badeee500884df0b2e196f10d8a7236757ff23abfff1e000732647b0d5",
+    "voicePolicy": "f5c6a8caa6104b689fac499ea1fa14698b0daf61a24e613d53dd1f1792c06584",
+    "permissionGate": "ea4356f7bf9e6924f21e9e368d9a7fbddde04c7b761357d8ec69aabfbfce564e",
+    "browserActivity": "c87aced72408ed429b43b0b95c3d9ed0c09cb61c20d85a192da011d8040a9eab",
+    "unrelatedBootstrapExcludedUnchanged": "1d2773f504e1cae6cfa30f9cdc14a27afb66e9f16ff1b6c5fbd24e9e313bb914"
+  },
+  "currentPublicRelease": "0.23.3/98 unchanged",
+  "rollback": "Same-signature forward build above99 retaining data, no silent downgrade/uninstall, no server rollback needed",
+  "updateHandoff": {"authentikUpdate": "SENT_LOCAL_ONLY_MICROPHONE_DELTA_AND_OPEN_PHYSICAL_GATES", "nextcloudUpdate": "SENT_LOCAL_ONLY_VOICE_RECORDER_DOM_UPDATE_CONTRACT"}
+}
