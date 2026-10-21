@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-21",
+  "status": "OTA_PUBLISHED_LATEST_PUBLIC_APK_MANIFEST_SIGNATURE_AND_FIVE_PR_CHECKS_VERIFIED",
+  "userAuthorization": "Okay. Dann ota, after explicit pause and short archive-copy correction",
+  "versionName": "0.23.3",
+  "versionCode": 98,
+  "tag": "v0.23.3",
+  "sourceCommit": "4c7d6491b0aa3d043a5da7b5d36fb08da1d2a7bb",
+  "sourceTree": "97efffc84626836114adcbfbe79586c0f698a9fa",
+  "mergeCommit": "584f0bc6d43672ae7137599686d7750bcbb1c03a",
+  "mergeTreeEqualsBuiltSourceTree": true,
+  "tagObject": "31ebef012d624c3244beab77e1bb07f6c79ebb14",
+  "releaseUrl": "https://github.com/scimitar4444/mission-leben-portal-android/releases/tag/v0.23.3",
+  "releaseId": 420018816,
+  "publishedAt": "2026-10-21T20:22:56Z",
+  "latestRegularReleaseVerified": true,
+  "apk": {
+    "sha256": "7228b6ccafe7681c51d86cc6845279f6233f64a4b65416334240e12f37398bad",
+    "sizeBytes": 28024194,
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "productionSignerUnchanged": true,
+    "signatureVerified": true,
+    "signedPayloadExactSameAsCommittedArchive": {"entries": 548, "nonSigningDifferences": 0},
+    "instrumentationAbsent": true,
+    "permissionsEqualPublic0232": true,
+    "publicDownloadVerified": true,
+    "publicApkByteEqualSignedLocal": true,
+    "publicApkSignatureVerified": true,
+    "draftUploadedAssetDigestMatched": true
+  },
+  "manifest": {
+    "schema": 1,
+    "sha256": "a5723ab8b592122b7e29380a69a981cb9a1775439fc058d3295815e200f3ffb4",
+    "sizeBytes": 342,
+    "version98UpgradesPublic96AndPilot97": true,
+    "latestPublicVerified": true,
+    "latestManifestByteEqualLocal": true,
+    "transport": "Anonymous HTTPS, certificate verification enabled, HTTPS-only redirects, full APK and manifest downloads",
+    "requestUserAgent": "MissionLebenPortal/0.23.2"
+  },
+  "checks": {
+    "build": "PASS_clean_git_archive_no_dirty_working_tree_sources",
+    "debugUnitTests": {"tests": 415, "failures": 0, "errors": 0, "skipped": 0},
+    "releaseUnitTests": {"tests": 383, "failures": 0, "errors": 0, "skipped": 0},
+    "releaseLint": {"errors": 0, "warnings": 130},
+    "archiveCopy": "German short general14-day text displayed in synthetic native inbox; all9 locales updated; Document/Ticket identifier retention already14days",
+    "githubPr": {"number": 15, "runId": 39669060953, "headSha": "4c7d6491b0aa3d043a5da7b5d36fb08da1d2a7bb", "state": "MERGED", "finalCi": "SUCCESS", "jobs": {"build": "success", "bootstrap-source-tests": "success", "bridge-tests": "success", "enrollment-portal-tests": "success", "nextcloud-adapter-tests": "success"}},
+    "backendTests": "176 Bridge and43 PHP checks passed; see deployment evidence",
+    "securityReview": "Implementing agent source/negative test review; not independent human review"
+  },
+  "deviceAcceptance": {
+    "pilot": "0.23.3/97, production-signed, registration retained, user biometric unlock",
+    "live": "Automatic visible Android push21; Gelesen removes Home/badge/tray but retains bell; expired20 and manually deleted21 retain readable content after fresh fetch",
+    "final98Difference": "Only shortened inbox text across9locales, versionCode97to98 and release-note key97to98 since physical pilot; no backend or security logic change",
+    "final98DeviceInstall": "NOT_CLAIMED_phone_not_connected; final copy synthetic screen checked",
+    "wakeRestored": "Pilot stay-awake restored to original0 and read back",
+    "fleetInstallations": "NOT_CLAIMED"
+  },
+  "backend": {
+    "deploymentEvidence": "artifacts/announcement-history-local-20261021/evidence.json",
+    "bridge": "0.10.13/schema12/healthy",
+    "nextcloudAdapter": "0.3.4/migration000004Date20261021183000",
+    "ownArchiveTable": "oc_ml_announcement_history, Nextcloud ICrypto ciphertext, publication+14days",
+    "currentAccountAndGroupsRechecked": true,
+    "noStaleHistoryFallback": true,
+    "sourceTablesSchemasUnchanged": true,
+    "backupBothHosts": "/root/codex-backups/20261021-announcement-history",
+    "restartedForThisPublication": false
+  },
+  "invariants": {
+    "authentikGroupFlowMfaEndpointTrustChanges": false,
+    "newAndroidPermissions": false,
+    "phoneContentCacheAdded": false,
+    "ntfyCarriesAnnouncementContent": false,
+    "unrelatedBootstrapExcludedSha256": "1d2773f504e1cae6cfa30f9cdc14a27afb66e9f16ff1b6c5fbd24e9e313bb914"
+  },
+  "remaining": [
+    "Restricted-group multi-handset and14-day wall-clock interval not additionally exercised live; automated authorization/TTL tests passed.",
+    "Previously deleted sources before archive activation cannot be reconstructed.",
+    "An accidentally published sensitive announcement needs targeted archive purge as well as source deletion.",
+    "Publishing OTA does not prove other handsets installed it."
+  ],
+  "rollback": "Keep0.23.2; withdraw Latest if necessary and publish same-signer forward fix with code greater98. No silent uninstall, downgrade or data wipe. Backend prefer forward fix; never stale whole-DB restore; if removing archive cleanup worker also clean only its own table.",
+  "updateHandoff": {"authentikUpdate": "SENT_VERIFIED_OTA_PUBLICATION_0233_CODE98", "nextcloudUpdate": "SENT_VERIFIED_OTA_PUBLICATION_0233_CODE98"}
+}

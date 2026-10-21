@@ -1,21 +1,26 @@
-# OTA 0.23.3 – erneut freigegeben, Vorbereitung
+# OTA 0.23.3/98 – veröffentlicht und öffentlich geprüft
 
-Der Nutzer hat die Veröffentlichung vor Merge/Tag/Release zunächst mit „Warte“
-angehalten und nach der Textkorrektur mit „Okay. Dann ota“ erneut freigegeben.
-Zum Vorbereitungszeitpunkt bleibt öffentlich0.23.2; noch kein Merge/Tag/Release.
+Am 21.10.2026 um 20:22:56 UTC als reguläres Latest veröffentlicht:
+https://github.com/scimitar4444/mission-leben-portal-android/releases/tag/v0.23.3
 
-Danach wurde ausschließlich der Erklärungstext auf der Archivseite gekürzt,
-in allen9Sprachen. Deutsch: „Hier findest du neue und gelesene Meldungen der
-letzten14Tage.“ Kein Nextcloud-Bezug und keine Änderung an Fristen oder Backend.
-Dokument-/Ticketmeldungen hatten bereits eine14-Tage-Kennungshistorie. Das finale
-Release bekommt versionCode98 bei weiter versionName0.23.3, damit auch das
-installierte Pilot-Build97 das Update angeboten bekommt.
+Der Nutzer hatte die Veröffentlichung zunächst angehalten und nach der kurzen
+allgemeinen 14-Tage-Erklärung erneut freigegeben („Okay. Dann ota“).
+Archivtext: „Hier findest du neue und gelesene Meldungen der letzten 14 Tage.“
 
-Die hier vor dem Stopp vorbereiteten Dateien `mission-leben-zentral.apk` und
-`update.json` enthalten noch den alten langen Text. NICHT veröffentlichen oder
-als aktuelles Build behandeln. Sie stimmen mit dem früher physisch geprüften
-Pilot-APK überein (SHA56a144861173d199e2f549dc6cb56686988b08cb616a178cc4b5e1cab73aa7a4).
-Nach neuer Freigabe aus dem endgültigen Commit neu bauen, signieren und
-Manifest/Hash/Signatur/Payload/CI erneut prüfen. Das zuletzt geprüfte Handy ist
-derzeit nicht per USB da; die Funktionsabnahme stammt vom Pilot97, die rein
-sprachliche Schlusskorrektur wird synthetisch geprüft und klar getrennt dokumentiert.
+versionCode 98 statt Pilot 97, sichtbare Version 0.23.3 unverändert: Auch bereits
+installierte Pilotgeräte bekommen das öffentliche OTA angeboten. Die finale APK
+wurde aus dem sauberen Commit 4c7d649 gebaut und produktiv signiert. Der
+Merge 584f0bc hat denselben vollständigen Quellbaum. Alle fünf PR-Prüfungen sowie
+415 Debug-/383 Release-Tests bestanden; Lint 0 Fehler/130 Warnungen. Öffentliche
+APK/Latest-Manifest vollständig und ohne Authentifizierung per HTTPS geladen,
+bytegleich mit lokalen Dateien, Signatur und Prüfsummen geprüft.
+
+Funktionsabnahme auf echtem Handy stammt vom Pilot 97: sichtbarer Push,
+Gelesen/Home/Glocke, Ablauf und manuelles Löschen in Nextcloud. Die abschließende
+Textkorrektur in neun Sprachen und interne Build-/Release-Notes-Nummer 98 wurden
+automatisiert geprüft. Keine Behauptung, dass die finale 98 schon auf dem
+abgezogenen Handy oder auf anderen Geräten installiert ist. Wachhaltung nach
+Pilot nachweislich wieder auf 0 gesetzt.
+
+Hashes, CI, Backend-Migration/Rückweg und offene Grenzen:
+`release-evidence.json` sowie `../announcement-history-local-20261021/evidence.json`.
