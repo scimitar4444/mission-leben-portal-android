@@ -360,7 +360,10 @@
     <string name="quiet_hours_all_apps">W tym okresie powiadomienia z Twoich dostępnych aplikacji nie będą wyświetlane.</string>
     <string name="release_note_helpdesk_push">Nowe odpowiedzi IT na Twoje zgłoszenia mogą teraz pojawiać się w osobnej kategorii „Pomoc IT”. Dotknij, aby otworzyć właściwe zgłoszenie.</string>
     <string name="notice_inbox_title">Nowe dla mnie</string>
-    <string name="notice_inbox_description">Usunięte powiadomienia nadal są dostępne tutaj. Starsze otwierają odpowiednią aplikację.</string>
+    <string name="notice_inbox_description">Tutaj znajdziesz nowe i przeczytane powiadomienia z ostatnich 14 dni.</string>
+    <string name="announcement_archived">Archiwalne</string>
+    <string name="announcement_history_unavailable">Historia ogłoszeń jest niedostępna. Odśwież ponownie.</string>
+    <string name="release_note_announcement_history">Ogłoszenia pozostają pod dzwonkiem przez 14 dni od publikacji, także po wygaśnięciu lub usunięciu w Nextcloud. „Przeczytane” ukrywa je tylko na ekranie głównym.</string>
     <string name="notice_inbox_empty">Brak powiadomień. Nowe dokumenty, ogłoszenia i odpowiedzi pojawią się tutaj.</string>
     <string name="notice_mark_all_read">Oznacz wszystkie jako przeczytane</string>
     <string name="notice_new">Nowe</string>

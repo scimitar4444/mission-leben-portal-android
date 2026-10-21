@@ -1,8 +1,40 @@
 # Mission Leben announcement bridge app
 
+## Prepared locally: 0.3.4 / fourteen-day history
+
+Not deployed or released as of 2026-10-21. Requires Bridge 0.10.13 and Android
+0.23.3/97. A new app-owned migration creates only `ml_announcement_history`.
+Published posts and their audiences are captured by the existing server discovery
+tick in ICrypto-authenticated ciphertext; unchanged snapshots are not rewritten.
+The source announcement tables, source deletion jobs and permissions are untouched.
+The catalogue now additionally writes/prunes this owned archive, rather than being
+entirely read-only. No handset polling or new secret/mount is introduced.
+
+The signed read POST `/api/v1/announcement-history` returns at most 500 items:
+currently active posts and an archive until fourteen days after publication.
+Expiry, explicit source deletion and local home dismissal do not delete that
+archive. This supersedes the earlier 0.3.3 "deletion denies all later content"
+claim **only for this separate archive**, not notification dispatch/details.
+Fresh active/unambiguous identity and current user groups are required on every
+request. Existing source audiences override snapshots; deleted sources use their
+captured audience. No caller groups or stale response fallback. Historic content
+is not returned through the active/push endpoints and cannot create another alert.
+
+Schema changes are versioned in
+`lib/Migration/Version000004Date20261021183000.php`. No pre-existing, already
+deleted source can be reconstructed by enabling this feature later. Logical TTL
+is enforced at every read; physical cleanup occurs on the next running server
+discovery tick. On complete rollback, explicitly clean only the owned archive
+table if its cleanup worker is no longer used; never restore the whole database.
+
+Run `php tests/AnnouncementHistoryTest.php .` for the isolated domain, controller
+and migration checks, without bootstrapping Nextcloud or touching a database.
+Real migration, signed routes, source deletion/expiry and handset acceptance remain
+separate rollout gates. Details: `artifacts/announcement-history-local-20261021/README.md`.
+
 This private Nextcloud integration exposes narrow HMAC-protected endpoints for the communication bridge. It resolves a single Nextcloud user, applies that user's live Nextcloud group membership, returns only matching Announcement Center entries, resolves participants for one Talk room, and reconciles the dedicated Talk notification bot against the mobile-enabled accounts exported from Authentik.
 
-The endpoints never return group names and never accept an administrator session. The only mutating operation is an idempotent Talk bot reconciliation: the dedicated bot is enabled for every active one-to-one or closed group chat containing at least one eligible account and removed from public meeting, archived, special, or otherwise ineligible rooms. It neither changes room membership nor message content. Call events are ignored by the Bridge. A session-authenticated endpoint returns only the current user's allowed room tokens so the Android chat-only WebView can hide the excluded conversations without receiving names or messages.
+The endpoints never return group names and never accept an administrator session. Apart from the adapter-owned history, the only mutating operation is an idempotent Talk bot reconciliation: the dedicated bot is enabled for every active one-to-one or closed group chat containing at least one eligible account and removed from public meeting, archived, special, or otherwise ineligible rooms. It neither changes room membership nor message content. Call events are ignored by the Bridge. A session-authenticated endpoint returns only the current user's allowed room tokens so the Android chat-only WebView can hide the excluded conversations without receiving names or messages.
 
 Configure a dedicated random secret of at least 32 characters:
 

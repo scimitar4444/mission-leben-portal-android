@@ -295,6 +295,36 @@ Deinstallation oder Datenlöschung und keine alte Authentik-Datenbanksicherung
 zurückspielen. Fremde Bootstrap-Arbeiten und andere Änderungen erhalten;
 kein Bootstrap und kein globaler Checkout-/Reset-Befehl aus dieser Korrektur.
 
+## 9a. Vorbereitet: 14-Tage-Historie 0.23.3 (21.10.2026)
+
+Lokal umgesetzt, noch nicht ausgerollt oder per OTA veröffentlicht. Korrektur der
+zu weitgehenden bisherigen Glocken-Aussage: eigene Historie für Ankündigungen,
+14 Tage ab Veröffentlichung, unabhängig von lokalem Ausblenden, Ablauf und
+ausdrücklichem Löschen in Nextcloud. Nur aktive Hinweise gehören auf die Startseite
+und in die Push-Zustellung; Historie löst keinen neuen Push aus.
+
+Vertrag: Adapter 0.3.4 mit eigener Migration/Tabelle `ml_announcement_history`,
+ICrypto-verschlüsselter Inhalt und Zielgruppe; bestehender Katalogdurchlauf
+übernimmt zusätzlich Archivierung/Bereinigung. Neuer signierter Nextcloud-POST
+`/apps/missionleben_announcements/api/v1/announcement-history`, Bridge 0.10.13
+GET `/v1/announcements/history`, App 0.23.3/97. Bridge-Schema bleibt 12. Keine
+neuen Android-Berechtigungen, Authentik-Gruppen, Flows, MFA oder Secrets/Mounts.
+
+Aktive Identität und aktuelle Nextcloud-Gruppen bei jedem Historienabruf prüfen;
+fehlende UID darf nicht auf E-Mail ausweichen. Originalzielgruppe ist für bereits
+gelöschte Quellen maßgeblich. Entzogene Benutzermitgliedschaft sperrt auch das
+Archiv. Keine veraltete Antwort bei Quellfehler; Dialog und Arbeitsspeicherliste
+werden bei Wegfall/Profilwechsel entfernt. Kein neuer Inhaltscache am Handy.
+
+Vor Aktivierung: nur eigene App-Migration, signierte Route/401/UID/Gruppen/TTL,
+Aufzeichnung vor echter Löschung/Ablauf und unabhängige Startseite/Glocke prüfen.
+Bereits zuvor gelöschte Quellen sind nicht rückwirkend wiederherstellbar. Reine
+Quell-/Unit-Tests nicht als echte Migration oder Geräteabnahme deklarieren.
+Rückweg: Vorwärtskorrektur bevorzugt, keine alte Gesamt-DB einspielen. Beim
+vollständigen Adapter-Downgrade nur neue eigene Archivtabelle gezielt bereinigen,
+damit ohne Worker kein unbefristeter Speicherbestand verbleibt. Bestehende
+Ankündigungs-Push-Rückwegregeln bleiben erhalten.
+
 ## 9. Ankündigungs-Push 0.23.2 (21.10.2026)
 
 Keine Änderung an Authentik-Gruppen, Flows/MFA, Sessions, Endpoint-Trust oder

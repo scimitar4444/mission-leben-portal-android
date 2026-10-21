@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.missionleben.portal.R
-import de.missionleben.portal.model.AnnouncementItem
+import de.missionleben.portal.model.AnnouncementHistoryPolicy
 import de.missionleben.portal.model.NoticeInboxPolicy
 import de.missionleben.portal.model.UiState
 import de.missionleben.portal.push.PushAction
@@ -26,12 +26,13 @@ import java.text.DateFormat
 import java.util.Date
 
 private data class NoticeRow(val id: String, val time: Long, val read: Boolean,
-    val title: String, val text: String, val icon: Int, val onClick: () -> Unit)
+    val title: String, val text: String, val icon: Int, val onClick: () -> Unit, val archived: Boolean = false)
 
 @Composable
 internal fun NoticeInboxScreen(state: UiState, onBack: () -> Unit, onRefresh: () -> Unit,
     onOpenNotice: (String) -> Unit, onMarkAllRead: () -> Unit, onMarkAnnouncementRead: (Long) -> Unit) {
-    var announcement by remember { mutableStateOf<AnnouncementItem?>(null) }
+    var announcementId by remember { mutableStateOf<Long?>(null) }
+    val announcements = AnnouncementHistoryPolicy.visible(state.announcementHistory)
     val notices = NoticeInboxPolicy.visible(state.noticeHistory, state.applications, state.mode)
     val rows = notices.map { notice ->
         val summary = state.noticeSummaries[notice.eventId]
@@ -41,17 +42,18 @@ internal fun NoticeInboxScreen(state: UiState, onBack: () -> Unit, onRefresh: ()
             summary?.second.orEmpty(),
             if (notice.action == PushAction.OPEN_DOCUMENTS) R.drawable.ic_app_documents else R.drawable.ic_app_support,
             { onOpenNotice(notice.eventId) })
-    } + state.announcements.map { item ->
+    } + announcements.map { item ->
+        val archived = AnnouncementHistoryPolicy.isArchived(item)
         NoticeRow("announcement-${item.id}", item.publishedAtEpochSeconds * 1000,
-            item.id in state.readAnnouncementIds, item.subject, item.message,
-            R.drawable.ic_info_outline, { announcement = item; onMarkAnnouncementRead(item.id) })
+            archived || item.id in state.readAnnouncementIds, item.subject, item.message,
+            R.drawable.ic_info_outline, { announcementId = item.id; onMarkAnnouncementRead(item.id) }, archived)
     }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp).testTag("notice-inbox")) {
         PortalHeader(stringResource(R.string.notice_inbox_title), onBack, onRefresh)
         Text(stringResource(R.string.notice_inbox_description), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            if (state.noticeHistoryLoading || state.announcementsLoading) {
+            if (state.noticeHistoryLoading || state.announcementHistoryLoading) {
                 CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
             }
             Spacer(Modifier.weight(1f))
@@ -59,7 +61,7 @@ internal fun NoticeInboxScreen(state: UiState, onBack: () -> Unit, onRefresh: ()
                 Text(stringResource(R.string.notice_mark_all_read))
             }
         }
-        if (state.announcementsStale) Text(stringResource(R.string.announcements_cached),
+        if (state.announcementHistoryUnavailable) Text(stringResource(R.string.announcement_history_unavailable),
             style = MaterialTheme.typography.bodySmall)
         if (rows.isEmpty()) Text(stringResource(R.string.notice_inbox_empty), Modifier.padding(vertical = 20.dp))
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -74,6 +76,8 @@ internal fun NoticeInboxScreen(state: UiState, onBack: () -> Unit, onRefresh: ()
                                 maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Text(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(row.time)),
                                 style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (row.archived) Text(stringResource(R.string.announcement_archived),
+                                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         if (!row.read) Text(stringResource(R.string.notice_new), style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary)
@@ -82,9 +86,9 @@ internal fun NoticeInboxScreen(state: UiState, onBack: () -> Unit, onRefresh: ()
             }
         }
     }
-    announcement?.let { item ->
-        AlertDialog(onDismissRequest = { announcement = null }, title = { Text(item.subject) },
+    announcements.firstOrNull { it.id == announcementId }?.let { item ->
+        AlertDialog(onDismissRequest = { announcementId = null }, title = { Text(item.subject) },
             text = { Text(item.message, Modifier.verticalScroll(rememberScrollState())) },
-            confirmButton = { TextButton(onClick = { announcement = null }) { Text(stringResource(android.R.string.ok)) } })
+            confirmButton = { TextButton(onClick = { announcementId = null }) { Text(stringResource(android.R.string.ok)) } })
     }
 }

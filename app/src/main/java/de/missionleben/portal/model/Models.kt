@@ -48,6 +48,8 @@ data class AnnouncementItem(
     val message: String,
     val author: String,
     val publishedAtEpochSeconds: Long,
+    val expiresAtEpochSeconds: Long = 0L,
+    val archived: Boolean = false,
 )
 
 data class LinkTarget(
@@ -114,6 +116,10 @@ data class UiState(
     val announcements: List<AnnouncementItem> = emptyList(),
     val announcementsLoading: Boolean = false,
     val announcementsStale: Boolean = false,
+    val announcementHistory: List<AnnouncementItem> = emptyList(),
+    val announcementHistoryLoading: Boolean = false,
+    val announcementHistoryLoaded: Boolean = false,
+    val announcementHistoryUnavailable: Boolean = false,
     val readAnnouncementIds: Set<Long> = emptySet(),
     val enrollmentState: EnrollmentState = EnrollmentState.NOT_ENROLLED,
     val enrollmentProfile: EnrollmentProfile? = null,

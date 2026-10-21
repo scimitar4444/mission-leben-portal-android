@@ -15,6 +15,7 @@ from .security import compact_json
 
 ANNOUNCEMENTS_PATH = "/apps/missionleben_announcements/api/v1/announcements"
 PUSH_PATH = "/apps/missionleben_announcements/api/v1/announcement-push/"
+HISTORY_PATH = "/apps/missionleben_announcements/api/v1/announcement-history"
 
 
 class AnnouncementFetchError(Exception):
@@ -43,6 +44,19 @@ class NextcloudAnnouncementClient:
         if not isinstance(values, list) or len(values) > 500 or any(type(v) is not int or v < 1 for v in values):
             raise AnnouncementFetchError("Nextcloud announcement catalogue is invalid")
         return sorted(set(values))
+
+    def history(self, *, user_id: str = "", email: str = "") -> list[dict[str, Any]]:
+        payload = self._post(HISTORY_PATH, {"user_id": user_id, "email": email})
+        values = payload.get("announcements")
+        if payload.get("retention_days") != 14 or not isinstance(values, list) or len(values) > 500:
+            raise AnnouncementFetchError("Invalid announcement history")
+        seen: set[int] = set()
+        for item in values:
+            if not isinstance(item, dict) or type(item.get("id")) is not int or item["id"] < 1 \
+                    or item["id"] in seen or type(item.get("archived")) is not bool:
+                raise AnnouncementFetchError("Invalid announcement history item")
+            seen.add(item["id"])
+        return values
 
     def resolve(self, ids: list[int], recipients: list[dict[str, str]]) -> dict[str, list[dict[str, Any]]]:
         if not 1 <= len(ids) <= 100 or not 1 <= len(recipients) <= 100:

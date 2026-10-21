@@ -405,7 +405,10 @@
     <string name="release_note_talk_setup_choice">Im Einrichtungsassistenten kannst du jetzt wählen, ob Talk mit der Chatübersicht oder dem letzten Chat startet.</string>
     <string name="release_note_helpdesk_push">Neue Antworten der IT auf deine Tickets können dich jetzt in der eigenen Kategorie „IT Hilfe“ benachrichtigen. Ein Tipp öffnet das passende Ticket.</string>
     <string name="notice_inbox_title">Neu für mich</string>
-    <string name="notice_inbox_description">Auch weggewischte Hinweise bleiben hier auffindbar. Ältere Hinweise öffnen die jeweilige Anwendung.</string>
+    <string name="notice_inbox_description">Hier findest du neue und gelesene Meldungen der letzten 14 Tage.</string>
+    <string name="announcement_archived">Archiviert</string>
+    <string name="announcement_history_unavailable">Die Hinweishistorie kann gerade nicht geladen werden. Bitte erneut aktualisieren.</string>
+    <string name="release_note_announcement_history">Ankündigungen bleiben unter der Glocke 14 Tage ab Veröffentlichung nachlesbar, auch nach Ablauf oder Löschen in Nextcloud. „Gelesen“ blendet sie nur von der Startseite aus.</string>
     <string name="notice_inbox_empty">Noch keine Hinweise. Neue Dokumente, Ankündigungen und Ticketantworten findest du künftig hier.</string>
     <string name="notice_mark_all_read">Alle als gelesen markieren</string>
     <string name="notice_new">Neu</string>

@@ -63,10 +63,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Check read-only announcement push adapter
+      - name: Check announcement APIs and owned archive contracts
         run: |
           php -l nextcloud-app/missionleben_announcements/lib/Controller/AnnouncementPushController.php
           php nextcloud-app/missionleben_announcements/tests/AnnouncementPushTest.php nextcloud-app/missionleben_announcements/lib/Controller/AnnouncementPushController.php
+          php -l nextcloud-app/missionleben_announcements/lib/Service/AnnouncementHistory.php
+          php nextcloud-app/missionleben_announcements/tests/AnnouncementHistoryTest.php nextcloud-app/missionleben_announcements
 
   enrollment-portal-tests:
     runs-on: ubuntu-latest

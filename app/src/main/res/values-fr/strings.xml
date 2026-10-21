@@ -358,7 +358,10 @@
     <string name="quiet_hours_all_apps">Aucune notification de tes applications autorisées ne sera affichée pendant cette période.</string>
     <string name="release_note_helpdesk_push">Les nouvelles réponses du service informatique à tes tickets peuvent désormais être signalées dans la catégorie distincte « Aide informatique ». Appuie pour ouvrir le ticket concerné.</string>
     <string name="notice_inbox_title">Nouveau pour moi</string>
-    <string name="notice_inbox_description">Les notifications effacées restent disponibles ici. Les anciens avis ouvrent la bonne application.</string>
+    <string name="notice_inbox_description">Retrouve ici les notifications nouvelles et lues des 14 derniers jours.</string>
+    <string name="announcement_archived">Archivé</string>
+    <string name="announcement_history_unavailable">L’historique des annonces est indisponible. Veuillez actualiser.</string>
+    <string name="release_note_announcement_history">Les annonces restent sous la cloche pendant 14 jours après publication, même après expiration ou suppression dans Nextcloud. « Lu » les masque uniquement de l’écran d’accueil.</string>
     <string name="notice_inbox_empty">Aucun avis pour le moment. Les nouveaux documents, annonces et réponses apparaîtront ici.</string>
     <string name="notice_mark_all_read">Tout marquer comme lu</string>
     <string name="notice_new">Nouveau</string>

@@ -358,7 +358,10 @@
     <string name="quiet_hours_all_apps">Durante este período no se muestran avisos de tus aplicaciones autorizadas.</string>
     <string name="release_note_helpdesk_push">Las nuevas respuestas de TI a tus solicitudes pueden avisarte en la categoría independiente «Ayuda de TI». Toca para abrir la solicitud correspondiente.</string>
     <string name="notice_inbox_title">Novedades para mí</string>
-    <string name="notice_inbox_description">Los avisos descartados siguen disponibles aquí. Los avisos antiguos abren la aplicación correspondiente.</string>
+    <string name="notice_inbox_description">Aquí encontrarás avisos nuevos y leídos de los últimos 14 días.</string>
+    <string name="announcement_archived">Archivado</string>
+    <string name="announcement_history_unavailable">El historial de anuncios no está disponible. Vuelve a actualizar.</string>
+    <string name="release_note_announcement_history">Los anuncios siguen bajo la campana durante 14 días desde su publicación, incluso tras caducar o eliminarse en Nextcloud. «Leído» solo los oculta de la pantalla inicial.</string>
     <string name="notice_inbox_empty">Aún no hay avisos. Aquí aparecerán nuevos documentos, anuncios y respuestas.</string>
     <string name="notice_mark_all_read">Marcar todo como leído</string>
     <string name="notice_new">Nuevo</string>

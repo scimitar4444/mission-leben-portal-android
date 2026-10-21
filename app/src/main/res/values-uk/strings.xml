@@ -360,7 +360,10 @@
     <string name="quiet_hours_all_apps">У цей період сповіщення з доступних тобі застосунків не показуються.</string>
     <string name="release_note_helpdesk_push">Нові відповіді ІТ на твої заявки тепер можуть надходити в окремій категорії «ІТ-допомога». Торкнися, щоб відкрити відповідну заявку.</string>
     <string name="notice_inbox_title">Нове для мене</string>
-    <string name="notice_inbox_description">Закриті сповіщення залишаються тут. Старіші відкривають відповідний застосунок.</string>
+    <string name="notice_inbox_description">Тут ти знайдеш нові та прочитані повідомлення за останні 14 днів.</string>
+    <string name="announcement_archived">В архіві</string>
+    <string name="announcement_history_unavailable">Історія оголошень зараз недоступна. Оновіть ще раз.</string>
+    <string name="release_note_announcement_history">Оголошення залишаються під дзвіночком 14 днів після публікації, навіть після завершення терміну або видалення в Nextcloud. «Прочитано» приховує їх лише з головного екрана.</string>
     <string name="notice_inbox_empty">Сповіщень ще немає. Тут з’являться нові документи, оголошення та відповіді.</string>
     <string name="notice_mark_all_read">Позначити все прочитаним</string>
     <string name="notice_new">Нове</string>

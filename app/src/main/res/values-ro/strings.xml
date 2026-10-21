@@ -359,7 +359,10 @@
     <string name="quiet_hours_all_apps">În acest interval nu sunt afișate notificări din aplicațiile tale autorizate.</string>
     <string name="release_note_helpdesk_push">Răspunsurile IT noi la solicitările tale pot fi acum anunțate în categoria separată „Ajutor IT”. Atinge pentru a deschide solicitarea corespunzătoare.</string>
     <string name="notice_inbox_title">Noutăți pentru mine</string>
-    <string name="notice_inbox_description">Notificările închise rămân disponibile aici. Cele mai vechi deschid aplicația corespunzătoare.</string>
+    <string name="notice_inbox_description">Aici găsești notificările noi și citite din ultimele 14 zile.</string>
+    <string name="announcement_archived">Arhivat</string>
+    <string name="announcement_history_unavailable">Istoricul anunțurilor nu este disponibil. Actualizează din nou.</string>
+    <string name="release_note_announcement_history">Anunțurile rămân sub clopoțel 14 zile de la publicare, inclusiv după expirare sau ștergere din Nextcloud. „Citit” le ascunde doar de pe ecranul principal.</string>
     <string name="notice_inbox_empty">Nu există notificări. Documentele, anunțurile și răspunsurile noi vor apărea aici.</string>
     <string name="notice_mark_all_read">Marchează tot ca citit</string>
     <string name="notice_new">Nou</string>

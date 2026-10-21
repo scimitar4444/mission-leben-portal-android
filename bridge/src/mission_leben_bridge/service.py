@@ -297,6 +297,28 @@ class BridgeService:
         self.store.put_announcement_cache(user.subject, normalized, now)
         return self._announcement_response(normalized, now, stale=False, cache_hit=False)
 
+    def announcement_history(self, bearer: str) -> dict[str, Any]:
+        user = self.authenticate(bearer)
+        client = self.announcement_client
+        if client is None or not client.configured:
+            raise ApiError(503, "announcement history is unavailable")
+        try:
+            values = client.history(user_id=user.nextcloud_user_id, email=user.email)
+            result = []
+            now = int(time.time())
+            for raw in values:
+                item = self._normalize_announcement(raw)
+                if item is None or item['id'] < 1 or item['time'] <= 0 or item['time'] > now:
+                    raise AnnouncementFetchError("Invalid announcement history item")
+                archived = raw['archived']
+                if archived and item['time'] + 14 * 86400 <= now:
+                    continue
+                result.append(item | {'archived': archived})
+        except (AnnouncementFetchError, ApiError, KeyError, TypeError, ValueError) as error:
+            # No stale history fallback: current user/group authorization is mandatory.
+            raise ApiError(503, "announcement history is unavailable") from error
+        return {'results': result, 'retention_days': 14}
+
     @staticmethod
     def _normalize_announcement(value: dict[str, Any]) -> dict[str, Any] | None:
         try:

@@ -171,6 +171,19 @@ class DeviceServiceRepository(context: Context? = null) {
     suspend fun announcements(accessToken: String): AnnouncementResult = withContext(Dispatchers.IO) {
         if (!communicationConfigured) return@withContext AnnouncementResult(emptyList(), false)
         val root = JSONObject(request("/v1/announcements", "GET", null, accessToken))
+        AnnouncementResult(parseAnnouncements(root), root.optBoolean("stale"))
+    }
+
+    suspend fun announcementHistory(accessToken: String): List<AnnouncementItem> = withContext(Dispatchers.IO) {
+        require(communicationConfigured) { text(R.string.device_service_not_configured) }
+        val root = JSONObject(request("/v1/announcements/history", "GET", null, accessToken))
+        require(root.optInt("retention_days") == 14) { "Invalid announcement history retention" }
+        val values = root.optJSONArray("results") ?: error("Missing announcement history")
+        require(values.length() <= 500) { "Announcement history exceeds limit" }
+        parseAnnouncements(root)
+    }
+
+    internal fun parseAnnouncements(root: JSONObject): List<AnnouncementItem> {
         val values = root.optJSONArray("results") ?: JSONArray()
         val items = buildList {
             for (index in 0 until values.length()) {
@@ -184,11 +197,13 @@ class DeviceServiceRepository(context: Context? = null) {
                         message = item.optString("message").trim(),
                         author = item.optString("author").trim(),
                         publishedAtEpochSeconds = item.optLong("time"),
+                        expiresAtEpochSeconds = item.optLong("delete_time"),
+                        archived = item.optBoolean("archived"),
                     ),
                 )
             }
         }
-        AnnouncementResult(items, root.optBoolean("stale"))
+        return items
     }
 
     suspend fun openTalk(accessToken: String, targetId: String, talkUrl: String) = withContext(Dispatchers.IO) {

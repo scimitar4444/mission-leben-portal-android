@@ -337,6 +337,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 announcements = emptyList(),
                 announcementsLoading = false,
                 announcementsStale = false,
+                announcementHistory = emptyList(),
+                announcementHistoryLoading = false,
+                announcementHistoryLoaded = false,
+                announcementHistoryUnavailable = false,
                 readAnnouncementIds = emptySet(),
                 quickUnlockEnabled = false,
                 reauthenticationRequired = false,
@@ -421,6 +425,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 announcements = emptyList(),
                 announcementsLoading = false,
                 announcementsStale = false,
+                announcementHistory = emptyList(),
+                announcementHistoryLoading = false,
+                announcementHistoryLoaded = false,
+                announcementHistoryUnavailable = false,
                 readAnnouncementIds = emptySet(),
                 capabilities = emptySet(),
                 linkTargets = emptyList(),
@@ -792,7 +800,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun refreshAnnouncements() {
+    private fun loadAnnouncementHistoryWithToken(token: String) {
+        if (_uiState.value.announcementHistoryLoading) return
+        val epoch = sessionEpoch
+        _uiState.update { it.copy(announcementHistoryLoading = true, announcementHistoryUnavailable = false) }
+        viewModelScope.launch {
+            runCatching { deviceService.announcementHistory(token) }
+                .onSuccess { items ->
+                    if (epoch != sessionEpoch || !_uiState.value.signedIn) return@onSuccess
+                    _uiState.update { it.copy(announcementHistory = items,
+                        announcementHistoryLoading = false, announcementHistoryLoaded = true,
+                        announcementHistoryUnavailable = false,
+                        readAnnouncementIds = preferences.readAnnouncementIds(it.user?.subject.orEmpty())) }
+                }
+                .onFailure {
+                    if (epoch != sessionEpoch || !_uiState.value.signedIn) return@onFailure
+                    // Never keep old content if current authorization cannot be checked.
+                    _uiState.update { it.copy(announcementHistory = emptyList(),
+                        announcementHistoryLoading = false, announcementHistoryLoaded = true,
+                        announcementHistoryUnavailable = true) }
+                }
+        }
+    }
+
+    fun refreshAnnouncements() = refreshAnnouncements(includeHistory = _uiState.value.announcementHistoryLoaded)
+
+    private fun refreshAnnouncements(includeHistory: Boolean) {
         if (!_uiState.value.signedIn || expireAtAbsoluteDeadline()) return
         val state = serializedAuthState ?: return
         val epoch = sessionEpoch
@@ -802,6 +835,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
                 updateSerializedState(updatedState)
                 loadAnnouncementsWithToken(token)
+                if (includeHistory) loadAnnouncementHistoryWithToken(token)
             },
             onError = { failure ->
                 if (epoch != sessionEpoch || !_uiState.value.signedIn) return@withFreshAccessToken
@@ -951,7 +985,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             unreadNotificationStore.cancel(it.eventId)
             NotificationPresenter.cancel(getApplication(), it.eventId)
         }
-        state.announcements.forEach { markAnnouncementRead(it.id) }
+        (state.announcements + state.announcementHistory).distinctBy { it.id }.forEach { markAnnouncementRead(it.id) }
         refreshUnreadNotificationBadges()
     }
 
@@ -960,7 +994,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (!state.signedIn || expireAtAbsoluteDeadline()) return
         _uiState.update { it.copy(noticeInboxRequested = false) }
         refreshUnreadNotificationBadges()
-        refreshAnnouncements()
+        refreshAnnouncements(includeHistory = true)
         val deviceId = preferences.deviceId ?: return
         if (effectiveNotificationPrivacy(state.mode) == NotificationPrivacy.MINIMAL || inboxRefreshJob?.isActive == true) return
         val epoch = sessionEpoch
@@ -1229,6 +1263,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 announcements = emptyList(),
                 announcementsLoading = false,
                 announcementsStale = false,
+                announcementHistory = emptyList(),
+                announcementHistoryLoading = false,
+                announcementHistoryLoaded = false,
+                announcementHistoryUnavailable = false,
                 readAnnouncementIds = emptySet(),
                 linkTargets = emptyList(),
                 capabilities = emptySet(),
@@ -1273,6 +1311,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 announcements = emptyList(),
                 announcementsLoading = false,
                 announcementsStale = false,
+                announcementHistory = emptyList(),
+                announcementHistoryLoading = false,
+                announcementHistoryLoaded = false,
+                announcementHistoryUnavailable = false,
                 readAnnouncementIds = emptySet(),
                 linkTargets = emptyList(),
                 capabilities = emptySet(),
@@ -1336,6 +1378,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 announcements = emptyList(),
                 announcementsLoading = false,
                 announcementsStale = false,
+                announcementHistory = emptyList(),
+                announcementHistoryLoading = false,
+                announcementHistoryLoaded = false,
+                announcementHistoryUnavailable = false,
                 readAnnouncementIds = emptySet(),
                 linkTargets = emptyList(),
                 capabilities = emptySet(),

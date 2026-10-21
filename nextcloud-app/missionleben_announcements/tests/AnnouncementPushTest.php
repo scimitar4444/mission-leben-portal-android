@@ -21,6 +21,7 @@ namespace OCP\AppFramework {
         public const STATUS_UNAUTHORIZED = 401;
         public const STATUS_BAD_REQUEST = 400;
         public const STATUS_SERVICE_UNAVAILABLE = 503;
+        public const STATUS_NOT_FOUND = 404;
     }
 }
 namespace OCP\AppFramework\Http {
@@ -30,6 +31,7 @@ namespace OCP\AppFramework\Http {
 }
 namespace OCA\MissionLebenAnnouncements\Service {
     class SignedRequestVerifier {}
+    class AnnouncementHistory { public function synchronize(): void {} }
 }
 namespace {
     require $argv[1];
@@ -107,7 +109,8 @@ namespace {
         row(4, 'everyone', time() - 1), row(5, null)]);
     $users = new Users();
     $controller = new Controller('synthetic', new Request(),
-        new \OCA\MissionLebenAnnouncements\Service\SignedRequestVerifier(), $db, new Groups(), $users);
+        new \OCA\MissionLebenAnnouncements\Service\SignedRequestVerifier(), $db, new Groups(), $users,
+        new \OCA\MissionLebenAnnouncements\Service\AnnouncementHistory());
     check($controller->catalog()->data['ids'] === [1, 2, 3], 'catalogue must exclude expired/unpublished posts');
     $recipients = [ ['key' => 'a', 'email' => 'a@example.invalid'],
         ['key' => 'b', 'email' => 'b@example.invalid'], ['key' => 'off', 'email' => 'off@example.invalid'],
