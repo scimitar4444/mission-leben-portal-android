@@ -1,6 +1,6 @@
 {
   "date": "2026-10-21",
-  "status": "BACKEND_DEPLOYED_PHONE_INSTALLED_SIGNED_HISTORY_ROUTE_VERIFIED_AWAITING_FRESH_EXPIRY_DELETE_PILOT_NO_OTA",
+  "status": "BACKEND_DEPLOYED_SINGLE_PHONE_PUSH_READ_EXPIRY_AND_MANUAL_SOURCE_DELETION_ARCHIVE_VERIFIED_NO_OTA",
   "branch": "fix/announcement-history-14d-0.23.3",
   "baseCommit": "7370561",
   "runtimeSourceCommit": "98f026b789ef9f8b8ac85bd3165eef4cf8aed0ba",
@@ -29,8 +29,37 @@
     "ui": "Synthetic deleted/expired text readable in native dialog; removing authorization data closes already open dialog; expired notice absent from home while agenda remains",
     "liveMigration": "PASS_targeted_own_adapter_0.3.3_to_0.3.4_new_table_only_source_schemas_byte_equal_NC35.0.2_maintenance_false_needsDbUpgrade_false",
     "liveSignedHistoryRoute": "PASS_catalogue_empty_history_empty_retention14_unknown_uid404_missing_uid_with_valid_email404_unsigned401_phone_GET_history200",
-    "physicalDevice": "0.23.3_97_installed_data_retained_human_biometric_unlock_native_bell_loads_history_without_error_fresh_expiry_and_delete_test_pending",
-    "usbStayAwake": "Original0 temporarily3; restored0 and read-back verified while waiting for fresh user test publication",
+    "physicalDevice": "PASS_0.23.3_97_data_retained_human_biometric_unlock; automatic_push21_visible_Android_channel_announcements; home_Gelesen_hides21_clears_badge_and_tray; native_bell_keeps21; expired20_and_manually_deleted21_remain_Archiviert_with_readable_subject_message_after_fresh_history_fetch",
+    "firstLiveArchivePilot": {
+      "announcementId": 20,
+      "publicationEpoch": 1792612860,
+      "sourceExpiryEpoch": 1792612980,
+      "archiveRetainUntilEpoch": 1793822460,
+      "retentionEqualsPublicationPlus14Days": true,
+      "automaticDiscoveryQueuedEpoch": 1792612968,
+      "expiryAfterDiscoverySeconds": 12,
+      "visiblePush": "NOT_DELIVERED_expired_before_next_15_second_dispatch_cycle; event_delivered_at_null_delivery_count0",
+      "nativeBell": "Archiviert label and subject/message dialog viewed on physical phone after expiry",
+      "physicalSourceDeletion": "Nextcloud later removed source row AND map row; both counts0; owned archive retained",
+      "freshSignedFetchAfterSourceDeletion": "history20_archived_true_subject_and_message_present; active_detail_resolve20_empty",
+      "encryptionAtRest": "Owned payload is ciphertext, not a JSON object; no decrypted text emitted by database checks"
+    },
+    "secondLiveArchivePilot": {
+      "announcementId": 21,
+      "scheduledPublicationEpoch": 1792613160,
+      "sourceExpiryEpoch": 1792613400,
+      "archiveRetainUntilEpoch": 1793822760,
+      "automaticDiscoveryQueuedEpoch": 1792613209,
+      "deliveredEpoch": 1792613223,
+      "deliveries": 1,
+      "pending": 0,
+      "visiblePush": "Physical Android NotificationRecord channel=announcements importance3, title/body observed in tray",
+      "homeRead": "Visible active notice with Gelesen; tap removed home card and unread badge; Android announcement tray removed; bell retained readable21",
+      "manualDeletion": "User confirmed deletion before expiry; at20:08:43UTC source AND map counts0, encrypted own archive21 retained",
+      "freshHistoryAfterManualDeletion": "Signed source response archived21=true; phone refresh HTTP200 displays Archiviert21; opening native dialog still shows subject/body",
+      "nextcloudScheduling": "User scheduled22:06 local; existing60-second scheduler published later; no manual worker run or direct test enqueue"
+    },
+    "usbStayAwake": "Original0 temporarily3 during tests; restored0 and read-back verified after final native detail test",
     "testHarnessCorrections": "JSON parser test moved into Robolectric; container fixture mounts corrected to retain repository-relative exporter/watchdog paths"
   },
   "container": {
@@ -83,7 +112,7 @@
     "nextcloudBackupScope": "Own prior app sources plus appconfig and migrations rows; source table schemas; additive own migration only, no stale full DB restore",
     "bridgeBackupScope": "Verified SQLite online backup, prior source and compose; previous image before-history-20261021",
     "preflightCorrection": "SQLite backup as container user0 was denied before writes/restart; normal runtime UID10001 backup succeeded and checked ok",
-    "remainingGate": "User fresh targeted announcement, read/home removal, expiry and source-deletion archive readability; not OTA authorized"
+    "remainingGate": "Named single-phone acceptance passed. Multi-phone restricted-group and wall-clock14-day tests remain synthetic/not exercised live. No OTA release authorized or published."
   },
-  "handoff": {"authentikUpdate": "SENT_BACKEND_DEPLOYED_PILOT_INSTALLED_FINAL_HISTORY_GATE_PENDING", "nextcloudUpdate": "SENT_BACKEND_DEPLOYED_PILOT_INSTALLED_FINAL_HISTORY_GATE_PENDING"}
+  "handoff": {"authentikUpdate": "SENT_FINAL_SINGLE_PHONE_ACCEPTANCE_NO_OTA", "nextcloudUpdate": "SENT_FINAL_SINGLE_PHONE_ACCEPTANCE_NO_OTA"}
 }
