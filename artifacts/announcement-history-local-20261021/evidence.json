@@ -3,6 +3,9 @@
   "status": "LOCALLY_IMPLEMENTED_BUILT_SIGNED_AND_TESTED_NOT_DEPLOYED_NO_OTA",
   "branch": "fix/announcement-history-14d-0.23.3",
   "baseCommit": "7370561",
+  "runtimeSourceCommit": "98f026b789ef9f8b8ac85bd3165eef4cf8aed0ba",
+  "draftPr": "https://github.com/scimitar4444/mission-leben-portal-android/pull/15",
+  "ci": {"runId": 39664791310, "headSha": "98f026b789ef9f8b8ac85bd3165eef4cf8aed0ba", "build": "success", "bootstrap-source-tests": "success", "bridge-tests": "success", "nextcloud-adapter-tests": "success", "enrollment-portal-tests": "success"},
   "authorization": "User clarified: local home dismissal, expiry and explicit Nextcloud deletion must retain the notice in Notify for about two weeks",
   "retention": "14 days after publication; old active posts remain live, but no fresh archive period begins on later deletion",
   "versions": {"android": "0.23.3", "versionCode": 97, "bridge": "0.10.13", "bridgeSchemaUnchanged": 12, "nextcloudAdapter": "0.3.4"},
@@ -59,5 +62,5 @@
     "alreadyDeletedBeforeActivation": "Not reconstructable from this feature"
   },
   "rollback": "Prefer forward fix; old clients ignore added route. On complete adapter rollback, clean only the new owned archive table if cleanup worker is removed. Never restore stale whole DB or uninstall/downgrade Android silently.",
-  "handoff": {"authentikUpdate": "PENDING_LOCAL_DELTA", "nextcloudUpdate": "PENDING_LOCAL_DELTA"}
+  "handoff": {"authentikUpdate": "SENT_LOCAL_DELTA", "nextcloudUpdate": "SENT_LOCAL_DELTA"}
 }
