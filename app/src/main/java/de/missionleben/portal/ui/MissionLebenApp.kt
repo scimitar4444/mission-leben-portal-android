@@ -450,6 +450,14 @@ private fun Home(
     var talkDialogOpen by rememberSaveable { mutableStateOf(false) }
     var contactsOpen by remember(state.signedIn, state.user?.subject) { mutableStateOf(false) }
     var inboxOpen by remember(state.signedIn, state.user?.subject) { mutableStateOf(false) }
+    LaunchedEffect(state.noticeInboxRequested, state.signedIn) {
+        if (state.signedIn && state.noticeInboxRequested) {
+            settingsOpen = false
+            contactsOpen = false
+            inboxOpen = true
+            onRefreshInbox()
+        }
+    }
     val canHandoffTalk = AppFeaturePolicy.from(state.applications).canHandoffTalk(state.capabilities)
 
     LaunchedEffect(canHandoffTalk) {
@@ -574,6 +582,7 @@ internal fun HomeOverview(
     onToggleApplicationFavorite: (String) -> Unit = {},
 ) {
     val orderedApplications = ApplicationShortcuts.ordered(state.applications, state.favoriteApplicationSlugs)
+    val pendingAnnouncements = state.announcements.filter { it.id !in state.readAnnouncementIds }
     val newNotices = NoticeInboxPolicy.visible(state.noticeHistory, state.applications, state.mode).count { !it.read } +
         state.announcements.count { it.id !in state.readAnnouncementIds }
     LazyColumn(
@@ -622,17 +631,17 @@ internal fun HomeOverview(
         }
         state.message?.let { message -> item { MessageBanner(message, onDismissMessage) } }
         if (state.signedIn) {
-            item { Greeting(state) }
+            item(key = "home-greeting") { Greeting(state) }
             if (state.mode == DeviceMode.PERSONAL && state.enrollmentState == EnrollmentState.TRUSTED &&
                 state.calendarAvailable && AppFeaturePolicy.from(state.applications).zimbra) {
-                item { TodayAgendaPanel(state, onOpenCalendarDay) }
+                item(key = "home-today-agenda") { TodayAgendaPanel(state, onOpenCalendarDay) }
             }
             // Do not reserve a red, empty warning card while the first fetch is pending.
             // Existing notices stay visible during refresh and failures as before.
-            if (state.announcements.isNotEmpty()) {
-                item {
+            if (pendingAnnouncements.isNotEmpty()) {
+                item(key = "home-announcements-${pendingAnnouncements.first().id}") {
                     AnnouncementsPanel(
-                        state.announcements,
+                        pendingAnnouncements,
                         state.announcementsLoading,
                         state.announcementsStale,
                         state.readAnnouncementIds,
@@ -772,6 +781,10 @@ private fun AnnouncementsPanel(
                     toggleLabel,
                     Modifier.size(20.dp),
                 )
+                TextButton(onClick = { onMarkRead(latest.id) },
+                    modifier = Modifier.testTag("announcement-mark-read")) {
+                    Text(stringResource(R.string.announcements_mark_read))
+                }
             }
             // Keep the cache warning visible even when collapsed.
             if (stale) {
@@ -800,11 +813,8 @@ private fun AnnouncementsPanel(
                         }
                         TextButton(onClick = {
                             expanded = false
-                            if (!alreadyRead) onMarkRead(latest.id)
                         }) {
-                            Text(stringResource(
-                                if (alreadyRead) R.string.announcements_collapse else R.string.announcements_mark_read,
-                            ))
+                            Text(stringResource(R.string.announcements_collapse))
                         }
                     }
                 }

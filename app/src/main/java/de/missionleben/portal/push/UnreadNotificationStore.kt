@@ -7,7 +7,8 @@ enum class NotificationBadgeTarget {
     ZIMBRA,
     TALK,
     DOCUMENTS,
-    HELPDESK;
+    HELPDESK,
+    ANNOUNCEMENTS;
 
     companion object {
         fun fromAction(action: PushAction): NotificationBadgeTarget? = when (action) {
@@ -15,6 +16,7 @@ enum class NotificationBadgeTarget {
             PushAction.OPEN_TALK -> TALK
             PushAction.OPEN_DOCUMENTS -> DOCUMENTS
             PushAction.OPEN_HELPDESK -> HELPDESK
+            PushAction.OPEN_ANNOUNCEMENTS -> ANNOUNCEMENTS
             PushAction.REFRESH_SECURITY_STATE -> null
         }
 
@@ -55,6 +57,7 @@ data class NotificationBadgeCounts(
         NotificationBadgeTarget.TALK -> talk
         NotificationBadgeTarget.DOCUMENTS -> documents
         NotificationBadgeTarget.HELPDESK -> helpdesk
+        NotificationBadgeTarget.ANNOUNCEMENTS -> 0 // Native hints use their existing per-announcement read state.
         null -> 0
     }
 }

@@ -107,6 +107,7 @@ data class UiState(
     val noticeHistory: List<de.missionleben.portal.push.InboxNotice> = emptyList(),
     val noticeSummaries: Map<String, Pair<String, String>> = emptyMap(),
     val noticeHistoryLoading: Boolean = false,
+    val noticeInboxRequested: Boolean = false,
     val applicationsLoading: Boolean = false,
     val news: List<NewsItem> = emptyList(),
     val newsLoading: Boolean = false,

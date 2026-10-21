@@ -294,3 +294,56 @@ versionCode größer als 95 veröffentlichen. Keine stille Herabstufung,
 Deinstallation oder Datenlöschung und keine alte Authentik-Datenbanksicherung
 zurückspielen. Fremde Bootstrap-Arbeiten und andere Änderungen erhalten;
 kein Bootstrap und kein globaler Checkout-/Reset-Befehl aus dieser Korrektur.
+
+## 9. Ankündigungs-Push 0.23.2 (21.10.2026)
+
+Keine Änderung an Authentik-Gruppen, Flows/MFA, Sessions, Endpoint-Trust oder
+Bootstrap. Der Bridge-Benutzerdatensatz übernimmt zusätzlich den verifizierten
+`nextcloud_uid`-Wert aus dem vorhandenen Userinfo-Abruf, damit Ankündigungen
+auch ohne eigene Mailadresse eindeutig zugeordnet werden können. Fehlende UID
+verwendet nur den bereits bestehenden eindeutigen E-Mail-Abgleich in Nextcloud.
+Die UID ist Identitätsmetadatum, kein zusätzlicher Zugang oder Token.
+
+Vertrag und Abnahmepunkte: `nextcloud-app/missionleben_announcements/README.md`.
+Benötigt werden Adapter 0.3.3, Bridge 0.10.12 und App >=0.23.2/96. Neue signierte
+Pfade: `/apps/missionleben_announcements/api/v1/announcement-push/catalog` und
+`.../resolve`. Bestehendes HMAC-Secret/Mount, TLS, Timestamp/Nonce/Signaturbindung
+an den exakten Pfad beibehalten. Keine neue Administrator-Sitzung/Gruppe nötig.
+Bridge-Schema 12 ergänzt die Katalog-Baseline, `users.nextcloud_user_id` und den
+engen Ereignistyp `open_announcements`; die CHECK-Migration erhält IDs und FKs.
+Fremde/alte App-Versionen erhalten diesen Ereignistyp nicht.
+
+Pilotstand 21.10.2026: Adapter 0.3.3 und Bridge 0.10.12/Schema 12 sind ausgerollt;
+signierte Routen, HTTP 401 ohne Signatur, SQLite-Integrität/FKs und die Baseline
+ohne historische Massenversendung sind live geprüft. Ein kompatibles Handy hat
+den eng begrenzten Testpush erhalten und Details abgefragt. Eine bereits gelesene
+Ankündigung wurde dabei korrekt unterdrückt. Eine anschließend vom Nutzer neu
+veröffentlichte Ankündigung wurde automatisch erkannt, genau einmal zugestellt
+und am Handy als eigene Android-Meldung angezeigt. Tippen öffnet die Glocke;
+Auf-/Zuklappen, „Gelesen“, Ausblenden auf der Startseite und Erhalt in der Glocke
+sind am Gerät geprüft. Gleichzeitige Kalenderanzeige ist synthetisch getestet,
+war auf dem aktuellen Gerät aber nicht sichtbar; mehrere Handys, eingeschränkte
+Zielgruppe und Netzunterbrechung sind hier nicht live abgenommen. Die
+OTA-Veröffentlichung wird getrennt von dieser Geräteabnahme protokolliert.
+Compose-Projekt ist `mission-leben-device` (nicht der
+Verzeichnisname); nur Service `bridge` neu erstellen, andere Dienste unverändert.
+Build-Quellen auf dem Host sind mit dem ausgelieferten Stand abgeglichen.
+
+Rollout erst nach Prüfung der beiden signierten Routen, SQLite-Integrität/
+Foreign Keys, Containerzustand und echtem Gerätetest. Mit Default
+`BRIDGE_ANNOUNCEMENT_PUSH_ENABLED=false` bleibt die Neuerung aus. Explizites
+Aktivieren seedet beim ersten erfolgreichen Abruf nur die vorhandenen IDs;
+die bereits vorhandenen Ankündigungen werden nicht massenhaft nachversendet.
+Neue Veröffentlichung an passende/nicht passende Zielgruppe, zwei Handys,
+Tippen/Entsperren/Glocke, Ruhezeit, Ablauf/Löschung, Neustart und Netzausfall
+testen. API/Unit-Tests sind kein Beleg für die reale Android-Zustellung.
+
+Sicherer Betriebsrückweg: Flag abschalten und Bridge neu erstellen; dadurch
+pausieren sowohl neue Erkennung als auch noch wartende Ankündigungszustellungen,
+ohne Mail/Talk/Termine/Tickets zu blockieren. Datenbank weiterverwenden, keine
+alte Gesamtsicherung zurückspielen. Bevor ein altes Bridge-Image verwendet wird,
+die ausschließlich neuen `source='announcements'`/`event_type='open_announcements'`
+Ereignisse inklusive kaskadierender Zustellreferenzen gezielt entfernen: altes
+Dispatcher-/Detailverhalten kennt deren erneute Zielgruppenprüfung nicht.
+Bevorzugt Flag-aus/Vorwärtskorrektur statt Image-Downgrade. Android nach Code 96
+nur gleich signiert vorwärts korrigieren, keine automatische Deinstallation.

@@ -15,6 +15,8 @@ import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
@@ -186,7 +188,7 @@ class HomeOverviewTest {
         compose.onNodeWithText("IHM wird gewartet").assertIsDisplayed()
     }
 
-    @Test fun collapsingDoesNotMarkReadAndReadNoticeCanBeReopened() {
+    @Test fun collapsingDoesNotMarkReadAndExplicitReadRemovesNoticeFromHome() {
         show()
         compose.onNodeWithTag("announcement-toggle").performClick()
         compose.onNodeWithText(MESSAGE).assertIsDisplayed()
@@ -197,10 +199,20 @@ class HomeOverviewTest {
         compose.onNodeWithText("Gelesen").performClick()
         assertEquals(listOf(7L), marked)
         compose.onNodeWithText(MESSAGE).assertDoesNotExist()
-        compose.onNodeWithTag("announcement-toggle").performClick()
-        compose.onNodeWithText(MESSAGE).assertIsDisplayed()
-        compose.onNodeWithText("Zuklappen").performClick()
-        compose.onNodeWithText(MESSAGE).assertDoesNotExist()
+        compose.onNodeWithTag("announcements-panel").assertDoesNotExist()
+        assertEquals(7L, state.value.announcements.single().id) // Kept for the bell, not deleted.
+    }
+
+    @Test fun readAnnouncementRemainsReadableInTheBell() {
+        state.value = state.value.copy(readAnnouncementIds = setOf(7L))
+        compose.setContent {
+            MissionLebenTheme {
+                NoticeInboxScreen(state.value, onBack = {}, onRefresh = {}, onOpenNotice = {},
+                    onMarkAllRead = {}, onMarkAnnouncementRead = {})
+            }
+        }
+        compose.onNodeWithText("IHM wird gewartet").assertIsDisplayed().performClick()
+        compose.onAllNodesWithText(MESSAGE).assertCountEquals(2) // List preview and opened full-text dialog.
     }
 
     @Test fun cachedWarningRemainsVisibleWhileCollapsed() {
@@ -339,6 +351,34 @@ class HomeOverviewTest {
         compose.onNodeWithTag("today-toggle").performClick()
         compose.onNodeWithText("Übergabe").assertDoesNotExist()
         assertEquals(false, state.value.calendarSyncEnabled)
+    }
+
+    @Test fun hidingNoticeNeverHidesAppointmentsOrResetsTheirExpandedState() {
+        state.value = withToday()
+        show()
+        compose.onNodeWithTag("today-toggle").performClick()
+        compose.onNodeWithText("Übergabe").assertIsDisplayed()
+        compose.onNodeWithTag("announcement-toggle").performClick()
+        compose.onNodeWithText("Übergabe").assertIsDisplayed()
+        compose.onNodeWithTag("announcement-toggle").performClick()
+        compose.onNodeWithTag("announcement-mark-read").performClick()
+        compose.onNodeWithTag("announcements-panel").assertDoesNotExist()
+        compose.onNodeWithTag("today-agenda").assertIsDisplayed()
+        compose.onNodeWithText("Besprechung im Team").assertIsDisplayed()
+        compose.onNodeWithText("Übergabe").assertIsDisplayed()
+        screenshot("appointments-remain-after-notice-read")
+    }
+
+    @Test fun lateAnnouncementDoesNotReplaceAnAlreadyExpandedAgenda() {
+        state.value = withToday().copy(announcements = emptyList())
+        show()
+        compose.onNodeWithTag("today-toggle").performClick()
+        compose.runOnIdle { state.value = state.value.copy(announcements = exampleState().announcements) }
+        compose.onNodeWithTag("today-agenda").assertIsDisplayed()
+        compose.onNodeWithText("Übergabe").assertIsDisplayed()
+        compose.onNodeWithTag("announcements-panel").assertIsDisplayed()
+        compose.onNodeWithTag("announcement-mark-read").assertIsDisplayed()
+        screenshot("separate-appointments-and-notice")
     }
 
     @Test fun todayDisappearsForRevokedZimbraSharedDevicesAndSignedOutUsers() {

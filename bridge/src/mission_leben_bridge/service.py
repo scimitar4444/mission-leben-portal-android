@@ -28,6 +28,7 @@ ZIMBRA_ITEM_ID = re.compile(r"^(?:[A-Za-z0-9_-]{1,64}:)?[0-9]{1,20}$")
 EVENT_TYPES = {"open_mail", "open_calendar", "open_talk", "open_documents", "open_helpdesk"}
 HELPDESK_TARGET = re.compile(r"^[1-9][0-9]{0,19}:[1-9][0-9]{0,19}$")
 HELPDESK_PUSH_MIN_VERSION = (0, 22, 1)
+ANNOUNCEMENT_PUSH_MIN_VERSION = (0, 23, 2)
 PROJECTSEND_ISSUER = "https://id.mission-leben.de/application/o/projectsend-ml-dokumente-test/"
 PROJECTSEND_SUBJECT = re.compile(r"^[a-f0-9]{64}$")
 PROJECTSEND_EVENT_ID = re.compile(r"^notification:[1-9][0-9]{0,19}$")
@@ -47,6 +48,11 @@ def supports_document_push(app_version: str) -> bool:
 def supports_helpdesk_push(app_version: str) -> bool:
     match = APP_VERSION.fullmatch(app_version)
     return match is not None and tuple(int(part) for part in match.groups()) >= HELPDESK_PUSH_MIN_VERSION
+
+
+def supports_announcement_push(app_version: str) -> bool:
+    match = APP_VERSION.fullmatch(app_version)
+    return match is not None and tuple(int(part) for part in match.groups()) >= ANNOUNCEMENT_PUSH_MIN_VERSION
 
 
 class ApiError(Exception):
@@ -124,12 +130,14 @@ class BridgeService:
         announcement_stale_ttl_seconds: int = 86_400,
         employee_directory: EmployeeDirectory | None = None,
         communication_directory: CommunicationDirectory | None = None,
+        announcement_push_enabled: bool = True,
     ):
         self.store = store
         self.authentik = authentik
         self.ntfy = ntfy
         self.talk_targets = tuple(self._normalize_target(target) for target in talk_targets)
         self.announcement_client = announcement_client
+        self.announcement_push_enabled = announcement_push_enabled
         self.announcement_cache_ttl_seconds = announcement_cache_ttl_seconds
         self.announcement_stale_ttl_seconds = announcement_stale_ttl_seconds
         self._dispatch_lock = threading.Lock()
@@ -246,7 +254,8 @@ class BridgeService:
 
     def authenticate(self, bearer: str) -> UserInfo:
         user = self.authentik.user_info(bearer)
-        self.store.upsert_user(user.subject, user.email, user.display_name, active=True)
+        self.store.upsert_user(user.subject, user.email, user.display_name, active=True,
+                               nextcloud_user_id=user.nextcloud_user_id)
         return user
 
     def set_user_active(self, subject: str, active: bool) -> bool:
@@ -323,6 +332,66 @@ class BridgeService:
             "stale": stale,
             "cache_hit": cache_hit,
         }
+
+    def queue_announcement(self, subject: str, value: dict[str, Any]) -> int:
+        """Internal fan-out only; never an arbitrary externally ingestible event."""
+        if not self.announcement_push_enabled:
+            return 0
+        announcement = self._normalize_announcement(value)
+        if announcement is None or announcement['id'] < 1:
+            raise ApiError(400, "invalid announcement")
+        now = int(time.time())
+        expires = announcement['delete_time'] or now + 7 * 86400
+        if expires <= now or self.store.user_active_state(subject) is not True:
+            return 0
+        event, _ = self.store.put_event({
+            'source': 'announcements', 'source_event_id': f"{announcement['id']}:{subject}",
+            'subject': subject, 'event_type': 'open_announcements',
+            'title': 'Wichtige Hinweise', 'summary': announcement['subject'],
+            'preview': announcement['message'][:280], 'target_id': str(announcement['id']),
+            'expires_at': datetime.fromtimestamp(expires, timezone.utc).isoformat(),
+            'expires_epoch': expires, 'deliver_epoch': now,
+        })
+        queued = 0
+        for registration in self.store.registrations_for_subject(subject):
+            if supports_announcement_push(registration['app_version']):
+                queued += self.store.queue_announcement_delivery(event['event_id'], registration['device_id'], now)
+        return queued
+
+    def _live_announcement(self, subject: str, target_id: str) -> dict[str, Any] | None:
+        recipient = self.store.announcement_recipient(subject)
+        client = self.announcement_client
+        if client is None or recipient is None:
+            raise AnnouncementFetchError('Announcement access verification is unavailable')
+        values = client.resolve([int(target_id)], [recipient])[subject]
+        return next((v for v in values if str(v['id']) == target_id), None)
+
+    def _announcement_visibility(self, queue: list[dict[str, Any]]) -> dict[tuple[str, str], bool]:
+        """Bounded live recheck, not one HTTP request per handset.
+
+        A source outage leaves unresolved deliveries pending and must not cause
+        100 sequential network timeouts or starve mail/Talk/ticket delivery.
+        """
+        client = self.announcement_client
+        if client is None:
+            return {}
+        events = [event for item in queue if (event := self.store.get_event(item['event_id']))
+                  and event['source'] == 'announcements']
+        ids = sorted({int(e['target_id']) for e in events})
+        recipients = [r for s in sorted({e['subject'] for e in events})
+                      if (r := self.store.announcement_recipient(s)) is not None]
+        result = {}
+        for offset in range(0, len(ids), 20):
+            batch_ids = ids[offset:offset + 20]
+            for start in range(0, len(recipients), 50):
+                try:
+                    resolved = client.resolve(batch_ids, recipients[start:start + 50])
+                except AnnouncementFetchError:
+                    return result  # One failure, not one timeout per pending phone.
+                for subject, values in resolved.items():
+                    allowed = {v['id'] for v in values}
+                    result.update({(subject, str(i)): i in allowed for i in batch_ids})
+        return result
 
     @staticmethod
     def _require_capability(user: UserInfo, capability: str) -> None:
@@ -648,7 +717,11 @@ class BridgeService:
             return 0
         with self._dispatch_lock:
             dispatches = 0
-            for queued in self.store.due_delivery_queue(event_id=event_id):
+            queue = self.store.due_delivery_queue(event_id=event_id, announcements_only=False)
+            if self.announcement_push_enabled:
+                queue += self.store.due_delivery_queue(event_id=event_id, announcements_only=True)
+            visibility = None
+            for queued in queue:
                 queued_event_id = queued["event_id"]
                 device_id = queued["device_id"]
                 event = self.store.get_event(queued_event_id)
@@ -656,6 +729,20 @@ class BridgeService:
                 if event is None or registration is None or registration["subject"] != event["subject"]:
                     self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
                     continue
+                if event['source'] == 'announcements':
+                    if not self.announcement_push_enabled:
+                        continue
+                    if not supports_announcement_push(registration['app_version']):
+                        self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
+                        continue
+                    if visibility is None:
+                        visibility = self._announcement_visibility(queue)
+                    visible = visibility.get((event['subject'], event['target_id']))
+                    if visible is None:
+                        continue
+                    if not visible:
+                        self.store.finish_queued_delivery(queued_event_id, device_id, delivered=False)
+                        continue
                 if event["source"] == "projectsend" and (
                     registration["mode"] != "personal"
                     or not supports_document_push(registration["app_version"])
@@ -686,7 +773,7 @@ class BridgeService:
                         self._remove_registration(registration)
                         self.store.finish_event_without_targets(queued_event_id)
                         continue
-                    if not self.communication_allowed(registration):
+                    if event['source'] != 'announcements' and not self.communication_allowed(registration):
                         self.store.finish_queued_delivery(
                             queued_event_id,
                             device_id,
@@ -764,6 +851,17 @@ class BridgeService:
         if resolved is None:
             raise ApiError(404, "notification event was not found")
         event, privacy = resolved
+        if event['source'] == 'announcements':
+            if not self.announcement_push_enabled:
+                raise ApiError(403, 'announcement push is disabled')
+            try:
+                live = self._live_announcement(event['subject'], event['target_id'])
+            except AnnouncementFetchError as error:
+                raise ApiError(503, 'announcement access verification is unavailable') from error
+            if live is None:
+                raise ApiError(403, 'announcement is no longer available to this user')
+            event['summary'] = _text(live.get('subject'), 160)
+            event['preview'] = _text(live.get('message'), 280)
         if event["source"] == "otobo":
             try:
                 allowed = self.communication_directory is not None and self.communication_directory.allows_helpdesk(event["subject"])

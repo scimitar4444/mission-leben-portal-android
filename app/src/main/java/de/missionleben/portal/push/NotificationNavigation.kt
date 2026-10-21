@@ -37,7 +37,7 @@ object NotificationNavigation {
             PushAction.OPEN_MAIL -> zimbraMessageUrl(zimbraWebBaseUrl, validated)
             PushAction.OPEN_TALK -> talkRoomUrl(applicationLaunchUrl, validated)
             PushAction.OPEN_HELPDESK -> helpdeskTicketUrl(applicationLaunchUrl, validated)
-            PushAction.OPEN_CALENDAR, PushAction.OPEN_DOCUMENTS, PushAction.REFRESH_SECURITY_STATE -> applicationLaunchUrl
+            PushAction.OPEN_ANNOUNCEMENTS, PushAction.OPEN_CALENDAR, PushAction.OPEN_DOCUMENTS, PushAction.REFRESH_SECURITY_STATE -> applicationLaunchUrl
         }
     }
 

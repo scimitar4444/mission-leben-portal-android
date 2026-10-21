@@ -123,6 +123,9 @@
     <string name="news_title">Aktuelles</string>
     <string name="news_all">Alle Meldungen</string>
     <string name="announcements_title">Wichtige Hinweise</string>
+    <string name="push_announcements_body">Eine neue Ankündigung ist da. Tippe hier, um sie in der App zu lesen.</string>
+    <string name="release_note_announcement_push">Neue wichtige Hinweise kommen jetzt auch als eigene Benachrichtigung. Beim Antippen öffnet sich die Hinweise-Übersicht.</string>
+    <string name="release_note_home_notice_read">Hinweise und heutige Termine bleiben getrennt. Mit „Gelesen“ blendest du einen Hinweis von der Startseite aus; unter der Glocke kannst du ihn weiter lesen.</string>
     <string name="announcements_all">Alle Hinweise</string>
     <string name="announcements_cached">Zwischengespeicherter Stand – Aktualisierung derzeit nicht möglich</string>
     <string name="announcements_mark_read">Gelesen</string>

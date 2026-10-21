@@ -42,8 +42,19 @@ object NotificationPresenter {
         val preferences = AppPreferences(context)
         val store = PushRegistrationStore(context)
         if (preferences.deviceId != expectedDeviceId ||
-            preferences.enrollmentState != EnrollmentState.TRUSTED || !store.communicationAllowed()
+            preferences.enrollmentState != EnrollmentState.TRUSTED || !store.deliveryAllowed(expectedAction)
         ) return
+        if (expectedAction == PushAction.OPEN_ANNOUNCEMENTS &&
+            preferences.boundPersonalSubject?.let { subject ->
+                detail.targetId.toLongOrNull() in preferences.readAnnouncementIds(subject)
+            } == true
+        ) {
+            // The user can read the foreground announcement before this delayed
+            // rich response establishes its event-to-announcement mapping.
+            UnreadNotificationStore(context).cancel(expectedAction, eventId)
+            cancel(context, eventId)
+            return
+        }
         val privacy = NotificationPrivacy.effective(preferences.deviceMode, store.personalPrivacy)
         show(context, expectedAction, eventId, detail, privacy)
     }
@@ -69,7 +80,7 @@ object NotificationPresenter {
         manager.activeNotifications.forEach { active ->
             val old = active.notification
             val action = PushAction.entries.firstOrNull {
-                it.channelId == old.channelId && it.channelId in COMMUNICATION_CHANNELS
+                it.channelId == old.channelId && it.channelId in CONTENT_CHANNELS
             } ?: return@forEach
             if (old.extras.getString(EXTRA_PRIVACY) == privacy.wireName &&
                 old.extras.getInt(EXTRA_CONTENT_POLICY) == CONTENT_POLICY_VERSION
@@ -284,10 +295,11 @@ object NotificationPresenter {
     private fun category(action: PushAction): String = when (action) {
         PushAction.OPEN_MAIL, PushAction.OPEN_TALK, PushAction.OPEN_DOCUMENTS, PushAction.OPEN_HELPDESK -> NotificationCompat.CATEGORY_MESSAGE
         PushAction.OPEN_CALENDAR -> NotificationCompat.CATEGORY_EVENT
-        PushAction.REFRESH_SECURITY_STATE -> NotificationCompat.CATEGORY_STATUS
+        PushAction.OPEN_ANNOUNCEMENTS, PushAction.REFRESH_SECURITY_STATE -> NotificationCompat.CATEGORY_STATUS
     }
 
     private val COMMUNICATION_CHANNELS = setOf("mail", "calendar", "talk", "documents", "helpdesk")
+    private val CONTENT_CHANNELS = COMMUNICATION_CHANNELS + "announcements"
     private const val EXTRA_PRIVACY = "de.missionleben.portal.notification_privacy"
     private const val EXTRA_SAFE_SUMMARY = "de.missionleben.portal.notification_summary"
     private const val EXTRA_CONTENT_POLICY = "de.missionleben.portal.notification_content_policy"

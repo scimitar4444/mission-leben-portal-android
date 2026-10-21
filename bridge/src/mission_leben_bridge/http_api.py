@@ -124,6 +124,7 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                             self.server.service.announcement_client
                             and self.server.service.announcement_client.configured
                         ),
+                        "announcement_push_enabled": self.server.service.announcement_push_enabled,
                     },
                 )
                 return

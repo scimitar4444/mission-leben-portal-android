@@ -173,7 +173,7 @@ class NtfySubscriberService : Service() {
         // scheduling failure must never reconnect the stream and replay the same alert.
         vault.rememberMessage(id)
         if (command is PushCommand.Fetch) {
-            if (!PushRegistrationStore(this).communicationAllowed()) {
+            if (!PushRegistrationStore(this).deliveryAllowed(command.eventType)) {
                 NotificationPresenter.cancel(this, command.eventId)
                 return
             }
@@ -186,7 +186,7 @@ class NtfySubscriberService : Service() {
     }
 
     private suspend fun displayNotification(command: PushCommand.Fetch) {
-        if (!PushRegistrationStore(this).communicationAllowed()) {
+        if (!PushRegistrationStore(this).deliveryAllowed(command.eventType)) {
             NotificationPresenter.cancel(this, command.eventId)
             return
         }

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="push_announcements_body">एक नई घोषणा आई है। ऐप में पढ़ने के लिए यहाँ टैप करें।</string>
+    <string name="release_note_announcement_push">महत्वपूर्ण घोषणाएँ अब अलग सूचना श्रेणी में आती हैं। घोषणाओं की सूची खोलने के लिए टैप करें।</string>
+    <string name="release_note_home_notice_read">घोषणाएँ और आज के कार्यक्रम अलग रहते हैं। होम स्क्रीन से घोषणा हटाने के लिए “पढ़ा गया” टैप करें; उसे घंटी के नीचे फिर भी पढ़ सकते हैं।</string>
     <string name="help_and_guide">सहायता और निर्देश</string>
     <string name="help_open_failed">निर्देश नहीं खोले जा सके।</string>
     <string name="push_reliability_title">फोन पर ऐप की सेटिंग</string>

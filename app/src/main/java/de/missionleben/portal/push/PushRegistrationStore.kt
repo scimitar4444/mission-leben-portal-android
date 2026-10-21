@@ -50,6 +50,9 @@ class PushRegistrationStore(context: Context) {
             preferences.edit().putInt(KEY_QUIET_END_MINUTES, value).apply()
         }
 
+    fun deliveryAllowed(action: PushAction): Boolean =
+        action == PushAction.OPEN_ANNOUNCEMENTS || communicationAllowed()
+
     fun communicationAllowed(now: ZonedDateTime = ZonedDateTime.now()): Boolean =
         NotificationDeliveryPolicy.shouldDeliver(
             communicationEnabled = communicationNotificationsEnabled,
