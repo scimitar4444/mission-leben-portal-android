@@ -4,8 +4,8 @@
     <id>missionleben_announcements</id>
     <name>Mission Leben announcement bridge</name>
     <summary>Provides narrow, signed APIs for announcements and Talk notification routing.</summary>
-    <description>The Mission Leben communication bridge can read user-filtered announcements, resolve the enabled user IDs of a specific Talk room, and reconcile the dedicated notification bot for mobile-enabled users without receiving a general Nextcloud session.</description>
-    <version>0.3.3</version>
+    <description>The Mission Leben communication bridge can read user-filtered announcements and an encrypted fourteen-day archive, resolve the enabled user IDs of a specific Talk room, and reconcile the dedicated notification bot for mobile-enabled users without receiving a general Nextcloud session.</description>
+    <version>0.3.4</version>
     <licence>agpl</licence>
     <author>Mission Leben</author>
     <namespace>MissionLebenAnnouncements</namespace>

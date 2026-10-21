@@ -18,6 +18,14 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)
 class AppPreferencesPrivacyTest {
+    @Test fun fullAnnouncementHistoryCanRemainReadWithoutCrossAccountState() {
+        val preferences = AppPreferences(RuntimeEnvironment.getApplication())
+        (1L..600L).forEach { preferences.markAnnouncementRead("archive-person", it) }
+        assertEquals(600, preferences.readAnnouncementIds("archive-person").size)
+        assertTrue(preferences.readAnnouncementIds("other-person").isEmpty())
+        preferences.clearProfile()
+        assertTrue(preferences.readAnnouncementIds("archive-person").isEmpty())
+    }
     private fun boundPreferences(): AppPreferences = AppPreferences(RuntimeEnvironment.getApplication()).apply {
         deviceMode = DeviceMode.PERSONAL; enrollmentState = EnrollmentState.TRUSTED; deviceId = "device-example"
         rememberPersonalIdentity("subject-example", " person.example ")

@@ -582,9 +582,10 @@ internal fun HomeOverview(
     onToggleApplicationFavorite: (String) -> Unit = {},
 ) {
     val orderedApplications = ApplicationShortcuts.ordered(state.applications, state.favoriteApplicationSlugs)
-    val pendingAnnouncements = state.announcements.filter { it.id !in state.readAnnouncementIds }
+    val pendingAnnouncements = state.announcements.filter { it.id !in state.readAnnouncementIds &&
+        de.missionleben.portal.model.AnnouncementHistoryPolicy.isActive(it) }
     val newNotices = NoticeInboxPolicy.visible(state.noticeHistory, state.applications, state.mode).count { !it.read } +
-        state.announcements.count { it.id !in state.readAnnouncementIds }
+        pendingAnnouncements.size
     LazyColumn(
         modifier = Modifier.fillMaxSize().testTag("home-overview"),
         contentPadding = PaddingValues(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 20.dp),

@@ -202,6 +202,6 @@ class AppPreferences(context: Context) {
         const val KEY_SHARED_SESSION_SCREEN_TURNED_OFF = "shared_session_screen_turned_off"
         const val KEY_ALLOW_PERSONAL_SCREENSHOTS = "allow_personal_screenshots"
         const val KEY_ANNOUNCEMENTS_READ_PREFIX = "announcements_read_"
-        const val MAX_READ_ANNOUNCEMENTS = 100
+        const val MAX_READ_ANNOUNCEMENTS = 1000
     }
 }

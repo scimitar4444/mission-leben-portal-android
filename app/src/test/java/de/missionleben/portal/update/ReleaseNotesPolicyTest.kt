@@ -8,6 +8,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ReleaseNotesPolicyTest {
+    @Test fun announcementHistoryHasItsOwnUpgradeNote() {
+        assertEquals(listOf(R.string.release_note_announcement_history), ReleaseNotesCatalog.since(96, 97))
+    }
     @Test fun webSessionBugfixExplainsStorageAndLoginHintsWithoutRepeatingOldNotes() {
         val current = listOf(R.string.release_note_web_cookie_storage, R.string.release_note_clear_login_errors)
         assertEquals(current, ReleaseNotesCatalog.forVersion(95))

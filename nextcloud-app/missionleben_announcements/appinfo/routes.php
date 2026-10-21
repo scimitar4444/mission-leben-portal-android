@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'routes' => [
+        ['name' => 'announcementHistory#list', 'url' => '/api/v1/announcement-history', 'verb' => 'POST'],
         ['name' => 'announcementPush#catalog', 'url' => '/api/v1/announcement-push/catalog', 'verb' => 'POST'],
         ['name' => 'announcementPush#resolve', 'url' => '/api/v1/announcement-push/resolve', 'verb' => 'POST'],
         [

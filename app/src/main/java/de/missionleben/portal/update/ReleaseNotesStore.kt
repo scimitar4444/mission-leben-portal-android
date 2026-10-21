@@ -17,6 +17,7 @@ object ReleaseNotesPolicy {
 
 object ReleaseNotesCatalog {
     private val notesByVersion = sortedMapOf(
+        97 to listOf(R.string.release_note_announcement_history),
         76 to listOf(R.string.release_note_push_check, R.string.release_note_update_summary),
         77 to listOf(R.string.release_note_compact_settings),
         78 to listOf(R.string.release_note_personal_lock),

@@ -203,8 +203,21 @@ class HomeOverviewTest {
         assertEquals(7L, state.value.announcements.single().id) // Kept for the bell, not deleted.
     }
 
+    @Test fun expiredNoticeNeverReturnsToHomeOrReplacesAgenda() {
+        val now = System.currentTimeMillis() / 1000
+        val expired = state.value.announcements.single().copy(publishedAtEpochSeconds = now - 60,
+            expiresAtEpochSeconds = now - 1)
+        state.value = withToday().copy(announcements = listOf(expired), announcementHistory = listOf(expired))
+        show()
+        compose.onNodeWithTag("announcements-panel").assertDoesNotExist()
+        compose.onNodeWithTag("today-agenda").assertIsDisplayed()
+    }
+
     @Test fun readAnnouncementRemainsReadableInTheBell() {
-        state.value = state.value.copy(readAnnouncementIds = setOf(7L))
+        state.value = state.value.copy(readAnnouncementIds = setOf(7L),
+            announcementHistory = state.value.announcements.map {
+                it.copy(publishedAtEpochSeconds = System.currentTimeMillis() / 1000 - 60)
+            }, announcementHistoryLoaded = true)
         compose.setContent {
             MissionLebenTheme {
                 NoticeInboxScreen(state.value, onBack = {}, onRefresh = {}, onOpenNotice = {},

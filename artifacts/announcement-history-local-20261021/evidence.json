@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-21",
+  "status": "LOCALLY_IMPLEMENTED_BUILT_SIGNED_AND_TESTED_NOT_DEPLOYED_NO_OTA",
+  "branch": "fix/announcement-history-14d-0.23.3",
+  "baseCommit": "7370561",
+  "authorization": "User clarified: local home dismissal, expiry and explicit Nextcloud deletion must retain the notice in Notify for about two weeks",
+  "retention": "14 days after publication; old active posts remain live, but no fresh archive period begins on later deletion",
+  "versions": {"android": "0.23.3", "versionCode": 97, "bridge": "0.10.13", "bridgeSchemaUnchanged": 12, "nextcloudAdapter": "0.3.4"},
+  "apk": {
+    "name": "mission-leben-zentral-0.23.3-local.apk",
+    "sha256": "56a144861173d199e2f549dc6cb56686988b08cb616a178cc4b5e1cab73aa7a4",
+    "sizeBytes": 28024194,
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "signatureVerified": true,
+    "permissionsEqualPublic0232": true,
+    "installed": false,
+    "published": false
+  },
+  "tests": {
+    "androidDebug": {"tests": 415, "failures": 0, "errors": 0, "skipped": 0},
+    "androidRelease": {"tests": 383, "failures": 0, "errors": 0, "skipped": 0},
+    "releaseLint": {"errors": 0, "warnings": 130},
+    "bridgeFinalContainer": {"tests": 176, "result": "PASS", "python": "3.13.16", "cryptography": "47.0.0", "resourceWarnings": "Pre-existing ignored unclosed SQLite warnings in unrelated tests; no test failure"},
+    "phpPushContract": {"checks": 14, "result": "PASS"},
+    "phpHistoryDomainControllerMigration": {"checks": 29, "result": "PASS", "isolation": "Standalone CLI stubs, no Nextcloud bootstrap or production DB; real query execution and cryptographic implementation not claimed"},
+    "ui": "Synthetic deleted/expired text readable in native dialog; removing authorization data closes already open dialog; expired notice absent from home while agenda remains",
+    "liveMigration": "NOT_RUN",
+    "liveSignedHistoryRoute": "NOT_DEPLOYED_NOT_TESTED",
+    "physicalDevice": "NOT_INSTALLED_NO_USB_DEVICE_AVAILABLE",
+    "testHarnessCorrections": "JSON parser test moved into Robolectric; container fixture mounts corrected to retain repository-relative exporter/watchdog paths"
+  },
+  "container": {
+    "tag": "localhost/mission-leben-bridge:announcement-history-local-20261021",
+    "id": "1f9400db8cbef70147198996a5a6f6b7c7bf6a2ee22c8d67b1b307706b7d0c9d",
+    "deployed": false
+  },
+  "sourceHashes": {
+    "nextcloudArchiveService": "72061f1ef10f2ee913a0fdeaacf5adecb85fd3db0a82e2f9a4638a9203d8dda1",
+    "nextcloudHistoryController": "14ba06e57770c06c0fcdcf8e21628758143adcd97e81b13af3afbc7688893237",
+    "nextcloudOwnMigration": "e0029ccc09c1d1142cf1d6e80badbf1109b9f30426362d34ef28a0fbf103138b",
+    "bridgeService": "a6a62bfe96b4c60f37152faeca86e60e684a164a3d0e8de471d2dd044ceb5ad4",
+    "unrelatedBootstrapExcludedUnchanged": "1d2773f504e1cae6cfa30f9cdc14a27afb66e9f16ff1b6c5fbd24e9e313bb914"
+  },
+  "contract": {
+    "nextcloudPost": "/apps/missionleben_announcements/api/v1/announcement-history",
+    "bridgeGet": "/v1/announcements/history",
+    "ownTable": "ml_announcement_history",
+    "ownMigration": "Version000004Date20261021183000",
+    "payloadAndAudienceEncrypted": "Nextcloud ICrypto with existing config secret; no new secret/mount",
+    "currentAccountAndGroupsRechecked": true,
+    "deletedSourceUsesOriginalAudience": true,
+    "historySourceDeletionIsNotContentRevocation": "Explicitly requested new behavior, only for the archive; active push/detail endpoints still deny expired/deleted posts",
+    "historyStaleFallback": false,
+    "phoneContentAtRestAdded": false,
+    "authentikGroupsMfaFlowsTrustChanged": false,
+    "coreAnnouncementCenterPatched": false,
+    "catalogueNowWritesOnlyOwnedArchive": true,
+    "gc": "Read-time TTL plus physical prune on next running discovery tick",
+    "alreadyDeletedBeforeActivation": "Not reconstructable from this feature"
+  },
+  "rollback": "Prefer forward fix; old clients ignore added route. On complete adapter rollback, clean only the new owned archive table if cleanup worker is removed. Never restore stale whole DB or uninstall/downgrade Android silently.",
+  "handoff": {"authentikUpdate": "PENDING_LOCAL_DELTA", "nextcloudUpdate": "PENDING_LOCAL_DELTA"}
+}

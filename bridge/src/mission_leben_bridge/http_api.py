@@ -195,6 +195,10 @@ class BridgeRequestHandler(BaseHTTPRequestHandler):
                 self._json(200, self.server.service.announcements(self._bearer()))
                 return
 
+            if method == "GET" and path == "/v1/announcements/history":
+                self._json(200, self.server.service.announcement_history(self._bearer()))
+                return
+
             if method == "GET" and path == "/v1/calendar/snapshot":
                 self._json(200, self.server.service.calendar_snapshot(
                     device_id=self.headers.get("X-ML-Device-ID", ""),

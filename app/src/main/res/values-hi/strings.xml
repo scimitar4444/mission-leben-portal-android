@@ -358,7 +358,10 @@
     <string name="quiet_hours_all_apps">इस अवधि में तुम्हारे अधिकृत ऐप्स की सूचनाएँ नहीं दिखाई जाती हैं।</string>
     <string name="release_note_helpdesk_push">आपके टिकट पर आईटी के नए उत्तर अब अलग “आईटी सहायता” श्रेणी में सूचना दे सकते हैं। संबंधित टिकट खोलने के लिए टैप करें।</string>
     <string name="notice_inbox_title">मेरे लिए नया</string>
-    <string name="notice_inbox_description">हटाई गई सूचनाएँ यहाँ उपलब्ध रहती हैं। पुरानी सूचनाएँ संबंधित ऐप खोलती हैं।</string>
+    <string name="notice_inbox_description">घोषणाएँ प्रकाशन के बाद 14 दिनों तक पढ़ी जा सकती हैं, भले ही वे छिपाई गई हों, समाप्त हों या Nextcloud से हटाई गई हों। पुराने दस्तावेज़ और टिकट संदेश संबंधित ऐप खोलते हैं।</string>
+    <string name="announcement_archived">संग्रहीत</string>
+    <string name="announcement_history_unavailable">घोषणाओं का इतिहास अभी उपलब्ध नहीं है। कृपया फिर ताज़ा करें।</string>
+    <string name="release_note_announcement_history">घोषणाएँ प्रकाशन के बाद 14 दिनों तक घंटी के नीचे रहती हैं, समाप्त होने या Nextcloud से हटने पर भी। “पढ़ लिया” उन्हें केवल होम स्क्रीन से छिपाता है।</string>
     <string name="notice_inbox_empty">अभी कोई सूचना नहीं है। नए दस्तावेज़, घोषणाएँ और टिकट के उत्तर यहाँ दिखेंगे।</string>
     <string name="notice_mark_all_read">सभी को पढ़ा हुआ मानें</string>
     <string name="notice_new">नया</string>

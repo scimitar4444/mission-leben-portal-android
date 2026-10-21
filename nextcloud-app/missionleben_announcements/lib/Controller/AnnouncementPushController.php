@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\MissionLebenAnnouncements\Controller;
 
 use OCA\MissionLebenAnnouncements\Service\SignedRequestVerifier;
+use OCA\MissionLebenAnnouncements\Service\AnnouncementHistory;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -18,7 +19,7 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserManager;
 
-/** Read-only, bounded push discovery. Never accepts caller-supplied groups. */
+/** Bounded source discovery with an owned archive; never accepts caller-supplied groups. */
 #[OpenAPI(scope: OpenAPI::SCOPE_IGNORE)]
 class AnnouncementPushController extends Controller {
     private const ROOT = '/apps/missionleben_announcements/api/v1/announcement-push/';
@@ -26,6 +27,7 @@ class AnnouncementPushController extends Controller {
     public function __construct(string $appName, IRequest $request,
         private SignedRequestVerifier $signatureVerifier, private IDBConnection $db,
         private IGroupManager $groupManager, private IUserManager $userManager,
+        private AnnouncementHistory $history,
     ) {
         parent::__construct($appName, $request);
     }
@@ -36,6 +38,8 @@ class AnnouncementPushController extends Controller {
         if ($this->payload('catalog') !== []) {
             return new JSONResponse(['error' => 'invalid signed request'], Http::STATUS_UNAUTHORIZED);
         }
+        // Only this app's encrypted 14-day archive is written; source posts are untouched.
+        $this->history->synchronize();
         $query = $this->publishedQuery();
         $query->selectDistinct('a.announcement_id')->orderBy('a.announcement_id', 'ASC')->setMaxResults(501);
         $ids = array_map('intval', $query->executeQuery()->fetchFirstColumn());
