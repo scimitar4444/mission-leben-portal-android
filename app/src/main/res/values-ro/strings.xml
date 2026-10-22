@@ -401,4 +401,11 @@
     <string name="talk_voice_permission_settings">Schimbă permisiunea pe telefon</string>
     <string name="talk_voice_permission_settings_hint">Dacă nu apare solicitarea, poți schimba permisiunea microfonului în setările telefonului.</string>
     <string name="release_note_talk_voice_setup">Permite microfonul în asistentul de configurare sau Setări → Talk. Noul pas apare o singură dată.</string>
+    <string name="login_identifier_hint">Introdu doar numele de utilizator, de exemplu prenume.nume. Nu introduce adresa de e-mail sau @ la început.</string>
+    <string name="login_identifier_invalid">Introdu numele de utilizator fără domeniul de e-mail și fără @ la început. Verifică numele sugerat înainte de a-l folosi.</string>
+    <string name="login_identifier_use">Folosește acest nume de utilizator:</string>
+    <string name="login_identifier_denied_hint">Și un nume de utilizator greșit poate provoca acest mesaj. Folosește numele fără domeniul de e-mail sau @ la început și reia autentificarea. Dacă este deja corect, arată mesajul echipei IT. Nu șterge datele aplicației și nu înregistra telefonul din nou.</string>
+    <string name="login_identifier_denied_summary">Autentificarea nu a putut fi confirmată. Verifică numele de utilizator. Dacă este corect, echipa IT trebuie să verifice accesul.</string>
+    <string name="login_identifier_technical">Arată mesajul tehnic</string>
+    <string name="release_note_login_identifier">Ajutorul pentru autentificare explică domeniile e-mail sau @ la început. Poți alege să folosești numele de utilizator sugerat. Mesajele de eroare sunt mai clare.</string>
 </resources>

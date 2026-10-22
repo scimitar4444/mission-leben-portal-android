@@ -1,6 +1,6 @@
 {
   "date": "2026-10-22",
-  "status": "RECORDING_USER_CONFIRMED_LOCAL_ASSISTANT_PILOT_INSTALLED_PERMISSION_UI_ACCEPTANCE_PENDING_NOT_PUBLISHED",
+  "status": "LOCAL_PILOT_VOICE_AND_ASSISTANT_ACCEPTED_PUBLISHED_AS_0.24.0_CODE100",
   "authorization": "User requested a test build for Talk voice messages, not OTA or server changes",
   "branch": "feat/talk-voice-pilot-0.23.4",
   "sourceCommit": "a3fb6971bb7acfbd0f2a8dd7643401ff629674ae",
@@ -16,7 +16,7 @@
     "packageName": "de.missionleben.portal",
     "installed": true,
     "installedAtDeviceLocal": "2026-10-22 07:39:21",
-    "installation": "Same-signature adb install -r local pilot updates without uninstall; RECORD_AUDIO deliberately revoked for the new direct-consent UI test, human regrant pending; registration retained",
+    "installation": "Same-signature adb install -r local pilot updates without uninstall; RECORD_AUDIO deliberately revoked for direct-consent UI test and successfully regranted by the user in the new assistant; registration retained",
     "published": false
   },
   "tests": {
@@ -26,10 +26,10 @@
     "releaseLint": {"errors": 0, "warnings": 132, "newWarning": "One additional UseKtx style suggestion for Uri.parse in permission settings panel; no functional lint errors. Previous131 warnings retained"},
     "nodeTalkChatPolicy": "PASS existing overview/last-chat/room guards",
     "nodeTalkVoicePolicy": "PASS audio-only, iframe/background/foreign-path denial, cancel-before-track-stop, late stream cancellation, native resume and source wiring contracts",
-    "physicalDevice": "User confirmed routefix works; Android appops confirms a4.419-second real microphone use which ended. Assistant build installed; direct permission prompt/status and settings UI await human unlock",
+    "physicalDevice": "User confirmed recording, sending, playback, assistant direct-consent prompt and allowed status, X/Home cancellation and screen-off cancellation without removing already sent message; Android AppOps reports microphone use ended",
     "assistantPermissionUi": "New TALK_VOICE key offered only for signed-in Talk-visible users, independent of push/Zimbra and previous TALK step. Store regression confirms only new step appears once for existing completed users. Actual permission refreshed on ON_RESUME; denied requests provide own-package Android settings path",
-    "realAudioSendPlaybackAndLockStop": "NOT_VERIFIED; required before rollout",
-    "githubCiPrOta": "NOT_CREATED_OR_TRIGGERED; local branch only",
+    "realAudioSendPlaybackAndLockStop": "USER_CONFIRMED; appops finite stopped durations observed. Physical settings-page return and permanent denial not additionally claimed",
+    "githubCiPrOta": "Final0.24.0/100 published after PR17 and five green checks; see release-0.24.0-20261022/release-evidence.json",
     "initialBuildRepairs": "Kotlin lazy gate/launcher declarations given explicit types after recursive inference error; bundled Node path used because node is absent from shell PATH"
   },
   "permissionDelta": {
@@ -71,7 +71,7 @@
     "microphoneSettingsPanel": "72444f147ef1c58427c8ca66f4508ee0cdf6e84b4bbce27263aef0c415ab733b",
     "unrelatedBootstrapExcludedUnchanged": "1d2773f504e1cae6cfa30f9cdc14a27afb66e9f16ff1b6c5fbd24e9e313bb914"
   },
-  "currentPublicRelease": "0.23.3/98 unchanged",
+  "currentPublicRelease": "0.24.0/100, final APK differs from this local99; see release-0.24.0-20261022/release-evidence.json",
   "rollback": "Same-signature forward build above99 retaining data, no silent downgrade/uninstall, no server rollback needed",
   "firstPilot": {"sourceCommit": "efc222ea59b6458a8629afef5cd0bfdd97e6f55c", "apkSha256": "d01b4500f10c160113863063c176f07ada77920ed10ecccbc1c0b0c94c19e83b", "result": "Runtime consent granted, microphone denied; Chromium logged missing MODIFY_AUDIO_SETTINGS"},
   "audiofixAttempt": {"sourceCommit": "8c0a191", "apkSha256": "973ef500492d9f30150ce4d4a2bcea5951ee849e647613e0e70ecb7789f81ab8", "result": "Both permissions granted, missing-permission log gone, Talk denial persists. Diagnostic311367f reproduced samePage=false with all other native gates true on SPA room navigation"},

@@ -400,4 +400,11 @@
     <string name="talk_voice_permission_settings">फ़ोन पर अनुमति बदलें</string>
     <string name="talk_voice_permission_settings_hint">अगर अनुरोध नहीं दिखता है, तो फ़ोन की सेटिंग्स में माइक्रोफ़ोन की अनुमति बदल सकते हैं।</string>
     <string name="release_note_talk_voice_setup">सेटअप सहायक या सेटिंग्स → Talk में माइक्रोफ़ोन की अनुमति दें। नया सेटअप चरण एक बार दिखेगा।</string>
+    <string name="login_identifier_hint">केवल अपना उपयोगकर्ता नाम लिखें, जैसे firstname.lastname। ईमेल पता या शुरुआत में @ न लिखें।</string>
+    <string name="login_identifier_invalid">ईमेल के डोमेन या शुरुआत में @ के बिना उपयोगकर्ता नाम लिखें। सुझाया गया नाम इस्तेमाल करने से पहले जाँचें।</string>
+    <string name="login_identifier_use">इस उपयोगकर्ता नाम का उपयोग करें:</string>
+    <string name="login_identifier_denied_hint">गलत उपयोगकर्ता नाम से भी यह संदेश आ सकता है। ईमेल के डोमेन या शुरुआत में @ के बिना नाम लिखकर फिर से लॉगिन करें। नाम सही है तो यह संदेश IT को दिखाएँ। ऐप का डेटा न मिटाएँ और फोन को दोबारा पंजीकृत न करें।</string>
+    <string name="login_identifier_denied_summary">लॉगिन की पुष्टि नहीं हो सकी। अपना उपयोगकर्ता नाम जाँचें। सही होने पर IT को आपकी अनुमति जाँचनी होगी।</string>
+    <string name="login_identifier_technical">तकनीकी संदेश दिखाएँ</string>
+    <string name="release_note_login_identifier">लॉगिन की मदद में ईमेल के डोमेन या शुरुआत के @ को समझाया जाता है। सुझाए गए उपयोगकर्ता नाम को तुम स्वयं चुन सकते हो। त्रुटि संदेश अब अधिक स्पष्ट हैं।</string>
 </resources>

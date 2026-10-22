@@ -15,12 +15,12 @@ Du siehst nur Anwendungen und Einstellungen, die für deinen Zugang freigegeben 
 Oben findest du drei Symbole:
 
 - **Kontaktbuch:** Dienstliche Kontakte suchen, anrufen oder anschreiben.
-- **Glocke:** Unter **Neu für mich** findest du Ankündigungen, neue Dokumente und Ticketantworten.
+- **Glocke:** Unter **Neu für mich** findest du Meldungen der letzten **14 Tage**: Ankündigungen, neue Dokumente und Ticketantworten.
 - **Zahnrad:** Einstellungen, Einrichtungsassistent und diese Hilfe.
 
 ![Symbole oben auf der Startseite](.attachments.95685099/app-hilfe-symbole.png)
 
-**Wartungsmeldung lesen:** Öffne die Mitteilung auf der Startseite. Nach dem Lesen kannst du sie zusammenklappen und später wieder öffnen. Sie erklärt zum Beispiel, warum eine Anwendung gerade nicht erreichbar ist.
+**Wartungsmeldung lesen:** Öffne die Mitteilung auf der Startseite. Sie erklärt zum Beispiel, warum eine Anwendung gerade nicht erreichbar ist. Mit **Gelesen** blendest du sie auf der Startseite aus. Unter der **Glocke** kannst du sie weiter nachlesen. Deine heutigen Termine bleiben davon getrennt sichtbar.
 
 ## Nachrichten
 
@@ -40,7 +40,17 @@ Auf dem Sperrbildschirm bleiben Inhalte verborgen. Gemeinsame Tablets zeigen kei
 
 **Ton und Hinweise einstellen:** Öffne **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy → Benachrichtigungen einstellen**. Das gilt nur für **Mission Leben Zentral** und die Kategorien darin, zum Beispiel Mail, Talk, Termine oder IT Hilfe – nicht für andere Apps auf deinem Handy.
 
-**Einen weggewischten Hinweis wiederfinden:** Öffne die **Glocke → Neu für mich**. Dokument- und Tickethinweise bleiben dort bis zu 14 Tage auffindbar, auch wenn du sie bei Android weggewischt hast. Tippe auf einen Eintrag oder auf **Alle als gelesen markieren**. Mails und Talk-Nachrichten findest du weiterhin direkt in Zimbra beziehungsweise Talk; die Glocke ist kein vollständiges Nachrichtenarchiv.
+### Glocke: Meldungen für 14 Tage
+
+Tippe oben auf das **Glockensymbol → Neu für mich**. Dort findest du Ankündigungen sowie Hinweise auf neue Dokumente und Ticketantworten – auch bereits gelesene Meldungen.
+
+- **Bei Android weggewischt?** Der Hinweis bleibt unter der Glocke auffindbar.
+- **Auf der Startseite als gelesen ausgeblendet?** Die Ankündigung bleibt unter der Glocke lesbar.
+- **Ankündigung abgelaufen oder in Nextcloud gelöscht?** Eine bereits empfangene Ankündigung bleibt dort bis **14 Tage nach ihrer Veröffentlichung** lesbar.
+
+Tippe auf einen Eintrag, um ihn zu öffnen. **Alle als gelesen markieren** entfernt die Einträge nicht. Dokument- und Tickethinweise bleiben ebenfalls bis zu **14 Tage** auffindbar.
+
+**Wichtig:** Die Glocke ist kein vollständiges Mail-, Chat- oder Dateiarchiv. Mails und Talk-Nachrichten liest du in Zimbra beziehungsweise Talk. Ein Dokumenthinweis bewahrt nicht die Datei selbst auf.
 
 ## Kalender
 
@@ -73,6 +83,19 @@ Es werden dienstliche Telefonnummern angezeigt, keine privaten. Mit dem **Stern*
 ## Talk
 
 **Alle Chats beim Öffnen sehen:** Öffne **Einstellungen → Talk** und wähle **Chatübersicht**. Mit **Letzter Chat** startest du stattdessen im zuletzt geöffneten Gespräch. Eine Nachrichtenbenachrichtigung öffnet unabhängig davon den passenden Chat.
+
+### Sprachnachrichten aufnehmen und senden
+
+Statt zu tippen kannst du eine kurze Nachricht einsprechen:
+
+1. Erlaube das Mikrofon im **Einrichtungsassistenten → Sprachnachrichten** oder unter **Einstellungen → Talk → Mikrofon erlauben**. Bestätige die Android-Abfrage. Danach steht dort **Mikrofon: erlaubt**.
+2. Öffne **Talk** und den gewünschten Chat. Tippe auf das **Mikrofon** und sprich deine Nachricht ein.
+3. Tippe auf den **Haken**, um die Aufnahme zu beenden und **sofort zu senden**. Mit **X** verwirfst du sie, ohne etwas zu senden.
+4. Mit der **Wiedergabetaste** an der gesendeten Nachricht kannst du sie anhören.
+
+**Noch nicht gesendet?** Wenn du die App verlässt oder den Bildschirm ausschaltest, wird die laufende Aufnahme verworfen. Bereits gesendete Nachrichten bleiben im Chat.
+
+Die Mikrofonfreigabe ist freiwillig und wird nur bei freigegebenem Talk angeboten. Ohne Freigabe kannst du weiterhin Textnachrichten schreiben. Erscheint keine Android-Abfrage mehr, öffne dort **Freigabe am Handy ändern** und erlaube das Mikrofon in den Handy-Einstellungen.
 
 ## Dokumente
 

@@ -94,6 +94,36 @@ Nach Ablauf der 90 Tage verwirft die App Token, Tresor und Webdaten, behält abe
 
 ## 4. WebView-Betrieb
 
+### Appseitige Hilfe für Anmeldenamen (lokal vorbereitet am 22.10.2026)
+
+`LoginIdentifierPolicy` ergänzt ausschließlich die beiden Android-Flows auf
+dem konfigurierten HTTPS-Authentik-Origin im Hauptfenster. Im Shadow-DOM der
+Identification Stage wird nur das Textfeld `uidField` unterstützt; Passwort,
+TOTP und die versteckten Passwortmanager-Hilfsfelder werden nicht gelesen.
+Leerzeichen am Rand werden vor dem bewussten Absenden entfernt. Eingaben mit
+`@` werden lokal erklärt und vor dem Absenden gestoppt. Ein einzelnes führendes
+`@` oder die vollständigen Firmen-Domänen `mission-leben.de` und
+`akademie-mission-leben.de` können einen sichtbaren, ausdrücklich zu
+übernehmenden Schreibvorschlag erzeugen. Das ist keine bestätigte Zuordnung
+einer E-Mail-Adresse zum Konto. Fremde Domains, mehrfache `@` und andere
+mehrdeutige Eingaben werden nicht automatisch umgeschrieben.
+
+Einfache Namen und Zahlencodes bleiben unverändert: Nur Authentik kann
+entscheiden, ob ein Konto existiert und zugelassen ist. Die bekannte pauschale
+Android-Deny-Meldung wird rein optisch als nicht bestätigte Anmeldung mit
+Prüfung von Anmeldename oder Freigabe erklärt; der originale Text bleibt unter
+„Technische Meldung anzeigen“ erhalten. Andere spezifische Serverfehler und
+Abbruch-/Zurück-Knöpfe bleiben unverändert. Kein automatischer Login, keine
+Kontosuche, keine Speicherung oder Protokollierung der Eingaben, kein neuer
+API-Aufruf und keine Änderung an Flows, MFA, Endpoint-Prüfung oder Gruppen.
+Die Prüfung gilt auch vor Observer-Cleanup bei einem dynamischen Feldwechsel.
+Die neuen Texte sind in allen neun App-Sprachen vorhanden.
+
+Node-DOM-Vertrag: `scripts/test_login_identifier.mjs`; Kotlin-Vertrag:
+`LoginIdentifierPolicyTest`. Die CI führt beide mit aus. Vor Veröffentlichung
+bleibt der echte Android-WebView-/Bedientest nötig; dieser lokale Stand ist
+noch kein OTA-Release und keine serverseitige Fehlerbehandlung.
+
 Der Browsermotor ist Android System WebView und wird nicht in die APK eingebettet. Für verwaltete Geräte muss die Geräteverwaltung automatische Play-System-/WebView-Updates erzwingen und Geräte ohne aktiven WebView-Anbieter sperren. Die App verweigert den Start des Containers, wenn Android keinen Anbieter meldet.
 
 Top-Level-Navigationen innerhalb der App werden auf HTTPS und die Build-Einstellung `ML_WEB_ALLOWED_HOST_SUFFIXES` beschränkt. Standard sind `mission-leben.de` und `akademie-mission-leben.de`; weitere intern kontrollierte Domain-Endungen werden kommasepariert ergänzt. Fremde HTTPS-, `mailto:`- und `tel:`-Links öffnen außerhalb des Containers.

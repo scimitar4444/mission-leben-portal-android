@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-22",
+  "status": "LOCAL_IMPLEMENTED_TESTED_AND_INSTALLED_ON_ONE_PILOT_NO_OTA_AT_PILOT_TIME",
+  "branch": "fix/android-login-name-hints",
+  "scope": "Android WebView username assistance; no server/flow/group changes",
+  "files": [
+    "app/src/main/java/de/missionleben/portal/web/LoginIdentifierPolicy.kt",
+    "app/src/main/java/de/missionleben/portal/web/PortalBrowserActivity.kt",
+    "app/src/test/java/de/missionleben/portal/web/LoginIdentifierPolicyTest.kt",
+    "scripts/test_login_identifier.mjs",
+    ".github/workflows/android.yml",
+    "app/src/main/res/values*/strings.xml",
+    "docs/AUTHENTIK_SETUP.md"
+  ],
+  "sourceSha256": "c5d66b036e5b186180303c6a108ebdebc1cbed850d36eb221d395c7bc69eb407",
+  "contractTestSha256": "5fa47593796e6d879cf8c76bbaf34ad4f487922b988605b9e94cedafb5d5b188",
+  "debugApkSha256": "1aed28ee9aba81d53a0383915ab8cc1ff128c132bb0848c2cca78ce7b4f99107",
+  "build": "0.24.0-debug / 100; parallel debug application ID; not a new production release",
+  "behavior": [
+    "Only exact configured HTTPS origin, top frame and Android authentication/authorization flow paths",
+    "Only identification stage text input named uidField; never password, OTP or hidden password-manager fields",
+    "Whitespace trimming before manual submission only",
+    "At-sign inputs are blocked locally with instructions",
+    "Single leading at-sign or exact company domain can offer a user-confirmed spelling suggestion, not a verified email alias mapping",
+    "Foreign or malformed domains/multiple at-signs do not get guessed suggestions",
+    "Arbitrary single-word names and numeric IDs pass unchanged to Authentik; existence/authorization is server-only",
+    "Only exact known generic deny message is visually reworded; original is available under technical details",
+    "Specific refusals, original navigation, Endpoint/MFA/account checks and no automatic sign-in remain unchanged",
+    "No network requests, logs or persistent identifier storage"
+  ],
+  "tests": {
+    "debugUnit": {
+      "tests": 438,
+      "failures": 0,
+      "errors": 0
+    },
+    "releaseUnit": {
+      "tests": 406,
+      "failures": 0,
+      "errors": 0
+    },
+    "lintDebug": {
+      "errors": 0,
+      "warnings": 131
+    },
+    "debugBuild": "passed",
+    "node": [
+      "login identifier DOM contract",
+      "password visibility regression",
+      "Talk voice regression",
+      "Talk chat regression",
+      "app help layout regression"
+    ],
+    "gitDiffCheck": "passed",
+    "translations": "all 9 app locales"
+  },
+  "knownIntermediateFailure": "Initial lint found six untranslated labels; all eight non-default locale resources were added and the complete build/tests/lint were rerun successfully.",
+  "productionChanges": [],
+  "physicalDevice": "Follow-up: signed 0.24.1-local/101 installed preserving data, real Android WebView input-only DOM checks passed after human biometric unlock. See device-pilot-evidence.json; no real credential submission or revoked-device test claimed.",
+  "preservedUnrelatedDirtyFile": {
+    "path": "authentik/bootstrap_endpoint_devices.py",
+    "sha256": "1d2773f504e1cae6cfa30f9cdc14a27afb66e9f16ff1b6c5fbd24e9e313bb914"
+  },
+  "remaining": [
+    "Human keyboard/paste/Autofill and visual layout acceptance beyond programmatic checks on the real Android WebView",
+    "Correct username must still reach normal password/TOTP steps",
+    "Genuine mismatched, disabled or revoked device must remain denied",
+    "Human approval before a production OTA"
+  ],
+  "rollback": "Revert only this change's own source commit; no data/schema/server state needs rollback. Do not reset unrelated working-tree changes.",
+  "updateChecklist": [
+    "Identification stage remains username-only; if the Flow task enables email aliases, review this client-side rule before rollout",
+    "Check Authentik custom element names and uidField/form shadow-DOM contracts after updates",
+    "Read generic denial text exactly and preserve original/specific denial semantics"
+  ],
+  "primarySources": [
+    "https://raw.githubusercontent.com/goauthentik/authentik/version/2026.8.4/web/src/flow/stages/identification/IdentificationStage.ts",
+    "https://raw.githubusercontent.com/goauthentik/authentik/version/2026.8.4/web/src/flow/stages/access_denied/AccessDeniedStage.ts"
+  ]
+}

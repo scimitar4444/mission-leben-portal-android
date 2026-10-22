@@ -58,7 +58,18 @@ Nutzt du zwei Handys, richte Schnellzugang, Benachrichtigungen und Akku-Einstell
 - Erlaube Android-Benachrichtigungen, wenn du Hinweise zu neuen E-Mails, Talk-Nachrichten und Terminen erhalten möchtest. In den Einstellungen wählst du, wie viel Text zu sehen ist, wann Termine erinnert werden und ob eine Ruhezeit gelten soll.
 - Unter **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy** öffnet **Benachrichtigungen einstellen** die Auswahl für Ton und Hinweise. Sie gilt nur für Mission Leben Zentral, nicht für andere Handy-Apps.
 - Prüfe dort auch die Akku-Ausnahme. **Akku-Einstellungen öffnen** hilft dir, den Hintergrundbetrieb zu erlauben. Manche Handys beenden Apps im Hintergrund besonders streng; dann können Hinweise verspätet oder gar nicht ankommen.
-- Wichtige IT-Mitteilungen stehen auf der Startseite. Ist eine Nachricht gelesen, kannst du sie klein zusammenklappen und später wieder öffnen.
+- Wichtige IT-Mitteilungen stehen auf der Startseite. Mit **Gelesen** blendest du sie dort aus.
+- Über das **Glockensymbol → Neu für mich** findest du Ankündigungen, Dokument- und Tickethinweise bis zu **14 Tage** wieder – auch nach dem Lesen oder Wegwischen der Android-Meldung. Bereits empfangene Ankündigungen bleiben dort bis 14 Tage nach Veröffentlichung lesbar, selbst wenn sie ablaufen oder in Nextcloud gelöscht werden. [Mehr zur Glocke](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099#h-glocke-meldungen-fur-14-tage).
+
+### Sprachnachrichten in Talk
+
+Wenn Talk für dich freigegeben ist, kannst du auch sprechen statt tippen:
+
+1. Wähle im **Einrichtungsassistenten → Sprachnachrichten** oder unter **Einstellungen → Talk** den Knopf **Mikrofon erlauben**. Bestätige die Android-Abfrage.
+2. Öffne einen Chat und tippe auf das **Mikrofon**.
+3. **Haken: sofort senden. X: verwerfen.** Mit der Wiedergabetaste hörst du eine gesendete Nachricht an.
+
+Verlässt du die App oder schaltest den Bildschirm aus, wird nur die **noch nicht gesendete Aufnahme** verworfen. Gesendete Nachrichten bleiben erhalten. Ohne Mikrofonfreigabe kannst du weiter Text schreiben. [Zur Talk-Hilfe](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099#h-sprachnachrichten-aufnehmen-und-senden).
 
 ## 5. Zimbra-Termine im Handy-Kalender anzeigen
 

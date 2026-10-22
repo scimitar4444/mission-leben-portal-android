@@ -400,4 +400,11 @@
     <string name="talk_voice_permission_settings">Modifier cette autorisation sur le téléphone</string>
     <string name="talk_voice_permission_settings_hint">Si aucune demande ne paraît, modifie cette autorisation dans les paramètres du téléphone.</string>
     <string name="release_note_talk_voice_setup">Autorise le microphone dans l’assistant de configuration ou Paramètres → Talk. La nouvelle étape apparaît une seule fois.</string>
+    <string name="login_identifier_hint">Saisis uniquement ton identifiant, par exemple prenom.nom. Pas d’adresse e-mail ni de @ au début.</string>
+    <string name="login_identifier_invalid">Saisis ton identifiant sans domaine e-mail ni @ au début. Vérifie le nom proposé avant de l’utiliser.</string>
+    <string name="login_identifier_use">Utiliser cet identifiant :</string>
+    <string name="login_identifier_denied_hint">Un identifiant incorrect peut aussi provoquer ce message. Utilise le nom sans domaine e-mail ni @ au début, puis recommence la connexion. S’il est déjà correct, montre ce message au service informatique. N’efface pas les données de l’application et ne réenregistre pas le téléphone.</string>
+    <string name="login_identifier_denied_summary">La connexion n’a pas pu être confirmée. Vérifie ton identifiant. S’il est correct, le service informatique doit vérifier ton accès.</string>
+    <string name="login_identifier_technical">Afficher le message technique</string>
+    <string name="release_note_login_identifier">L’aide à la connexion explique les domaines e-mail ou le @ initial. Tu peux choisir d’utiliser l’identifiant proposé. Les messages d’erreur sont plus clairs.</string>
 </resources>

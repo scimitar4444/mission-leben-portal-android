@@ -136,6 +136,12 @@ class PortalBrowserActivity : FragmentActivity() {
             getString(R.string.password_step_hint),
         )
     }
+    private val loginIdentifierScript by lazy {
+        LoginIdentifierPolicy.script(BuildConfig.AUTHENTIK_BASE_URL,
+            getString(R.string.login_identifier_hint), getString(R.string.login_identifier_invalid),
+            getString(R.string.login_identifier_use), getString(R.string.login_identifier_denied_hint),
+            getString(R.string.login_identifier_denied_summary), getString(R.string.login_identifier_technical))
+    }
     private val deviceMode by lazy {
         intent.getStringExtra(EXTRA_DEVICE_MODE)?.let { value ->
             runCatching { DeviceMode.valueOf(value) }.getOrNull()
@@ -491,6 +497,7 @@ class PortalBrowserActivity : FragmentActivity() {
         webView.setDownloadListener(SecureDownloadListener())
         installEndpointChallengeBridge()
         installPasswordVisibility()
+        installLoginIdentifierHelp()
         installTalkChatGuard()
         installAnnouncementCenterGuard()
         installAppHelpLayout()
@@ -518,6 +525,12 @@ class PortalBrowserActivity : FragmentActivity() {
     private fun installPasswordVisibility() {
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
         val script = passwordVisibilityScript ?: return
+        WebViewCompat.addDocumentStartJavaScript(webView, script, setOf(authentikOrigin))
+    }
+
+    private fun installLoginIdentifierHelp() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        val script = loginIdentifierScript ?: return
         WebViewCompat.addDocumentStartJavaScript(webView, script, setOf(authentikOrigin))
     }
 
@@ -682,6 +695,7 @@ class PortalBrowserActivity : FragmentActivity() {
                 view.evaluateJavascript(ENDPOINT_BRIDGE_SCRIPT, null)
                 // Idempotent fallback for providers without document-start script support.
                 passwordVisibilityScript?.let { view.evaluateJavascript(it, null) }
+                loginIdentifierScript?.let { view.evaluateJavascript(it, null) }
             }
             if (TalkChatPolicy.isTalkPage(url)) {
                 // Fallback for providers without document-start script support and defense in depth

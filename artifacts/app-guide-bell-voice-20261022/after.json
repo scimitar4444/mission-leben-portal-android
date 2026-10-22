@@ -1,0 +1,259 @@
+{
+  "textApi": "context-file",
+  "pages": [
+    {
+      "id": 94019508,
+      "path": "Readme.md",
+      "content": "**Mission Leben Zentral** ist der zentrale Zugang zu den für dich freigeschalteten Anwendungen von Mission Leben.\n\nWähle die passende Anleitung:\n\n## Webportal im Browser\n\nFür die Nutzung am Computer oder direkt im Browser.\n\n[Zur Anleitung: Webportal im Browser →](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Webportal-im-Browser-95685097)\n\n## Android-App\n\nFür persönliche Android-Handys und gemeinsam genutzte Tablets – mit Installation, Registrierung und Bedienung.\n\n**Vor der App-Nutzung:** Auf persönlichen und gebundenen Diensthandys muss für den Schnellzugang eine sichere Bildschirmsperre mit PIN, Passwort oder Muster eingerichtet sein. Ohne nutzbare sichere Bildschirmsperre musst du bei jeder neuen App-Sitzung dein Passwort erneut eingeben. Das betrifft die Android-App, nicht die normale Anmeldung im Browser. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler.\n\n[Zu den Anleitungen der Android-App →](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099)\n\n**Wichtig:** Verwende nur deinen eigenen Zugang oder ein für deine Einrichtung ausdrücklich freigegebenes Gruppenkonto. Bestätige keine Anmeldeanfrage, die du nicht selbst ausgelöst hast.",
+      "sha256": "f0b92ce1a7afd36650d121332408be7cbbbc97e10e4d9427c52debe9fb660b4b",
+      "unsavedTextChanges": false
+    },
+    {
+      "id": 95685097,
+      "path": "Webportal im Browser.md",
+      "content": "**Stand: September 2026**\n\nÜber das Webportal öffnest du die für dich freigeschalteten Anwendungen an einem Computer oder in einem Browser.\n\n## Webportal öffnen und anmelden\n\n1. Öffne [**id.mission-leben.de**](https://id.mission-leben.de).\n2. Prüfe vor der Eingabe deiner Zugangsdaten, ob in der Adresszeile wirklich **id.mission-leben.de** steht.\n3. Melde dich mit deinen persönlichen Mission-Leben-Zugangsdaten an.\n4. Wenn ein zweiter Sicherheitsnachweis verlangt wird und dein persönliches Handy bereits eingerichtet ist: Wähle Duo. Öffne Mission Leben Zentral auf deinem Handy, entsperre die App und tippe auf „Bestätigen“. Wird Duo nicht angeboten, nutze dein bisheriges Verfahren.\n\n**Für den Schnellzugang auf deinem Handy:** Richte eine sichere Bildschirmsperre mit PIN, Passwort oder Muster ein. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler. Ohne nutzbare sichere Bildschirmsperre musst du dich in der App bei jeder neuen Sitzung wieder mit deinem Passwort anmelden, zum Beispiel nach Bildschirm-Aus oder einer längeren Pause. Die Browser-Anmeldung wird dadurch nicht verändert.\n\n**Wichtig:** Bestätige keine Anmeldeanfrage, die du nicht selbst ausgelöst hast.\n\n## Anwendungen öffnen\n\n- Jede Kachel steht für eine freigeschaltete Anwendung.\n- Welche Kacheln du siehst, hängt von deinen persönlichen Berechtigungen ab.\n- Über das Suchfeld kannst du eine Anwendung schnell finden.\n- Über das Listensymbol wechselst du zwischen Kachel- und Listenansicht.\n\nWenn du eine Anwendung direkt aufrufst, kann sie dich zuerst zu Mission Leben Zentral weiterleiten. Nach der Anmeldung gelangst du automatisch zurück.\n\n## Persönliche Einstellungen\n\nKlicke oben rechts auf das Zahnrad. Unter **Benutzerdetails** findest du deine persönlichen Einstellungen. Ändere nur Angaben, die du sicher kennst.\n\n## Sicher abmelden\n\n1. Klicke oben rechts auf dein Profilbild oder deine Initialen.\n2. Wähle **Abmelden**.\n3. Schließe danach das Browserfenster – besonders an gemeinsam genutzten Arbeitsplätzen.\n\n**Wichtig:** Nur das Browserfenster zu schließen beendet nicht immer alle aktiven Sitzungen.\n\n## Wenn etwas nicht funktioniert\n\n- **Anmeldung wird abgelehnt:** Prüfe Benutzername, Kennwort, Feststelltaste und Internetverbindung.\n- **Anwendung fehlt:** Möglicherweise fehlt die Berechtigung. Wende dich an deine Leitung oder die IT.\n- **Anwendung öffnet sich nicht:** Lade die Seite neu und melde dich gegebenenfalls erneut an.\n- **Kennwort vergessen:** Wende dich an die IT, wenn keine Wiederherstellung angeboten wird.\n\n## Bilder zur Orientierung\n\nOben siehst du die Anmeldung. Achte immer auf die Adresse **id.mission-leben.de**. Darunter folgt eine beispielhafte Anwendungsübersicht. Deine Kacheln hängen von deinen Berechtigungen ab.\n\n![11-web-anmeldung (4).png](.attachments.95685097/11-web-anmeldung%20%284%29.png)\n\n![12-web-anwendungsuebersicht (4).png](.attachments.95685097/12-web-anwendungsuebersicht%20%284%29.png)",
+      "sha256": "8527d4f12e2166c3e15f3f07f4c628d77c1bda0c61a7e97ebdbe7818792d6aa0",
+      "unsavedTextChanges": false
+    },
+    {
+      "id": 95685099,
+      "path": "Android-App/Readme.md",
+      "content": "Hier findest du Hilfe für **Mission Leben Zentral** auf deinem Handy oder Tablet. Tippe auf das Thema, bei dem du Unterstützung brauchst.\n\n[Startseite](#h-startseite) · [Nachrichten](#h-nachrichten) · [Kalender](#h-kalender) · [Kontakte](#h-kontakte) · [Talk](#h-talk) · [Dokumente](#h-dokumente) · [IT Hilfe](#h-it-hilfe) · [Einstellungen](#h-einstellungen) · [Anmeldung](#h-anmelden-und-abmelden) · [Updates](#h-updates) · [Probleme lösen](#h-wenn-etwas-nicht-klappt) · [Installation](#h-installation)\n\nDu siehst nur Anwendungen und Einstellungen, die für deinen Zugang freigegeben sind. Die Ansicht kann je nach App-Version abweichen. Auf einem gemeinsamen Tablet sind manche persönlichen Funktionen nicht verfügbar. Die kleinen Bedienbilder helfen dir beim Wiedererkennen; im dunklen Modus sehen die Farben anders aus.\n\n## Startseite\n\n**Eine Anwendung öffnen:** Tippe auf ihre Kachel, zum Beispiel **Zimbra**, **Talk**, **ML Dokumente** oder **IT Hilfe**. Innerhalb der Anwendung führt **‹ Portal** oben links wieder zur App-Startseite.\n\n**Eine Anwendung nach vorne holen:** Tippe auf den **Stern an ihrer Kachel**. Deine Lieblingsanwendungen stehen zuerst. Ein zweiter Tipp entfernt die Markierung.\n\n![Favorit mit dem Stern markieren](.attachments.95685099/app-hilfe-favorit.png)\n\nOben findest du drei Symbole:\n\n- **Kontaktbuch:** Dienstliche Kontakte suchen, anrufen oder anschreiben.\n- **Glocke:** Unter **Neu für mich** findest du Meldungen der letzten **14 Tage**: Ankündigungen, neue Dokumente und Ticketantworten.\n- **Zahnrad:** Einstellungen, Einrichtungsassistent und diese Hilfe.\n\n![Symbole oben auf der Startseite](.attachments.95685099/app-hilfe-symbole.png)\n\n**Wartungsmeldung lesen:** Öffne die Mitteilung auf der Startseite. Sie erklärt zum Beispiel, warum eine Anwendung gerade nicht erreichbar ist. Mit **Gelesen** blendest du sie auf der Startseite aus. Unter der **Glocke** kannst du sie weiter nachlesen. Deine heutigen Termine bleiben davon getrennt sichtbar.\n\n## Nachrichten\n\n**Eine Benachrichtigung öffnen:** Tippe auf den Android-Hinweis. Nach dem sicheren Entsperren öffnet die App die zugehörige Mail, den Chat, Termin oder die Ticketantwort. Beim Öffnen der jeweiligen Anwendung werden ihre Android-Hinweise und der App-Zähler zurückgesetzt. Dadurch werden nicht automatisch alle Mails oder Chats im jeweiligen Dienst als gelesen markiert.\n\n**Weniger Text anzeigen:** Öffne **Einstellungen → Benachrichtigungen** und wähle:\n\n- **Diskret:** Nur ein kurzer Hinweis ohne Inhaltsvorschau.\n- **Standard:** Bei Mails Absender und Betreff, bei Terminen Zeit und Ort; bei Talk eine kurze Vorschau.\n- **Ausführlich:** Zusätzlich eine kurze Mail-Vorschau beziehungsweise mehr Talk-Text.\n\n![Nachrichtenvorschau auswählen](.attachments.95685099/app-hilfe-nachrichten.png)\n\nAuf dem Sperrbildschirm bleiben Inhalte verborgen. Gemeinsame Tablets zeigen keine persönlichen Nachrichtendetails.\n\n**Nach Feierabend Ruhe haben:** Schalte dort **Ruhezeit** ein und wähle **Von** und **Bis**. Du kannst normale Benachrichtigungen auch ganz ausschalten. Systemmeldungen, Gerätesperren und Anmeldeanfragen bleiben ausgenommen; Android muss Benachrichtigungen aber grundsätzlich erlauben.\n\n**Ton und Hinweise einstellen:** Öffne **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy → Benachrichtigungen einstellen**. Das gilt nur für **Mission Leben Zentral** und die Kategorien darin, zum Beispiel Mail, Talk, Termine oder IT Hilfe – nicht für andere Apps auf deinem Handy.\n\n### Glocke: Meldungen für 14 Tage\n\nTippe oben auf das **Glockensymbol → Neu für mich**. Dort findest du Ankündigungen sowie Hinweise auf neue Dokumente und Ticketantworten – auch bereits gelesene Meldungen.\n\n- **Bei Android weggewischt?** Der Hinweis bleibt unter der Glocke auffindbar.\n- **Auf der Startseite als gelesen ausgeblendet?** Die Ankündigung bleibt unter der Glocke lesbar.\n- **Ankündigung abgelaufen oder in Nextcloud gelöscht?** Eine bereits empfangene Ankündigung bleibt dort bis **14 Tage nach ihrer Veröffentlichung** lesbar.\n\nTippe auf einen Eintrag, um ihn zu öffnen. **Alle als gelesen markieren** entfernt die Einträge nicht. Dokument- und Tickethinweise bleiben ebenfalls bis zu **14 Tage** auffindbar.\n\n**Wichtig:** Die Glocke ist kein vollständiges Mail-, Chat- oder Dateiarchiv. Mails und Talk-Nachrichten liest du in Zimbra beziehungsweise Talk. Ein Dokumenthinweis bewahrt nicht die Datei selbst auf.\n\n## Kalender\n\n**Heutige Termine ansehen:** Wenn Zimbra freigegeben ist und Termine anstehen, erscheint **Heute** auf der Startseite. Ein Tipp öffnet den passenden Kalendertag in Zimbra. Mit dem Pfeil klappst du weitere Termine auf.\n\n**Früher erinnert werden:** Öffne **Einstellungen → Benachrichtigungen → Terminerinnerung** und wähle die gewünschte Zeit vor Beginn. Das ist unabhängig vom Handy-Kalender.\n\n**Termine im Handy-Kalender anzeigen:** Nur für persönliche Mitarbeiterhandys mit Zimbra-Freigabe:\n\n1. Öffne **Einstellungen → Handy-Kalender** und schalte die Anzeige ein.\n2. Erlaube den Kalenderzugriff.\n3. Wähle **1 Tag**, **3 Tage**, **1 Woche** oder **2 Wochen**.\n4. Aktiviere in deiner Kalender-App bei Bedarf den Kalender **Mission Leben · Zimbra**.\n\n![Kalenderanzeige und Zeitraum](.attachments.95685099/app-hilfe-kalender.png)\n\n**Nur zur Anzeige:** Termine immer in der Zimbra-Web-App anlegen oder ändern. Änderungen im Handy-Kalender werden **niemals zu Zimbra übertragen**. Andere Kalender-Apps mit Kalenderberechtigung können diese Termine ebenfalls sehen. Beim Ausschalten des Abgleichs oder Abmelden entfernt die App ihren lokalen Kalender. Auf gemeinsamen Tablets und Gruppenkonto-Diensthandys gibt es diesen Abgleich nicht.\n\n**An einer Talk-Besprechung teilnehmen:** Tippe in Zimbra auf den Besprechungslink. Er öffnet bevorzugt die installierte Talk-App, sonst den Browser. Ist ein freigegebenes Konferenzgerät verbunden, kannst du gegebenenfalls das Zielgerät auswählen.\n\n## Kontakte\n\n1. Öffne das **Kontaktbuch** oben auf der Startseite.\n2. Suche nach Vorname, Nachname oder einem Namensteil.\n3. Wähle **Alle**, **Meine Einrichtung** oder unter **Häuser** einen Standort.\n4. Tippe auf eine Telefonnummer zum Anrufen oder auf die E-Mail-Adresse, um eine Mail in Zimbra zu beginnen. Dafür muss Zimbra freigegeben sein.\n\nEs werden dienstliche Telefonnummern angezeigt, keine privaten. Mit dem **Stern** merkst du dir häufig benötigte Kontakte. Sie erscheinen im passenden Standortfilter unter **Favoriten**. Auf gemeinsamen Tablets gelten die Favoriten nur für die aktuelle Anmeldung. Die Buchstaben rechts helfen beim schnellen Suchen.\n\n## Talk\n\n**Alle Chats beim Öffnen sehen:** Öffne **Einstellungen → Talk** und wähle **Chatübersicht**. Mit **Letzter Chat** startest du stattdessen im zuletzt geöffneten Gespräch. Eine Nachrichtenbenachrichtigung öffnet unabhängig davon den passenden Chat.\n\n### Sprachnachrichten aufnehmen und senden\n\nStatt zu tippen kannst du eine kurze Nachricht einsprechen:\n\n1. Erlaube das Mikrofon im **Einrichtungsassistenten → Sprachnachrichten** oder unter **Einstellungen → Talk → Mikrofon erlauben**. Bestätige die Android-Abfrage. Danach steht dort **Mikrofon: erlaubt**.\n2. Öffne **Talk** und den gewünschten Chat. Tippe auf das **Mikrofon** und sprich deine Nachricht ein.\n3. Tippe auf den **Haken**, um die Aufnahme zu beenden und **sofort zu senden**. Mit **X** verwirfst du sie, ohne etwas zu senden.\n4. Mit der **Wiedergabetaste** an der gesendeten Nachricht kannst du sie anhören.\n\n**Noch nicht gesendet?** Wenn du die App verlässt oder den Bildschirm ausschaltest, wird die laufende Aufnahme verworfen. Bereits gesendete Nachrichten bleiben im Chat.\n\nDie Mikrofonfreigabe ist freiwillig und wird nur bei freigegebenem Talk angeboten. Ohne Freigabe kannst du weiterhin Textnachrichten schreiben. Erscheint keine Android-Abfrage mehr, öffne dort **Freigabe am Handy ändern** und erlaube das Mikrofon in den Handy-Einstellungen.\n\n## Dokumente\n\n**Eine Datei finden:** Öffne **ML Dokumente** und wähle die Übersicht oder **Meine Dateien**. Das Symbol an der Datei zeigt ihren Typ, zum Beispiel PDF, Text oder Bild. Bilder kannst du in der Vorschau ansehen; PDFs öffnest du über den Download.\n\n**Eine heruntergeladene Datei öffnen:** Auf deinem persönlichen Mitarbeiterhandy findest du sie in der Handy-App **Dateien → Downloads**. Unter **Einstellungen → Dokumente → Downloads automatisch öffnen** kannst du einstellen, ob nach dem Download sofort ein passendes Programm geöffnet wird. Ohne passendes Programm bleibt die Datei in Downloads.\n\n**Wichtig:** Heruntergeladene Dateien liegen außerhalb des geschützten App-Bereichs und bleiben nach dem Abmelden auf dem Handy. Lösche sie bei Bedarf selbst. Dieser Export ist auf gemeinsamen Tablets und Gruppenkonto-Diensthandys nicht verfügbar.\n\n## IT Hilfe\n\n**Ein Problem melden:** Öffne die Kachel **IT Hilfe** und erstelle ein neues Ticket. Beschreibe kurz: Welche Anwendung? Was wolltest du tun? Welche Meldung erschien? Sende keine Passwörter oder TOTP-Codes mit.\n\n### Eine Fehlermeldung am PC fotografieren\n\n1. Lass die Fehlermeldung auf dem PC sichtbar. Öffne auf dem Handy **IT Hilfe** und ein neues Ticket.\n2. Tippe auf **Datei hochladen / Foto machen → Foto aufnehmen**. Fotografiere die Meldung und bestätige das Foto in der Kamera mit dem **Haken**.\n3. Prüfe die Vorschau und tippe auf **Als Anhang verwenden**.\n4. Ergänze einen kurzen Betreff und beschreibe das Problem. Tippe zum Absenden auf **Übermitteln**.\n\n**Wichtig:** Das Foto anzuhängen sendet das Ticket noch nicht ab. Vermeide Personen, vertrauliche Unterlagen, Passwörter und TOTP-Codes im Bild.\n\nMit **Verwerfen** entfernst du das Foto; mit **Noch mal aufnehmen** machst du ein neues. Über **Datei auswählen** kannst du stattdessen eine vorhandene Datei anhängen.\n\n**Direkt aus einer Anwendung:** Öffne in ihrer oberen App-Leiste das **Anwendungsmenü → Problem melden**. Anwendung und Betreff sind schon eingetragen. Ergänze dein Problem und sende das Ticket erst dann selbst ab.\n\n![Problem melden im Anwendungsmenü](.attachments.95685099/app-hilfe-problem-melden.png)\n\n**Eine Antwort ansehen:** Öffne **IT Hilfe → Meine Tickets** und wähle dein Ticket. Eine neue Antwort kann dich auch per Android-Hinweis erreichen und ist unter der Glocke auffindbar. Das ist keine Zusage für eine sofortige Bearbeitung.\n\n## Einstellungen\n\nTippe auf das **Zahnrad**. Öffne den gewünschten Bereich durch Antippen seiner Überschrift; so bleibt die Liste übersichtlich.\n\n- **Einrichtungsassistent:** Geht die passenden Einstellungen mit dir durch. Du kannst die Schritte direkt bearbeiten und später erneut aufrufen. Bei neuen Einrichtungsmöglichkeiten kann die App nur die neuen Schritte zeigen.\n- **Sprache:** Wähle die Telefonsprache oder eine Sprache nur für diese App.\n- **Geräteidentität:** Zeigt, ob dein Gerät bestätigt ist. Bei einer Sperre oder fehlender Freigabe frage die IT.\n- **Hilfe & Anleitung:** Öffnet diese Seite erneut.\n\n## Anmelden und abmelden\n\n**Persönliches Handy:** Für den gespeicherten Schnellzugang braucht dein Handy eine sichere **Bildschirmsperre mit PIN, Passwort oder Muster**. Geeigneter Fingerabdruck oder geeignete Gesichtserkennung kann dich entsperren. Ist die Gesichtserkennung nicht sicher genug, fragt Android nach dem **Gerätecode**, nicht nach deinem Mission-Leben-Passwort. Das ist kein Fehler.\n\nNach Bildschirm-Aus musst du die App wieder sicher entsperren. Ein kurzer App-Wechsel bei eingeschaltetem Bildschirm verlangt nicht jedes Mal Biometrie; nach einer längeren Pause schon. Ohne nutzbare sichere Bildschirmsperre musst du bei einer neuen App-Sitzung dein Passwort eingeben. Mit dem **Auge am Passwortfeld** zeigst du deine Eingabe kurz an und verdeckst sie wieder.\n\n**Anmeldung erneuern:** Tippe auf **Anmeldung erneuern** und folge der angezeigten Abfrage. Die langfristige Anmeldung muss spätestens nach 90 Tagen erneuert werden. Das bedeutet nicht, dass dein Konto gelöscht wurde.\n\n**Duo am Webportal:** Bei deinem persönlichen Mitarbeiterkonto wählst du **Duo**, wenn es als Sicherheitsverfahren angeboten wird. Öffne und entsperre Mission Leben Zentral auf deinem registrierten Handy und bestätige die eigene Anmeldeanfrage. Nicht selbst ausgelöst? **Ablehnen**. Gruppen- und gemeinsame Tablet-Konten werden nicht als Duo-Gerät für eine externe Anmeldung verwendet.\n\n**Gemeinsames Tablet verlassen:** Drücke kurz die Ein-/Aus-Taste, bis der Bildschirm dunkel ist. Die App meldet dich dadurch sofort ab. Nur Verkleinern reicht nicht. Alternativ beendest du die Sitzung in den Einstellungen. Persönliche Handys kannst du dort über **Abmelden** abmelden.\n\nScreenshots und Bildschirmaufnahmen geschützter App-Inhalte sind gesperrt. Bei Verlust informiere sofort die IT oder deine Leitung. Die IT kann den App-Zugang sperren; das ist kein Zurücksetzen des gesamten privaten Handys.\n\n## Updates\n\n1. Öffne **Einstellungen** und tippe unten auf **Nach Updates suchen** beziehungsweise auf das angebotene Update.\n2. Lade das Update über den angebotenen GitHub-Link und öffne den Download auf dem Handy.\n3. Lass einen angeforderten Android-Sicherheitsscan oder Google-Play-Protect-Scan durchlaufen und installiere das Update.\n\n**Der Scan ist normal:** Er kann bei jeder Installation und jedem Update erneut erscheinen. Der Scan allein ist weder ein Angriff noch ein App-Fehler. Bei einer ausdrücklichen Warnung vor einer schädlichen App, einem anderen App-Namen oder einem fehlgeschlagenen Scan: abbrechen und die IT fragen. Die App nicht vorher deinstallieren; bei einem normalen Update bleibt die Registrierung erhalten.\n\nTippe unten in den Einstellungen auf die **Versionsnummer**, um **Neu in dieser Version** erneut zu lesen.\n\n## Wenn etwas nicht klappt\n\n### Keine Benachrichtigungen\n\n1. Öffne **Einstellungen → Benachrichtigungen**. Prüfe, ob Hinweise eingeschaltet sind und gerade keine Ruhezeit gilt.\n2. Prüfe im Bereich **App-Einstellungen auf dem Handy**, ob Android Benachrichtigungen erlaubt und die **Akku-Ausnahme** aktiv ist.\n3. Tippe bei Bedarf auf **Akku-Einstellungen öffnen**. Erlaube Hintergrundbetrieb; schütze die App gegebenenfalls in **Letzte Apps** vor **Alle schließen**. Die Namen unterscheiden sich je nach Handy.\n\nDie Akku-Anzeige bestätigt die Freigaben, nicht eine dauerhafte Serververbindung. Bleibt das Problem bestehen, melde es über **IT Hilfe**.\n\n### Anwendung oder Einstellung fehlt\n\nSie wird nur angezeigt, wenn sie für dein Konto und Gerät freigegeben ist. Beispielsweise gibt es ohne Zimbra keinen Handy-Kalender und ohne Talk keine Talk-Auswahl. Frage deine Leitung oder die IT, wenn dir eine benötigte Anwendung fehlt.\n\n### Kontakte oder Kalender gerade nicht erreichbar\n\nPrüfe WLAN oder Mobilfunk und versuche es später erneut. Im Kontaktbuch kannst du **Erneut versuchen** wählen. Vorhandene Kalendertermine bleiben bei einem vorübergehenden Abgleichfehler zunächst sichtbar, können aber veraltet sein.\n\n### Gerät gesperrt oder Registrierung fehlgeschlagen\n\nInformiere die IT oder deine Leitung und nenne die genaue Meldung. Einen abgelaufenen 30-Minuten-Einrichtungslink muss der Einrichter neu erstellen. Lösche keine App-Daten und registriere das Gerät nicht wiederholt auf eigene Faust.\n\n## Installation\n\nWähle die passende bebilderte Anleitung:\n\n- [Persönliches Handy installieren und nutzen](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Personliches-Handy-95685102)\n- [Gemeinsames Tablet nutzen](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Gemeinsames-Tablet-95685139)\n- [Gerät einrichten für Leitungen und IT](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Gerat-einrichten-fur-Leitungen-und-IT-95685145)\n- [Einfache Installationsseite für Mitarbeitende mit vorhandenem TOTP](https://geraete.mission-leben.de/download)\n\nDu brauchst **Android 13 oder neuer**. Ein persönlicher Mitarbeiterzugang kann auf **bis zu zwei Handys** registriert sein; beim Gruppenkonto-Diensthandy bleibt es bei **einem Handy pro Konto**. Ein betreuter Einrichtungslink gilt **30 Minuten ab Erstellung**. Der reine Installationslink ohne Registrierungscode läuft nicht ab.",
+      "sha256": "922da34ddcd41a7cc2414e6fb19cfe4517383d927d61e45d522a0ab83d9dc581",
+      "unsavedTextChanges": false
+    },
+    {
+      "id": 95685102,
+      "path": "Android-App/Persönliches Handy.md",
+      "content": "Diese Anleitung ist für dein eigenes Android-Handy (Android 13 oder neuer).\n\nDu kannst deinen persönlichen Mitarbeiterzugang auf **bis zu zwei Handys gleichzeitig** nutzen, zum Beispiel auf deinem privaten und deinem dienstlichen Handy. Jedes Handy wird einzeln registriert.\n\n## Vor dem Start: Bildschirmsperre einrichten\n\nRichte auf deinem Handy eine sichere **Bildschirmsperre mit PIN, Passwort oder Muster** ein. Du findest sie in den Handy-Einstellungen unter **Sicherheit**, **Sicherheit und Datenschutz** oder **Sperrbildschirm**; der Name hängt vom Hersteller ab. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler.\n\n**Ohne nutzbare sichere Bildschirmsperre gibt es keinen gespeicherten Schnellzugang.** Du musst dann bei jeder neuen App-Sitzung dein Passwort erneut eingeben, zum Beispiel nach dem Ausschalten des Bildschirms oder einer längeren Pause. Ein kurzer App-Wechsel bei eingeschaltetem Bildschirm ist keine neue Sitzung.\n\n**Samsung:** Die „Automatische Sperre“ für die Installation ist etwas anderes. Schalte nur diesen Installationsschutz wie in der Anleitung beschrieben aus. Deine Bildschirmsperre mit PIN, Passwort oder Muster bleibt eingerichtet.\n\n## 1. App installieren\n\nÖffne den Einrichtungslink von deiner Leitung oder der IT **an einem PC**. Nutze dafür den Browser innerhalb von Citrix. Hast du bereits einen eigenen TOTP-Code, kannst du stattdessen die [Installationsseite ohne Registrierungscode](https://geraete.mission-leben.de/download) öffnen.\n\n1. Lies zuerst die Android- und gegebenenfalls Samsung-Hinweise auf der PC-Seite.\n2. Scanne den **ersten QR-Code** mit der normalen Handykamera. Er lädt die App von GitHub herunter. Öffne den Download auf dem Handy.\n3. Zeigt Android „App scannen“ oder Google Play Protect an, lass den Sicherheitsscan durchlaufen. Diese automatische Prüfung kann bei jeder Installation und jedem Update wieder erscheinen – auch wenn die App zuvor problemlos lief. Der Scan allein ist ein normaler Android-Prüfschritt, kein Angriff und kein Fehler der App. Installiere danach nur „Mission Leben Zentral“. Warnt Android ausdrücklich vor einer schädlichen App, stimmt der App-Name nicht oder schlägt der Scan fehl, brich ab und informiere die IT.\n4. Klicke erst danach am PC auf **App installiert**.\n\n## 2. Handy registrieren\n\n**Link von Leitung oder IT:** Scanne jetzt den **zweiten QR-Code** am PC. Er öffnet die installierte App und verbindet das Handy mit deinem vorbereiteten Zugang. Der Einrichtungslink gilt 30 Minuten ab Erstellung und nur für diese Registrierung.\n\n**Eigener TOTP-Code:** Auf der einfachen Installationsseite gibt es keinen zweiten QR-Code. Öffne die App über ihr Symbol und melde dich mit Benutzername, Passwort und deinem vorhandenen TOTP an. Die App führt dich durch die Registrierung. Dieser reine Installationslink läuft nicht ab.\n\n### Zweites Handy oder Handywechsel\n\n- **Ein Handy ist bereits verbunden:** Wähle **Zweites Handy hinzufügen**, wenn du beide behalten möchtest. Das erste Handy bleibt nutzbar.\n- **Du wechselst ein Handy:** Wähle **Ersetzen: …** und prüfe den angezeigten Gerätenamen.\n- **Zwei Handys sind bereits verbunden:** Ein drittes kommt nicht hinzu. Wähle gezielt das Handy, das ersetzt werden soll.\n\nBeim Einrichtungslink wählt deine Leitung oder die IT dies im Geräteportal. Bei der eigenen Registrierung wählst du es selbst. Ein ersetztes Handy wird erst deaktiviert, wenn die neue Registrierung erfolgreich ist. Das andere Handy bleibt verbunden.\n\n## 3. App nutzen\n\nWenn die Geräteidentität bestätigt ist, melde dich in der App an und richte den Schnellzugang mit geeignetem Fingerabdruck, geeigneter Gesichtserkennung oder Gerätecode ein. Danach öffnest du Zimbra, Talk und andere freigegebene Anwendungen über ihre Kacheln. Die App zeigt auch freigegebene Kontakte und Benachrichtigungen.\n\n**Passwort prüfen:** Tippe bei der Anmeldung in der App auf das **Auge neben dem Passwortfeld**, um deine Eingabe kurz zu sehen. Noch einmal tippen verdeckt sie wieder. Achte darauf, dass niemand mitliest.\n\nBei einer späteren Anmeldung am Webportal: Wähle auf der Seite mit den Sicherheitsverfahren „Duo“, wenn es angeboten wird. Andernfalls nutze dein bisheriges Verfahren. Bei Duo: Öffne Mission Leben Zentral auf deinem bereits registrierten Handy, entsperre die App und tippe bei deiner Anfrage auf „Bestätigen“. Hast du die Anmeldung nicht selbst gestartet, tippe auf „Ablehnen“.\n\nInstalliere angebotene Updates zeitnah. Wenn du das Handy verlierst oder wechselst, informiere sofort deine Leitung oder die IT. Bitte das Handy nicht einfach selbst zurücksetzen.\n\nSo sieht der erste QR-Code für den App-Download aus:\n\n![App-Download: vorbereiten, QR-Code scannen, App installiert wählen](.attachments.95685102/ml-portal-install-schritte.png)\n\n[Installationsbild größer öffnen](https://nextcloud.mission-leben.de/f/95686507)\n\n## 4. Hinweise einstellen\n\nBeim ersten Anmelden führt dich der Einrichtungsassistent durch die wichtigsten Einstellungen. Später findest du ihn unter **Einstellungen** wieder.\n\nNutzt du zwei Handys, richte Schnellzugang, Benachrichtigungen und Akku-Einstellungen **auf jedem Handy separat** ein.\n\n- Erlaube Android-Benachrichtigungen, wenn du Hinweise zu neuen E-Mails, Talk-Nachrichten und Terminen erhalten möchtest. In den Einstellungen wählst du, wie viel Text zu sehen ist, wann Termine erinnert werden und ob eine Ruhezeit gelten soll.\n- Unter **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy** öffnet **Benachrichtigungen einstellen** die Auswahl für Ton und Hinweise. Sie gilt nur für Mission Leben Zentral, nicht für andere Handy-Apps.\n- Prüfe dort auch die Akku-Ausnahme. **Akku-Einstellungen öffnen** hilft dir, den Hintergrundbetrieb zu erlauben. Manche Handys beenden Apps im Hintergrund besonders streng; dann können Hinweise verspätet oder gar nicht ankommen.\n- Wichtige IT-Mitteilungen stehen auf der Startseite. Mit **Gelesen** blendest du sie dort aus.\n- Über das **Glockensymbol → Neu für mich** findest du Ankündigungen, Dokument- und Tickethinweise bis zu **14 Tage** wieder – auch nach dem Lesen oder Wegwischen der Android-Meldung. Bereits empfangene Ankündigungen bleiben dort bis 14 Tage nach Veröffentlichung lesbar, selbst wenn sie ablaufen oder in Nextcloud gelöscht werden. [Mehr zur Glocke](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099#h-glocke-meldungen-fur-14-tage).\n\n### Sprachnachrichten in Talk\n\nWenn Talk für dich freigegeben ist, kannst du auch sprechen statt tippen:\n\n1. Wähle im **Einrichtungsassistenten → Sprachnachrichten** oder unter **Einstellungen → Talk** den Knopf **Mikrofon erlauben**. Bestätige die Android-Abfrage.\n2. Öffne einen Chat und tippe auf das **Mikrofon**.\n3. **Haken: sofort senden. X: verwerfen.** Mit der Wiedergabetaste hörst du eine gesendete Nachricht an.\n\nVerlässt du die App oder schaltest den Bildschirm aus, wird nur die **noch nicht gesendete Aufnahme** verworfen. Gesendete Nachrichten bleiben erhalten. Ohne Mikrofonfreigabe kannst du weiter Text schreiben. [Zur Talk-Hilfe](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099#h-sprachnachrichten-aufnehmen-und-senden).\n\n## 5. Zimbra-Termine im Handy-Kalender anzeigen\n\nNur wenn Zimbra für dich freigegeben ist: Öffne **Einstellungen → Handy-Kalender**, schalte den Einweg-Abgleich ein und erlaube den Kalenderzugriff. Wähle 1 Tag, 3 Tage, 1 Woche oder 2 Wochen. Falls nötig, aktiviere „Mission Leben · Zimbra“ auch in deiner Kalender-App.\n\n**Wichtig:** Das Handy zeigt die Termine nur an. Neue oder geänderte Termine trägst du weiterhin in Zimbra ein; Termine vom Handy werden nicht zu Zimbra übertragen. Andere Kalender-Apps mit Kalenderberechtigung können diese Termine ebenfalls sehen. Wenn du den Abgleich ausschaltest oder dich abmeldest, entfernt die App ihren lokalen Kalender.\n\nBesprechungslinks aus Zimbra öffnen bevorzugt die installierte Talk-App. Ohne Talk-App wird der Link im Browser geöffnet.\n\n## 6. Hilfe bei einem Problem\n\nÖffne **IT Hilfe** und erstelle ein Ticket. Eine Fehlermeldung am PC kannst du direkt mit dem Handy fotografieren und anhängen. [Zur kurzen Foto-Anleitung](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099#h-eine-fehlermeldung-am-pc-fotografieren).",
+      "sha256": "57a21fbc1318f177a0f131d61489f91947a7e05f95182c533729c11231eba95a",
+      "unsavedTextChanges": false
+    },
+    {
+      "id": 95685139,
+      "path": "Android-App/Gemeinsames Tablet.md",
+      "content": "Diese Anleitung gilt für ein Tablet, das mehrere Beschäftigte einer Einrichtung benutzen.\n\n## Bildschirmsperre und Anmeldung\n\nAuf einem **gemeinsamen Tablet** wird kein persönlicher Schnellzugang gespeichert. Nach Bildschirm-Aus meldest du dich immer neu mit deinen vorgesehenen Zugangsdaten an. Ein Gerätecode ersetzt diese App-Anmeldung nicht.\n\nDer Hinweis zum Schnellzugang gilt für **persönliche und gebundene Diensthandys**: Dort muss eine sichere Bildschirmsperre mit PIN, Passwort oder Muster eingerichtet sein. Ohne nutzbare sichere Bildschirmsperre ist bei jeder neuen App-Sitzung das Passwort erneut nötig. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler. Bitte ändere die vom Einrichter vorgegebenen Sicherheitseinstellungen des gemeinsamen Tablets nicht selbst.\n\n## Tablet öffnen\n\n1. Schalte das Tablet ein.\n2. Öffne **Mission Leben Zentral**.\n3. Wähle deinen Namen oder melde dich mit deinem persönlichen Zugang an.\n\n**Passwort prüfen:** Mit dem **Auge neben dem Passwortfeld** kannst du deine Eingabe kurz anzeigen. Noch einmal tippen verdeckt sie wieder. Achte gerade auf dem gemeinsamen Tablet darauf, dass niemand mitliest.\n\n## Während der Benutzung\n\n- Öffne Zimbra, Talk oder eine andere freigegebene Anwendung über ihre Kachel.\n- Gib dein Kennwort oder deinen TOTP-Code niemals an andere weiter.\n- Öffne nur deinen eigenen persönlichen Bereich.\n\n## Am Ende: Bildschirm ausschalten\n\n1. Drücke kurz die Ein-/Aus-Taste.\n2. Der Bildschirm wird dunkel.\n3. Du wirst dadurch sofort von der App abgemeldet.\n\n**Wichtig:** Nur die App zu verkleinern meldet dich nicht ab. Schalte den Bildschirm nach jeder Benutzung aus.\n\n## Wenn etwas nicht klappt\n\nGerät gesperrt, Name fehlt oder Anmeldung nicht möglich? Bitte wende dich an deine Leitung oder die IT. Setze das Tablet nicht selbst zurück.\n\n## So sieht der Start aus\n\nWähle auf dem gemeinsamen Tablet dein persönliches Profil.\n\n![08-app-shared (2).png](.attachments.95685139/08-app-shared%20%282%29.png)\n\n[Bild der Profilauswahl größer öffnen](https://nextcloud.mission-leben.de/f/95685161)\n\nHinweis: Wenn ein freigegebenes Gruppenkonto deiner Einrichtung auf dem Tablet angezeigt wird, darfst du es nur für die gemeinsame Aufgabe nutzen. Bei deinem persönlichen Profil bleiben deine eigenen Inhalte privat. Schalte den Bildschirm nach jeder Nutzung aus – auch nach einem Gruppenkonto.\n\n## Hinweise und Kalender auf dem Tablet\n\nDie App zeigt nur Anwendungen und Einstellungen, die für dein ausgewähltes Profil freigegeben sind. Hinweise auf einem gemeinsam genutzten Tablet enthalten aus Datenschutzgründen nur wenige Details.\n\nDer Abgleich von Zimbra-Terminen in den Handy-Kalender ist nur für persönliche Handys gedacht und auf diesem Tablet nicht verfügbar. Termine kannst du weiterhin in der freigegebenen Zimbra-Web-App ansehen.",
+      "sha256": "8c809a9953e4db9a86dd9343fbbf89f4358e1a3e34eee3c1a20c40e59d9fc22d",
+      "unsavedTextChanges": false
+    },
+    {
+      "id": 95685145,
+      "path": "Android-App/Gerät einrichten – für Leitungen und IT.md",
+      "content": "Für die Geräte-Einrichtung melden sich IT, Einrichtungsleitung oder PDL auf [geraete.mission-leben.de](https://geraete.mission-leben.de/) an. Die IT kann alle echten Einrichtungen wählen; Leitungen sehen ihre eigenen Einrichtungen. Nutze dafür den Browser innerhalb von Citrix.\n\n## 1. Gerät und Zugang wählen\n\n1. Wähle **Mitarbeiter-Handy** oder **Gemeinsames Tablet**. Nur die IT sieht zusätzlich **Gruppenkonto auf Diensthandy**.\n2. Wähle die Person, das Gruppenkonto oder beim Tablet **genau eine** erlaubte Einrichtung. Prüfe die Auswahl vor dem Erstellen.\n\n**Persönlicher Mitarbeiterzugang: bis zu zwei Handys**\n\n- Ist schon ein Handy verbunden, wähle **Zweites Handy hinzufügen**, wenn beide weiter genutzt werden sollen.\n- Bei einem Handywechsel wähle **Ersetzen: …** und prüfe den Gerätenamen.\n- Sind bereits zwei Handys verbunden, muss eines davon gezielt ersetzt werden. Ein drittes Handy ist nicht möglich.\n\nNur das ausgewählte Handy wird nach erfolgreicher Registrierung des neuen Geräts deaktiviert. Das andere Handy bleibt verbunden; die Historie bleibt erhalten.\n\n**Gruppenkonto auf Diensthandy:** Hier bleibt es bei **einem Handy pro Konto**. Ein neues Handy ersetzt das bisherige erst nach erfolgreicher Registrierung. Für gemeinsame Tablets ändert sich der Ablauf nicht.\n\n## 2. Gerät vorbereiten und App installieren\n\nDie folgende Seite bleibt **auf dem PC geöffnet**. Erledige zuerst die dort gezeigten Android- und Samsung-Schritte. „Automatische Sperre“ bei Samsung ist **nicht** die Bildschirmsperre.\n\n**Persönliches Handy oder gebundenes Diensthandy:** Richte vor der Anmeldung eine sichere **Bildschirmsperre mit PIN, Passwort oder Muster** ein und prüfe sie gemeinsam mit der nutzenden Person. Die App akzeptiert Fingerabdruck oder Gesichtserkennung nur, wenn Android sie als ausreichend sicher einstuft. Andernfalls verwendest du den Gerätecode (Handy-PIN, Passwort oder Muster), nicht dein Mission-Leben-Passwort. Die PIN-Abfrage ist kein Fehler. Die Bildschirmsperre bleibt auch bei Samsung eingerichtet.\n\n**Ohne nutzbare sichere Bildschirmsperre gibt es keinen gespeicherten Schnellzugang.** Bei jeder neuen App-Sitzung ist dann das Passwort erneut nötig, zum Beispiel nach Bildschirm-Aus oder längerer Pause. Ein kurzer App-Wechsel bei eingeschaltetem Bildschirm ist keine neue Sitzung.\n\n**Gemeinsames Tablet:** Der bisherige Ablauf bleibt erhalten. Nach Bildschirm-Aus ist eine neue Anmeldung nötig; ein persönlicher Schnellzugang wird nicht gespeichert.\n\n1. Scanne den **ersten QR-Code** mit der normalen Handy- oder Tablet-Kamera. Er lädt die App direkt von GitHub. Öffne den Download auf dem Gerät.\n2. Erscheint „App scannen“ oder Google Play Protect, lass die Prüfung durchlaufen. Die Prüfung kann bei jeder Installation und jedem Update erneut erscheinen – auch wenn die App vorher problemlos lief. Der Scan allein ist ein normaler Android-Prüfschritt, kein Fehler und kein Hinweis auf einen Angriff. Danach nur „Mission Leben Zentral“ installieren. Warnt Android ausdrücklich vor einer schädlichen App, stimmt der App-Name nicht oder schlägt der Scan fehl, brich ab und frage die IT.\n3. Klicke erst danach **am PC** auf **App installiert**.\n4. Scanne den nun sichtbaren **zweiten QR-Code**. Er öffnet die installierte App und startet die vorbereitete Registrierung.\n\nBeispiel: Vorbereiten, ersten QR-Code scannen und erst nach der Installation „App installiert“ wählen.\n\n![Schritte 1 und 2: Vorbereitung und App-Download](.attachments.95685145/ml-portal-install-schritte-inline.png)\n\n[Installationsbild größer öffnen](https://nextcloud.mission-leben.de/f/95686515)\n\n**Wichtig:** Der Einrichtungslink gilt 30 Minuten **ab Erstellung**; „App installiert“ verlängert ihn nicht. Gib Link oder QR-Code nur an die vorgesehene Person weiter. Ist die Frist abgelaufen, erstelle einen neuen Link.\n\n## 3. Einrichtung prüfen\n\nÖffne Mission Leben Zentral. Prüfe, ob die Geräteidentität bestätigt ist, und öffne mindestens eine freigegebene Anwendung. Bei einem gemeinsamen Tablet wähle zum Test ein Konto der gebundenen Einrichtung und schalte danach den Bildschirm aus.\n\nBei der Anmeldung kann die nutzende Person mit dem **Auge neben dem Passwortfeld** die Eingabe kurz sichtbar machen und mit einem zweiten Tippen wieder verdecken. Niemand sollte dabei mitlesen.\n\n## Link per E-Mail verschicken\n\nDie IT kann den 30-Minuten-Einrichtungslink für ein persönliches Handy an die in Authentik hinterlegte Adresse der ausgewählten Person senden. Für ein Gruppenkonto-Diensthandy wählt die IT zuerst das Gruppenkonto, sucht dann eine aktive Person als E-Mail-Empfänger und versendet den Link. Die Empfängerperson wird nicht mit dem Handy verbunden; gebunden bleibt ausschließlich das Gruppenkonto. Der Link wird nicht automatisch an die gemeinsame Mailbox geschickt. Die empfangende Person öffnet den Link am PC und folgt den angezeigten Schritten.\n\nHat eine Person bereits TOTP und will ihr eigenes Handy selbst registrieren, kann die IT stattdessen die [reine Installationsanleitung](https://geraete.mission-leben.de/download) ohne Ablaufdatum verschicken. Dort gibt es keinen zweiten QR-Code: Nach der Installation öffnet die Person die App und meldet sich mit TOTP an. Dafür klickt die IT auf der Installationsseite auf „Person suchen und Installationslink per E-Mail senden“ und wählt die empfangende Person aus.\n\nDuo gilt nur für persönliche Mitarbeiterkonten mit registriertem Handy. Bei späteren Anmeldungen soll die Person auf der Seite mit den Sicherheitsverfahren „Duo“ auswählen, Mission Leben Zentral entsperren und die Push-Anfrage dort bestätigen. Eine nicht selbst ausgelöste Anfrage immer ablehnen. Für gemeinsame Gruppen- und Tablet-Konten ist Duo als Anmeldebestätigung nicht vorgesehen. Die E-Mail-Nutzung auf dem Gruppenkonto-Diensthandy oder Tablet bleibt davon unberührt.\n\n## Bei Verlust oder Ausscheiden\n\nDas betroffene Gerät in Authentik deaktivieren und die IT informieren. Nur in der App abmelden reicht nicht. Nutzt die Person zwei Handys, prüfe beide: Bei Verlust sperrst du das verlorene Gerät; beim Ausscheiden müssen beide Zugänge beendet werden.\n\n## Nach der Registrierung gemeinsam prüfen\n\n- Beim ersten Anmelden erklärt der Einrichtungsassistent die passenden Einstellungen. Er zeigt nur Schritte, für die das jeweilige Konto freigegeben ist.\n- Auf persönlichen Handys: Unter **Einstellungen → Benachrichtigungen → App-Einstellungen auf dem Handy** mit **Benachrichtigungen einstellen** die Android-Hinweise erlauben und mit **Akku-Einstellungen öffnen** den Hintergrundbetrieb prüfen. Beides gilt nur für Mission Leben Zentral. Sonst können Mail-, Talk- und Terminhinweise ausbleiben.\n- Bei zwei persönlichen Handys: Registrierung, Schnellzugang, Benachrichtigungen und Akku-Einstellungen auf jedem Handy einzeln prüfen.\n- Nur bei einem persönlichen Konto mit Zimbra-Freigabe: Der freiwillige Handy-Kalender kann Zimbra-Termine für 1 Tag bis 2 Wochen anzeigen. Termine werden ausschließlich in Zimbra angelegt und geändert; vom Handy geht nichts zurück.\n- Auf gemeinsamen Tablets und Gruppenkonto-Diensthandys gibt es keinen persönlichen Handy-Kalenderabgleich. Eine Anmeldung per App-Bestätigung („Duo“) ist für Gruppenkonten ebenfalls nicht vorgesehen.\n\nDie installierte Version steht unten in den App-Einstellungen. Aktuelle reguläre Updates kommen weiterhin über GitHub.\n\n**Bei Problemen helfen:** Ist **IT Hilfe** freigegeben, kann die nutzende Person eine Fehlermeldung am PC fotografieren und direkt an ein Ticket anhängen. Das Ticket wird erst mit **Übermitteln** abgesendet. [Zur kurzen Foto-Anleitung](https://nextcloud.mission-leben.de/apps/collectives/User-Guides-7/Android-App-95685099#h-eine-fehlermeldung-am-pc-fotografieren).",
+      "sha256": "5ae72f53f665b7186134b3b505ff78ecd7c5911f7cadd06771d9deee2b89de28",
+      "unsavedTextChanges": false
+    }
+  ],
+  "attachments": [
+    {
+      "pageId": 95685102,
+      "id": 95685105,
+      "name": "clipboard.jpeg",
+      "sha256": "002e1f16b4387662175dfda2b671233015ab8a83abe54b675e0552161f1755b4",
+      "size": 62331
+    },
+    {
+      "pageId": 95685102,
+      "id": 95685108,
+      "name": "clipboard (2).jpeg",
+      "sha256": "9c38d22b68068120a05a91a920dd9a61f591e6dee42d853c02b12a038767e5fe",
+      "size": 71759
+    },
+    {
+      "pageId": 95685102,
+      "id": 95685109,
+      "name": "clipboard.png",
+      "sha256": "24c9c80230983628416e1ace7cfa7ba68a4b307c98b47af90f9c03028b50da22",
+      "size": 204194
+    },
+    {
+      "pageId": 95685102,
+      "id": 95685111,
+      "name": "clipboard (2).png",
+      "sha256": "2e80c39f8ffc6b91f8889ed025270489dc551cdaa98b8719b01a9385765243db",
+      "size": 93488
+    },
+    {
+      "pageId": 95685102,
+      "id": 95685113,
+      "name": "01-android-installation.jpg",
+      "sha256": "002e1f16b4387662175dfda2b671233015ab8a83abe54b675e0552161f1755b4",
+      "size": 62331
+    },
+    {
+      "pageId": 95685102,
+      "id": 95685115,
+      "name": "clipboard (3).jpeg",
+      "sha256": "9c38d22b68068120a05a91a920dd9a61f591e6dee42d853c02b12a038767e5fe",
+      "size": 71759
+    },
+    {
+      "pageId": 95685139,
+      "id": 95685142,
+      "name": "08-app-shared.png",
+      "sha256": "d7b58b28920d8f68235bbe4f6e0cb012ef56487a18c83215f6917329e6b92f1d",
+      "size": 92352
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685148,
+      "name": "02-einrichtung-start.jpg",
+      "sha256": "93582ad686e233c1730863d512bafe77abd230788a4a9e5bd1de62433fdc4fb0",
+      "size": 66621
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685151,
+      "name": "03-mitarbeiter-auswaehlen.jpg",
+      "sha256": "9858f9f5cc8c8612b326489199c26fc34d784d3ca6018c4427ee4e6349181790",
+      "size": 36320
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685153,
+      "name": "04-tablet-zuordnen.jpg",
+      "sha256": "b5ba500ac2c03d16f8de0fe5d19caceaca3fb65691afd1cfcbdd95b0d705942e",
+      "size": 44158
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685155,
+      "name": "05-qr-code.jpg",
+      "sha256": "73159d8680e12ae53b983553dace865acbb2cf3b941b75c82b81c4e72c5b7fc7",
+      "size": 30300
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685157,
+      "name": "03-mitarbeiter-auswaehlen (2).jpg",
+      "sha256": "9858f9f5cc8c8612b326489199c26fc34d784d3ca6018c4427ee4e6349181790",
+      "size": 36320
+    },
+    {
+      "pageId": 95685139,
+      "id": 95685161,
+      "name": "08-app-shared (2).png",
+      "sha256": "d7b58b28920d8f68235bbe4f6e0cb012ef56487a18c83215f6917329e6b92f1d",
+      "size": 92352
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685170,
+      "name": "Schritt 1 - Gerät auswählen.jpg",
+      "sha256": "93582ad686e233c1730863d512bafe77abd230788a4a9e5bd1de62433fdc4fb0",
+      "size": 66621
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685174,
+      "name": "Schritt 1 - Gerät auswählen (2).jpg",
+      "sha256": "93582ad686e233c1730863d512bafe77abd230788a4a9e5bd1de62433fdc4fb0",
+      "size": 66621
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685176,
+      "name": "Schritt 2 - Mitarbeiter auswählen.jpg",
+      "sha256": "9858f9f5cc8c8612b326489199c26fc34d784d3ca6018c4427ee4e6349181790",
+      "size": 36320
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685178,
+      "name": "Schritt 3 - Tablet zuordnen.jpg",
+      "sha256": "b5ba500ac2c03d16f8de0fe5d19caceaca3fb65691afd1cfcbdd95b0d705942e",
+      "size": 44158
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685180,
+      "name": "10-samsung-installation.jpg",
+      "sha256": "9c38d22b68068120a05a91a920dd9a61f591e6dee42d853c02b12a038767e5fe",
+      "size": 71759
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685182,
+      "name": "Schritt 4 - QR-Code scannen.jpg",
+      "sha256": "73159d8680e12ae53b983553dace865acbb2cf3b941b75c82b81c4e72c5b7fc7",
+      "size": 30300
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685184,
+      "name": "Schritt 2 - Mitarbeiter auswählen (2).jpg",
+      "sha256": "9858f9f5cc8c8612b326489199c26fc34d784d3ca6018c4427ee4e6349181790",
+      "size": 36320
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685187,
+      "name": "clipboard.jpeg",
+      "sha256": "93582ad686e233c1730863d512bafe77abd230788a4a9e5bd1de62433fdc4fb0",
+      "size": 66621
+    },
+    {
+      "pageId": 95685145,
+      "id": 95685192,
+      "name": "clipboard (2).jpeg",
+      "sha256": "93582ad686e233c1730863d512bafe77abd230788a4a9e5bd1de62433fdc4fb0",
+      "size": 66621
+    },
+    {
+      "pageId": 95685145,
+      "id": 95686503,
+      "name": "ml-portal-install-schritte.png",
+      "sha256": "b6d2bc954f6c7e4cee12154b1ed4da83ffdd31cf8c537d0362d4deb25c09caef",
+      "size": 80627
+    },
+    {
+      "pageId": 95685102,
+      "id": 95686507,
+      "name": "ml-portal-install-schritte.png",
+      "sha256": "b6d2bc954f6c7e4cee12154b1ed4da83ffdd31cf8c537d0362d4deb25c09caef",
+      "size": 80627
+    },
+    {
+      "pageId": 95685145,
+      "id": 95686515,
+      "name": "ml-portal-install-schritte-inline.png",
+      "sha256": "b6d2bc954f6c7e4cee12154b1ed4da83ffdd31cf8c537d0362d4deb25c09caef",
+      "size": 80627
+    },
+    {
+      "pageId": 95685099,
+      "id": 96953412,
+      "name": "app-hilfe-favorit.png",
+      "sha256": "2ffb8c087c6110961a41b22b0ecf66877853bc5cec4ba40e1bbf8fad1d661b95",
+      "size": 7520
+    },
+    {
+      "pageId": 95685099,
+      "id": 96953413,
+      "name": "app-hilfe-kalender.png",
+      "sha256": "0c8ee85be4020ec51f1f1c7b248078366f1e05136695730586b83587efa40012",
+      "size": 29907
+    },
+    {
+      "pageId": 95685099,
+      "id": 96953414,
+      "name": "app-hilfe-nachrichten.png",
+      "sha256": "2b7470b3d5332b7582e71a0900c8b90bea680d48d0179d5b1b2d86dbcef11e0b",
+      "size": 21541
+    },
+    {
+      "pageId": 95685099,
+      "id": 96953415,
+      "name": "app-hilfe-problem-melden.png",
+      "sha256": "a10dc0adfd46ac7b70ea12c0b70ca08d7d2084ce699815765624cfc6bd4f896f",
+      "size": 14224
+    },
+    {
+      "pageId": 95685099,
+      "id": 96953416,
+      "name": "app-hilfe-symbole.png",
+      "sha256": "1d03c9ba4512aa76da401631bc10f5ffb53141d696cda9264fbcc28d8119b140",
+      "size": 15007
+    }
+  ]
+}

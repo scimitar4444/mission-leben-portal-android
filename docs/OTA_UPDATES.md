@@ -1,5 +1,18 @@
 # OTA-Updates
 
+## Anmeldehilfe ab 0.24.1 / Code 102
+
+Die Android-Anmeldung erklärt den benötigten Anmeldenamen. Eine versehentlich
+eingegebene Firmen-E-Mail-Adresse oder ein führendes @ kann nach Prüfung bewusst
+korrigiert werden. Unbekannte Namen werden nicht erraten. Die allgemeine
+Ablehnung wird verständlicher erklärt; die technische Originalmeldung bleibt
+einblendbar. Authentik entscheidet weiterhin über Anmeldung und Berechtigungen.
+Keine neuen Android-Berechtigungen oder Server-/Flow-/Gruppenänderungen.
+
+Code 102 aktualisiert sowohl die öffentliche 0.24.0/100 als auch den lokalen
+Eingabetest 0.24.1-local/101 ohne Deinstallation oder Datenlöschung.
+Gerätenachweis: `artifacts/login-identifier-assistance-20261022/device-pilot-evidence.json`.
+
 ## Veröffentlicht: 0.23.2 / Code 96 (21.10.2026)
 
 Reguläres Latest-Release mit eigener Ankündigungs-Benachrichtigung und getrennten,

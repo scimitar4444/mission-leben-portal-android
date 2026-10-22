@@ -447,4 +447,11 @@
     <string name="talk_voice_permission_settings">Freigabe am Handy ändern</string>
     <string name="talk_voice_permission_settings_hint">Falls keine Abfrage mehr erscheint, kannst du die Mikrofonfreigabe in den Handy-Einstellungen ändern.</string>
     <string name="release_note_talk_voice_setup">Die Mikrofonfreigabe findest du im Einrichtungsassistenten und unter Einstellungen → Talk. Der neue Schritt wird einmalig angezeigt.</string>
+    <string name="login_identifier_hint">Hier nur deinen Anmeldenamen eingeben, zum Beispiel vorname.nachname. Keine E-Mail-Adresse und kein @ davor.</string>
+    <string name="login_identifier_invalid">Bitte nur den Anmeldenamen ohne E-Mail-Endung und ohne @ am Anfang eingeben. Prüfe einen vorgeschlagenen Namen, bevor du ihn übernimmst.</string>
+    <string name="login_identifier_use">Diesen Anmeldenamen verwenden:</string>
+    <string name="login_identifier_denied_hint">Auch ein falsch eingegebener Anmeldename kann diese Meldung auslösen. Prüfe den Namen ohne E-Mail-Endung oder @ davor und starte die Anmeldung neu. Stimmt der Name bereits, zeige die Meldung der IT. Bitte keine App-Daten löschen oder das Handy erneut registrieren.</string>
+    <string name="login_identifier_denied_summary">Die Anmeldung konnte nicht bestätigt werden. Bitte prüfe deinen Anmeldenamen. Stimmt er bereits, muss die IT die Freigabe prüfen.</string>
+    <string name="login_identifier_technical">Technische Meldung anzeigen</string>
+    <string name="release_note_login_identifier">Hilfe beim Anmelden: E-Mail-Endungen oder ein @ am Anfang werden erklärt. Einen vorgeschlagenen Anmeldenamen kannst du selbst übernehmen. Unklare Fehlermeldungen sind verständlicher.</string>
 </resources>
