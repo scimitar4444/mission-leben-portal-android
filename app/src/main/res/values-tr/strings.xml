@@ -400,4 +400,10 @@
     <string name="talk_voice_permission_settings">Telefonda izni değiştir</string>
     <string name="talk_voice_permission_settings_hint">İzin sorusu görünmüyorsa telefon ayarlarında mikrofon iznini değiştirebilirsin.</string>
     <string name="release_note_talk_voice_setup">Kurulum yardımcısından veya Ayarlar → Talk bölümünden mikrofona izin ver. Yeni kurulum adımı bir kez gösterilir.</string>
+    <string name="login_identifier_hint">Yalnızca kullanıcı adını gir, örneğin ad.soyad. E-posta adresi veya başına @ yazma.</string>
+    <string name="login_identifier_invalid">Kullanıcı adını e-posta alan adı ve başında @ olmadan gir. Önerilen adı kullanmadan önce kontrol et.</string>
+    <string name="login_identifier_use">Bu kullanıcı adını kullan:</string>
+    <string name="login_identifier_denied_hint">Yanlış kullanıcı adı da bu mesaja neden olabilir. Adı e-posta alan adı ve başında @ olmadan kullanıp yeniden giriş yap. Ad zaten doğruysa mesajı BT ekibine göster. Uygulama verilerini silme veya telefonu yeniden kaydetme.</string>
+    <string name="login_identifier_denied_summary">Giriş doğrulanamadı. Kullanıcı adını kontrol et. Doğruysa BT ekibinin erişim iznini kontrol etmesi gerekir.</string>
+    <string name="login_identifier_technical">Teknik mesajı göster</string>
 </resources>

@@ -402,4 +402,10 @@
     <string name="talk_voice_permission_settings">Zmień uprawnienie w telefonie</string>
     <string name="talk_voice_permission_settings_hint">Jeśli pytanie nie jest wyświetlane, zmień uprawnienie mikrofonu w ustawieniach telefonu.</string>
     <string name="release_note_talk_voice_setup">Zezwól na mikrofon w kreatorze konfiguracji lub Ustawienia → Talk. Nowy krok pojawi się raz.</string>
+    <string name="login_identifier_hint">Wpisz tylko nazwę użytkownika, np. imie.nazwisko. Nie wpisuj adresu e-mail ani @ na początku.</string>
+    <string name="login_identifier_invalid">Wpisz nazwę użytkownika bez domeny e-mail i bez @ na początku. Sprawdź proponowaną nazwę, zanim jej użyjesz.</string>
+    <string name="login_identifier_use">Użyj tej nazwy użytkownika:</string>
+    <string name="login_identifier_denied_hint">Błędna nazwa użytkownika też może powodować ten komunikat. Użyj nazwy bez domeny e-mail i bez @ na początku, a następnie zaloguj się ponownie. Jeśli nazwa jest poprawna, pokaż komunikat działowi IT. Nie usuwaj danych aplikacji ani nie rejestruj telefonu ponownie.</string>
+    <string name="login_identifier_denied_summary">Nie udało się potwierdzić logowania. Sprawdź nazwę użytkownika. Jeśli jest poprawna, dział IT musi sprawdzić dostęp.</string>
+    <string name="login_identifier_technical">Pokaż komunikat techniczny</string>
 </resources>

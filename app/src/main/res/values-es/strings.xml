@@ -400,4 +400,10 @@
     <string name="talk_voice_permission_settings">Cambiar permiso en el teléfono</string>
     <string name="talk_voice_permission_settings_hint">Si no aparece la solicitud, cambia el permiso del micrófono en los ajustes del teléfono.</string>
     <string name="release_note_talk_voice_setup">Permite el micrófono en el asistente de configuración o Ajustes → Talk. El nuevo paso aparece una sola vez.</string>
+    <string name="login_identifier_hint">Introduce solo tu nombre de usuario, por ejemplo nombre.apellido. No uses una dirección de correo ni @ al principio.</string>
+    <string name="login_identifier_invalid">Introduce tu nombre de usuario sin el dominio de correo ni @ al principio. Comprueba el nombre sugerido antes de usarlo.</string>
+    <string name="login_identifier_use">Usar este nombre de usuario:</string>
+    <string name="login_identifier_denied_hint">Un nombre de usuario incorrecto también puede causar este mensaje. Usa el nombre sin el dominio de correo ni @ al principio y vuelve a iniciar sesión. Si ya es correcto, muestra el mensaje a Informática. No borres los datos de la app ni registres el teléfono de nuevo.</string>
+    <string name="login_identifier_denied_summary">No se ha podido confirmar el inicio de sesión. Comprueba tu nombre de usuario. Si es correcto, Informática debe revisar tu acceso.</string>
+    <string name="login_identifier_technical">Mostrar mensaje técnico</string>
 </resources>

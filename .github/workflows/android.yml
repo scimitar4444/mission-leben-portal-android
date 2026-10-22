@@ -35,7 +35,9 @@ jobs:
           node scripts/test_talk_chat_policy.mjs
           node scripts/test_talk_voice_policy.mjs
       - name: Test Authentik password visibility and masking
-        run: node scripts/test_password_visibility.mjs
+        run: |
+          node scripts/test_password_visibility.mjs
+          node scripts/test_login_identifier.mjs
       - name: Test mobile document and Helpdesk DOM contracts
         run: |
           node app/src/test/resources/documents-mobile-layout-dom.cjs

@@ -414,4 +414,10 @@
     <string name="talk_voice_permission_settings">Change permission on this phone</string>
     <string name="talk_voice_permission_settings_hint">If no prompt appears, you can change microphone permission in the phone settings.</string>
     <string name="release_note_talk_voice_setup">Allow microphone access in the setup assistant or Settings → Talk. The new setup step appears once.</string>
+    <string name="login_identifier_hint">Enter only your username, for example firstname.lastname. Do not enter an email address or put @ at the start.</string>
+    <string name="login_identifier_invalid">Enter your username without an email suffix or a leading @. Check a suggested name before using it.</string>
+    <string name="login_identifier_use">Use this username:</string>
+    <string name="login_identifier_denied_hint">An incorrect username can also cause this message. Use the name without an email suffix or leading @ and start sign-in again. If it is already correct, show this message to IT. Do not clear app data or register the phone again.</string>
+    <string name="login_identifier_denied_summary">Sign-in could not be confirmed. Check your username. If it is correct, IT needs to check your access.</string>
+    <string name="login_identifier_technical">Show technical message</string>
 </resources>

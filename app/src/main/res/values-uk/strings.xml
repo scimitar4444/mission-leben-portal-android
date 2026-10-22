@@ -402,4 +402,10 @@
     <string name="talk_voice_permission_settings">Змінити дозвіл на телефоні</string>
     <string name="talk_voice_permission_settings_hint">Якщо запит більше не з’являється, зміни дозвіл мікрофона в налаштуваннях телефону.</string>
     <string name="release_note_talk_voice_setup">Дозволь мікрофон у помічнику налаштування або Налаштування → Talk. Новий крок з’явиться один раз.</string>
+    <string name="login_identifier_hint">Введи лише ім’я користувача, наприклад imia.prizvyshche. Не вводь адресу електронної пошти або @ на початку.</string>
+    <string name="login_identifier_invalid">Введи ім’я користувача без поштового домену та @ на початку. Перевір запропоноване ім’я, перш ніж його використати.</string>
+    <string name="login_identifier_use">Використати це ім’я користувача:</string>
+    <string name="login_identifier_denied_hint">Неправильне ім’я користувача також може спричинити це повідомлення. Введи ім’я без поштового домену та @ на початку й почни вхід знову. Якщо ім’я правильне, покажи повідомлення ІТ-відділу. Не видаляй дані застосунку та не реєструй телефон повторно.</string>
+    <string name="login_identifier_denied_summary">Не вдалося підтвердити вхід. Перевір ім’я користувача. Якщо воно правильне, ІТ-відділ має перевірити дозвіл на доступ.</string>
+    <string name="login_identifier_technical">Показати технічне повідомлення</string>
 </resources>
