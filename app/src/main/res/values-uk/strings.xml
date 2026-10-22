@@ -393,4 +393,12 @@
     <string name="release_note_ticket_photo">В ІТ-допомозі можна сфотографувати телефоном помилку на ПК й додати фото до заявки. Перевір фото; заявка надсилається лише після натискання Надіслати.</string>
     <string name="release_note_app_help">Налаштування → Допомога та інструкція містять короткі пояснення функцій застосунку з невеликими зображеннями.</string>
     <string name="release_note_phone_settings">Налаштування застосунку на телефоні стали зрозумілішими: сповіщення та акумулятор. Обидва стосуються лише Mission Leben Zentral.</string>
+    <string name="setup_talk_voice_short">Голосові повідомлення</string>
+    <string name="talk_voice_settings_title">Голосові повідомлення в Talk</string>
+    <string name="talk_voice_settings_description">Дозволь мікрофон, щоб говорити замість введення тексту в Talk. Він використовується лише для запису. Без дозволу текстові повідомлення й далі працюють.</string>
+    <string name="talk_voice_permission_allowed">Мікрофон: дозволено</string>
+    <string name="talk_voice_permission_missing">Мікрофон: ще не дозволено</string>
+    <string name="talk_voice_permission_request">Дозволити мікрофон</string>
+    <string name="talk_voice_permission_settings">Змінити дозвіл на телефоні</string>
+    <string name="talk_voice_permission_settings_hint">Якщо запит більше не з’являється, зміни дозвіл мікрофона в налаштуваннях телефону.</string>
 </resources>

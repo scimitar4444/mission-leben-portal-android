@@ -86,4 +86,13 @@ assert.ok(!chatPolicy.includes("'button:has(.microphone-outline-icon)'"));
 for (const selector of ['.join-call', '.leave-call', '.call-button', '.talk-dashboard__actions button:has(.microphone-outline-icon)']) {
   assert.ok(chatPolicy.includes(selector));
 }
+const permissionPanel = readFileSync(new URL('app/src/main/java/de/missionleben/portal/ui/TalkMicrophoneSettingsPanel.kt', root), 'utf8');
+const setupUi = readFileSync(new URL('app/src/main/java/de/missionleben/portal/ui/SetupAssistantUi.kt', root), 'utf8');
+const settingsUi = readFileSync(new URL('app/src/main/java/de/missionleben/portal/ui/MissionLebenApp.kt', root), 'utf8');
+assert.match(permissionPanel, /rememberLauncherForActivityResult\(ActivityResultContracts\.RequestPermission\(\)\)/);
+assert.match(permissionPanel, /launcher\.launch\(Manifest\.permission\.RECORD_AUDIO\)/);
+assert.match(permissionPanel, /ON_RESUME\) granted = permissionGranted\(\)/);
+assert.match(permissionPanel, /ACTION_APPLICATION_DETAILS_SETTINGS/);
+assert.match(setupUi, /SetupStep\.TALK_VOICE -> TalkMicrophoneSettingsPanel/);
+assert.match(settingsUi, /if \(state\.signedIn && talkAvailable\) \{[\s\S]*?if \(talkDetailsOpen\) \{[\s\S]*?TalkMicrophoneSettingsPanel\(\)/);
 console.log('Talk voice: foreground audio only, camera denied, cancel before stop, stale requests stopped, call controls retained');

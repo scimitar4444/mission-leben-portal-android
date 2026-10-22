@@ -438,4 +438,12 @@
     <string name="release_note_ticket_photo">In IT Hilfe kannst du eine Fehlermeldung am PC mit dem Handy fotografieren und an dein Ticket anhängen. Prüfe das Foto; erst mit Übermitteln sendest du das Ticket ab.</string>
     <string name="release_note_app_help">Unter Einstellungen → Hilfe &amp; Anleitung findest du kurze Erklärungen mit kleinen Bildern zu den App-Funktionen.</string>
     <string name="release_note_phone_settings">Die App-Einstellungen auf dem Handy sind jetzt klarer: Benachrichtigungen einstellen und Akku-Einstellungen öffnen. Beides gilt nur für Mission Leben Zentral.</string>
+    <string name="setup_talk_voice_short">Sprachnachrichten</string>
+    <string name="talk_voice_settings_title">Sprachnachrichten in Talk</string>
+    <string name="talk_voice_settings_description">Erlaube das Mikrofon, um in Talk zu sprechen statt zu tippen. Es wird nur für eine Aufnahme verwendet. Ohne Freigabe kannst du weiter Textnachrichten schreiben.</string>
+    <string name="talk_voice_permission_allowed">Mikrofon: erlaubt</string>
+    <string name="talk_voice_permission_missing">Mikrofon: noch nicht erlaubt</string>
+    <string name="talk_voice_permission_request">Mikrofon erlauben</string>
+    <string name="talk_voice_permission_settings">Freigabe am Handy ändern</string>
+    <string name="talk_voice_permission_settings_hint">Falls keine Abfrage mehr erscheint, kannst du die Mikrofonfreigabe in den Handy-Einstellungen ändern.</string>
 </resources>

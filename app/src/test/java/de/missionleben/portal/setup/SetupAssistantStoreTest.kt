@@ -59,4 +59,17 @@ class SetupAssistantStoreTest {
         val otherScope = requireNotNull(store.scope(DeviceMode.PERSONAL, "other-device", "subject-example"))
         assertFalse(SetupStep.TALK in reloaded.seen(otherScope, legacyPushHandled = true, calendarAlreadyEnabled = true))
     }
+
+    @Test fun voicePermissionIsOfferedOnceWithoutRepeatingPreviousSetup() {
+        val store = SetupAssistantStore(RuntimeEnvironment.getApplication())
+        val scope = requireNotNull(store.scope(DeviceMode.PERSONAL, "device-example", "subject-example"))
+        val previous = completedBeforeTalk + SetupStep.TALK
+        store.markSeen(scope, previous)
+        val available = SetupAssistantPolicy.available(true, DeviceMode.PERSONAL, true, true, true, true, true)
+        assertEquals(listOf(SetupStep.TALK_VOICE), SetupAssistantPolicy.pending(available,
+            store.seen(scope, legacyPushHandled = true, calendarAlreadyEnabled = true)))
+        store.markSeen(scope, listOf(SetupStep.TALK_VOICE))
+        assertEquals(emptyList<SetupStep>(), SetupAssistantPolicy.pending(available,
+            store.seen(scope, legacyPushHandled = true, calendarAlreadyEnabled = true)))
+    }
 }

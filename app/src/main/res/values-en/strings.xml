@@ -405,4 +405,12 @@
     <string name="release_note_ticket_photo">In IT Help, take a photo of a PC error with your phone and attach it to your ticket. Review the photo; the ticket is sent only when you tap Submit.</string>
     <string name="release_note_app_help">Settings → Help &amp; guide now offers short explanations with small pictures of app features.</string>
     <string name="release_note_phone_settings">Phone settings for the app are clearer: notification settings and battery settings. Both apply only to Mission Leben Zentral.</string>
+    <string name="setup_talk_voice_short">Voice messages</string>
+    <string name="talk_voice_settings_title">Voice messages in Talk</string>
+    <string name="talk_voice_settings_description">Allow the microphone to speak instead of typing in Talk. It is only used for a recording. You can still send text messages without permission.</string>
+    <string name="talk_voice_permission_allowed">Microphone: allowed</string>
+    <string name="talk_voice_permission_missing">Microphone: not yet allowed</string>
+    <string name="talk_voice_permission_request">Allow microphone</string>
+    <string name="talk_voice_permission_settings">Change permission on this phone</string>
+    <string name="talk_voice_permission_settings_hint">If no prompt appears, you can change microphone permission in the phone settings.</string>
 </resources>

@@ -393,4 +393,12 @@
     <string name="release_note_ticket_photo">W Pomocy IT możesz sfotografować telefonem błąd na komputerze i dołączyć zdjęcie do zgłoszenia. Sprawdź zdjęcie; zgłoszenie zostanie wysłane dopiero po wybraniu Wyślij.</string>
     <string name="release_note_app_help">Ustawienia → Pomoc i instrukcja zawierają krótkie objaśnienia z małymi obrazkami funkcji aplikacji.</string>
     <string name="release_note_phone_settings">Ustawienia aplikacji w telefonie są teraz czytelniejsze: powiadomienia i bateria. Oba dotyczą tylko Mission Leben Zentral.</string>
+    <string name="setup_talk_voice_short">Wiadomości głosowe</string>
+    <string name="talk_voice_settings_title">Wiadomości głosowe w Talk</string>
+    <string name="talk_voice_settings_description">Zezwól na mikrofon, aby mówić zamiast pisać w Talk. Jest używany tylko do nagrywania. Bez zgody nadal możesz wysyłać wiadomości tekstowe.</string>
+    <string name="talk_voice_permission_allowed">Mikrofon: dozwolony</string>
+    <string name="talk_voice_permission_missing">Mikrofon: jeszcze niedozwolony</string>
+    <string name="talk_voice_permission_request">Zezwól na mikrofon</string>
+    <string name="talk_voice_permission_settings">Zmień uprawnienie w telefonie</string>
+    <string name="talk_voice_permission_settings_hint">Jeśli pytanie nie jest wyświetlane, zmień uprawnienie mikrofonu w ustawieniach telefonu.</string>
 </resources>

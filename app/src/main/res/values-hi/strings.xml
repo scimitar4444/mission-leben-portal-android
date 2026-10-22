@@ -391,4 +391,12 @@
     <string name="release_note_ticket_photo">आईटी सहायता में फ़ोन से पीसी की त्रुटि का फ़ोटो लेकर टिकट में जोड़ सकते हैं। फ़ोटो जाँचें; भेजें दबाने पर ही टिकट भेजा जाता है।</string>
     <string name="release_note_app_help">सेटिंग → सहायता और मार्गदर्शिका में ऐप की सुविधाओं के छोटे चित्र और सरल विवरण मिलते हैं।</string>
     <string name="release_note_phone_settings">फ़ोन पर ऐप की सेटिंग अब अधिक स्पष्ट हैं: सूचनाएँ और बैटरी। दोनों केवल Mission Leben Zentral पर लागू होती हैं।</string>
+    <string name="setup_talk_voice_short">वॉइस संदेश</string>
+    <string name="talk_voice_settings_title">Talk में वॉइस संदेश</string>
+    <string name="talk_voice_settings_description">Talk में लिखने की जगह बोलने के लिए माइक्रोफ़ोन की अनुमति दें। इसका उपयोग केवल रिकॉर्डिंग के लिए होता है। बिना अनुमति भी टेक्स्ट संदेश भेज सकते हैं।</string>
+    <string name="talk_voice_permission_allowed">माइक्रोफ़ोन: अनुमति है</string>
+    <string name="talk_voice_permission_missing">माइक्रोफ़ोन: अभी अनुमति नहीं है</string>
+    <string name="talk_voice_permission_request">माइक्रोफ़ोन की अनुमति दें</string>
+    <string name="talk_voice_permission_settings">फ़ोन पर अनुमति बदलें</string>
+    <string name="talk_voice_permission_settings_hint">अगर अनुरोध नहीं दिखता है, तो फ़ोन की सेटिंग्स में माइक्रोफ़ोन की अनुमति बदल सकते हैं।</string>
 </resources>
