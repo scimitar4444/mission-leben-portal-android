@@ -453,4 +453,5 @@
     <string name="login_identifier_denied_hint">Auch ein falsch eingegebener Anmeldename kann diese Meldung auslösen. Prüfe den Namen ohne E-Mail-Endung oder @ davor und starte die Anmeldung neu. Stimmt der Name bereits, zeige die Meldung der IT. Bitte keine App-Daten löschen oder das Handy erneut registrieren.</string>
     <string name="login_identifier_denied_summary">Die Anmeldung konnte nicht bestätigt werden. Bitte prüfe deinen Anmeldenamen. Stimmt er bereits, muss die IT die Freigabe prüfen.</string>
     <string name="login_identifier_technical">Technische Meldung anzeigen</string>
+    <string name="release_note_login_identifier">Hilfe beim Anmelden: E-Mail-Endungen oder ein @ am Anfang werden erklärt. Einen vorgeschlagenen Anmeldenamen kannst du selbst übernehmen. Unklare Fehlermeldungen sind verständlicher.</string>
 </resources>

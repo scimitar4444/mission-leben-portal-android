@@ -407,4 +407,5 @@
     <string name="login_identifier_denied_hint">Și un nume de utilizator greșit poate provoca acest mesaj. Folosește numele fără domeniul de e-mail sau @ la început și reia autentificarea. Dacă este deja corect, arată mesajul echipei IT. Nu șterge datele aplicației și nu înregistra telefonul din nou.</string>
     <string name="login_identifier_denied_summary">Autentificarea nu a putut fi confirmată. Verifică numele de utilizator. Dacă este corect, echipa IT trebuie să verifice accesul.</string>
     <string name="login_identifier_technical">Arată mesajul tehnic</string>
+    <string name="release_note_login_identifier">Ajutorul pentru autentificare explică domeniile e-mail sau @ la început. Poți alege să folosești numele de utilizator sugerat. Mesajele de eroare sunt mai clare.</string>
 </resources>

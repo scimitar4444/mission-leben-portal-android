@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-22",
+  "status": "ONE_PHYSICAL_PILOT_INPUT_ONLY_WEBVIEW_CHECKS_PASSED",
+  "sourceCommit": "99b49fdf9dc1551d99d33214b37a46ebb28ba78e",
+  "versionName": "0.24.1-local",
+  "versionCode": 101,
+  "mainApkSha256": "58a7b0f623f2797a18b871e8428ae3439e3b4c99b9c9b95c0f3e8950cb5cf6cf",
+  "testApkSha256": "ed2bce37438f4aff76210f7476e5a5e7fede130812c3c3fc249565c316f8e1d6",
+  "testSourceSha256": "6aadb18e8ece8140be16bc825258e0450660caa2c185bdc71767859725fb6df8",
+  "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+  "packaging": "local-build.patch; production-signed main pilot installed with adb install -r, no uninstall or data reset; test instrumentation is a separate temporary APK, not in the main manifest",
+  "build": {"releaseUnitTests": 406, "failures": 0, "errors": 0, "lintErrors": 0, "lintWarnings": 131},
+  "deviceResult": {
+    "human_unlocked_existing_personal_session": true,
+    "real_authentik_shadow_dom_input_checks": {
+      "leading_at_explained": true,
+      "leading_at_blocked_before_server": true,
+      "leading_at_suggestion_visible": true,
+      "leading_at_explicit_correction": true,
+      "company_email_explained": true,
+      "company_email_blocked_before_server": true,
+      "company_email_suggestion_visible": true,
+      "company_email_explicit_correction": true,
+      "foreign_domain_not_guessed": true,
+      "no_fake_identity_validation_quarkholz": true,
+      "no_fake_identity_validation_123456": true,
+      "no_test_form_reached_authentik_submit_handler": true,
+      "passed": true
+    },
+    "existing_registration_and_user_session_retained": true,
+    "real_authentication_or_denied_device_test": "NOT_PERFORMED",
+    "success": true
+  },
+  "method": "Programmatic field events and explicit correction-button clicks on the actual Authentik shadow DOM in the installed release WebView; an additional capture-phase no-submit guard prevented synthetic test credentials reaching Authentik. No cookies, password, TOTP or token APIs used, no logout.",
+  "intermediate": "First run timed out awaiting human biometry; it did not execute input checks. Second run completed after human unlock. Instrumentation restarts the app process, so another biometric prompt is expected and is not an expired login.",
+  "cleanup": {
+    "temporaryTestPackageUninstalled": true,
+    "noMissionLebenInstrumentationRegisteredAfterward": true,
+    "originalStayAwake": 0,
+    "restoredStayAwakeReadback": 0,
+    "mainPackageRetained": "0.24.1-local/101",
+    "normalMainActivityReopened": true,
+    "screenProtectionDisabled": false
+  },
+  "notClaimed": ["Manual keyboard/paste/Autofill visual acceptance", "Actual login with correct credentials", "Live disabled/revoked-device refusal", "Fleet installation"],
+  "serverFlowGroupChanges": [],
+  "userOtaAuthorizationAfterPilot": "ota dann bitte",
+  "nextPublicVersionCodeMustExceed": 101,
+  "preservedUnrelatedBootstrapSha256": "1d2773f504e1cae6cfa30f9cdc14a27afb66e9f16ff1b6c5fbd24e9e313bb914"
+}

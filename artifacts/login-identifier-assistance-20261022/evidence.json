@@ -1,6 +1,6 @@
 {
   "date": "2026-10-22",
-  "status": "LOCAL_IMPLEMENTED_AND_TESTED_NOT_DEPLOYED",
+  "status": "LOCAL_IMPLEMENTED_TESTED_AND_INSTALLED_ON_ONE_PILOT_NO_OTA_AT_PILOT_TIME",
   "branch": "fix/android-login-name-hints",
   "scope": "Android WebView username assistance; no server/flow/group changes",
   "files": [
@@ -56,13 +56,13 @@
   },
   "knownIntermediateFailure": "Initial lint found six untranslated labels; all eight non-default locale resources were added and the complete build/tests/lint were rerun successfully.",
   "productionChanges": [],
-  "physicalDevice": "No USB device connected; no APK installed and no actual Android WebView/Autofill/login acceptance claimed",
+  "physicalDevice": "Follow-up: signed 0.24.1-local/101 installed preserving data, real Android WebView input-only DOM checks passed after human biometric unlock. See device-pilot-evidence.json; no real credential submission or revoked-device test claimed.",
   "preservedUnrelatedDirtyFile": {
     "path": "authentik/bootstrap_endpoint_devices.py",
     "sha256": "1d2773f504e1cae6cfa30f9cdc14a27afb66e9f16ff1b6c5fbd24e9e313bb914"
   },
   "remaining": [
-    "Real Android WebView test of typed/pasted/autofilled username and keyboard/correction-button paths",
+    "Human keyboard/paste/Autofill and visual layout acceptance beyond programmatic checks on the real Android WebView",
     "Correct username must still reach normal password/TOTP steps",
     "Genuine mismatched, disabled or revoked device must remain denied",
     "Human approval before a production OTA"

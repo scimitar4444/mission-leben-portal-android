@@ -408,4 +408,5 @@
     <string name="login_identifier_denied_hint">Błędna nazwa użytkownika też może powodować ten komunikat. Użyj nazwy bez domeny e-mail i bez @ na początku, a następnie zaloguj się ponownie. Jeśli nazwa jest poprawna, pokaż komunikat działowi IT. Nie usuwaj danych aplikacji ani nie rejestruj telefonu ponownie.</string>
     <string name="login_identifier_denied_summary">Nie udało się potwierdzić logowania. Sprawdź nazwę użytkownika. Jeśli jest poprawna, dział IT musi sprawdzić dostęp.</string>
     <string name="login_identifier_technical">Pokaż komunikat techniczny</string>
+    <string name="release_note_login_identifier">Pomoc przy logowaniu wyjaśnia domenę e-mail lub @ na początku. Możesz samodzielnie wybrać sugerowaną nazwę użytkownika. Komunikaty o błędach są jaśniejsze.</string>
 </resources>

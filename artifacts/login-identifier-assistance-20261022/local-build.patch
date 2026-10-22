@@ -1,0 +1,27 @@
+Production pilot build from source commit 99b49fdf9dc1551d99d33214b37a46ebb28ba78e.
+Only these local packaging deltas apply in /var/tmp/ml-android-login-hints.JiCIKjpv.
+The main repository remains 0.24.0/100 until a separately approved release.
+
+--- a/app/build.gradle.kts
++++ b/app/build.gradle.kts
+@@
+-        versionCode = 100
+-        versionName = "0.24.0"
++        versionCode = 101
++        versionName = "0.24.1-local"
+
+--- a/app/src/main/java/de/missionleben/portal/update/ReleaseNotesStore.kt
++++ b/app/src/main/java/de/missionleben/portal/update/ReleaseNotesStore.kt
+@@
+     private val notesByVersion = sortedMapOf(
++        101 to listOf(R.string.login_identifier_hint), // Local pilot only; not an OTA release.
+         100 to listOf(R.string.release_note_talk_voice, R.string.release_note_talk_voice_setup),
+
+Additionally copy app/src/androidTest/java/de/missionleben/portal/test/LoginIdentifierPilotInstrumentation.kt
+from this branch into the same clean build directory. SHA256 at pilot build:
+6aadb18e8ece8140be16bc825258e0450660caa2c185bdc71767859725fb6df8.
+It is present only in the separate production-signed instrumentation test APK, never the shipped main APK.
+Do not publish or retain the test APK installed on a user device after the check.
+
+The local pilot occupies versionCode 101. A future normal OTA for this handset must use a
+higher versionCode (at least 102), rather than attempt an uninstall or silent downgrade.

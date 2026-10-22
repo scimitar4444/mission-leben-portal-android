@@ -420,4 +420,5 @@
     <string name="login_identifier_denied_hint">An incorrect username can also cause this message. Use the name without an email suffix or leading @ and start sign-in again. If it is already correct, show this message to IT. Do not clear app data or register the phone again.</string>
     <string name="login_identifier_denied_summary">Sign-in could not be confirmed. Check your username. If it is correct, IT needs to check your access.</string>
     <string name="login_identifier_technical">Show technical message</string>
+    <string name="release_note_login_identifier">Sign-in help explains email suffixes or a leading @. You can choose to use a suggested username. Unclear error messages are easier to understand.</string>
 </resources>

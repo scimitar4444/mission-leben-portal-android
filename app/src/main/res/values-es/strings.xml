@@ -406,4 +406,5 @@
     <string name="login_identifier_denied_hint">Un nombre de usuario incorrecto también puede causar este mensaje. Usa el nombre sin el dominio de correo ni @ al principio y vuelve a iniciar sesión. Si ya es correcto, muestra el mensaje a Informática. No borres los datos de la app ni registres el teléfono de nuevo.</string>
     <string name="login_identifier_denied_summary">No se ha podido confirmar el inicio de sesión. Comprueba tu nombre de usuario. Si es correcto, Informática debe revisar tu acceso.</string>
     <string name="login_identifier_technical">Mostrar mensaje técnico</string>
+    <string name="release_note_login_identifier">La ayuda explica los dominios de correo o una @ inicial. Puedes elegir usar el nombre de usuario sugerido. Los mensajes de error son más claros.</string>
 </resources>

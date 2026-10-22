@@ -406,4 +406,5 @@
     <string name="login_identifier_denied_hint">Yanlış kullanıcı adı da bu mesaja neden olabilir. Adı e-posta alan adı ve başında @ olmadan kullanıp yeniden giriş yap. Ad zaten doğruysa mesajı BT ekibine göster. Uygulama verilerini silme veya telefonu yeniden kaydetme.</string>
     <string name="login_identifier_denied_summary">Giriş doğrulanamadı. Kullanıcı adını kontrol et. Doğruysa BT ekibinin erişim iznini kontrol etmesi gerekir.</string>
     <string name="login_identifier_technical">Teknik mesajı göster</string>
+    <string name="release_note_login_identifier">Giriş yardımı, e-posta alan adını veya baştaki @ işaretini açıklar. Önerilen kullanıcı adını kullanmayı kendin seçebilirsin. Hata mesajları daha anlaşılırdır.</string>
 </resources>
