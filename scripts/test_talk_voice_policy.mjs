@@ -79,6 +79,8 @@ assert.doesNotMatch(activity, /request\.grant\(request\.resources\)/);
 assert.match(activity, /onPermissionRequestCanceled/);
 assert.match(activity, /voiceDocumentStartInstalled && voiceCaptureGuardReady/);
 assert.match(manifest, /android\.permission\.RECORD_AUDIO/);
+assert.match(manifest, /android\.permission\.MODIFY_AUDIO_SETTINGS/,
+  'Chromium requires both audio permissions before it exposes an input device');
 assert.doesNotMatch(manifest, /android\.permission\.CAMERA|foregroundServiceType="microphone"/);
 assert.ok(!chatPolicy.includes("'button:has(.microphone-outline-icon)'"));
 for (const selector of ['.join-call', '.leave-call', '.call-button', '.talk-dashboard__actions button:has(.microphone-outline-icon)']) {
