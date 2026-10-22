@@ -413,4 +413,5 @@
     <string name="talk_voice_permission_request">Allow microphone</string>
     <string name="talk_voice_permission_settings">Change permission on this phone</string>
     <string name="talk_voice_permission_settings_hint">If no prompt appears, you can change microphone permission in the phone settings.</string>
+    <string name="release_note_talk_voice_setup">Allow microphone access in the setup assistant or Settings → Talk. The new setup step appears once.</string>
 </resources>

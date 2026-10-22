@@ -3,7 +3,6 @@ package de.missionleben.portal.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -78,7 +78,7 @@ internal fun TalkMicrophoneSettingsPanel(compact: Boolean = false) {
                     style = MaterialTheme.typography.bodySmall)
                 TextButton(onClick = {
                     context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        Uri.parse("package:${context.packageName}")))
+                        "package:${context.packageName}".toUri()))
                 }, modifier = Modifier.fillMaxWidth().testTag("talk_microphone_system_settings")) {
                     Text(stringResource(R.string.talk_voice_permission_settings))
                 }

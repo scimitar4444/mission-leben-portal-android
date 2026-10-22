@@ -400,4 +400,5 @@
     <string name="talk_voice_permission_request">Permite microfonul</string>
     <string name="talk_voice_permission_settings">Schimbă permisiunea pe telefon</string>
     <string name="talk_voice_permission_settings_hint">Dacă nu apare solicitarea, poți schimba permisiunea microfonului în setările telefonului.</string>
+    <string name="release_note_talk_voice_setup">Permite microfonul în asistentul de configurare sau Setări → Talk. Noul pas apare o singură dată.</string>
 </resources>

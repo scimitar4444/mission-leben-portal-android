@@ -399,4 +399,5 @@
     <string name="talk_voice_permission_request">माइक्रोफ़ोन की अनुमति दें</string>
     <string name="talk_voice_permission_settings">फ़ोन पर अनुमति बदलें</string>
     <string name="talk_voice_permission_settings_hint">अगर अनुरोध नहीं दिखता है, तो फ़ोन की सेटिंग्स में माइक्रोफ़ोन की अनुमति बदल सकते हैं।</string>
+    <string name="release_note_talk_voice_setup">सेटअप सहायक या सेटिंग्स → Talk में माइक्रोफ़ोन की अनुमति दें। नया सेटअप चरण एक बार दिखेगा।</string>
 </resources>

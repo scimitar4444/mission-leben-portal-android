@@ -399,4 +399,5 @@
     <string name="talk_voice_permission_request">Permitir micrófono</string>
     <string name="talk_voice_permission_settings">Cambiar permiso en el teléfono</string>
     <string name="talk_voice_permission_settings_hint">Si no aparece la solicitud, cambia el permiso del micrófono en los ajustes del teléfono.</string>
+    <string name="release_note_talk_voice_setup">Permite el micrófono en el asistente de configuración o Ajustes → Talk. El nuevo paso aparece una sola vez.</string>
 </resources>

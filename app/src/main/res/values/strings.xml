@@ -446,4 +446,5 @@
     <string name="talk_voice_permission_request">Mikrofon erlauben</string>
     <string name="talk_voice_permission_settings">Freigabe am Handy ändern</string>
     <string name="talk_voice_permission_settings_hint">Falls keine Abfrage mehr erscheint, kannst du die Mikrofonfreigabe in den Handy-Einstellungen ändern.</string>
+    <string name="release_note_talk_voice_setup">Die Mikrofonfreigabe findest du im Einrichtungsassistenten und unter Einstellungen → Talk. Der neue Schritt wird einmalig angezeigt.</string>
 </resources>

@@ -401,4 +401,5 @@
     <string name="talk_voice_permission_request">Zezwól na mikrofon</string>
     <string name="talk_voice_permission_settings">Zmień uprawnienie w telefonie</string>
     <string name="talk_voice_permission_settings_hint">Jeśli pytanie nie jest wyświetlane, zmień uprawnienie mikrofonu w ustawieniach telefonu.</string>
+    <string name="release_note_talk_voice_setup">Zezwól na mikrofon w kreatorze konfiguracji lub Ustawienia → Talk. Nowy krok pojawi się raz.</string>
 </resources>
