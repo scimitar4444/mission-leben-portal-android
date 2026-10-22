@@ -19,6 +19,28 @@ try {
         ->get('collectives')->getFolder('7')->getFolder('Mission Leben Zentral');
     $db = \OC::$server->get(\OCP\IDBConnection::class);
     $text = \OC::$server->get(\OCA\Text\Service\DocumentService::class);
+    // Text bundled with Nextcloud 35 identifies documents by context, not file ID.
+    // Detect the supported API explicitly: never treat an unknown API as "no edits".
+    $resetMethod = new ReflectionMethod($text, 'resetDocument');
+    if ($resetMethod->getNumberOfRequiredParameters() === 2 &&
+        $resetMethod->getParameters()[0]->getName() === 'contextType' &&
+        $resetMethod->getParameters()[1]->getName() === 'contextId') {
+        $documents = \OC::$server->get(\OCA\Text\Db\DocumentMapper::class);
+        $steps = \OC::$server->get(\OCA\Text\Db\StepMapper::class);
+        $getDocument = static fn(int $id) => $documents->load('file', $id);
+        $hasUnsavedChanges = static fn($document): bool => $document !== null &&
+            ($steps->getLatestVersion($document->getId()) ?: 0) !== $document->getLastSavedVersion();
+        $resetDocument = static fn(int $id) => $text->resetDocument('file', $id);
+        $textApi = 'context-file';
+    } elseif ($resetMethod->getNumberOfRequiredParameters() === 1 &&
+        method_exists($text, 'hasUnsavedChanges')) {
+        $getDocument = static fn(int $id) => $text->getDocument($id);
+        $hasUnsavedChanges = static fn($document): bool => $document !== null && $text->hasUnsavedChanges($document);
+        $resetDocument = static fn(int $id) => $text->resetDocument($id);
+        $textApi = 'legacy-file-id';
+    } else {
+        throw new RuntimeException('Unsupported Text document API; review before updating guides');
+    }
     $files = [];
     foreach ($paths as $id => $path) {
         $qb = $db->getQueryBuilder();
@@ -50,12 +72,12 @@ try {
         $pages = [];
         foreach ($files as $id => $file) {
             $content = $file->getContent();
-            $document = $text->getDocument($id);
+            $document = $getDocument($id);
             $pages[] = ['id' => $id, 'path' => $paths[$id], 'content' => $content,
                 'sha256' => hash('sha256', $content),
-                'unsavedTextChanges' => $document !== null && $text->hasUnsavedChanges($document)];
+                'unsavedTextChanges' => $hasUnsavedChanges($document)];
         }
-        echo json_encode(['pages' => $pages, 'attachments' => $attachmentSnapshot()],
+        echo json_encode(['textApi' => $textApi, 'pages' => $pages, 'attachments' => $attachmentSnapshot()],
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";
         exit(0);
     }
@@ -89,8 +111,8 @@ try {
             throw new RuntimeException('Concurrent page edit: ' . $id);
         }
         if ($changed) {
-            $document = $text->getDocument($id);
-            if ($document !== null && $text->hasUnsavedChanges($document)) {
+            $document = $getDocument($id);
+            if ($hasUnsavedChanges($document)) {
                 throw new RuntimeException('Unsaved Text edits: ' . $id);
             }
             $changes[] = $row;
@@ -101,9 +123,9 @@ try {
         foreach ($changes as $row) {
             $id = $row['id'];
             $expected = $operation === '--rollback' ? hash('sha256', $row['content']) : $row['beforeSha256'];
-            $document = $text->getDocument($id);
+            $document = $getDocument($id);
             if (!hash_equals($expected, hash('sha256', $files[$id]->getContent())) ||
-                ($document !== null && $text->hasUnsavedChanges($document))) {
+                $hasUnsavedChanges($document)) {
                 throw new RuntimeException('Concurrent edit before save: ' . $id);
             }
             $content = $operation === '--rollback' ? $row['beforeContent'] : $row['content'];
@@ -112,10 +134,10 @@ try {
             if (!hash_equals(hash('sha256', $content), $actual)) {
                 throw new RuntimeException('Readback mismatch: ' . $id);
             }
-            $document = $text->getDocument($id);
+            $document = $getDocument($id);
             $reset = $document !== null && $document->getChecksum() !== $text::computeCheckSum($content);
             if ($reset) {
-                $text->resetDocument($id); // Never force over unsaved changes.
+                $resetDocument($id); // Never force over unsaved changes.
             }
             $results[] = ['id' => $id, 'sha256' => $actual, 'textSessionReset' => $reset];
         }
@@ -123,7 +145,7 @@ try {
     if ($plan['attachments'] !== $attachmentSnapshot()) {
         throw new RuntimeException('Attachment inventory changed after update');
     }
-    echo json_encode(['operation' => $operation, 'changedPageIds' => array_column($changes, 'id'),
+    echo json_encode(['operation' => $operation, 'textApi' => $textApi, 'changedPageIds' => array_column($changes, 'id'),
         'attachmentsUnchanged' => true, 'pages' => $results], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), "\n";
 } catch (Throwable $e) {
     fwrite(STDERR, get_class($e) . ': ' . $e->getMessage() . "\n");

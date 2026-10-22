@@ -1,5 +1,30 @@
 # Aktive Kollektiv-Anleitungen
 
+Am 22.10.2026 wurden App-Hilfe (95685099) und Persönliches Handy (95685102)
+live um die Glocke mit 14-Tage-Verlauf und Talk-Sprachnachrichten ergänzt.
+Die Anleitung erklärt Gelesen/Ausblenden, abgelaufene und gelöschte
+Ankündigungen, die Abgrenzung zum Mail-/Chat-/Dateiarchiv sowie die freiwillige
+Mikrofonfreigabe im Assistenten und unter Einstellungen → Talk. Der Haken
+beendet und sendet die Aufnahme sofort; X, Verlassen und Bildschirm-Aus
+verwerfen nur die ungesendete Aufnahme. Die Texte und Kapitelverweise wurden
+im angemeldeten Browser kontrolliert. Alle 30 Anhänge und vier übrigen Seiten
+blieben unverändert. Belege und read-derived Rückweg:
+`artifacts/app-guide-bell-voice-20261022/`. Kein zusätzliches App-Release nötig.
+
+**Nextcloud 35 / Text 9:** `update_app_guides.php` erkennt die geänderte
+Text-API explizit. Dokumente werden über `DocumentMapper.load('file', fileId)`
+geladen; ungespeicherte Schritte werden wie in `resetDocument()` anhand von
+`StepMapper.getLatestVersion()` und `getLastSavedVersion()` geprüft. Der Reset
+lautet nun `resetDocument('file', fileId)` und bleibt ohne `force`. Der alte
+API-Zweig ist für ältere Text-Versionen erhalten, unbekannte Signaturen führen
+zum Abbruch. Auf Nextcloud 35.0.2 / Text 9.0.1 / Collectives 4.7.1 live geprüft;
+der Legacy-Zweig wurde dabei nicht erneut auf einer Altinstanz ausgeführt.
+Die älteren Spezialskripte `update_app_help.php` und
+`reset_help_text_session.php` sind historische Belege und dürfen nicht
+unverändert auf Nextcloud 35 ausgeführt werden. Es wurde kein Nextcloud-Core-
+oder App-Code geändert; nur der projektlokale Veröffentlichungshelfer und die
+zwei angeforderten Hilfeseiten wurden angepasst.
+
 Am 12.10.2026 wurden App-Hilfe, Persönliches Handy und die Einrichter-Anleitung
 live ergänzt: „App-Einstellungen auf dem Handy“, die getrennten Knöpfe
 „Benachrichtigungen einstellen“ / „Akku-Einstellungen öffnen“ sowie vier kurze

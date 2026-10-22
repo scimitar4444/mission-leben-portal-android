@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-22",
+  "status": "LIVE_SAVED_AND_BROWSER_VERIFIED",
+  "host": "ml-nextcloud",
+  "address": "172.16.40.140",
+  "versions": {
+    "nextcloud": "35.0.2",
+    "text": "9.0.1",
+    "collectives": "4.7.1"
+  },
+  "changedPages": [
+    {
+      "id": 95685099,
+      "beforeSha256": "0ac0777f8d8bf9ef51491470b0503e4e5c696580ec0d90a0b6d5973eb7475ed6",
+      "afterSha256": "922da34ddcd41a7cc2414e6fb19cfe4517383d927d61e45d522a0ab83d9dc581",
+      "textSessionReset": true
+    },
+    {
+      "id": 95685102,
+      "beforeSha256": "4ca6758a05de11f314721f0ef02925ac8532884676b7f242d3da7e61af6a31e5",
+      "afterSha256": "57a21fbc1318f177a0f131d61489f91947a7e05f95182c533729c11231eba95a",
+      "textSessionReset": true
+    }
+  ],
+  "unchangedPages": [
+    94019508,
+    95685097,
+    95685139,
+    95685145
+  ],
+  "attachmentsUnchanged": 30,
+  "allPagesHaveNoUnsavedTextChangesAfterBrowser": true,
+  "textApi": "context-file",
+  "helperSha256": "8d8040646520ecd20bd81e33aea683c8b4008ea4f15da7dcbe61d8f64f2476f5",
+  "checks": [
+    "PHP syntax passed",
+    "read-derived preflight passed",
+    "file/API readback exact",
+    "browser verified new bell and Talk sections",
+    "personal-guide links match actual chapter anchors",
+    "local sources match live after trimming final newline",
+    "30 attachment IDs/bytes/hashes unchanged",
+    "4 unrelated guide pages unchanged"
+  ],
+  "rollback": {
+    "remotePlan": "/tmp/ml-app-guides.TfoGETHx/plan.json",
+    "helper": "/tmp/ml-app-guides.TfoGETHx/update_app_guides.php",
+    "operation": "--rollback",
+    "guards": [
+      "matching after hashes",
+      "same attachment inventory",
+      "no unsaved Text changes",
+      "no force"
+    ]
+  },
+  "notChanged": [
+    "APK/OTA",
+    "Authentik flows/groups/permissions",
+    "Nextcloud core/apps code",
+    "attachments"
+  ],
+  "risks": [
+    "An already open old help view must reload.",
+    "Legacy Text branch retained but not retested on an older instance.",
+    "Rollback stops if somebody edited pages after this update; re-read instead of force."
+  ]
+}
