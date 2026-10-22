@@ -4,8 +4,9 @@ Nur für den vom Nutzer beauftragten Test. Kein OTA, kein produktiver Servereing
 keine Änderung an Authentik-Gruppen, Flows oder Sitzungsregeln. Öffentlich bleibt
 0.23.3/98. Die fremde lokale Änderung in bootstrap_endpoint_devices.py bleibt unberührt.
 
-Neue Android-Berechtigung: RECORD_AUDIO, erst bei einer zulässigen Talk-Anfrage
-über den Android-Dialog erfragt. Kein CAMERA, kein Mikrofon-Foreground-Service.
+Neue Android-Berechtigungen: RECORD_AUDIO, erst bei einer zulässigen Talk-Anfrage
+über den Android-Dialog erfragt, sowie die normale Berechtigung MODIFY_AUDIO_SETTINGS
+für die Chromium-Audioeingabe. Kein CAMERA, kein Mikrofon-Foreground-Service.
 Nur exakt HTTPS nextcloud.mission-leben.de, Port443 oder Standardport, zulässiger
 Talk-Pfad, aktive App-Inhaltsansicht und entsperrte/registrierte Sitzung. Anfragen
 mit Kamera, MIDI, unbekannten oder gemischten Ressourcen werden vollständig
@@ -61,3 +62,50 @@ Abbruch bei Bildschirm-Aus bleiben als Geräteabnahme offen. Kein OTA veröffent
 Vor Rollout diese echten Prüfungen durchführen. Rückweg ohne Datenlöschung:
 vorherige Funktion mit höherem versionCode neu signieren oder vorwärts korrigieren;
 kein stilles Downgrade/Deinstallieren, keine Server-Datenbank-Rücksicherung.
+
+## Gerätefehler beim ersten Mikrofontest am22.10.2026
+
+Der Nutzer erteilte die Android-Mikrofonfreigabe. PackageManager bestätigte
+RECORD_AUDIO granted=true; Talk meldete trotzdem Mikrofonzugriff verweigert.
+Auch erneutes Antippen im offenen Selbstchat scheiterte. Das App-Protokoll meldete
+mehrfach: `Requires MODIFY_AUDIO_SETTINGS and RECORD_AUDIO. No audio device will
+be available for recording`. Es wurde keine Nachricht versendet.
+
+Erster nachgewiesener Fehler: Die zweite, normale Manifest-Berechtigung fehlte im ersten Pilot99.
+Commit8c0a191 ergänzt ausschließlich MODIFY_AUDIO_SETTINGS und einen
+Regressionscheck im vorhandenen Node-Test. Keine Lockerung der Origin-, Kamera-,
+Sitzungs- oder Vordergrundprüfung. Chromium prüft beide Berechtigungen vor der
+Eingabegeräteauswahl; siehe
+https://raw.githubusercontent.com/chromium/chromium/main/media/base/android/java/src/org/chromium/media/AudioManagerAndroid.java
+(`getAudioInputDeviceNames`). Die Android-Dokumentation stuft MODIFY_AUDIO_SETTINGS
+als normale Installationsberechtigung ein:
+https://developer.android.com/reference/android/Manifest.permission#MODIFY_AUDIO_SETTINGS
+
+Audiofix am22.10.2026 um07:16:35 als Update installiert, unveränderte Registrierung.
+Beide Audioberechtigungen sind granted=true. Der Chromium-Hinweis zur fehlenden
+Berechtigung ist weg; der Nutzer meldet aber weiterhin denselben Talk-Fehler.
+Dies ist ausdrücklich noch keine erfolgreiche Mikrofonabnahme. Commit311367f
+ergänzt begrenzte Diagnosecodes und boolesche Gate-Zustände ausschließlich für
+lokale Versionen; keine Inhalte, URLs, Identitäten oder Fehlertexte werden geloggt.
+
+Zweiter Fehler am Gerät reproduziert: Beim Wechsel von der Talk-Übersicht in den
+Selbstchat liefert onPageFinished teilweise noch die bisherige Route, während
+WebView.url bereits die neue SPA-Route enthält. Diagnose um07:23:13:
+`guard start=true installed=true samePage=false talk=true ready=false`.
+Die nachfolgende Anfrage war korrekt scoped, entsperrt und im Vordergrund,
+wurde aber wegen ready=false abgewiesen.
+
+Commitfebf24b bindet den Bereitschaftsnachweis an eine pro Hauptdokumentnavigation
+erhöhte Generation statt an URL-Gleichheit. Beide Routen müssen weiterhin exakt
+zulässige Talk-Dokumente sein; verspätete Rückgaben eines ersetzten Dokuments
+werden verworfen und dürfen auch keinen neueren Bereitschaftszustand überschreiben.
+Zwei Regressionstests decken Raumwechsel innerhalb desselben Dokuments sowie
+Dokumentersetzung, fremde Origins/Ports und nicht zulässige Seiten ab.
+
+Korrigiertes Pilot-APK `mission-leben-zentral-0.23.4-local-routefix.apk` um07:25:30
+als Update installiert. SHA256 b40721c45aaaab14d65292dde8b48a532d8810ba187e5fdce420f1d68b18b08c,
+Produktionssignatur unverändert. Clean-Archiv-Build,432 Debug-/400 Release-Tests
+und beide Node-Vertragstests grün; Lint0 Fehler/131 bekannte Warnungen. Echte
+Aufnahmeprüfung wartet nochmals auf menschliche Biometrie; nicht als abgenommen
+oder OTA veröffentlicht ausweisen. Update-Verwalter über beide Fehler und den
+erweiterten SPA-Abnahmevertrag informiert.
