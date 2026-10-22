@@ -106,6 +106,32 @@ Korrigiertes Pilot-APK `mission-leben-zentral-0.23.4-local-routefix.apk` um07:25
 als Update installiert. SHA256 b40721c45aaaab14d65292dde8b48a532d8810ba187e5fdce420f1d68b18b08c,
 Produktionssignatur unverändert. Clean-Archiv-Build,432 Debug-/400 Release-Tests
 und beide Node-Vertragstests grün; Lint0 Fehler/131 bekannte Warnungen. Echte
-Aufnahmeprüfung wartet nochmals auf menschliche Biometrie; nicht als abgenommen
-oder OTA veröffentlicht ausweisen. Update-Verwalter über beide Fehler und den
+Aufnahmefunktion anschließend vom Nutzer mit „geht!“ bestätigt; Android-AppOps
+bestätigt4,419 Sekunden echte Mikrofonverwendung, danach beendet. Senden/Anhören
+und gezieltes Verwerfen/Hintergrund/Sperre bleiben separat zu prüfen. Nicht als
+vollständig abgenommen oder OTA veröffentlicht ausweisen. Update-Verwalter über beide Fehler und den
 erweiterten SPA-Abnahmevertrag informiert.
+
+## Mikrofonfreigabe in Assistent und Einstellungen
+
+Auf Nutzerwunsch ergänzt Commita3fb697 einen eigenen neuen Schritt TALK_VOICE.
+Nur angemeldete Nutzer mit tatsächlich sichtbarer Talk-App sehen ihn, auch ohne
+Push oder Zimbra. Bereits abgeschlossene Schritte bleiben erledigt; der neue
+Schritt erscheint einmalig und kann später im Assistenten erneut geöffnet werden.
+Unter Einstellungen → Talk erscheint dasselbe kompakte Panel zum Aufklappen.
+
+„Mikrofon erlauben“ öffnet direkt den Android-Berechtigungsdialog. Es gibt keinen
+zweiten internen Schalter und keine automatische Aufnahme. Der angezeigte Status
+kommt aus Android und wird nach Rückkehr aus den Handy-Einstellungen neu gelesen.
+Nach Ablehnen/bei bestehender Freigabe führt ein Knopf zu den Einstellungen dieser
+App; Textchat bleibt ohne Zustimmung möglich. Alle9 App-Sprachen ergänzt.
+
+Clean-Archiv-Build:433 Debug-/401 Release-Tests, beide Node-Verträge grün; Lint0
+Fehler/132 Warnungen. Eine zusätzliche Warnung ist nur der UseKtx-Stilhinweis zu
+Uri.parse. Keine Abhängigkeit verändert. Signiertes Pilot-APK
+`mission-leben-zentral-0.23.4-local-assistant.apk`, SHA256
+2008d93af7fa8c89e85085383e349b6d949db7d11aa018fabc9d5b448300b7f6,
+um07:39:21 als Update installiert. Für den echten Freigabe-Test wurde nur
+RECORD_AUDIO zurückgenommen; der Nutzer muss nun bewusst im neuen Assistenten
+zustimmen. Gerätebindung und Anmeldung bleiben erhalten. Geräteprüfung des neuen
+Panels noch offen, kein OTA.
