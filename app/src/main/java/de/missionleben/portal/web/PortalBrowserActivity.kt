@@ -19,6 +19,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.CookieManager
+import android.webkit.ConsoleMessage
 import android.webkit.DownloadListener
 import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
@@ -687,6 +688,8 @@ class PortalBrowserActivity : FragmentActivity() {
                 view.evaluateJavascript(TalkVoicePolicy.CAPTURE_GUARD_SCRIPT) { installed ->
                     voiceCaptureGuardReady = voiceDocumentStartInstalled && installed == "true" && view.url == url &&
                         TalkVoicePolicy.isTalkDocument(url)
+                    if (BuildConfig.VERSION_NAME.endsWith("-local")) Log.d("MissionLebenVoice",
+                        "guard start=$voiceDocumentStartInstalled installed=${installed == "true"} samePage=${view.url == url} talk=${TalkVoicePolicy.isTalkDocument(url)} ready=$voiceCaptureGuardReady")
                     resumeTalkVoiceCapture()
                 }
                 if (!talkChatNoticeShown) {
@@ -850,6 +853,15 @@ class PortalBrowserActivity : FragmentActivity() {
     }
 
     private inner class BrowserChromeClient : WebChromeClient() {
+        override fun onConsoleMessage(message: ConsoleMessage): Boolean {
+            val code = message.message()
+            if (code.matches(Regex("ML_TALK_VOICE:(installed|request|blocked-disabled|blocked-frame|blocked-hidden|blocked-page|blocked-constraints|native-denied|late-capture|stopped|resumed)"))) {
+                if (BuildConfig.VERSION_NAME.endsWith("-local")) Log.d("MissionLebenVoice", code)
+                return true
+            }
+            return super.onConsoleMessage(message)
+        }
+
         override fun onProgressChanged(view: WebView, newProgress: Int) {
             progress.progress = newProgress
             progress.visibility = if (newProgress >= 100) View.GONE else View.VISIBLE
@@ -860,6 +872,8 @@ class PortalBrowserActivity : FragmentActivity() {
         }
 
         override fun onPermissionRequest(request: PermissionRequest) {
+            if (BuildConfig.VERSION_NAME.endsWith("-local")) Log.d("MissionLebenVoice",
+                "permission start=$voiceDocumentStartInstalled ready=$voiceCaptureGuardReady mode=${deviceMode != null} content=${intent.getBooleanExtra(EXTRA_APP_CONTENT, false)} protected=${protectedFileActionAllowed()} resumed=${lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)} focus=${hasWindowFocus()} scoped=${TalkVoicePolicy.allows(webViewUrl().orEmpty(), request.origin.toString(), request.resources.toList())}")
             talkVoicePermissionGate.request(object : TalkVoiceRequest {
                 override val identity: Any = request
                 override val origin: String = request.origin.toString()

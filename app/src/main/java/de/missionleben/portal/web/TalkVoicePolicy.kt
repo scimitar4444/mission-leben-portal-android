@@ -34,8 +34,11 @@ internal object TalkVoicePolicy {
           const streams = new Set();
           let generation = 0;
           let enabled = true;
+          // Fixed event codes only: never include audio, identity, URL or exception text.
+          const report = code => console.info('ML_TALK_VOICE:' + code);
           const allowedPage = () => /^\/(?:index\.php\/)?(?:apps\/spreed(?:\/.*)?|call\/[A-Za-z0-9_-]{4,128}\/?)${'$'}/.test(window.location.pathname);
           const stop = () => {
+            report('stopped');
             enabled = false;
             generation++;
             // Talk's stop/check button sends immediately. Use its cancel control first.
@@ -44,15 +47,22 @@ internal object TalkVoicePolicy {
             streams.clear();
           };
           window.__mlStopTalkVoiceCapture = stop;
-          window.__mlResumeTalkVoiceCapture = () => { enabled = true; };
+          window.__mlResumeTalkVoiceCapture = () => { enabled = true; report('resumed'); };
           media.getUserMedia = async constraints => {
-            if (!enabled || window.top !== window || document.hidden || !allowedPage() ||
-                !constraints || !constraints.audio || constraints.video) {
+            const blocked = !enabled ? 'blocked-disabled' : window.top !== window ? 'blocked-frame'
+              : document.hidden ? 'blocked-hidden' : !allowedPage() ? 'blocked-page'
+              : (!constraints || !constraints.audio || constraints.video) ? 'blocked-constraints' : null;
+            if (blocked) {
+              report(blocked);
               throw new DOMException('Only foreground Talk voice messages are allowed', 'NotAllowedError');
             }
+            report('request');
             const started = generation;
-            const stream = await nativeGetUserMedia(constraints);
+            let stream;
+            try { stream = await nativeGetUserMedia(constraints); }
+            catch (error) { report('native-denied'); throw error; }
             if (!enabled || started !== generation || document.hidden || !allowedPage()) {
+              report('late-capture');
               stream.getTracks().forEach(track => track.stop());
               throw new DOMException('The recording context is no longer active', 'NotAllowedError');
             }
@@ -65,6 +75,7 @@ internal object TalkVoicePolicy {
           window.addEventListener('popstate', () => { if (!allowedPage()) stop(); });
           window.addEventListener('hashchange', () => { if (!allowedPage()) stop(); });
           window.__mlTalkVoiceGuardInstalled = true;
+          report('installed');
           return true;
         })();
     """
