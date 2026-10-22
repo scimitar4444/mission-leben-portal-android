@@ -132,6 +132,14 @@ Uri.parse. Keine Abhängigkeit verändert. Signiertes Pilot-APK
 `mission-leben-zentral-0.23.4-local-assistant.apk`, SHA256
 2008d93af7fa8c89e85085383e349b6d949db7d11aa018fabc9d5b448300b7f6,
 um07:39:21 als Update installiert. Für den echten Freigabe-Test wurde nur
-RECORD_AUDIO zurückgenommen; der Nutzer muss nun bewusst im neuen Assistenten
-zustimmen. Gerätebindung und Anmeldung bleiben erhalten. Geräteprüfung des neuen
-Panels noch offen, kein OTA.
+RECORD_AUDIO zurückgenommen; der Nutzer hat den neuen Assistentenschritt, den
+Android-Dialog und den Status „Mikrofon: erlaubt“ anschließend bestätigt.
+Gerätebindung und Anmeldung bleiben erhalten. Aufnahme/Senden/Anhören sowie
+X/Home und Bildschirm-Aus ohne ungewollte Nachricht sind bestätigt; nach
+Bildschirm-Aus blieb die gesendete Nachricht erhalten, nur die ungesendete
+Aufnahme wurde verworfen. Android-AppOps zeigt endliche, beendete Aufnahmen.
+
+Auf ausdrücklichen Auftrag anschließend als0.24.0/100 regulär veröffentlicht.
+Finale APK und Latest-Manifest öffentlich mit TLS, Hash und Signatur geprüft;
+siehe `../release-0.24.0-20261022/release-evidence.json`. Die finale100 nicht
+zusätzlich direkt aufs Handy installiert; keine Flotteninstallation behauptet.
