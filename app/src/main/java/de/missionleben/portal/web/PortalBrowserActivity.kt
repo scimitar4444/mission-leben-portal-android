@@ -91,6 +91,7 @@ class PortalBrowserActivity : FragmentActivity() {
     private var talkChatNoticeShown = false
     private var voiceDocumentStartInstalled = false
     private var voiceCaptureGuardReady = false
+    private var voiceDocumentGeneration = 0L
     private val talkVoicePermissionGate: TalkVoicePermissionGate by lazy {
         TalkVoicePermissionGate(
             page = { webViewUrl().orEmpty() },
@@ -659,6 +660,7 @@ class PortalBrowserActivity : FragmentActivity() {
         override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = handleNavigation(url, true)
 
         override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+            voiceDocumentGeneration++
             talkVoicePermissionGate.cancel()
             stopTalkVoiceCapture()
             voiceCaptureGuardReady = false
@@ -685,11 +687,14 @@ class PortalBrowserActivity : FragmentActivity() {
                 // Fallback for providers without document-start script support and defense in depth
                 // after Nextcloud/Talk SPA route changes.
                 view.evaluateJavascript(talkChatScript, null)
+                val generation = voiceDocumentGeneration
                 view.evaluateJavascript(TalkVoicePolicy.CAPTURE_GUARD_SCRIPT) { installed ->
-                    voiceCaptureGuardReady = voiceDocumentStartInstalled && installed == "true" && view.url == url &&
-                        TalkVoicePolicy.isTalkDocument(url)
+                    // Ignore results from a replaced document, but permit Talk's in-document room routes.
+                    if (generation != voiceDocumentGeneration) return@evaluateJavascript
+                    voiceCaptureGuardReady = TalkVoicePolicy.isGuardReady(voiceDocumentStartInstalled, installed,
+                        generation, voiceDocumentGeneration, url, view.url.orEmpty())
                     if (BuildConfig.VERSION_NAME.endsWith("-local")) Log.d("MissionLebenVoice",
-                        "guard start=$voiceDocumentStartInstalled installed=${installed == "true"} samePage=${view.url == url} talk=${TalkVoicePolicy.isTalkDocument(url)} ready=$voiceCaptureGuardReady")
+                        "guard start=$voiceDocumentStartInstalled installed=${installed == "true"} sameDocument=${generation == voiceDocumentGeneration} talk=${TalkVoicePolicy.isTalkDocument(view.url.orEmpty())} ready=$voiceCaptureGuardReady")
                     resumeTalkVoiceCapture()
                 }
                 if (!talkChatNoticeShown) {

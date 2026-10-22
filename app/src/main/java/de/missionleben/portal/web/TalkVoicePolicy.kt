@@ -18,6 +18,13 @@ internal object TalkVoicePolicy {
 
     fun isNextcloudPage(value: String): Boolean = trustedUri(value) != null
 
+    // Talk changes the displayed route with history.pushState without replacing its document.
+    // Bind readiness to the document generation, not equality of the old and current route.
+    fun isGuardReady(documentStartInstalled: Boolean, installedResult: String?,
+        expectedGeneration: Long, currentGeneration: Long, finishedPage: String, currentPage: String): Boolean =
+        documentStartInstalled && installedResult == "true" && expectedGeneration == currentGeneration &&
+            isTalkDocument(finishedPage) && isTalkDocument(currentPage)
+
     fun allows(page: String, origin: String, resources: List<String>): Boolean {
         val source = trustedUri(origin) ?: return false
         return isTalkDocument(page) && source.rawPath.orEmpty() in listOf("", "/") &&
