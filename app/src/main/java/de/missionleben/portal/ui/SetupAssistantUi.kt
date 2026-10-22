@@ -137,6 +137,7 @@ internal fun SetupAssistantDialog(
                             compact = true,
                         )
                     }
+                    SetupStep.TALK_VOICE -> TalkMicrophoneSettingsPanel(compact = true)
                 }
             }
         },
@@ -184,4 +185,5 @@ private fun SetupStep.shortLabel() = when (this) {
     SetupStep.MESSAGES -> R.string.setup_messages_short
     SetupStep.CALENDAR -> R.string.setup_calendar_short
     SetupStep.TALK -> R.string.talk_settings_title
+    SetupStep.TALK_VOICE -> R.string.setup_talk_voice_short
 }

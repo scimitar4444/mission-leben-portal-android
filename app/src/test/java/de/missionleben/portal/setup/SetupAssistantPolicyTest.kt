@@ -48,7 +48,7 @@ class SetupAssistantPolicyTest {
     @Test fun `Talk is an independent step without push or Zimbra`() {
         for (mode in DeviceMode.entries) {
             assertEquals(
-                listOf(SetupStep.TALK),
+                listOf(SetupStep.TALK, SetupStep.TALK_VOICE),
                 SetupAssistantPolicy.available(true, mode, false, true, false, false, talkVisible = true),
             )
         }
@@ -67,11 +67,11 @@ class SetupAssistantPolicyTest {
 
     @Test fun `Talk is appended without renumbering the previous setup steps`() {
         assertEquals(
-            listOf(SetupStep.NOTIFICATIONS, SetupStep.BATTERY, SetupStep.MESSAGES, SetupStep.CALENDAR, SetupStep.TALK),
+            listOf(SetupStep.NOTIFICATIONS, SetupStep.BATTERY, SetupStep.MESSAGES, SetupStep.CALENDAR, SetupStep.TALK, SetupStep.TALK_VOICE),
             SetupAssistantPolicy.available(true, DeviceMode.PERSONAL, true, true, true, true, talkVisible = true),
         )
         assertEquals(
-            listOf(SetupStep.NOTIFICATIONS, SetupStep.BATTERY, SetupStep.TALK),
+            listOf(SetupStep.NOTIFICATIONS, SetupStep.BATTERY, SetupStep.TALK, SetupStep.TALK_VOICE),
             SetupAssistantPolicy.available(true, DeviceMode.SHARED, true, true, true, true, talkVisible = true),
         )
     }
@@ -79,8 +79,9 @@ class SetupAssistantPolicyTest {
     @Test fun `existing users are only offered the new Talk choice once`() {
         val completed = setOf(SetupStep.NOTIFICATIONS, SetupStep.BATTERY, SetupStep.MESSAGES, SetupStep.CALENDAR)
         val available = SetupAssistantPolicy.available(true, DeviceMode.PERSONAL, true, true, true, true, talkVisible = true)
-        assertEquals(listOf(SetupStep.TALK), SetupAssistantPolicy.pending(available, completed))
-        assertEquals(emptyList<SetupStep>(), SetupAssistantPolicy.pending(available, completed + SetupStep.TALK))
+        assertEquals(listOf(SetupStep.TALK, SetupStep.TALK_VOICE), SetupAssistantPolicy.pending(available, completed))
+        assertEquals(listOf(SetupStep.TALK_VOICE), SetupAssistantPolicy.pending(available, completed + SetupStep.TALK))
+        assertEquals(emptyList<SetupStep>(), SetupAssistantPolicy.pending(available, completed + SetupStep.TALK + SetupStep.TALK_VOICE))
     }
 
     @Test fun `revoked Talk access removes even an unfinished Talk step`() {
@@ -90,5 +91,6 @@ class SetupAssistantPolicyTest {
             SetupAssistantPolicy.pending(withoutTalk, withoutTalk.toSet()),
         )
         assertFalse(SetupStep.TALK in withoutTalk)
+        assertFalse(SetupStep.TALK_VOICE in withoutTalk)
     }
 }

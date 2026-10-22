@@ -8,6 +8,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ReleaseNotesPolicyTest {
+    @Test fun voiceReleaseNotesCoverPublicAndLocalPilotUpgradesOnce() {
+        val expected = listOf(R.string.release_note_talk_voice, R.string.release_note_talk_voice_setup)
+        assertEquals(expected, ReleaseNotesCatalog.forVersion(100))
+        assertEquals(expected, ReleaseNotesCatalog.since(98, 100))
+        assertEquals(expected, ReleaseNotesCatalog.since(99, 100))
+        assertEquals(emptyList<Int>(), ReleaseNotesCatalog.since(100, 100))
+    }
     @Test fun announcementHistoryHasItsOwnUpgradeNote() {
         val note = listOf(R.string.release_note_announcement_history)
         assertEquals(note, ReleaseNotesCatalog.since(96, 98))

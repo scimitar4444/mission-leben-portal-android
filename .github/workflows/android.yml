@@ -31,7 +31,9 @@ jobs:
       - name: Test Zimbra contact composer bridge
         run: node scripts/test_zimbra_contact_compose.mjs
       - name: Test Talk overview and notification entry paths
-        run: node scripts/test_talk_chat_policy.mjs
+        run: |
+          node scripts/test_talk_chat_policy.mjs
+          node scripts/test_talk_voice_policy.mjs
       - name: Test Authentik password visibility and masking
         run: node scripts/test_password_visibility.mjs
       - name: Test mobile document and Helpdesk DOM contracts

@@ -248,7 +248,9 @@
     <string name="talk_link_not_nextcloud">Це не посилання Nextcloud Talk.</string>
     <string name="talk_link_enter_valid">Введіть дійсне посилання Nextcloud Talk.</string>
     <string name="talk_chat_title">Talk — лише чат</string>
-    <string name="talk_chat_only_notice">Talk тут працює в режимі чату. Аудіо та відео вимкнено.</string>
+    <string name="talk_chat_only_notice">Talk підтримує чат і голосові повідомлення. Дзвінки залишаються вимкненими.</string>
+    <string name="talk_microphone_denied">Дозволь мікрофон для голосових повідомлень. Текстові повідомлення працюють і далі.</string>
+    <string name="release_note_talk_voice">Записуй голосові повідомлення в Talk. Під час першого використання дозволь мікрофон. Вихід скасовує запис; камера залишається заблокованою.</string>
     <string name="talk_media_disabled">Аудіо- та відеодзвінки вимкнено в Mission Leben Zentral.</string>
     <string name="device_service_http_error">Device Service повернув HTTP %1$d.</string>
     <string name="push_mail_title">Нова пошта</string>
@@ -391,4 +393,13 @@
     <string name="release_note_ticket_photo">В ІТ-допомозі можна сфотографувати телефоном помилку на ПК й додати фото до заявки. Перевір фото; заявка надсилається лише після натискання Надіслати.</string>
     <string name="release_note_app_help">Налаштування → Допомога та інструкція містять короткі пояснення функцій застосунку з невеликими зображеннями.</string>
     <string name="release_note_phone_settings">Налаштування застосунку на телефоні стали зрозумілішими: сповіщення та акумулятор. Обидва стосуються лише Mission Leben Zentral.</string>
+    <string name="setup_talk_voice_short">Голосові повідомлення</string>
+    <string name="talk_voice_settings_title">Голосові повідомлення в Talk</string>
+    <string name="talk_voice_settings_description">Дозволь мікрофон, щоб говорити замість введення тексту в Talk. Він використовується лише для запису. Без дозволу текстові повідомлення й далі працюють.</string>
+    <string name="talk_voice_permission_allowed">Мікрофон: дозволено</string>
+    <string name="talk_voice_permission_missing">Мікрофон: ще не дозволено</string>
+    <string name="talk_voice_permission_request">Дозволити мікрофон</string>
+    <string name="talk_voice_permission_settings">Змінити дозвіл на телефоні</string>
+    <string name="talk_voice_permission_settings_hint">Якщо запит більше не з’являється, зміни дозвіл мікрофона в налаштуваннях телефону.</string>
+    <string name="release_note_talk_voice_setup">Дозволь мікрофон у помічнику налаштування або Налаштування → Talk. Новий крок з’явиться один раз.</string>
 </resources>

@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-22",
+  "status": "RECORDING_USER_CONFIRMED_LOCAL_ASSISTANT_PILOT_INSTALLED_PERMISSION_UI_ACCEPTANCE_PENDING_NOT_PUBLISHED",
+  "authorization": "User requested a test build for Talk voice messages, not OTA or server changes",
+  "branch": "feat/talk-voice-pilot-0.23.4",
+  "sourceCommit": "a3fb6971bb7acfbd0f2a8dd7643401ff629674ae",
+  "versionName": "0.23.4-local",
+  "versionCode": 99,
+  "apk": {
+    "file": "mission-leben-zentral-0.23.4-local-assistant.apk",
+    "sha256": "2008d93af7fa8c89e85085383e349b6d949db7d11aa018fabc9d5b448300b7f6",
+    "sizeBytes": 28069250,
+    "signerSha256": "2ec23cae1a61df07dcb58fcfcd9f4f6e92ca1c73419f6b4cd4add3b5e946ac00",
+    "productionSignerUnchanged": true,
+    "signatureVerified": true,
+    "packageName": "de.missionleben.portal",
+    "installed": true,
+    "installedAtDeviceLocal": "2026-10-22 07:39:21",
+    "installation": "Same-signature adb install -r local pilot updates without uninstall; RECORD_AUDIO deliberately revoked for the new direct-consent UI test, human regrant pending; registration retained",
+    "published": false
+  },
+  "tests": {
+    "cleanCommittedArchiveBuild": "PASS; exact Gradle task inputs reused cached tests where available",
+    "androidDebug": {"tests": 433, "failures": 0, "errors": 0, "skipped": 0},
+    "androidRelease": {"tests": 401, "failures": 0, "errors": 0, "skipped": 0},
+    "releaseLint": {"errors": 0, "warnings": 132, "newWarning": "One additional UseKtx style suggestion for Uri.parse in permission settings panel; no functional lint errors. Previous131 warnings retained"},
+    "nodeTalkChatPolicy": "PASS existing overview/last-chat/room guards",
+    "nodeTalkVoicePolicy": "PASS audio-only, iframe/background/foreign-path denial, cancel-before-track-stop, late stream cancellation, native resume and source wiring contracts",
+    "physicalDevice": "User confirmed routefix works; Android appops confirms a4.419-second real microphone use which ended. Assistant build installed; direct permission prompt/status and settings UI await human unlock",
+    "assistantPermissionUi": "New TALK_VOICE key offered only for signed-in Talk-visible users, independent of push/Zimbra and previous TALK step. Store regression confirms only new step appears once for existing completed users. Actual permission refreshed on ON_RESUME; denied requests provide own-package Android settings path",
+    "realAudioSendPlaybackAndLockStop": "NOT_VERIFIED; required before rollout",
+    "githubCiPrOta": "NOT_CREATED_OR_TRIGGERED; local branch only",
+    "initialBuildRepairs": "Kotlin lazy gate/launcher declarations given explicit types after recursive inference error; bundled Node path used because node is absent from shell PATH"
+  },
+  "permissionDelta": {
+    "added": ["android.permission.RECORD_AUDIO", "android.permission.MODIFY_AUDIO_SETTINGS"],
+    "normalAudioSettingsPermission": "Required by Chromium input device enumeration; does not replace runtime microphone consent",
+    "optionalHardware": ["android.hardware.microphone"],
+    "cameraAdded": false,
+    "microphoneForegroundServiceAdded": false,
+    "runtimePrompt": "Only after audio-only request from visible trusted Talk app content; text remains usable on denial",
+    "webGrant": "Literal AUDIO_CAPTURE only; never grants request.resources"
+  },
+  "security": {
+    "origin": "https://nextcloud.mission-leben.de with default or443 port only",
+    "topPage": "Strict Talk apps/spreed or call/token paths; no unrelated apps, prefix lookalikes or userinfo",
+    "currentSessionAndRegisteredDevice": true,
+    "androidResultBoundToOriginalRequestAndDocument": true,
+    "documentStartGuardRequired": true,
+    "guardReadiness": "Bound to current document generation; both finished and current URLs must remain strict Talk documents. No equality requirement for in-document room navigation; replaced-document callbacks ignored",
+    "onPauseStopDestroyOrNavigation": "Cancel original pending request; abort Talk recorder before stopping stream; late results cannot retarget another request",
+    "mediaBoundary": "WebView grants origin-scoped microphone access, not a native proof of voice-message versus audio-call intent; Talk call controls remain filtered",
+    "contentCacheOrNativeRecordingFileAdded": false,
+    "authentikGroupFlowMfaTrustChanged": false,
+    "nextcloudCoreAppOrBackendModified": false,
+    "secretsOrRecordingContentLogged": false
+  },
+  "talkContract": {
+    "liveInstalledVersionReadOnly": "25.0.6",
+    "upstreamSource": "https://github.com/nextcloud/spreed/blob/v25.0.6/src/components/NewMessage/NewMessageAudioRecorder.vue",
+    "abortSelector": ".audio-recorder button:has(.close-icon)",
+    "checkButton": "End recording AND send; not a preview",
+    "updateCheck": "After Talk upgrades recheck microphone control, abort selector, aborted flag before stop/generateFile, and physical no-send on background/lock"
+  },
+  "sourceHashes": {
+    "manifest": "323592e9cb6ba8be73d0a6f6ff096715800e4b8ee2c10f54d840daa46f703db3",
+    "voicePolicy": "88226f83ee4868476e1fed2141c77dfb211a982de674b163d58aec7bdde72d2a",
+    "permissionGate": "ea4356f7bf9e6924f21e9e368d9a7fbddde04c7b761357d8ec69aabfbfce564e",
+    "browserActivity": "06ae455b030e91f4d40ccc8576fc2782d106a9dd33aa9b7dd3695fd41fab4c10",
+    "setupPolicy": "bda238ec991f3da04175690369519cccfcf1c9ce5bc1299912f5b03f52bc34d3",
+    "microphoneSettingsPanel": "72444f147ef1c58427c8ca66f4508ee0cdf6e84b4bbce27263aef0c415ab733b",
+    "unrelatedBootstrapExcludedUnchanged": "1d2773f504e1cae6cfa30f9cdc14a27afb66e9f16ff1b6c5fbd24e9e313bb914"
+  },
+  "currentPublicRelease": "0.23.3/98 unchanged",
+  "rollback": "Same-signature forward build above99 retaining data, no silent downgrade/uninstall, no server rollback needed",
+  "firstPilot": {"sourceCommit": "efc222ea59b6458a8629afef5cd0bfdd97e6f55c", "apkSha256": "d01b4500f10c160113863063c176f07ada77920ed10ecccbc1c0b0c94c19e83b", "result": "Runtime consent granted, microphone denied; Chromium logged missing MODIFY_AUDIO_SETTINGS"},
+  "audiofixAttempt": {"sourceCommit": "8c0a191", "apkSha256": "973ef500492d9f30150ce4d4a2bcea5951ee849e647613e0e70ecb7789f81ab8", "result": "Both permissions granted, missing-permission log gone, Talk denial persists. Diagnostic311367f reproduced samePage=false with all other native gates true on SPA room navigation"},
+  "diagnosticBuild": {"sourceCommit": "311367f", "scope": "Fixed allowlisted event codes and boolean native gate state only in local version; no URL, identity, exception text, credentials or recorded content"},
+  "updateHandoff": {"authentikUpdate": "SENT_USER_CONFIRMED_RECORDING_AND_LOCAL_ASSISTANT_PERMISSION_DELTA_WITH_OPEN_PHYSICAL_GATES", "nextcloudUpdate": "SENT_USER_CONFIRMED_RECORDING_AND_LOCAL_ASSISTANT_PERMISSION_DELTA_WITH_OPEN_PHYSICAL_GATES"}
+}

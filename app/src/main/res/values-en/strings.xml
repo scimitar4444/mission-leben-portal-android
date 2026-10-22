@@ -264,7 +264,9 @@
     <string name="talk_link_not_nextcloud">This is not a Nextcloud Talk link.</string>
     <string name="talk_link_enter_valid">Enter a valid Nextcloud Talk link.</string>
     <string name="talk_chat_title">Talk – chat only</string>
-    <string name="talk_chat_only_notice">Talk runs in chat mode here. Audio and video are disabled.</string>
+    <string name="talk_chat_only_notice">Talk supports chat and voice messages here. Calls remain disabled.</string>
+    <string name="talk_microphone_denied">Allow microphone access for voice messages. Text messages still work.</string>
+    <string name="release_note_talk_voice">Record voice messages in Talk. Allow microphone access the first time. Leaving cancels the recording; the camera stays blocked.</string>
     <string name="talk_media_disabled">Audio and video calls are disabled in Mission Leben Zentral.</string>
     <string name="device_service_http_error">Device Service returned HTTP %1$d.</string>
     <string name="push_mail_title">New mail</string>
@@ -403,4 +405,13 @@
     <string name="release_note_ticket_photo">In IT Help, take a photo of a PC error with your phone and attach it to your ticket. Review the photo; the ticket is sent only when you tap Submit.</string>
     <string name="release_note_app_help">Settings → Help &amp; guide now offers short explanations with small pictures of app features.</string>
     <string name="release_note_phone_settings">Phone settings for the app are clearer: notification settings and battery settings. Both apply only to Mission Leben Zentral.</string>
+    <string name="setup_talk_voice_short">Voice messages</string>
+    <string name="talk_voice_settings_title">Voice messages in Talk</string>
+    <string name="talk_voice_settings_description">Allow the microphone to speak instead of typing in Talk. It is only used for a recording. You can still send text messages without permission.</string>
+    <string name="talk_voice_permission_allowed">Microphone: allowed</string>
+    <string name="talk_voice_permission_missing">Microphone: not yet allowed</string>
+    <string name="talk_voice_permission_request">Allow microphone</string>
+    <string name="talk_voice_permission_settings">Change permission on this phone</string>
+    <string name="talk_voice_permission_settings_hint">If no prompt appears, you can change microphone permission in the phone settings.</string>
+    <string name="release_note_talk_voice_setup">Allow microphone access in the setup assistant or Settings → Talk. The new setup step appears once.</string>
 </resources>

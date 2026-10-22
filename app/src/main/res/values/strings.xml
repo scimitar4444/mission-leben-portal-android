@@ -288,7 +288,9 @@
     <string name="talk_link_not_nextcloud">Der Link ist kein Nextcloud-Talk-Link.</string>
     <string name="talk_link_enter_valid">Bitte einen gültigen Nextcloud-Talk-Link eingeben.</string>
     <string name="talk_chat_title">Talk – nur Chat</string>
-    <string name="talk_chat_only_notice">Talk läuft hier im Chat-Modus. Audio und Video sind deaktiviert.</string>
+    <string name="talk_chat_only_notice">Talk unterstützt hier Chat und Sprachnachrichten. Anrufe bleiben deaktiviert.</string>
+    <string name="talk_microphone_denied">Für Sprachnachrichten bitte das Mikrofon erlauben. Textnachrichten funktionieren weiter.</string>
+    <string name="release_note_talk_voice">In Talk kannst du Sprachnachrichten aufnehmen. Erlaube dafür beim ersten Mal das Mikrofon. Die Aufnahme wird beim Verlassen abgebrochen; die Kamera bleibt gesperrt.</string>
     <string name="talk_media_disabled">Audio- und Videoanrufe sind in Mission Leben Zentral deaktiviert.</string>
     <string name="device_service_http_error">Device Service antwortet mit HTTP %1$d.</string>
 
@@ -436,4 +438,13 @@
     <string name="release_note_ticket_photo">In IT Hilfe kannst du eine Fehlermeldung am PC mit dem Handy fotografieren und an dein Ticket anhängen. Prüfe das Foto; erst mit Übermitteln sendest du das Ticket ab.</string>
     <string name="release_note_app_help">Unter Einstellungen → Hilfe &amp; Anleitung findest du kurze Erklärungen mit kleinen Bildern zu den App-Funktionen.</string>
     <string name="release_note_phone_settings">Die App-Einstellungen auf dem Handy sind jetzt klarer: Benachrichtigungen einstellen und Akku-Einstellungen öffnen. Beides gilt nur für Mission Leben Zentral.</string>
+    <string name="setup_talk_voice_short">Sprachnachrichten</string>
+    <string name="talk_voice_settings_title">Sprachnachrichten in Talk</string>
+    <string name="talk_voice_settings_description">Erlaube das Mikrofon, um in Talk zu sprechen statt zu tippen. Es wird nur für eine Aufnahme verwendet. Ohne Freigabe kannst du weiter Textnachrichten schreiben.</string>
+    <string name="talk_voice_permission_allowed">Mikrofon: erlaubt</string>
+    <string name="talk_voice_permission_missing">Mikrofon: noch nicht erlaubt</string>
+    <string name="talk_voice_permission_request">Mikrofon erlauben</string>
+    <string name="talk_voice_permission_settings">Freigabe am Handy ändern</string>
+    <string name="talk_voice_permission_settings_hint">Falls keine Abfrage mehr erscheint, kannst du die Mikrofonfreigabe in den Handy-Einstellungen ändern.</string>
+    <string name="release_note_talk_voice_setup">Die Mikrofonfreigabe findest du im Einrichtungsassistenten und unter Einstellungen → Talk. Der neue Schritt wird einmalig angezeigt.</string>
 </resources>

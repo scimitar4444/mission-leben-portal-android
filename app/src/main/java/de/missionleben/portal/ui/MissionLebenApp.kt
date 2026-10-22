@@ -977,6 +977,7 @@ private fun SettingsScreen(
                     )
                     if (talkDetailsOpen) {
                         TalkStartSettingsPanel(state.talkStartAtLastChat, onTalkStartAtLastChatChange)
+                        TalkMicrophoneSettingsPanel()
                     }
                 }
             }

@@ -248,7 +248,9 @@
     <string name="talk_link_not_nextcloud">Bu bir Nextcloud Talk bağlantısı değil.</string>
     <string name="talk_link_enter_valid">Geçerli bir Nextcloud Talk bağlantısı girin.</string>
     <string name="talk_chat_title">Talk – yalnızca sohbet</string>
-    <string name="talk_chat_only_notice">Talk burada sohbet modunda çalışır. Ses ve video devre dışıdır.</string>
+    <string name="talk_chat_only_notice">Talk sohbet ve sesli mesajları destekler. Aramalar kapalı kalır.</string>
+    <string name="talk_microphone_denied">Sesli mesajlar için mikrofona izin ver. Yazılı mesajlar çalışmaya devam eder.</string>
+    <string name="release_note_talk_voice">Talk içinde sesli mesaj kaydet. İlk kullanımda mikrofona izin ver. Çıkınca kayıt iptal edilir; kamera engelli kalır.</string>
     <string name="talk_media_disabled">Sesli ve görüntülü aramalar Mission Leben Zentral’de devre dışıdır.</string>
     <string name="device_service_http_error">Cihaz Hizmeti HTTP %1$d yanıtını verdi.</string>
     <string name="push_mail_title">Yeni posta</string>
@@ -389,4 +391,13 @@
     <string name="release_note_ticket_photo">BT Yardımında bilgisayardaki bir hatanın fotoğrafını telefonunla çekip talebine ekleyebilirsin. Fotoğrafı kontrol et; talep yalnızca Gönder düğmesine dokununca gönderilir.</string>
     <string name="release_note_app_help">Ayarlar → Yardım ve kılavuz bölümünde uygulama özelliklerini küçük resimlerle anlatan kısa açıklamalar bulunur.</string>
     <string name="release_note_phone_settings">Telefondaki uygulama ayarları artık daha açık: bildirimler ve pil. İkisi de yalnızca Mission Leben Zentral için geçerlidir.</string>
+    <string name="setup_talk_voice_short">Sesli mesajlar</string>
+    <string name="talk_voice_settings_title">Talk sesli mesajları</string>
+    <string name="talk_voice_settings_description">Talk içinde yazmak yerine konuşmak için mikrofona izin ver. Mikrofon yalnızca kayıt için kullanılır. İzin vermeden de yazılı mesaj gönderebilirsin.</string>
+    <string name="talk_voice_permission_allowed">Mikrofon: izin verildi</string>
+    <string name="talk_voice_permission_missing">Mikrofon: henüz izin verilmedi</string>
+    <string name="talk_voice_permission_request">Mikrofona izin ver</string>
+    <string name="talk_voice_permission_settings">Telefonda izni değiştir</string>
+    <string name="talk_voice_permission_settings_hint">İzin sorusu görünmüyorsa telefon ayarlarında mikrofon iznini değiştirebilirsin.</string>
+    <string name="release_note_talk_voice_setup">Kurulum yardımcısından veya Ayarlar → Talk bölümünden mikrofona izin ver. Yeni kurulum adımı bir kez gösterilir.</string>
 </resources>

@@ -1,5 +1,7 @@
 package de.missionleben.portal.web
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.app.DownloadManager
 import android.content.Context
 import android.content.ActivityNotFoundException
@@ -17,6 +19,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.CookieManager
+import android.webkit.ConsoleMessage
 import android.webkit.DownloadListener
 import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
@@ -35,6 +38,8 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -84,6 +89,25 @@ class PortalBrowserActivity : FragmentActivity() {
     private var sessionExpiredResultDelivered = false
     private var sharedSessionResultDelivered = false
     private var talkChatNoticeShown = false
+    private var voiceDocumentStartInstalled = false
+    private var voiceCaptureGuardReady = false
+    private var voiceDocumentGeneration = 0L
+    private val talkVoicePermissionGate: TalkVoicePermissionGate by lazy {
+        TalkVoicePermissionGate(
+            page = { webViewUrl().orEmpty() },
+            contextAllowed = { voiceDocumentStartInstalled && voiceCaptureGuardReady && deviceMode != null &&
+                intent.getBooleanExtra(EXTRA_APP_CONTENT, false) && protectedFileActionAllowed() },
+            foreground = { lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && hasWindowFocus() },
+            hasAudioPermission = { ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED },
+            requestAndroidPermission = { microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
+            deniedByUser = { Toast.makeText(this, R.string.talk_microphone_denied, Toast.LENGTH_LONG).show() },
+        )
+    }
+    private val microphonePermissionLauncher: ActivityResultLauncher<String> = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        talkVoicePermissionGate.androidPermissionResult(granted)
+        window.decorView.post { resumeTalkVoiceCapture(); talkVoicePermissionGate.resume() }
+    }
     private var pendingInitialTargetUrl: String? = null
     private var initialHistoryUrl: String? = null
     private var pendingContactEmail: String? = null
@@ -253,6 +277,7 @@ class PortalBrowserActivity : FragmentActivity() {
         }
         // Also catch a completion delivered while this activity was stopped or recreated.
         window.decorView.post { openCompletedPersonalDownload() }
+        window.decorView.post { resumeTalkVoiceCapture(); talkVoicePermissionGate.resume() }
     }
 
     private fun requiresFreshPersonalContext(): Boolean =
@@ -284,6 +309,9 @@ class PortalBrowserActivity : FragmentActivity() {
     }
 
     override fun onPause() {
+        val permissionDialog = talkVoicePermissionGate.androidPromptOpen
+        talkVoicePermissionGate.pause()
+        if (!permissionDialog) stopTalkVoiceCapture()
         if (::webView.isInitialized && isAuthentikOrigin(webView.url.orEmpty())) {
             webView.evaluateJavascript(PasswordVisibilityPolicy.HIDE_SCRIPT, null)
         }
@@ -307,6 +335,8 @@ class PortalBrowserActivity : FragmentActivity() {
     }
 
     override fun onStop() {
+        talkVoicePermissionGate.cancel()
+        stopTalkVoiceCapture()
         unregisterReceiver(securityStateReceiver)
         unregisterReceiver(downloadCompleteReceiver)
         super.onStop()
@@ -314,7 +344,28 @@ class PortalBrowserActivity : FragmentActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) openCompletedPersonalDownload()
+        if (hasFocus) {
+            openCompletedPersonalDownload()
+            resumeTalkVoiceCapture()
+            talkVoicePermissionGate.resume()
+        } else if (!talkVoicePermissionGate.androidPromptOpen) {
+            talkVoicePermissionGate.pause()
+            stopTalkVoiceCapture()
+        }
+    }
+
+    private fun stopTalkVoiceCapture() {
+        if (::webView.isInitialized && TalkVoicePolicy.isNextcloudPage(webView.url.orEmpty())) {
+            webView.evaluateJavascript(TalkVoicePolicy.STOP_CAPTURE_SCRIPT, null)
+        }
+    }
+
+    private fun resumeTalkVoiceCapture() {
+        if (voiceCaptureGuardReady && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
+            hasWindowFocus() && intent.getBooleanExtra(EXTRA_APP_CONTENT, false) && protectedFileActionAllowed()
+        ) {
+            webView.evaluateJavascript(TalkVoicePolicy.RESUME_CAPTURE_SCRIPT, null)
+        }
     }
 
     private fun canExportPersonalDownload(): Boolean {
@@ -477,6 +528,10 @@ class PortalBrowserActivity : FragmentActivity() {
             talkChatScript,
             setOf(TalkChatPolicy.NEXTCLOUD_ORIGIN),
         )
+        voiceDocumentStartInstalled = runCatching {
+            WebViewCompat.addDocumentStartJavaScript(webView, TalkVoicePolicy.CAPTURE_GUARD_SCRIPT,
+                setOf(TalkChatPolicy.NEXTCLOUD_ORIGIN))
+        }.isSuccess
     }
 
     private fun installAnnouncementCenterGuard() {
@@ -605,6 +660,10 @@ class PortalBrowserActivity : FragmentActivity() {
         override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = handleNavigation(url, true)
 
         override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+            voiceDocumentGeneration++
+            talkVoicePermissionGate.cancel()
+            stopTalkVoiceCapture()
+            voiceCaptureGuardReady = false
             if (::fileChooser.isInitialized) fileChooser.pageChanged(url)
             if (interceptExpiredSession(url)) return
             super.onPageStarted(view, url, favicon)
@@ -628,6 +687,16 @@ class PortalBrowserActivity : FragmentActivity() {
                 // Fallback for providers without document-start script support and defense in depth
                 // after Nextcloud/Talk SPA route changes.
                 view.evaluateJavascript(talkChatScript, null)
+                val generation = voiceDocumentGeneration
+                view.evaluateJavascript(TalkVoicePolicy.CAPTURE_GUARD_SCRIPT) { installed ->
+                    // Ignore results from a replaced document, but permit Talk's in-document room routes.
+                    if (generation != voiceDocumentGeneration) return@evaluateJavascript
+                    voiceCaptureGuardReady = TalkVoicePolicy.isGuardReady(voiceDocumentStartInstalled, installed,
+                        generation, voiceDocumentGeneration, url, view.url.orEmpty())
+                    if (BuildConfig.VERSION_NAME.endsWith("-local")) Log.d("MissionLebenVoice",
+                        "guard start=$voiceDocumentStartInstalled installed=${installed == "true"} sameDocument=${generation == voiceDocumentGeneration} talk=${TalkVoicePolicy.isTalkDocument(view.url.orEmpty())} ready=$voiceCaptureGuardReady")
+                    resumeTalkVoiceCapture()
+                }
                 if (!talkChatNoticeShown) {
                     talkChatNoticeShown = true
                     Toast.makeText(
@@ -789,6 +858,15 @@ class PortalBrowserActivity : FragmentActivity() {
     }
 
     private inner class BrowserChromeClient : WebChromeClient() {
+        override fun onConsoleMessage(message: ConsoleMessage): Boolean {
+            val code = message.message()
+            if (code.matches(Regex("ML_TALK_VOICE:(installed|request|blocked-disabled|blocked-frame|blocked-hidden|blocked-page|blocked-constraints|native-denied|late-capture|stopped|resumed)"))) {
+                if (BuildConfig.VERSION_NAME.endsWith("-local")) Log.d("MissionLebenVoice", code)
+                return true
+            }
+            return super.onConsoleMessage(message)
+        }
+
         override fun onProgressChanged(view: WebView, newProgress: Int) {
             progress.progress = newProgress
             progress.visibility = if (newProgress >= 100) View.GONE else View.VISIBLE
@@ -799,13 +877,22 @@ class PortalBrowserActivity : FragmentActivity() {
         }
 
         override fun onPermissionRequest(request: PermissionRequest) {
-            // The app declares no camera or microphone permission. No website,
-            // including an otherwise trusted portal application, receives
-            // media access from this WebView.
-            if (TalkChatPolicy.isTalkPage(webView.url.orEmpty())) {
-                Toast.makeText(this@PortalBrowserActivity, R.string.talk_media_disabled, Toast.LENGTH_LONG).show()
-            }
-            request.deny()
+            if (BuildConfig.VERSION_NAME.endsWith("-local")) Log.d("MissionLebenVoice",
+                "permission start=$voiceDocumentStartInstalled ready=$voiceCaptureGuardReady mode=${deviceMode != null} content=${intent.getBooleanExtra(EXTRA_APP_CONTENT, false)} protected=${protectedFileActionAllowed()} resumed=${lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)} focus=${hasWindowFocus()} scoped=${TalkVoicePolicy.allows(webViewUrl().orEmpty(), request.origin.toString(), request.resources.toList())}")
+            talkVoicePermissionGate.request(object : TalkVoiceRequest {
+                override val identity: Any = request
+                override val origin: String = request.origin.toString()
+                override val resources: List<String> = request.resources.toList()
+                override fun grantAudio() {
+                    // Never grant request.resources: camera, MIDI and future resource types remain denied.
+                    runCatching { request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) }
+                }
+                override fun deny() { runCatching { request.deny() } }
+            })
+        }
+
+        override fun onPermissionRequestCanceled(request: PermissionRequest) {
+            talkVoicePermissionGate.canceled(request)
         }
 
         override fun onGeolocationPermissionsShowPrompt(origin: String?, callback: GeolocationPermissions.Callback) {
@@ -875,6 +962,8 @@ class PortalBrowserActivity : FragmentActivity() {
     }
 
     override fun onDestroy() {
+        talkVoicePermissionGate.cancel()
+        stopTalkVoiceCapture()
         if (::fileChooser.isInitialized) fileChooser.destroy()
         if (::webView.isInitialized) {
             webView.stopLoading()
