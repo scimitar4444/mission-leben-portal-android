@@ -42,8 +42,11 @@ Selektor und Verhalten nach Talk-Updates erneut prüfen. Nextcloud wird nicht ge
 Lokal geprüft: 430 Debug-/398 Release-Tests ohne Fehler oder Skips, neue reine
 Permission-/Origin-/Lebenszyklusprüfungen und Node-Tests für Aufnahmewächter,
 Abbrechen-vor-Stop, späte Resultate sowie bestehende Talk-Start-/Raumwege.
+Am22.10.2026 als Update auf dem angeschlossenen Nutzerhandy installiert:
+0.23.3/98 auf0.23.4-local/99, ohne Deinstallation; Paketversion und bestehender
+Installationszeitpunkt zurückgelesen. Die App wartet auf menschliche Biometrie.
 Reales Mikrofon, Android-Berechtigungsdialog, Aufnahme/Senden/Anhören und
-Abbruch bei Bildschirm-Aus sind noch keine Geräteabnahme: kein USB-Handy verbunden.
+Abbruch bei Bildschirm-Aus bleiben als Geräteabnahme offen. Kein OTA veröffentlicht.
 
 ## Auf dem Handy ausprobieren
 

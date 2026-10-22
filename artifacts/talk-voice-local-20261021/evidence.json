@@ -1,6 +1,6 @@
 {
   "date": "2026-10-21",
-  "status": "LOCAL_TEST_APK_BUILT_SIGNED_AND_AUTOMATED_TESTED_NOT_INSTALLED_NOT_PUBLISHED",
+  "status": "LOCAL_TEST_APK_INSTALLED_ON_USER_PHONE_PHYSICAL_AUDIO_ACCEPTANCE_PENDING_NOT_PUBLISHED",
   "authorization": "User requested a test build for Talk voice messages, not OTA or server changes",
   "branch": "feat/talk-voice-pilot-0.23.4",
   "sourceCommit": "efc222ea59b6458a8629afef5cd0bfdd97e6f55c",
@@ -14,7 +14,9 @@
     "productionSignerUnchanged": true,
     "signatureVerified": true,
     "packageName": "de.missionleben.portal",
-    "installed": false,
+    "installed": true,
+    "installedAtDeviceLocal": "2026-10-22 07:04:39",
+    "installation": "adb install -r succeeded from installed0.23.3/98; package readback confirms0.23.4-local/99 and original firstInstallTime retained",
     "published": false
   },
   "tests": {
@@ -24,7 +26,7 @@
     "releaseLint": {"errors": 0, "warnings": 131, "newWarning": "Former media-disabled string now unused; dependency-availability notice also refreshed, no dependency changed"},
     "nodeTalkChatPolicy": "PASS existing overview/last-chat/room guards",
     "nodeTalkVoicePolicy": "PASS audio-only, iframe/background/foreign-path denial, cancel-before-track-stop, late stream cancellation, native resume and source wiring contracts",
-    "physicalDevice": "NOT_RUN; no USB device connected",
+    "physicalDevice": "INSTALL_VERIFIED2026-10-22; human biometric unlock pending, Android microphone permission not yet granted",
     "realAudioSendPlaybackAndLockStop": "NOT_VERIFIED; required before rollout",
     "githubCiPrOta": "NOT_CREATED_OR_TRIGGERED; local branch only",
     "initialBuildRepairs": "Kotlin lazy gate/launcher declarations given explicit types after recursive inference error; bundled Node path used because node is absent from shell PATH"
